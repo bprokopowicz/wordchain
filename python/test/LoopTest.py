@@ -5,42 +5,69 @@ import sys
 sys.path.insert(0, "../src")
 
 from Solver import *
-from WordSeqDict import *
+from Game import *
+from WordChainDict import *
 
 def main():
-    wordSeqDict = WordSeqDict()
+    wordChainDict = WordChainDict()
 
-    prompt = "="*40 + "\nEnter solve|play words1 word2two 'q' to quit: "
+    prompt = "="*40 + "\nEnter solve|play word1 word2 or 'q' to quit: "
 
-    print(prompt)
-    for line in sys.stdin:
-        line = line.strip()
+    while (True):
+        line = input(prompt).strip()
 
         if line == "q":
             break
 
         try:
-            cmd, word1, word2 = line.strip().split(" ")
+            cmd, word1, word2 = line.split(" ")
             if cmd not in ["solve", "play"]:
                 print("command {} is not supported".format(cmd))
-                print(prompt)
+                continue
+
+            if not wordChainDict.isWord(word1):
+                print("{} is not in the dictionary".format(word1))
+                continue
+
+            if not wordChainDict.isWord(word2):
+                print("{} is not in the dictionary".format(word2))
                 continue
         except:
             print("D'oh! you forgot to give two words")
-            print(prompt)
             continue
 
-        solution = Solver(wordSeqDict, word1, word2).solveIt()
+        solution = Solver(wordChainDict, word1, word2).solveIt()
         if not solution.success():
-            print("OOPS: {}".format(solution.getError()))
+            print("No solution: {}".format(solution.getError()))
         else:
             if cmd == "solve":
                 print("SOLUTION: {}".format(solution.summarize()))
             elif cmd == "play":
-                solution.play()
+                game = Game(wordChainDict, solution)
+                while (not game.isSolved()):
+                    print(game.showGame())
+                    word = input("\n >>> ").strip()
 
-        print(prompt)
+                    if word == '-quit' or word == '-quitall':
+                        break
+                    if word == '-dump':
+                        print("SOLUTION: {}".format(game.solution.getWordList()))
+                        continue
+                    if word == '-dumpall':
+                        print("SOLUTION: {}".format(game.solution.getWordList()))
+                        print("PROGRESS: {}".format(game.solutionInProgress.getWordList()))
+                        continue
 
+                    playResult = game.playWord(word)
+                    print(playResult)
+
+                if word == "-quit":
+                    print("BYE QUITTER!\n")
+                elif word == "-quitall":
+                    print("BYE QUITTER!\n")
+                    break
+                else:
+                    print("YOU WIN!!!!\n")
 
 if __name__ == '__main__':
     main()

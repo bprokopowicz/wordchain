@@ -7,8 +7,8 @@ sys.path.insert(0, "../src")
 from GenericBaseClass import *
 
 class Solver(GenericBaseClass):
-    def __init__(self, wordSeqDict, fromWord, toWord):
-        self.wordSeqDict = wordSeqDict
+    def __init__(self, wordChainDict, fromWord, toWord):
+        self.wordChainDict = wordChainDict
         self.fromWord = fromWord
         self.toWord = toWord
 
@@ -29,10 +29,11 @@ class Solver(GenericBaseClass):
                 return solution
 
             lastWord = solution.getLastWord()
-            nextWords = self.wordSeqDict.findNextWords(lastWord)
+            nextWords = self.wordChainDict.findNextWords(lastWord)
             nextWords -= solution.getWordSet()
 
-            for word in nextWords:
+            # Without sorting nextWords, we did not consistently find the same solution.
+            for word in sorted(nextWords):
                 newWorkingSolution = solution.copy().addWord(word)
                 self.logDebug("   adding {}".format(newWorkingSolution), tags="solveDetail")
                 heapq.heappush(workingSolutions, newWorkingSolution)
@@ -49,7 +50,7 @@ class Solver(GenericBaseClass):
             return solution
 
         lastWord = solution.getLastWord()
-        nextWords = self.wordSeqDict.findReplacementWords(lastWord)
+        nextWords = self.wordChainDict.findReplacementWords(lastWord)
 
         # Remove words in nextWords that are already in solution
         nextWords -= solution.getWordSet()
@@ -65,13 +66,13 @@ class Solver(GenericBaseClass):
             
         return solution.addError("No solution") 
 
-    def solveIt(self, depth=False):
-        solution = Solution(list(), self.toWord)
+    def solveIt(self, depth=False, solutionPrefix=list()):
+        solution = Solution(solutionPrefix, self.toWord)
 
-        if not self.wordSeqDict.isWord(self.fromWord): 
+        if not self.wordChainDict.isWord(self.fromWord): 
             return solution.addError("Sorry, '{}' is not a word".format(self.fromWord))
             
-        if not self.wordSeqDict.isWord(self.toWord): 
+        if not self.wordChainDict.isWord(self.toWord): 
             return solution.addError("Sorry, '{}' is not a word".format(self.toWord))
 
         solution.addWord(self.fromWord)
@@ -89,6 +90,18 @@ class Solution(GenericBaseClass):
 
     def __eq__(self, other):
         return self.distance == other.distance
+
+    def __ne__(self, other):
+        return self.distance != other.distance
+
+    def __ge__(self, other):
+        return self.distance >= other.distance
+
+    def __gt__(self, other):
+        return self.distance > other.distance
+
+    def __le__(self, other):
+        return self.distance <= other.distance
 
     def __lt__(self, other):
         return self.distance < other.distance
@@ -111,24 +124,57 @@ class Solution(GenericBaseClass):
     def copy(self):
         return Solution(self.wordList, self.target, self.distance)
         
+    def display(self):
+        return "\n".join(self.wordList);
+
     def getError(self):
         return self.errorMessage
+
+    def getFirstWord(self):
+        return self.wordList[0]
 
     def getLastWord(self):
         return self.wordList[-1]
 
-    def getFirstWord(self):
-        return self.wordList[0]
+    def getPenultimateWord(self):
+        if len(self.wordList) == 1:
+            raise RuntimeError("getPenultimateWord(): self.wordList is length 1")
+         self.wordList[-2]
+
+    def getTarget(self):
+        return self.target
+
+    def getWordByStep(self, step):
+        return self.wordList[step]
+
+    # May not need
+    def getWordsAfterStep(self, step):
+        return self.wordList[step+1:]
 
     def getWordSet(self):
         return set(self.wordList)
 
     def getWordList(self):
-        return self.wordList
+        return copy.copy(self.wordList)
 
     def isSolved(self):
         return self.target == self.getLastWord()
 
+    def isWordInSolution(self, word):
+        return word in self.wordList
+
+    def numSteps(self):
+        return len(self.wordList) - 1
+
+    def play(self):
+        print("TODO\n")
+
+    def success(self):
+        return self.errorMessage is None
+
+    def summarize(self):
+        return "{} [{} steps]".format(self.wordList, self.numSteps())
+        
     @staticmethod
     def wordDistance(word1, word2):
         len1 = len(word1)
@@ -163,18 +209,17 @@ class Solution(GenericBaseClass):
 
         return distance
 
-    def numSteps(self):
-        return len(self.wordList) - 1
+    # *** Currently not used.
+    @staticmethod
+    def wordEnumerator(word):
+        """
+        Determine the position of this length-K word where, for a 3-letter word
+        'aaa' has position 0, and 'zzz' has position 26^^3 - 1.
+        """
+        enumeration = 0
+        for letter in word:
+            enumeration = enumeration*26 + (ord(letter) - ord('a'))
 
-    def play(self):
-        print("TODO\n")
-
-    def success(self):
-        return self.errorMessage is None
-
-    def summarize(self):
-        return "{} [{} steps]".format(self.wordList, self.numSteps())
-
-    def display(self):
-        return "\n".join(self.wordList);
+        GenericBaseClass.logDebug("----- enumeration of {}: {}".format(word, enumeration), tags="distance")
         
+        return enumeration

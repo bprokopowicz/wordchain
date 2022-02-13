@@ -1,3 +1,4 @@
+import os
 import sys
 import unittest
 
@@ -5,7 +6,10 @@ sys.path.insert(0, "../src")
 
 class TestBase(unittest.TestCase):
     @staticmethod
-    def main(className):
+    def main(fileName):
+
+        className = os.path.splitext(os.path.basename(fileName))[0]
+
         for index, arg in enumerate(sys.argv):
             if index == 0:
                 continue
@@ -17,4 +21,4 @@ class TestBase(unittest.TestCase):
             else:
                 sys.argv[index] = "{}.test_{}".format(className, arg)
                 
-        unittest.main()
+        return unittest.main()

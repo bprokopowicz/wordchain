@@ -1,3 +1,5 @@
+#!/usr/bin/env /usr/bin/python3
+
 import os
 import sys
 import unittest
@@ -5,16 +7,16 @@ import unittest
 sys.path.insert(0, "../src")
 
 from TestBase import *
-from WordSeqDict import *
+from WordChainDict import *
 
 class DictTest(TestBase):
     @classmethod
     def setUpClass(cls):
-        cls.tinyDict  = WordSeqDict(["apple", "pear", "banana"])
+        cls.tinyDict  = WordChainDict(["apple", "pear", "banana"])
         smallList = ["bad", "bade", "bald", "bat", "bate", "bid", "cad", "cat", "dog", "scad"]
-        cls.miniDict  = WordSeqDict(smallList, 3)
-        cls.smallDict = WordSeqDict(smallList)
-        cls.fullDict  = WordSeqDict()
+        cls.miniDict  = WordChainDict(smallList, 3)
+        cls.smallDict = WordChainDict(smallList)
+        cls.fullDict  = WordChainDict()
 
     ################
     # tinyDict tests
@@ -31,7 +33,7 @@ class DictTest(TestBase):
     ################
 
     def test_dictLoads(self):
-        self.assertEqual(self.fullDict.getSize(), 279369, "Size is wrong")
+        self.assertEqual(self.fullDict.getSize(), 172605, "Size is wrong")
 
     def test_isWord(self):
         self.assertTrue(self.fullDict.isWord("place"), "'place' actually is a word")
@@ -42,11 +44,11 @@ class DictTest(TestBase):
 
     def test_adder(self):
         adders = self.fullDict.findAdderWords("cat")
-        self.assertEqual(len(adders), 10, "Expected 10 adders")
+        self.assertEqual(len(adders), 8, "Incorrect number of adders")
 
     def test_replacement(self):
         replacements = self.fullDict.findReplacementWords("bade")
-        self.assertEqual(len(replacements), 24, "Expected 24 replacements")
+        self.assertEqual(len(replacements), 18, "Incorrect number of replacements")
 
     #################
     # smallDict tests
@@ -93,4 +95,4 @@ class DictTest(TestBase):
 
 
 if __name__ == '__main__':
-    TestBase.main(__file__.replace(".py", ""))
+    sys.exit(TestBase.main(__file__))
