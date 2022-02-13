@@ -139,7 +139,7 @@ class Solution(GenericBaseClass):
     def getPenultimateWord(self):
         if len(self.wordList) == 1:
             raise RuntimeError("getPenultimateWord(): self.wordList is length 1")
-         self.wordList[-2]
+        self.wordList[-2]
 
     def getTarget(self):
         return self.target
