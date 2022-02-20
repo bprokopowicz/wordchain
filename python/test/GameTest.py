@@ -79,6 +79,7 @@ class GameTest(TestBase):
         curSolutionStep2 = game.solution.getWordByStep(2)
         self.assertNotEqual(curSolutionStep2, origStep2, "current step 2 is not different from original")
 
+        # TODO: Continue playing
         #self.assertTrue(game.isSolved())
         
     def test_displayStartingGame(self):
@@ -87,8 +88,7 @@ class GameTest(TestBase):
         game = Game(theDict, solution)
         playResult = game.playWord("bum")
         self.assertEqual(playResult, Game.OK, "playing bum")
-        print(solution.summarize())
-        expected="[0] blum\n[1] bum\n[2] **!\n[3] !**\n"
+        expected="[0]  blum\n[1]  bum\n[2]  **!\n[3]  !**\n"
         self.assertEqual(game.showGame(), expected)
 
 

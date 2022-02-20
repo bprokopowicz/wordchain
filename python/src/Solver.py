@@ -23,7 +23,8 @@ class Solver(GenericBaseClass):
             self.logDebug("first working solution: {}".format(solution), tags="solveDetail")
             if solution.numSteps() > longestSolution:
                 longestSolution = solution.numSteps()
-                self.logDebug("longestSolution: {}".format(longestSolution), tags="perf")
+                self.logDebug("longestSolution: {}; #working solutions: {}".format(
+                    longestSolution, len(workingSolutions)), tags="perf")
 
             if solution.isSolved():
                 return solution
@@ -39,7 +40,7 @@ class Solver(GenericBaseClass):
                 heapq.heappush(workingSolutions, newWorkingSolution)
 
             if len(workingSolutions) % 1000 == 0:
-                self.logDebug("workingSolutions length: {}".format(len(workingSolutions)), tags="perf")
+                self.logDebug("#working solutions: {}".format(len(workingSolutions)), tags="perf")
 
             self.logDebug("-----", tags="solveDetail")
             

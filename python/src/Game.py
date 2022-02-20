@@ -57,18 +57,12 @@ class Game(GenericBaseClass):
         resultStr = "";
 
         for i in range(0, len(solutionWords)):
+            stepStr = "{:5s}".format("[{}]".format(i))
             if (i <= self.solutionInProgress.numSteps()):
-                resultStr += "[{}] {}".format(i, self.showPlayedWord(playedWords[i]))
-            #elif (i == self.solution.numSteps()) :
-            #    resultStr += "[{}] {}".format(i, self.showLastWord(self.solution.getLastWord()))
+                resultStr += "{}{}".format(stepStr, self.showPlayedWord(playedWords[i]))
             else:
-                resultStr += "[{}] {}".format(i, self.showUnguessedWord(solutionWords[i], solutionWords[i-1]))
+                resultStr += "{}{}".format(stepStr, self.showUnguessedWord(solutionWords[i], solutionWords[i-1]))
         return resultStr
-
-    """
-    def showLastWord(self, word):
-        return "{}\n".format(word)
-    """
 
     def showPlayedWord(self, word):
         return "{}\n".format(word)

@@ -38,7 +38,7 @@ def main():
 
         solution = Solver(wordChainDict, word1, word2).solveIt()
         if not solution.success():
-            print("No solution: {}".format(solution.getError()))
+            print("No solution")
         else:
             if cmd == "solve":
                 print("SOLUTION: {}".format(solution.summarize()))
