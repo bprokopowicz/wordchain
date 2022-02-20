@@ -5,4 +5,5 @@ Start web server:
 
 Navagate to in Chrome:
 
-    http://localhost:8000/WordChain.html
+    http://localhost:8000/html/WordChain.html
+

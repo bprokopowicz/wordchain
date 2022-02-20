@@ -15,7 +15,7 @@ class WordChainDict {
     }
 
     async loadDict() {
-        let wordFileText = await this.fetchText("http://localhost:8000/WordFreq38807");
+        let wordFileText = await this.fetchText("http://localhost:8000/dict/WordFreq38807");
         let wordList = wordFileText.split("\n");
         wordList.pop();
         this.wordSet = new Set(wordList);
