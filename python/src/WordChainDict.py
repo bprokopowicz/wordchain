@@ -68,6 +68,7 @@ class WordChainDict(GenericBaseClass):
                 removers.add(potentialWord)
 
         self.logDebug("removers for '{}': {}".format(word, sorted(removers)), tags="remove,findDetail")
+
         return removers
 
     def findReplacementWords(self, word):

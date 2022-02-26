@@ -1,35 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="http://localhost:8000/javascript/WordChain.js"></script>
 </head>
-
 <body>
-<h2>WordChain</h2>
-
-<!--
+<script src="https://unpkg.com/heapify"></script>
 <script>
-const input = document.createElement("input");
-input.setAttribute("type", "text");
-input.setAttribute("id", "theWord");
-document.body.appendChild(input);
+let GLdebug = "";
+let GLdisplayType = "gameTest";
+function loadScript(url) {    
+    var head = document.getElementsByTagName('head')[0];
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = url;
+    head.appendChild(script);
+}
+let url = "";
+let version = Date.now();
+loadScript(`${url}/javascript/BaseLogger.js?v=${version}`)
+loadScript(`${url}/javascript/WordChainDict.js?v=${version}`)
+loadScript(`${url}/javascript/Solver.js?v=${version}`)
+loadScript(`${url}/javascript/Game.js?v=${version}`)
+loadScript(`${url}/javascript/Display.js?v=${version}`)
 </script>
--->
-
-<input type="text" id="theWord">
-<button type="button" onclick="dictionary.isWord()">Is it a word?</button>
-<p></p>
-<label id="answer">Click the button to find out!</label>
-
-<!--
-<script>
-const label = document.createElement("label");
-label.setAttribute("id", "answer"); 
-label.innerHTML = "Click the button to find out!";
-document.body.appendChild(label);
-</script>
--->
-
 </body>
 </html> 
 
