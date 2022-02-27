@@ -1,28 +1,40 @@
+// This class is a wrapper for MinQueue from Heapify, which only allows
+// pushing integers onto the heap. The Solver class wants to push Solution
+// objects, so we maintain an object map (just an array of objects, where
+// its ID is its index in the map) and push the object ID onto the heapq.
 class SolutionHeap extends BaseLogger {
     constructor() {
         super();
 
         const {MinQueue} = Heapify;
-        this.objectIndexHeap = new MinQueue(100000);
+        this.objectIndexHeapq = new MinQueue(100000);
         this.objectMap = [];
     }
 
+    // Return the number of objects put on the heap over time.
     getMapSize() {
         return this.objectMap.length
     }
 
+    // Return the number of objects currently in the heap.
     getSize() {
-        return this.objectIndexHeap.size
+        return this.objectIndexHeapq.size
     }
 
+    // Push an item (Solution in our case) onto the heap, with
+    // a given priority (distance to target word in our case).
     push(item, priority) {
         this.objectMap.push(item);
+
+        // Now that we've pushed the item, its index is one
+        // less than the length.
         let objectIndex = this.objectMap.length - 1;
-        this.objectIndexHeap.push(objectIndex, priority);
+        this.objectIndexHeapq.push(objectIndex, priority);
     }
 
+    // Pop an item from the heap.
     pop() {
-        let objectIndex = this.objectIndexHeap.pop();
+        let objectIndex = this.objectIndexHeapq.pop();
         let item = this.objectMap[objectIndex];
 
         // Set to null so that the object will be freed when no longer used.
@@ -31,6 +43,8 @@ class SolutionHeap extends BaseLogger {
     }
 }
 
+// This class tries to find a word chain from a "from word" to a "to word", 
+// which is returned as a Solution object.
 class Solver extends BaseLogger {
     constructor(wordChainDict, fromWord, toWord) {
         super();
@@ -39,6 +53,7 @@ class Solver extends BaseLogger {
         this.toWord   = toWord;
     }
 
+    // Currently not used; might be used for tests.
     getWordErrors() {
         if (! this.dict.isWord(this.fromWord)) {
             return `Sorry '${this.fromWord}' is not a word`;
@@ -49,6 +64,8 @@ class Solver extends BaseLogger {
         return null;
     }
 
+    // Solve in a fast way, based on whether it is better to solve
+    // fromWord --> toWord or toWord --> fromWord.
     static fastSolve(wordChainDict, fromWord, toWord) {
         let fromWordNextWordsCount = wordChainDict.findNextWords(fromWord).length;
         let toWordNextWordsCount = wordChainDict.findNextWords(toWord).length;
