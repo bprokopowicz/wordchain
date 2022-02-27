@@ -23,7 +23,7 @@ class WordChainDict extends BaseLogger {
         let adders = new Set();
         let alphabet = "abcdefghijklmnopqrstuvwxyz"
 
-        for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
+        for (let wordIndex = 0; wordIndex <= word.length; wordIndex++) {
             for (let letterIndex = 0; letterIndex < 26; letterIndex++) {
                 let letter = alphabet.substr(letterIndex, 1);
                 let potentialWord = word.substr(0, wordIndex) + letter + word.substr(wordIndex);

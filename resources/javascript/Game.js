@@ -7,9 +7,8 @@ class Game extends BaseLogger {
     constructor(dict, solution) {
         super();
         this.dict = dict;
-        this.solution = solution;
-        let firstWord = solution.getFirstWord();
-        this.solutionInProgress = new Solution([firstWord], solution.target);
+        this.knownSolution = solution;
+        this.solutionInProgress = new Solution([solution.getFirstWord()], solution.target);
     }
 
     isSolved () {
@@ -20,36 +19,46 @@ class Game extends BaseLogger {
         // Display will validate that the word is a valid word.
 
         if (this.solutionInProgress.isWordInSolution(word)) {
+            this.logDebug(`${word} is already played`, "game");
             return Game.DUPLICATE;
         }
     
         let lastWordPlayed = this.solutionInProgress.getLastWord();
         if (! this.dict.findNextWords(lastWordPlayed).has(word)) {
+            this.logDebug(`${word} is not one step from ${lastWordPlayed}`, "game");
             return Game.NOT_ONE_STEP;
         }
 
+        // If user gave the next word that was in the current solution,
+        // just add that word to the solution in progress and we're done.
         let nextStep = this.solutionInProgress.numSteps() + 1;
-        if (this.solution.getWordByStep(nextStep) === word) {
+        if (this.knownSolution.getWordByStep(nextStep) === word) {
             this.solutionInProgress.addWord(word);
             return Game.OK;
         }
 
-        //let newSolver = new Solver(this.dict, word, this.solution.getTarget());
-        //let potentialNewSolution = newSolver.solveIt(this.solutionInProgress.getWords());
-        const potentialNewSolution = Solver.fastSolve(this.dict, word, this.solution.getTarget());
+        const potentialNewSolution = Solver.fastSolve(this.dict, word, this.knownSolution.getTarget());
+        this.logDebug(`found solution from word to end: ${potentialNewSolution.toStr()}`, "game");
 
+        // Does the user's word lead to a solution? 
         if (potentialNewSolution.isSolved()) {
-            this.solution = potentialNewSolution;
+            // Yes. Update the known solution: append the potential solution (which has the user's word in it)
+            // to (a copy of) the solution in progress.
+            this.logDebug(`joining  ${this.solutionInProgress.toStr()} to ${potentialNewSolution.toStr()}`, "game");
+            this.knownSolution = this.solutionInProgress.copy().append(potentialNewSolution)
+
+            // Add the user's word to the solution in progress.
             this.solutionInProgress.addWord(word);
             return Game.OK;
         } else {
+            // No. tell the user it's a dead end.
             return Game.DEAD_END;
         }
     }
 
     showGame() {
         let playedWords = this.solutionInProgress.getWords();
-        let solutionWords = this.solution.getWords();
+        let solutionWords = this.knownSolution.getWords();
         let resultStr = ""; 
 
         let game = []

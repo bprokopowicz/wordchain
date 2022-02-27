@@ -39,17 +39,33 @@ class Solver extends BaseLogger {
         this.toWord   = toWord;
     }
 
-    static fastSolve(wordChainDict, fromWord, toWord) {
-        if (wordChainDict.findNextWords(fromWord).length < wordChainDict.findNextWords(toWord).length) {
-            new BaseLogger().logDebug("Solving forward.", "solveDetail"); 
-            return new Solver(wordChainDict, fromWord, toWord).solveIt();
-        } else {
-            new BaseLogger().logDebug("Solving in reverse.", "solveDetail"); 
-            return (new Solver(wordChainDict, toWord, fromWord).solveIt()).reverse();
+    getWordErrors() {
+        if (! this.dict.isWord(this.fromWord)) {
+            return `Sorry '${this.fromWord}' is not a word`;
+        } else if (! this.dict.isWord(this.toWord)) {
+            return `Sorry '${this.toWord}' is not a word`;
         }
+
+        return null;
     }
 
-    solve(startingSolution) {
+    static fastSolve(wordChainDict, fromWord, toWord) {
+        let fromWordNextWordsCount = wordChainDict.findNextWords(fromWord).length;
+        let toWordNextWordsCount = wordChainDict.findNextWords(toWord).length;
+
+        // Determine whether there are more "next words" from the "from" or "to"
+        // word and construct a solver going from the one with the fewest to the most
+        // next words so that the search is more efficient.
+        let solution = (fromWordNextWordsCount < toWordNextWordsCount) ?
+                new Solver(wordChainDict, fromWord, toWord).solve() :
+                (new Solver(wordChainDict, toWord, fromWord).solve()).reverse();
+        new BaseLogger().logDebug(`fast solve finds: ${solution.toStr()}`, "solveDetail");
+        return solution;
+    }
+
+    solve() {
+        const startingSolution = new Solution([], this.toWord).addWord(this.fromWord);
+
         const {MinQueue} = Heapify;
         const workingSolutions = new SolutionHeap();
         workingSolutions.push(startingSolution, startingSolution.getDistance());
@@ -66,14 +82,6 @@ class Solver extends BaseLogger {
                 this.logDebug(`loopCount: ${loopCount}: heap size: ${workingSolutions.getSize()}`, "perf")
                 this.logDebug(`loopCount: ${loopCount}: map size:  ${workingSolutions.getMapSize()}`, "perf")
             }
-
-            /*
-            if (solution.isSolved()) {
-                this.logDebug(`loopCount: ${loopCount}: heap size: ${workingSolutions.getSize()}`, "perf")
-                this.logDebug(`loopCount: ${loopCount}: map size:  ${workingSolutions.getMapSize()}`, "perf")
-                return solution;
-            }
-            */
 
             let lastWord  = solution.getLastWord();
             let nextWords = this.dict.findNextWords(lastWord);
@@ -101,28 +109,8 @@ class Solver extends BaseLogger {
 
             this.logDebug("-----", "solveDetail")
         }
-    
-        return solution.addError("No solution") 
-    }
 
-    solveIt(solutionPrefix=Array(), validate=false) {
-        if (validate) {
-            error = null;
-            if (! this.dict.isWord(this.fromWord)) {
-                error = `Sorry '${this.fromWord}' is not a word`;
-            }
-            if (! this.dict.isWord(this.toWord)) {
-                error = `Sorry '${this.toWord}' is not a word`;
-            }
-
-            if (error) {
-                return new Solution(solutionPrefix, this.toWord).addError(error);
-                
-            }
-        }
-
-        let solution = new Solution(solutionPrefix, this.toWord);
-        return this.solve(solution.addWord(this.fromWord));
+        return solution.addError("No solution")
     }
 }
 
@@ -136,12 +124,6 @@ class Solution extends BaseLogger {
         this.errorMessage = "";
     }
 
-    reverse() {
-        this.target = this.wordList[0];
-        this.wordList.reverse();
-        return this;
-    }
-
     addError(errorMessage) {
         this.errorMessage = errorMessage;
         return this;
@@ -150,6 +132,14 @@ class Solution extends BaseLogger {
     addWord(newWord) {
         this.wordList.push(newWord)
         this.distance = this.wordDistance(newWord, this.target) + this.wordList.length;
+        return this;
+    }
+
+    // TODO: assert restOfSolution is the rest.
+    // restOfSolution is itself a Solution
+    append(restOfSolution) {
+        this.wordList = this.wordList.concat(restOfSolution.wordList);
+        this.distance = restOfSolution.distance; // TODO: assert should be zero?
         return this;
     }
 
@@ -197,7 +187,7 @@ class Solution extends BaseLogger {
     getWords() {
         return [...this.wordList];
     }
-    
+
     isSolved() {
         return this.target === this.getLastWord();
     }
@@ -208,6 +198,12 @@ class Solution extends BaseLogger {
 
     numSteps() {
         return this.wordList.length - 1;
+    }
+
+    reverse() {
+        this.target = this.wordList[0];
+        this.wordList.reverse();
+        return this;
     }
 
     success() {
