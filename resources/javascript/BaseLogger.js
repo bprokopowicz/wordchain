@@ -8,7 +8,7 @@ class BaseLogger {
 
         if (GLdebug) {
             tagsTurnedOn = new Set(GLdebug.split(','));
-        } 
+        }
 
         if (tags) {
             tagsForMessage = new Set(tags.split(','));

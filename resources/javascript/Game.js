@@ -1,3 +1,5 @@
+// NOTE: This class assumes words that are played in the game have
+// already been validated to be in the dictionary.
 class Game extends BaseLogger {
     static OK = "ok";
     static NOT_ONE_STEP = "Your word is not one step away from the last word.";
@@ -11,7 +13,17 @@ class Game extends BaseLogger {
         this.solutionInProgress = new Solution([solution.getFirstWord()], solution.target);
     }
 
-    isSolved () {
+    // This is used only for testing.
+    getKnownSolution() {
+        return this.knownSolution;
+    }
+
+    // This is used only for testing.
+    getSolutionInProgress() {
+        return this.solutionInProgress;
+    }
+
+    isSolved() {
         return this.solutionInProgress.isSolved();
     }
 

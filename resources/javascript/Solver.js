@@ -43,8 +43,11 @@ class SolutionHeap extends BaseLogger {
     }
 }
 
-// This class tries to find a word chain from a "from word" to a "to word", 
+// This class tries to find a word chain from a "from word" to a "to word",
 // which is returned as a Solution object.
+//
+// NOTE: This class expects its user to verify that the fromWord and toWord
+// are valid words in the wordChainDict given to its constructor args.
 class Solver extends BaseLogger {
     constructor(wordChainDict, fromWord, toWord) {
         super();
@@ -75,22 +78,31 @@ class Solver extends BaseLogger {
         // next words so that the search is more efficient.
         let solution = (fromWordNextWordsCount < toWordNextWordsCount) ?
                 new Solver(wordChainDict, fromWord, toWord).solve() :
-                (new Solver(wordChainDict, toWord, fromWord).solve()).reverse();
+                new Solver(wordChainDict, toWord, fromWord).solve().reverse();
         new BaseLogger().logDebug(`fast solve finds: ${solution.toStr()}`, "solveDetail");
         return solution;
     }
 
     solve() {
-        const startingSolution = new Solution([], this.toWord).addWord(this.fromWord);
+        // Create an initial working solution and test for the degenerae case
+        // that it is already solved.
+        // Note that addWord() will calculate the distance for the solution.
+        const startingWorkingSolution = new Solution([], this.toWord).addWord(this.fromWord);
+        if (startingWorkingSolution.isSolved()) {
+            return startingWorkingSolution;
+        }
 
-        const {MinQueue} = Heapify;
+        // Create a heap for our working solutions and push this starting working solution on the heap.
         const workingSolutions = new SolutionHeap();
-        workingSolutions.push(startingSolution, startingSolution.getDistance());
+        workingSolutions.push(startingWorkingSolution, startingWorkingSolution.getDistance());
 
         let solution = null;
         let longestSolution = 0;
         let loopCount = 0;
         while (workingSolutions.getSize() !== 0) {
+            // Get the solution with the shortest distance to the "target word"
+            // from the heap; we'll add working solutions based on this
+            // "nearest" solution.
             solution = workingSolutions.pop();
             this.logDebug(`popped working solution: ${solution.toStr()}`, "solveDetail");
             if (solution.numSteps() > longestSolution) {
@@ -100,19 +112,26 @@ class Solver extends BaseLogger {
                 this.logDebug(`loopCount: ${loopCount}: map size:  ${workingSolutions.getMapSize()}`, "perf")
             }
 
+            // Find all possible "next words" from the last word in the solution so far.
             let lastWord  = solution.getLastWord();
             let nextWords = this.dict.findNextWords(lastWord);
 
             // Remove words that are already in the solution from nextWords.
             nextWords = new Set(Array.from(nextWords).filter(w => !solution.getWordSet().has(w)));
 
+            // Check if we have a solution; if so, add this latest word to it, and return it.
             if (nextWords.has(this.toWord)) {
                 solution.addWord(this.toWord);
+                solution.setSearchSize(loopCount);
                 return solution;
             }
 
-            // Without sorting nextWords, we did not consistently find the same solution.
+            // No solution, add a new working solution to the workingSolutions heap
+            // for each word in nextWords.
+            //
+            // NOTE: Without sorting nextWords, we do not consistently find the same solution.
             for (let word of Array.from(nextWords).sort()) {
+                // Note that addWord() will calculate the distance of newWorkingSolution.
                 let newWorkingSolution = solution.copy().addWord(word);
                 this.logDebug(`   adding ${newWorkingSolution.toStr()}`, "solveDetail");
                 workingSolutions.push(newWorkingSolution, newWorkingSolution.getDistance());
@@ -127,7 +146,9 @@ class Solver extends BaseLogger {
             this.logDebug("-----", "solveDetail")
         }
 
-        return solution.addError("No solution")
+        solution.setSearchSize(loopCount);
+        solution.addError("No solution")
+        return solution;
     }
 }
 
@@ -139,6 +160,12 @@ class Solution extends BaseLogger {
         this.target   = target;
         this.distance = distance ? distance : 100;
         this.errorMessage = "";
+        this.searchSize = 0;
+    }
+
+    setSearchSize(n) {
+        this.searchSize = n;
+        return this;
     }
 
     addError(errorMessage) {
@@ -148,7 +175,7 @@ class Solution extends BaseLogger {
 
     addWord(newWord) {
         this.wordList.push(newWord)
-        this.distance = this.wordDistance(newWord, this.target) + this.wordList.length;
+        this.distance = Solution.wordDistance(newWord, this.target) + this.wordList.length;
         return this;
     }
 
@@ -192,7 +219,7 @@ class Solution extends BaseLogger {
         return this.target;
     }
 
-    // Not used (for tests?)
+    // Used only in tests.
     getWordByStep(step) {
         return this.wordList[step];
     }
@@ -217,6 +244,10 @@ class Solution extends BaseLogger {
         return this.wordList.length - 1;
     }
 
+    searchSize() {
+        return this.searchSize;
+    }
+
     reverse() {
         this.target = this.wordList[0];
         this.wordList.reverse();
@@ -227,11 +258,13 @@ class Solution extends BaseLogger {
         return this.errorMessage.length === 0;
     }
 
-    wordDistance(word1, word2) {
+    static wordDistance(word1, word2) {
         let len1 = word1.length;
         let len2 = word2.length;
         let distance = 0;
-        this.logDebug(`word1: ${word1}, word2: ${word2}`, "distance");
+        let logger = new BaseLogger();
+
+        logger.logDebug(`word1: ${word1}, word2: ${word2}`, "distance");
 
         if (len1 === len2) {
             let matches = 0;
@@ -259,8 +292,8 @@ class Solution extends BaseLogger {
             let smallestDistance = 100;
             for (let index = 0; index < largerWord.length; index++) {
                 let testWord = largerWord.substr(0, index) + largerWord.substr(index + 1);
-                this.logDebug(`testWord: for ${largerWord}: ${testWord}`, "distance");
-                let distance = this.wordDistance(testWord, smallerWord);
+                logger.logDebug(`testWord: for ${largerWord}: ${testWord}`, "distance");
+                let distance = Solution.wordDistance(testWord, smallerWord);
 
                 if (distance < smallestDistance) {
                     smallestDistance = distance;
@@ -270,15 +303,16 @@ class Solution extends BaseLogger {
             distance = smallestDistance + 1;
         }
 
-        this.logDebug(`distance: ${distance}`, "distance")
+        logger.logDebug(`distance: ${distance}`, "distance")
         return distance;
     }
 
+    // This method is here to help with debugging.
     toStr() {
         if (this.errorMessage.length !== 0) {
             return this.errorMessage;
         } else {
-            return `${this.wordList} [${this.wordList.length - 1} steps to ${this.target}]`;
+            return `${this.wordList}<p>[${this.wordList.length - 1} steps to ${this.target}]<p>${this.searchSize} nodes`;
         }
     }
 }

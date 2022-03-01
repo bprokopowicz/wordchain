@@ -7,3 +7,77 @@ Navagate to in Chrome:
 
     http://localhost:8000/html/WordChain.html
 
+=======================================================
+
+trying to set up NPM package
+
+npm init --scope=@prokopowicz
+this needs a git URL
+
+-- did this, but still getting an error when running npm test:
+Not Found - GET https://registry.npmjs.org/wordchain - Not found
+
+from /users/bonnie/Projects ran:
+
+npm install /Users/bonnie/Projects/wordchain
+
+from /users/bonnie/Projects/wordchain:
+
+npm publish
+
+This failed with: 
+npm ERR! code ENEEDAUTH
+npm ERR! need auth This command requires you to be logged in to https://registry.npmjs.org/
+npm ERR! need auth You need to authorize this machine using `npm adduser`
+
+ran npm adduser
+- username: prokopowicz
+- password: as in pwsafe
+- email: bonnie.prokopowicz@gmail.com
+
+Got an email with a one-time password, which I copy/pasted
+
+ran npm publish again and needed to remove "private": true from package.json
+
+Then got an error that 'wordchain' is too similar to existing package 'word-chain'
+
+Changed the "name" in package.json to fairoaks1
+
+added dev-dependencies to fairoaks1 package, copied from heapify/package.json
+update fairoaks1 version number
+npm publish
+npm i fairoaks1
+  - now there are many modules in wordchain/node_modules, including ts stuff for jest.
+
+getting error ts7016
+added "types": "fairoaks1.d.ts", 
+to package.json
+=======================================================
+
+I created the url 
+git@github.com:bprokopowicz/wordchain.git
+
+looks like to access it via command line we need github's CLI called gh
+
+brew install gh
+
+then authorize your shell session with
+gh auth login -w 
+
+To switch between 'prokopowicz' and 'bprokopowicz' github accounts
+login to the one we want in the browser, then run gh auth login -w
+
+GitHub config:
+/Users/bonnie/.config/gh/hosts.yml - should have github user in it.
+
+
+To get ssh key into github:
+cat ~/.ssh/id_rsa.pub | pbcopy
+
+git remote remove origin
+git remote add origin git@github.com:bprokopowicz/wordchain.git
+git remote -v (to list)
+
+git push --set-upstream origin master
+
+=======================================================

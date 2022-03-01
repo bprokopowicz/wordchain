@@ -1,7 +1,7 @@
 class WordChainDict extends BaseLogger {
-    constructor() {
+    constructor(wordList) {
         super();
-        this.loadDict();  
+        this.loadDict(wordList);
     }
 
     async fetchText(filePath) {
@@ -10,11 +10,13 @@ class WordChainDict extends BaseLogger {
         return data;
     }
 
-    async loadDict() {
-        let wordFileText = await this.fetchText("/dict/WordFreq38807");
-        let wordList = wordFileText.split("\n");
-        // Without pop() we get an empty string in the set.
-        wordList.pop();
+    async loadDict(wordList=[]) {
+        if (wordList.length === 0) {
+            let wordFileText = await this.fetchText("/dict/WordFreq38807");
+            wordList = wordFileText.split("\n");
+            // Without pop() we get an empty string in the set.
+            wordList.pop();
+        }
         this.wordSet = new Set(wordList);
     }
 
@@ -120,7 +122,7 @@ class WordChainDict extends BaseLogger {
     // Give a default of empty string so word is not undefined,
     // because  you can't get the length of undefined.
     isWord(word="") {
-        let theWord = word;
+        let theWord = word.toLowerCase();
         if (theWord.length === 0) {
             throw new Error("WordChainDict.isWord(): Word cannot have length 0");
         }
@@ -128,5 +130,3 @@ class WordChainDict extends BaseLogger {
         return this.wordSet.has(theWord);
     }
 };
-
-var GLdictionary = new WordChainDict();

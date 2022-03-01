@@ -6,7 +6,7 @@
 <script src="https://unpkg.com/heapify"></script>
 <script>
 let GLdebug = "";
-let GLdisplayType = "prototype";
+let GLdisplayType = "";
 function loadScript(url) {    
     var head = document.getElementsByTagName('head')[0];
     var script = document.createElement('script');
@@ -21,6 +21,7 @@ loadScript(`${url}/javascript/WordChainDict.js?v=${version}`)
 loadScript(`${url}/javascript/Solver.js?v=${version}`)
 loadScript(`${url}/javascript/Game.js?v=${version}`)
 loadScript(`${url}/javascript/Display.js?v=${version}`)
+loadScript(`${url}/javascript/test/Test.js?v=${version}`)
 </script>
 </body>
 </html> 

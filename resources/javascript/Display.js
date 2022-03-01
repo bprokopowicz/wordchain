@@ -2,74 +2,17 @@
 class Display extends BaseLogger {
     constructor() {
         super();
-        this.addElement("h2", {}, "WordChain")
+
+        this.dict = new WordChainDict();
     }
 
     /*
-    ** GLdisplayType === dictTest
-    */
-
-    dictTest() {
-        this.addElement("input", {id: "theWord", type: "text"});
-        this.addElement("p");
-        this.addElement("button", {id: "isItAWord", onclick: "GLdisplay.isWordCallback()"}, "Is it a Word?");
-        this.addElement("p");
-        this.addElement("label", {id: "isItAWordAnswer"}, "Click the button to find out!");
-    }
-
-    isWordCallback() {
-        const theWord = this.getElementValue("theWord");
-
-        const isWord = GLdictionary.isWord(theWord);
-        const answer = (isWord
-            ? `Yes, '${theWord}' is a word!` 
-            : `Sorry, '${theWord}' is not a word.`
-            );  
-
-        this.setElementHTML("isItAWordAnswer", answer);
-    }
-
-    /*
-    ** GLdisplayType === solverTest
-    */
-
-    solverTest() {
-        this.addElement("label", {}, "Start word: ");
-        this.addElement("input", {id: "solverStartWord", type: "text"});
-        this.addElement("p");
-        this.addElement("label", {}, "Target word: ");
-        this.addElement("input", {id: "solverTargetWord", type: "text"}, "Target word:");
-        this.addElement("p");
-        this.addElement("button", {id: "solve", onclick: "GLdisplay.solveCallback()"}, "Solve!");
-        this.addElement("p");
-        this.addElement("label", {id: "solveAnswer"}, "Click the button to see the chain.");
-    }
-
-    solveCallback() {
-        const startWord = this.checkWord("solverStartWord")
-        if (! startWord) {
-            alert("Starting word is empty or not a word");
-            return;
-        }
-
-        const targetWord = this.checkWord("solverTargetWord")
-        if (! targetWord) {
-            alert("Target word is empty or not a word");
-            return;
-        }
-
-        //const solver = new Solver(GLdictionary, startWord, targetWord);
-        const solution = Solver.fastSolve(GLdictionary, startWord, targetWord);
-
-        this.setElementHTML("solveAnswer", solution.toStr());   
-    }
-
-    /*
-    ** GLdisplayType === gameTest
+    ** GLdisplayType === prototype
     */
 
     gameTest() {
         this.game = null;
+        this.addElement("h2", {}, "WordChain");
         this.addElement("label", {}, "Start word: ");
         this.addElement("input", {id: "gameStartWord", type: "text"});
         this.addElement("p");
@@ -92,9 +35,12 @@ class Display extends BaseLogger {
             return;
         }
 
-        //const solver = new Solver(GLdictionary, startWord, targetWord);
-        //const solution = solver.solveIt();
-        const solution = Solver.fastSolve(GLdictionary, startWord, targetWord);
+        if (startWord === targetWord) {
+            alert("Hollow congratulations for creating an already solved game.");
+            return
+        }
+
+        const solution = Solver.fastSolve(this.dict, startWord, targetWord);
 
         if (!solution.success()) {
             alert("No solution! Please Pick new start and/or target words.")
@@ -102,7 +48,7 @@ class Display extends BaseLogger {
         }
 
 
-        this.game = new Game(GLdictionary, solution);
+        this.game = new Game(this.dict, solution);
         const gameStepsHtml = this.stepsToHtml(this.game.showGame());
 
         // If we've already created the elements, just clear out the
@@ -130,7 +76,7 @@ class Display extends BaseLogger {
             alert("Entered word is empty or not a word.")
             return;
         }
-        
+
         const gameResult = this.game.playWord(enteredWord);
 
         if (gameResult !== Game.OK) {
@@ -148,7 +94,7 @@ class Display extends BaseLogger {
         let html = "";
         for (let i = 0; i < gameSteps.length; i++) {
             const gameStep = gameSteps[i];
-            html += `[${i}] `; 
+            html += `[${i}] `;
             html += gameStep;
             html += "<br>";
         }
@@ -186,7 +132,7 @@ class Display extends BaseLogger {
         if (word.length === 0) {
             return null;
         }
-        if (!GLdictionary.isWord(word)) {
+        if (!this.dict.isWord(word)) {
             return null;
         }
 
@@ -228,14 +174,8 @@ class Display extends BaseLogger {
 }
 
 var GLdisplay = new Display();
-if (GLdisplayType === "dictTest") {
-    GLdisplay.dictTest();
-} else if (GLdisplayType === "solverTest") {
-    GLdisplay.solverTest();
-} else if (GLdisplayType === "gameTest") {
+if (GLdisplayType === "prototype") {
     GLdisplay.gameTest();
-} else if (GLdisplayType === "realGame") {
-    GLdisplay.realGame();
-} else {
-    alert(`Invalid value of GLdisplay: ${GLdisplay}`);
-}
+} // else if (GLdisplayType === "realGame") {
+    // GLdisplay.realGame();
+//}
