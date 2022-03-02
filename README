@@ -9,51 +9,6 @@ Navagate to in Chrome:
 
 =======================================================
 
-trying to set up NPM package
-
-npm init --scope=@prokopowicz
-this needs a git URL
-
--- did this, but still getting an error when running npm test:
-Not Found - GET https://registry.npmjs.org/wordchain - Not found
-
-from /users/bonnie/Projects ran:
-
-npm install /Users/bonnie/Projects/wordchain
-
-from /users/bonnie/Projects/wordchain:
-
-npm publish
-
-This failed with: 
-npm ERR! code ENEEDAUTH
-npm ERR! need auth This command requires you to be logged in to https://registry.npmjs.org/
-npm ERR! need auth You need to authorize this machine using `npm adduser`
-
-ran npm adduser
-- username: prokopowicz
-- password: as in pwsafe
-- email: bonnie.prokopowicz@gmail.com
-
-Got an email with a one-time password, which I copy/pasted
-
-ran npm publish again and needed to remove "private": true from package.json
-
-Then got an error that 'wordchain' is too similar to existing package 'word-chain'
-
-Changed the "name" in package.json to fairoaks1
-
-added dev-dependencies to fairoaks1 package, copied from heapify/package.json
-update fairoaks1 version number
-npm publish
-npm i fairoaks1
-  - now there are many modules in wordchain/node_modules, including ts stuff for jest.
-
-getting error ts7016
-added "types": "fairoaks1.d.ts", 
-to package.json
-=======================================================
-
 I created the url 
 git@github.com:bprokopowicz/wordchain.git
 
