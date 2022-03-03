@@ -12,7 +12,7 @@ class WordChainDict extends BaseLogger {
 
     async loadDict(wordList=[]) {
         if (wordList.length === 0) {
-            let wordFileText = await this.fetchText("/web/resources/dict/WordFreq38807");
+            let wordFileText = await this.fetchText("https://bprokopowicz.github.io/wordchain/resources/dict/WordFreq38807");
             wordList = wordFileText.split("\n");
             // Without pop() we get an empty string in the set.
             wordList.pop();
