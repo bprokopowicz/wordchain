@@ -3,6 +3,9 @@ import { WordChainDict } from './WordChainDict.js';
 import { Solver } from './Solver.js';
 import { Game } from './Game.js';
 
+// Forwarding functions; see big comment below explaining how
+// these came about.
+
 function startGameCallback() {
     Display.singleton().startGameCallback();
 }
@@ -12,6 +15,7 @@ function playCallback() {
 }
 
 // Singleton class Display.
+
 class Display extends BaseLogger {
     static singletonObject = null;
 
@@ -43,6 +47,18 @@ class Display extends BaseLogger {
         this.addElement("p");
         this.addElement("button", {id: "startGame"}, "Start Game");
 
+        // When this.startGameCallback is passed as the listener, Chrome appears
+        // to call it (but refers to it as HTMLButtonElement.stargGameCallback)
+        // and "this" within the method is of type HTMLButtonElement, so the call
+        // within to "this.checkWord()" resolves to HTMLButtonElement.checkword,
+        // which is is not a function. This kind of makes sense (except for why it
+        // was able to call the Display.startGameCallback() method at all!).
+        //
+        // At that point I introduced the singleton idea. I thought that passing
+        // Display.singleton().startGameCallback as the listener would work,
+        // but this also resulted in "HTMLButtonElement.checkWord() is not a
+        // function." Sigh. I really don't understand why that is not working.
+        // But we carry on; introducing the "forwarding function" did the trick.
         this.getElement("startGame").addEventListener("click", startGameCallback);
     }
 

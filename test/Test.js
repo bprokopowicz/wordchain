@@ -3,6 +3,9 @@ import { WordChainDict } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
 
+// Forwarding functions; see big comment on Display.prototypeGame()
+// explaining how these came about.
+
 function runTestsCallback() {
     Test.singleton().runTestsCallback();
 }
@@ -15,6 +18,7 @@ function solveCallback() {
     Test.singleton().solveCallback();
 }
 
+// Singleton class Test.
 
 class Test extends Display {
     static singletonObject = null;
