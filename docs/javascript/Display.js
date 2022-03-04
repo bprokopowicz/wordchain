@@ -1,16 +1,38 @@
+import { BaseLogger } from './BaseLogger.js';
+import { WordChainDict } from './WordChainDict.js';
+import { Solver } from './Solver.js';
+import { Game } from './Game.js';
+
+function startGameCallback() {
+    Display.singleton().startGameCallback();
+}
+
+function playCallback() {
+    Display.singleton().playCallback();
+}
+
 // Singleton class Display.
 class Display extends BaseLogger {
+    static singletonObject = null;
+
     constructor() {
         super();
 
         this.dict = new WordChainDict();
     }
 
+    static singleton() {
+        if (Display.singletonObject === null) {
+            Display.singletonObject = new Display();
+        }
+        return Display.singletonObject;
+    }
+
     /*
     ** GLdisplayType === prototype
     */
 
-    gameTest() {
+    prototypeGame() {
         this.game = null;
         this.addElement("h2", {}, "WordChain");
         this.addElement("label", {}, "Start word: ");
@@ -19,7 +41,9 @@ class Display extends BaseLogger {
         this.addElement("label", {}, "Target word: ");
         this.addElement("input", {id: "gameTargetWord", type: "text"});
         this.addElement("p");
-        this.addElement("button", {id: "startGame", onclick: "GLdisplay.startGameCallback()"}, "Start Game");
+        this.addElement("button", {id: "startGame"}, "Start Game");
+
+        this.getElement("startGame").addEventListener("click", startGameCallback);
     }
 
     startGameCallback() {
@@ -47,7 +71,6 @@ class Display extends BaseLogger {
             return;
         }
 
-
         this.game = new Game(this.dict, solution);
         const gameStepsHtml = this.stepsToHtml(this.game.showGame());
 
@@ -63,11 +86,13 @@ class Display extends BaseLogger {
         this.addElement("p");
         this.addElement("label", {}, "Enter next word: ");
         this.addElement("input", {id: "enterWord", type: "text"});
-        this.addElement("button", {id: "play", onclick: "GLdisplay.playCallback()"}, "Play!");
+        this.addElement("button", {id: "play"}, "Play!");
         this.addElement("p");
         this.addElement("label", {}, "Solution in progress:");
         this.addElement("p");
         this.addElement("label", {id: "solution"}, gameStepsHtml);
+
+        this.getElement("play").addEventListener("click", playCallback);
     }
 
     playCallback() {
@@ -173,9 +198,10 @@ class Display extends BaseLogger {
     }
 }
 
-var GLdisplay = new Display();
+export { Display };
+
 if (GLdisplayType === "prototype") {
-    GLdisplay.gameTest();
-} // else if (GLdisplayType === "realGame") {
-    // GLdisplay.realGame();
-//}
+    Display.singleton().prototypeGame();
+} else if (GLdisplayType === "real") {
+    Display.singleton().realGame();
+}

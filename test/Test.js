@@ -1,4 +1,24 @@
+import { Display } from '../docs/javascript/Display.js';
+import { WordChainDict } from '../docs/javascript/WordChainDict.js';
+import { Solver, Solution } from '../docs/javascript/Solver.js';
+import { Game } from '../docs/javascript/Game.js';
+
+function runTestsCallback() {
+    Test.singleton().runTestsCallback();
+}
+
+function lookupCallback() {
+    Test.singleton().lookupCallback();
+}
+
+function solveCallback() {
+    Test.singleton().solveCallback();
+}
+
+
 class Test extends Display {
+    static singletonObject = null;
+
     constructor() {
         super();
 
@@ -6,6 +26,13 @@ class Test extends Display {
         this.tinyList  = ["apple", "pear", "banana"];
         this.smallList = ["bad", "bade", "bald", "bat", "bate", "bid", "cad", "cat", "dog", "scad"]
         this.fullDict = new WordChainDict();
+    }
+
+    static singleton() {
+        if (Test.singletonObject === null) {
+            Test.singletonObject = new Test();
+        }
+        return Test.singletonObject;
     }
 
     display() {
@@ -28,13 +55,15 @@ class Test extends Display {
 
     displayTestSuite() {
         this.addTitle("WordChain Test Suite");
-        this.addElement("button", {id: "runTests", onclick: "GLtester.runTests()"}, "Run Tests");
+        this.addElement("button", {id: "runTests"}, "Run Tests");
         this.addElement("p");
         this.addElement("label", {id: "testResults"}, "");
         this.addElement("p");
+
+        this.getElement("runTests").addEventListener("click", runTestsCallback);
     }
 
-    runTests() {
+    runTestsCallback() {
         this.successCount = 0;
         this.failureCount = 0;
         this.messages = [];
@@ -359,10 +388,12 @@ class Test extends Display {
         this.addElement("label", {}, "word: ");
         this.addElement("input", {id: "someWord", type: "text"});
         this.addElement("p");
-        this.addElement("button", {id: "lookup", onclick: "GLtester.lookupCallback()"}, "lookup");
+        this.addElement("button", {id: "lookup"}, "lookup");
         this.addElement("p");
         this.addElement("label", {id: "lookupAnswer"}, " Click the button to look up the word.");
         this.addElement("p");
+
+        this.getElement("lookup").addEventListener("click", lookupCallback);
     }   
 
     lookupCallback() {
@@ -386,10 +417,12 @@ class Test extends Display {
         this.addElement("label", {}, "Target word: ");
         this.addElement("input", {id: "solverTargetWord", type: "text"}, "Target word:");
         this.addElement("p");
-        this.addElement("button", {id: "solve", onclick: "GLtester.solveCallback()"}, "Solve!");
+        this.addElement("button", {id: "solve"}, "Solve!");
         this.addElement("p");
         this.addElement("label", {id: "solveAnswer"}, "Click the button to see the chain.");
         this.addElement("p");
+
+        this.getElement("solve").addEventListener("click", solveCallback);
     }
 
     solveCallback() {
@@ -410,5 +443,6 @@ class Test extends Display {
     }
 }
 
-var GLtester = new Test();
-GLtester.display()
+Test.singleton().display();
+
+export { Test };

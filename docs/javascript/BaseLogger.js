@@ -1,3 +1,4 @@
+
 class BaseLogger {
     constructor() {
     }
@@ -21,3 +22,5 @@ class BaseLogger {
         }
     }
 }
+
+export { BaseLogger };

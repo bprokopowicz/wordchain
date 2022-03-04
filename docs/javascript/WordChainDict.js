@@ -1,3 +1,5 @@
+import { BaseLogger } from './BaseLogger.js';
+
 class WordChainDict extends BaseLogger {
     constructor(wordList) {
         super();
@@ -130,3 +132,5 @@ class WordChainDict extends BaseLogger {
         return this.wordSet.has(theWord);
     }
 };
+
+export { WordChainDict };

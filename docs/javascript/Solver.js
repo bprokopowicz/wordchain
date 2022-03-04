@@ -1,3 +1,5 @@
+import { BaseLogger } from './BaseLogger.js';
+
 // This class is a wrapper for MinQueue from Heapify, which only allows
 // pushing integers onto the heap. The Solver class wants to push Solution
 // objects, so we maintain an object map (just an array of objects, where
@@ -7,7 +9,7 @@ class SolutionHeap extends BaseLogger {
         super();
 
         const {MinQueue} = Heapify;
-        this.objectIndexHeapq = new MinQueue(100000);
+        this.objectIndexHeapq = new MinQueue(200000);
         this.objectMap = [];
     }
 
@@ -99,6 +101,7 @@ class Solver extends BaseLogger {
         let solution = null;
         let longestSolution = 0;
         let loopCount = 0;
+        let startTime = Date.now()
         while (workingSolutions.getSize() !== 0) {
             // Get the solution with the shortest distance to the "target word"
             // from the heap; we'll add working solutions based on this
@@ -137,8 +140,17 @@ class Solver extends BaseLogger {
                 workingSolutions.push(newWorkingSolution, newWorkingSolution.getDistance());
             }
 
+            // Check every 1000 iterations if we are taking too long.
             loopCount += 1;
             if (loopCount % 1000 === 0) {
+                // Date.now() returns milliseconds; if this is taking more than 7 seconds
+                // just assume there is no solution. Kind of a kludge, but ... ain't nobody
+                // got time to wait more than 7 seconds.
+                if (Date.now() - startTime > 7000) {
+                    this.logDebug(`Too long! loopCount: ${loopCount}`, "perf");
+                    solution.addError("No solution");
+                    return solution;
+                }
                 this.logDebug(`loopCount: ${loopCount}: heap size: ${workingSolutions.getSize()}`, "perf")
                 this.logDebug(`loopCount: ${loopCount}: map size:  ${workingSolutions.getMapSize()}`, "perf")
             }
@@ -316,3 +328,5 @@ class Solution extends BaseLogger {
         }
     }
 }
+
+export { Solver, Solution };

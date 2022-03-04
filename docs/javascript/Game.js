@@ -1,3 +1,6 @@
+import { BaseLogger } from './BaseLogger.js';
+import { Solution, Solver } from './Solver.js';
+
 // NOTE: This class assumes words that are played in the game have
 // already been validated to be in the dictionary.
 class Game extends BaseLogger {
@@ -102,3 +105,5 @@ class Game extends BaseLogger {
         return unguessedWord;
     }
 }
+
+export { Game };
