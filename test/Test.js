@@ -302,6 +302,7 @@ class Test extends Display {
         this.testGameDifferentWordFromInitialSolution();
         this.testGameCompleteSmallDict();
         this.testGameCompleteFullDict();
+        this.testGameSolutionCannotHavePlayedWord();
     }
 
     testGameCorrectFirstWord() {
@@ -381,6 +382,18 @@ class Test extends Display {
             this.success();
     }
 
+    testGameSolutionCannotHavePlayedWord() {
+        const origSolution = Solver.fastSolve(this.fullDict, "cat", "dog");
+        const game = new Game(this.fullDict, origSolution);
+
+        let playResult = game.playWord("cats")
+        let wordsAfterFromWord = game.getKnownSolution().getWords().slice(1)
+
+        this.verify((playResult === Game.OK), "No solution from 'cat, cats' to 'dog'") &&
+            this.verify(! wordsAfterFromWord.includes("cat"), "Solution of 'cats' to 'dog' contains 'cat'") &&
+            this.success();
+    }
+
     /*
     ** Additional testing assets
     */
@@ -443,7 +456,7 @@ class Test extends Display {
         }
 
         const solution = Solver.fastSolve(this.dict, startWord, targetWord);
-        this.setElementHTML("solveAnswer", solution.toStr());
+        this.setElementHTML("solveAnswer", solution.toHtml());
     }
 }
 

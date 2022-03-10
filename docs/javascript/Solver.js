@@ -51,11 +51,13 @@ class SolutionHeap extends BaseLogger {
 // NOTE: This class expects its user to verify that the fromWord and toWord
 // are valid words in the wordChainDict given to its constructor args.
 class Solver extends BaseLogger {
-    constructor(wordChainDict, fromWord, toWord) {
+    constructor(wordChainDict, fromWord, toWord, excludedWords=new Set()) {
         super();
         this.dict     = wordChainDict;
         this.fromWord = fromWord;
         this.toWord   = toWord;
+        this.excludedWords = excludedWords;
+        this.logDebug(`new Solver: ${fromWord} to ${toWord} (played: ${excludedWords})`, "solve");
     }
 
     // Currently not used; might be used for tests.
@@ -71,7 +73,7 @@ class Solver extends BaseLogger {
 
     // Solve in a fast way, based on whether it is better to solve
     // fromWord --> toWord or toWord --> fromWord.
-    static fastSolve(wordChainDict, fromWord, toWord) {
+    static fastSolve(wordChainDict, fromWord, toWord, excludedWords=new Set()) {
         let fromWordNextWordsCount = wordChainDict.findNextWords(fromWord).length;
         let toWordNextWordsCount = wordChainDict.findNextWords(toWord).length;
 
@@ -79,14 +81,14 @@ class Solver extends BaseLogger {
         // word and construct a solver going from the one with the fewest to the most
         // next words so that the search is more efficient.
         let solution = (fromWordNextWordsCount < toWordNextWordsCount) ?
-                new Solver(wordChainDict, fromWord, toWord).solve() :
-                new Solver(wordChainDict, toWord, fromWord).solve().reverse();
-        new BaseLogger().logDebug(`fast solve finds: ${solution.toStr()}`, "solveDetail");
+                new Solver(wordChainDict, fromWord, toWord, excludedWords).solve() :
+                new Solver(wordChainDict, toWord, fromWord, excludedWords).solve().reverse();
+        new BaseLogger().logDebug(`fast solve finds: ${solution.toStr()}`, "solve");
         return solution;
     }
 
     solve() {
-        // Create an initial working solution and test for the degenerae case
+        // Create an initial working solution and test for the degenerate case
         // that it is already solved.
         // Note that addWord() will calculate the distance for the solution.
         const startingWorkingSolution = new Solution([], this.toWord).addWord(this.fromWord);
@@ -107,7 +109,7 @@ class Solver extends BaseLogger {
             // from the heap; we'll add working solutions based on this
             // "nearest" solution.
             solution = workingSolutions.pop();
-            this.logDebug(`popped working solution: ${solution.toStr()}`, "solveDetail");
+            this.logDebug(`popped working solution: ${solution.toStr()}`, "solve");
             if (solution.numSteps() > longestSolution) {
                 longestSolution = solution.numSteps()
                 this.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "perf");
@@ -117,13 +119,20 @@ class Solver extends BaseLogger {
 
             // Find all possible "next words" from the last word in the solution so far.
             let lastWord  = solution.getLastWord();
-            let nextWords = this.dict.findNextWords(lastWord);
+            let nextWords = Array.from(this.dict.findNextWords(lastWord));
 
             // Remove words that are already in the solution from nextWords.
-            nextWords = new Set(Array.from(nextWords).filter(w => !solution.getWordSet().has(w)));
+            nextWords = nextWords.filter(w => !solution.getWordSet().has(w));
+
+            // Remove previously played words from the solution. This addresses the case where
+            // we are solving a game in which the user plays a word that is not in the (current)
+            // known solution. In that case, we create a solver from the user's new word to the
+            // target to see whether the new word leads to a solution (however long it may be).
+            // BUT, that solution must not contain words that have already been played.
+            nextWords = nextWords.filter(w => !this.excludedWords.has(w));
 
             // Check if we have a solution; if so, add this latest word to it, and return it.
-            if (nextWords.has(this.toWord)) {
+            if (nextWords.includes(this.toWord)) {
                 solution.addWord(this.toWord);
                 solution.setSearchSize(loopCount);
                 return solution;
@@ -133,14 +142,14 @@ class Solver extends BaseLogger {
             // for each word in nextWords.
             //
             // NOTE: Without sorting nextWords, we do not consistently find the same solution.
-            for (let word of Array.from(nextWords).sort()) {
+            for (let word of nextWords.sort()) {
                 // Note that addWord() will calculate the distance of newWorkingSolution.
                 let newWorkingSolution = solution.copy().addWord(word);
                 this.logDebug(`   adding ${newWorkingSolution.toStr()}`, "solveDetail");
                 workingSolutions.push(newWorkingSolution, newWorkingSolution.getDistance());
             }
 
-            // Check every 1000 iterations if we are taking too long.
+            // Every 1000 iterations check whether we are taking too long.
             loopCount += 1;
             if (loopCount % 1000 === 0) {
                 // Date.now() returns milliseconds; if this is taking more than 7 seconds
@@ -319,12 +328,18 @@ class Solution extends BaseLogger {
         return distance;
     }
 
+    // This method is used in the test suite.
+    toHtml() {
+        return this.toStr(true);
+    }
+
     // This method is here to help with debugging.
-    toStr() {
+    toStr(html=false) {
         if (this.errorMessage.length !== 0) {
             return this.errorMessage;
         } else {
-            return `${this.wordList}<p>[${this.wordList.length - 1} steps to ${this.target}]<p>${this.searchSize} nodes`;
+            const separator = html ? "<p>" : " ";
+            return `${this.wordList}${separator}[${this.wordList.length - 1} steps to ${this.target}]${separator}${this.searchSize} nodes`;
         }
     }
 }

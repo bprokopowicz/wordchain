@@ -65,13 +65,13 @@ class Display extends BaseLogger {
     startGameCallback() {
         const startWord = this.checkWord("gameStartWord")
         if (! startWord) {
-            alert("Starting word is empty or not a word.");
+            alert("Invalid starting word.");
             return;
         }
 
         const targetWord = this.checkWord("gameTargetWord")
         if (! targetWord) {
-            alert("Target word is empty or not a word.");
+            alert("Invalid target word.");
             return;
         }
 

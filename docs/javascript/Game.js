@@ -52,8 +52,16 @@ class Game extends BaseLogger {
             return Game.OK;
         }
 
-        const potentialNewSolution = Solver.fastSolve(this.dict, word, this.knownSolution.getTarget());
-        this.logDebug(`found solution from word to end: ${potentialNewSolution.toStr()}`, "game");
+        // See whether we find a solution with the user's new word.
+        // We pass the words of the solution in progress so that we
+        // can ensure that any new solution found does not contain
+        // any of the words currently in the solution in progress;
+        // duplicate words are not allowed, so that "solution" would
+        // be a non-solution!
+        const potentialNewSolution = Solver.fastSolve(
+            this.dict, word, this.knownSolution.getTarget(),
+            this.solutionInProgress.getWordSet());
+        this.logDebug(`returned potentialNewSolution: ${potentialNewSolution.toStr()}`, "game");
 
         // Does the user's word lead to a solution? 
         if (potentialNewSolution.isSolved()) {
