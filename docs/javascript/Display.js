@@ -3,26 +3,92 @@ import { WordChainDict } from './WordChainDict.js';
 import { Solver } from './Solver.js';
 import { Game } from './Game.js';
 
-// Forwarding functions; see big comment below explaining how
-// these came about.
+
+/*
+** TODO:
+** - Header div across whole screen
+** - Better handling of colors
+** - Replace alerts
+** - Support hard keyboard entry
+** - Keyboard for practice mode (Will need to change the click bindings for all buttons
+**   - show in a grid like the other letters, but with "start word" and "target word" labels?
+*/
+
+/*
+** Forwarding functions
+**
+** When "this.startGameCallback" is passed, for example, as the listener on calls within the
+** within the Display class to addEventListener(), Chrome appears to call it (but refers
+** to it as HTMLButtonElement.startGameCallback, which doesn't exist!) and "this" within the
+** method is of type HTMLButtonElement, so the call within to "this.checkWord()" resolves
+** to HTMLButtonElement.checkword, which is is not a function. This kind of makes
+** sense (except for why it  was able to call the Display.startGameCallback()
+** method at all!).
+**
+** At that point I introduced the singleton idea. I thought that passing
+** Display.singleton().startGameCallback as the listener would work, but this also resulted in
+** "HTMLButtonElement.checkWord() is not a function." Sigh. I really don't understand why that
+** is not working. But we carry on; introducing the "forwarding function" did the trick.
+*/
+
+function dailyGameCallback() {
+    Display.singleton().dailyGameCallback();
+}
+
+function keyboardCallback() {
+    // Here the "this" being the button works in our favor -- we can get
+    // its data-key attribute value, which is the letter of the key that
+    // was clicked.
+    Display.singleton().keyPressCallback(this.getAttribute("data-key"));
+}
+
+function practiceGameCallback() {
+    Display.singleton().practiceGameCallback();
+}
 
 function startGameCallback() {
     Display.singleton().startGameCallback();
 }
 
-function playCallback() {
-    Display.singleton().playCallback();
+function endGameCallback() {
+    Display.singleton().endGameCallback();
 }
+
 
 // Singleton class Display.
 
 class Display extends BaseLogger {
     static singletonObject = null;
 
+    // Constants for create*Div() methods.
+    static HIDDEN = true;
+    static SHOWN  = false;
+
+    // Constants for showGameTiles() method.
+    static SHOW_SOLUTION = true;
+    static SHOW_STEPS    = false;
+
     constructor() {
         super();
 
         this.dict = new WordChainDict();
+        this.dailyGame    = null;
+        this.practiceGame = null;
+
+        this.dailyGameOver    = false;
+        this.practiceGameOver = false;
+
+        // This will be whichever game is current.
+        this.game = null;
+
+        this.rootDiv     = null;
+        this.headerDiv   = null;
+        this.outerDiv    = null;
+        this.practiceDiv = null;
+        this.solutionDiv = null;
+        this.keyboardDiv = null;
+
+        this.keyboardButtons = [];
     }
 
     static singleton() {
@@ -33,43 +99,226 @@ class Display extends BaseLogger {
     }
 
     /*
-    ** GLdisplayType === prototype
+    ** METHODS TO CONSTRUCT THE DISPLAY
     */
 
-    prototypeGame() {
-        this.game = null;
-        this.addElement("h2", {}, "WordChain");
-        this.addElement("label", {}, "Start word: ");
-        this.addElement("input", {id: "gameStartWord", type: "text"});
-        this.addElement("p");
-        this.addElement("label", {}, "Target word: ");
-        this.addElement("input", {id: "gameTargetWord", type: "text"});
-        this.addElement("p");
-        this.addElement("button", {id: "startGame"}, "Start Game");
+    // This is the entry point for displaying the game.
+    displayGame() {
+        this.rootDiv = Display.addElementTo("div", document.body, {id: "root-div"});
+        this.createHeaderDiv();
 
-        // When this.startGameCallback is passed as the listener, Chrome appears
-        // to call it (but refers to it as HTMLButtonElement.stargGameCallback)
-        // and "this" within the method is of type HTMLButtonElement, so the call
-        // within to "this.checkWord()" resolves to HTMLButtonElement.checkword,
-        // which is is not a function. This kind of makes sense (except for why it
-        // was able to call the Display.startGameCallback() method at all!).
-        //
-        // At that point I introduced the singleton idea. I thought that passing
-        // Display.singleton().startGameCallback as the listener would work,
-        // but this also resulted in "HTMLButtonElement.checkWord() is not a
-        // function." Sigh. I really don't understand why that is not working.
-        // But we carry on; introducing the "forwarding function" did the trick.
-        this.getElement("startGame").addEventListener("click", startGameCallback);
+        this.outerDiv = Display.addElementTo("div", this.rootDiv, {id: "outer-div"});
+        this.createPracticeDiv(Display.HIDDEN);
+        this.createSolutionDiv(Display.SHOWN);
+        this.createKeyboardDiv(Display.SHOWN);
+
+        this.dailyGameCallback();
+    }
+
+    /* ----- Header ----- */
+
+    createHeaderDiv() {
+        this.headerDiv = Display.addElementTo("div", this.rootDiv, {id: "header-div"});
+
+        const titleDiv = Display.addElementTo("div", this.headerDiv, {id: "title-div"});
+
+        Display.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
+
+        this.dailyGameButton = Display.addElementTo(
+            "button", titleDiv,
+            {id: "daily-game", class: "header-button active-button"},
+            "Daily");
+        this.dailyGameButton.addEventListener("click", dailyGameCallback);
+
+        this.practiceGameButton = Display.addElementTo(
+            "button", titleDiv,
+            {id: "practice-game", class: "header-button not-active"},
+            "Practice");
+        this.practiceGameButton.addEventListener("click", practiceGameCallback);
+    }
+
+    /* ----- Keyboard ----- */
+
+    addActionButton(rowElement, letter) {
+        const button = Display.addElementTo("button", rowElement, {'data-key': letter, class: "keyboard-key keyboard-wide-key"}, letter);
+        this.keyboardButtons.push(button);
+    }
+
+    addLetterButton(rowElement, letter) {
+        const button = Display.addElementTo("button", rowElement, {'data-key': letter, class: "keyboard-key"}, letter);
+        this.keyboardButtons.push(button);
+    }
+
+    addSpacer(rowElement) {
+        Display.addElementTo("div", rowElement, {class: "keyboard-key keyboard-spacer"});
+    }
+
+    createKeyboardDiv(hidden) {
+        this.keyboardDiv = Display.addElementTo("div", this.outerDiv, {id: "keyboard-div"}, null);
+        if (hidden) {
+            this.keyboardDiv.style.display = "none";
+        }
+
+        Display.addElementTo("p", this.keyboardDiv);
+
+        const row1 = Display.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
+        const row2 = Display.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
+        const row3 = Display.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
+
+        // Add keys for row 1
+        this.addLetterButton(row1, "q");
+        this.addLetterButton(row1, "w");
+        this.addLetterButton(row1, "e");
+        this.addLetterButton(row1, "r");
+        this.addLetterButton(row1, "t");
+        this.addLetterButton(row1, "y");
+        this.addLetterButton(row1, "u");
+        this.addLetterButton(row1, "i");
+        this.addLetterButton(row1, "o");
+        this.addLetterButton(row1, "p");
+
+        // Add keys for row 2, starting and ending with a spacer so the keys are a little indented.
+        this.addSpacer(row2);
+        this.addLetterButton(row2, "a");
+        this.addLetterButton(row2, "s");
+        this.addLetterButton(row2, "d");
+        this.addLetterButton(row2, "f");
+        this.addLetterButton(row2, "g");
+        this.addLetterButton(row2, "h");
+        this.addLetterButton(row2, "j");
+        this.addLetterButton(row2, "k");
+        this.addLetterButton(row2, "l");
+        this.addSpacer(row2);
+
+        // Add keys for row 3, which has the DELETE/ENTER "action buttons" on the left and right.
+        this.addActionButton(row3, "←");
+        this.addLetterButton(row3, "z");
+        this.addLetterButton(row3, "x");
+        this.addLetterButton(row3, "c");
+        this.addLetterButton(row3, "v");
+        this.addLetterButton(row3, "b");
+        this.addLetterButton(row3, "n");
+        this.addLetterButton(row3, "m");
+        this.addActionButton(row3, "↵");
+
+        // Add the same click callback to each button.
+        for (let button of this.keyboardButtons) {
+            button.addEventListener("click", keyboardCallback);
+        }
+    }
+
+    /* ----- Practice ----- */
+
+    createPracticeDiv(hidden) {
+        this.practiceDiv = Display.addElementTo("div", this.outerDiv, {id: "practice-div"});
+        if (hidden) {
+            this.practiceDiv.style.display = "none";
+        }
+
+        Display.addElementTo("label",   this.practiceDiv, {}, "Start word: ");
+        Display.addElementTo("input",   this.practiceDiv, {id: "game-start-word", type: "text"});
+        Display.addElementTo("p",       this.practiceDiv);
+        Display.addElementTo("label",   this.practiceDiv, {}, "Target word: ");
+        Display.addElementTo("input",   this.practiceDiv, {id: "game-target-word", type: "text"});
+        Display.addElementTo("p",       this.practiceDiv);
+        const startGameButton = Display.addElementTo(
+            "button", this.practiceDiv,
+            {id: "start-game", class: "game-button"},
+            "Start Game");
+        startGameButton.addEventListener("click", startGameCallback);
+    }
+
+    /* ----- Solution ----- */
+
+    createSolutionDiv(hidden) {
+        this.solutionDiv = Display.addElementTo("div", this.outerDiv, {id: "solution-div"}, null);
+        if (hidden) {
+            this.solutionDiv.style.display = "none";
+        }
+
+        // The div with class "break" forces whatever comes after this div
+        // to be on a "new line" with display: flex, which we use for this div.
+        // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+        Display.addElementTo("div", this.outerDiv, {class: "break"});
+    }
+
+    /*
+    ** BUTTON CALLBACKS
+    */
+
+    dailyGameCallback() {
+        // TEMPORARY
+        const startWord = "cat";
+        const targetWord = "dog";
+
+        // TODO: Takes a while for dictionary to load ... not sure what we have doesn't wait.
+        // 100 ms not enough; 200 ms does the trick. Note: still being served from github.
+        setTimeout(() => {
+            if (this.dailyGameOver) {
+                this.game = this.dailyGame
+                this.showGameTiles(Display.SHOW_SOLUTION);
+                return;
+            }
+
+            Display.setElementValue("game-start-word", startWord);
+            Display.setElementValue("game-target-word", targetWord);
+
+            Display.editClass(/not-active/, "active-button", this.dailyGameButton);
+            Display.editClass(/active-button/, "not-active", this.practiceGameButton);
+
+            // No need to check solution for success -- daily games will be
+            // pre-verified to have a solution.
+            const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+
+            if (!this.dailyGame) {
+                this.dailyGame = new Game(this.dict, solution);
+            }
+            this.game = this.dailyGame
+            this.showGameTiles(Display.SHOW_STEPS);
+        }, 200);
+    }
+
+    endGameCallback() {
+        this.showGameTiles(Display.SHOW_SOLUTION);
+    }
+
+    keyPressCallback(keyValue) {
+        if (keyValue === "←") {
+            this.keyPressDelete();
+        } else if (keyValue === "↵") {
+            this.keyPressEnter();
+        } else {
+            this.keyPressLetter(keyValue);
+        }
+    }
+
+    // This is the callback for the Practice and Start New Game buttons.
+    practiceGameCallback() {
+        Display.setElementValue("game-start-word", "");
+        Display.setElementValue("game-target-word", "");
+
+        Display.editClass(/not-active/, "active-button", this.practiceGameButton);
+        Display.editClass(/active-button/, "not-active", this.dailyGameButton);
+
+
+        if (this.practiceGame !== null) {
+            this.game = this.practiceGame;
+            this.showGameTiles(Display.SHOW_STEPS);
+        } else {
+            this.solutionDiv.style.display = "none";
+            this.keyboardDiv.style.display = "none";
+            this.practiceDiv.style.display = "block";
+        }
     }
 
     startGameCallback() {
-        const startWord = this.checkWord("gameStartWord")
+        const startWord = this.checkWord("game-start-word")
         if (! startWord) {
             alert("Invalid starting word.");
             return;
         }
 
-        const targetWord = this.checkWord("gameTargetWord")
+        const targetWord = this.checkWord("game-target-word")
         if (! targetWord) {
             alert("Invalid target word.");
             return;
@@ -87,34 +336,121 @@ class Display extends BaseLogger {
             return;
         }
 
-        this.game = new Game(this.dict, solution);
-        const gameStepsHtml = this.stepsToHtml(this.game.showGame());
+        this.practiceGame = new Game(this.dict, solution);
+        this.game = this.practiceGame;
+        this.showGameTiles(Display.SHOW_STEPS);
+    }
 
-        // If we've already created the elements, just clear out the
-        // word to enter and the solution in progress.
-        if (this.elementExists("enterWord")) {
-            this.setElementValue("enterWord", "");
-            this.setElementHTML("solution", gameStepsHtml);
+    /*
+    ** METHODS FOR DEALING WITH SOLUTION TILES
+    */
+
+    editClassForCurrentWord(fromPattern, toString, element, elementGetter) {
+
+        if (element) {
+            Display.editClass(fromPattern, toString, element);
+        } else {
+            let elements = [];
+            const wordLength = this.getCurrentWordLength();
+            for (let col = 0; col < wordLength; col++) {
+                elements.push(elementGetter(this.currentRow, col));
+            }
+
+            Display.editClass(fromPattern, toString, elements);
+        }
+    }
+
+    editLetterClass(fromPattern, toString, element=null) {
+        this.editClassForCurrentWord(fromPattern, toString, element, Display.getLetterElement);
+    }
+
+    editTileClass(fromPattern, toString, element=null) {
+        this.editClassForCurrentWord(fromPattern, toString, element, Display.getTileElement);
+    }
+
+    getCurrentWordLength() {
+        const rowElement = Display.getTileRowElement(this.currentRow);
+        return rowElement.getAttribute("data-word-length");
+    }
+
+    static getLetterElement(row, col) {
+        return Display.getElement(Display.getLetterId(row, col), false);
+    }
+
+    static getLetterId(row, col) {
+        return `letter-${row}-${col}`;
+    }
+
+    static getTileElement(row, col) {
+        return Display.getElement(Display.getTileId(row, col), false);
+    }
+
+    static getTileId(row, col) {
+        return `tile-${row}-${col}`;
+    }
+
+    static getTileRowElement(row) {
+        return Display.getElement(Display.getTileRowId(row));
+    }
+
+    static getTileRowId(row) {
+        return `tile-row-${row}`;
+    }
+
+    getWordFromTiles() {
+        let column = 0;
+        let enteredWord = '';
+        while (true) {
+            const letterElement = Display.getLetterElement(this.currentRow, column);
+            if (! letterElement) {
+                break;
+            }
+
+            const letter = letterElement.innerHTML;
+            if (letter === Game.CHANGE | letter === Game.NO_CHANGE) {
+                alert("Not enough letters");
+                return null;
+            }
+            enteredWord += letter;
+            column++;
+        }
+
+        return enteredWord;
+    }
+
+    keyPressDelete() {
+        // If user clicks delete beyond beginning of row, just return;
+        if (this.currentColumn <= 0) {
+            return;
+        }
+        this.currentColumn--;
+
+        const tileElement = Display.getTileElement(this.currentRow, this.currentColumn);
+
+        if (tileElement.getAttribute("data-tile-type") === "change") {
+            this.editTileClass(/no-change/, "letter-change", tileElement);
+        }
+        this.editTileClass(/no-enter/, "tile-enter", tileElement);
+
+        if (this.currentColumn != this.getCurrentWordLength() - 1) {
+            const nextTileElement = Display.getTileElement(this.currentRow, this.currentColumn + 1);
+            this.editTileClass(/tile-enter/, "no-enter", nextTileElement);
+        }
+
+        const letterElement = Display.getLetterElement(this.currentRow, this.currentColumn);
+        letterElement.innerHTML = Game.NO_CHANGE;
+        this.editLetterClass(/shown-letter/, "hidden-letter", letterElement);
+        this.editLetterClass(/not-a-word/, "is-a-word");
+    }
+
+    keyPressEnter() {
+        const enteredWord = this.getWordFromTiles();
+        if (! enteredWord) {
             return;
         }
 
-        // Add elements for the actual game play.
-        this.addElement("p");
-        this.addElement("label", {}, "Enter next word: ");
-        this.addElement("input", {id: "enterWord", type: "text"});
-        this.addElement("button", {id: "play"}, "Play!");
-        this.addElement("p");
-        this.addElement("label", {}, "Solution in progress:");
-        this.addElement("p");
-        this.addElement("label", {id: "solution"}, gameStepsHtml);
-
-        this.getElement("play").addEventListener("click", playCallback);
-    }
-
-    playCallback() {
-        const enteredWord = this.checkWord("enterWord");
-        if (! enteredWord) {
-            alert("Entered word is empty or not a word.")
+        if (! this.dict.isWord(enteredWord)) {
+            // Tile letter color already changed to indicate it's not a word.
             return;
         }
 
@@ -123,35 +459,196 @@ class Display extends BaseLogger {
         if (gameResult !== Game.OK) {
             alert (gameResult);
         } else {
-            let html = "";
-            this.setElementHTML("solution", this.stepsToHtml(this.game.showGame()));
+            this.showGameTiles(Display.SHOW_STEPS);
             if (this.game.isSolved()) {
-                alert("Good job! You solved it!")
+                // Show the alert after 50 ms; this little delay results in the last word
+                // appearing on the display before the the alert pop-up.
+                setTimeout(() => {
+                    alert("Good job! You solved it!")
+                }, 50);
             }
         }
     }
 
-    stepsToHtml(gameSteps) {
-        let html = "";
-        for (let i = 0; i < gameSteps.length; i++) {
-            const gameStep = gameSteps[i];
-            html += `[${i}] `;
-            html += gameStep;
-            html += "<br>";
+    keyPressLetter(keyValue) {
+        // If current row has not been set, then we must be displaying a solution.
+        if (! this.currentRow) {
+            return;
         }
 
-        return html;
+        if (this.currentColumn < 0) {
+            this.currentColumn = 0;
+        }
+
+        const tileElement = Display.getTileElement(this.currentRow, this.currentColumn);
+
+        // If user types or clicks beyond the last box in the current word being
+        // played, just return.
+        if (! tileElement) {
+            return;
+        }
+
+        tileElement.setAttribute("class", "tile no-enter no-change");
+
+        const letterElement = Display.getLetterElement(this.currentRow, this.currentColumn);
+        letterElement.innerHTML = keyValue.toUpperCase();
+        this.editLetterClass(/hidden-letter/, "shown-letter", letterElement);
+
+        this.currentColumn++;
+
+        if (this.currentColumn >= this.getCurrentWordLength()) {
+            const enteredWord = this.getWordFromTiles();
+            if (! this.dict.isWord(enteredWord)) {
+                this.editLetterClass(/is-a-word/, "not-a-word");
+            }
+        } else {
+            // Next element is the one to show as the one that the clicked
+            // letter will set.
+            const nextTileElement = Display.getTileElement(this.currentRow, this.currentColumn);
+            this.editTileClass(/no-enter/, "tile-enter", nextTileElement);
+        }
+    }
+
+    showGameTiles(showSolution=false) {
+        // Just return if we haven't started the game yet.
+        if (! this.game) {
+            return;
+        }
+
+        // Delete current child elements.
+        Display.deleteChildren(this.solutionDiv);
+
+        const tableElement = Display.addElementTo("table", this.solutionDiv);
+        const tbodyElement = Display.addElementTo("tbody", tableElement);
+
+        // This will hold the row number where letters typed/clicked will go.
+        this.currentRow = null;
+
+        // This will hold the column number where the next letter typed/clicked
+        // will go (until ENTER) -- it is set in keyPress().
+        this.currentColumn = 0;
+
+        let gameSteps;
+        if (showSolution) {
+            gameSteps = this.game.getKnownSolution().getWords();
+        } else {
+            gameSteps = this.game.showGame();
+        }
+
+        for (let row = 0; row < gameSteps.length; row++) {
+            const word = gameSteps[row];
+            const rowElement = Display.addElementTo("tr", tbodyElement, {id: Display.getTileRowId(row)});
+            rowElement.setAttribute("data-word-length", word.length);
+
+            for (let col = 0; col < word.length; col++) {
+
+                const letter = word[col].toUpperCase();
+                let tileClass = "tile";
+
+                // First row containing a CHANGE or NO_CHANGE is the current row.
+                if (this.currentRow === null && (letter === Game.CHANGE|| letter === Game.NO_CHANGE)) {
+                    this.currentRow = row;
+                    tileClass += " tile-enter";
+                } else {
+                    tileClass += " no-enter";
+                }
+
+                // Set tileType and letterClass.
+                let tileType = "no-change";
+                let letterClass = "is-a-word";
+                if (letter === Game.CHANGE) {
+                    tileClass += " letter-change";
+                    tileType = "change";
+                    letterClass += " hidden-letter";
+                } else if (letter === Game.NO_CHANGE) {
+                    tileClass += " no-change";
+                    letterClass += " hidden-letter";
+                } else {
+                    tileClass += " no-change";
+                    letterClass += " shown-letter";
+                }
+
+                if (row == 0) {
+                    letterClass += " start-word";
+                } else if (row == gameSteps.length - 1) {
+                    letterClass += " target-word";
+                }
+
+                const tileId = Display.getTileId(row, col);
+                const letterId = Display.getLetterId(row, col);
+                const tdElement = Display.addElementTo("td", rowElement, {id: tileId, class: tileClass, 'data-tile-type': tileType});
+                Display.addElementTo("div", tdElement, {id: letterId, class: letterClass}, letter);
+            }
+        }
+
+        if (showSolution) {
+            // Game is over; don't show keyboard.
+            this.keyboardDiv.style.display = "none";
+
+            // Note which game is over, and add Start New Game button if
+            // playing practice game.
+            if (this.game === this.dailyGame) {
+                this.dailyGameOver = true;
+            } else {
+                this.practiceGameOver = true;
+
+                // Set practiceGame to null so practiceGameCallback() knows to
+                // get new start/target words.
+                this.practiceGame = null;
+
+                // The div with class "break" forces the button to be on a "new line" with display: flex.
+                // to be on a "new line" with display: flex, which we use for this div.
+                // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+                Display.addElementTo("div", this.solutionDiv, {class: "break"});
+                const startNewGameButton = Display.addElementTo(
+                    "button", this.solutionDiv,
+                    {id: "start-new-game", class: "game-button"},
+                    "Start New Game");
+                startNewGameButton.addEventListener("click", practiceGameCallback);
+            }
+        } else {
+            // Game not over; add End Game button and show keyboard.
+
+            // The div with class "break" forces the button to be on a "new line" with display: flex.
+            // to be on a "new line" with display: flex, which we use for this div.
+            // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+            Display.addElementTo("div", this.solutionDiv, {class: "break"});
+            const endGameButton = Display.addElementTo(
+                "button", this.solutionDiv,
+                {id: "end-game", class: "game-button"},
+                "End Game");
+            endGameButton.addEventListener("click", endGameCallback);
+
+            this.keyboardDiv.style.display = "block";
+        }
+
+        this.solutionDiv.style.display = "flex";
+        this.practiceDiv.style.display = "none";
     }
 
     /*
-    ** GLdisplayType === realGame
+    ** MISCELLANEOUS UTILITIES
     */
+
+    checkWord(elementId) {
+        let word = Display.getElementValue(elementId);
+        word = word.trim().toLowerCase();
+        if (word.length === 0 || !this.dict.isWord(word)) {
+            return null;
+        }
+
+        return word;
+    }
 
     /*
-    ** Utilities
+    ** ELEMENT MANIPULATION UTILITIES
     */
 
-    addElement(elementType, attributes=null, innerHTML=null, parent=null) {
+    static addElement(elementType, attributes=null, innerHTML=null) {
+        Display.addElementTo(elementType, document.body, attributes, innerHTML);
+    }
+
+    static addElementTo(elementType, parent, attributes=null, innerHTML=null) {
         const element = document.createElement(elementType);
         for (let attribute in attributes) {
             element.setAttribute(attribute, attributes[attribute]);
@@ -161,63 +658,57 @@ class Display extends BaseLogger {
             element.innerHTML = innerHTML;
         }
 
-        if (parent === null) {
-            parent = document.body;
-        }
         parent.appendChild(element);
+
+        return element;
     }
 
-    checkWord(elementId) {
-        let word = this.getElementValue(elementId);
-        word = word.trim().toLowerCase();
-        if (word.length === 0) {
-            return null;
+    static deleteChildren(element) {
+        while (element.firstChild) {
+            element.removeChild(element.firstChild);
         }
-        if (!this.dict.isWord(word)) {
-            return null;
+    }
+
+    static editClass(fromPattern, toString, elements) {
+
+        if (! (elements instanceof Array)) {
+            elements = [elements];
         }
 
-        return word;
+        for (let element of elements) {
+            let elementClass = element.getAttribute('class');
+            elementClass = elementClass.replace(fromPattern, toString);
+            element.setAttribute('class', elementClass);
+        }
     }
 
-    elementExists(elementId) {
-        return document.getElementById(elementId) ? true : false;
-    }
-
-    getElement(elementId) {
+    static getElement(elementId, mustExist=true) {
         const element = document.getElementById(elementId);
-        if (!element) {
+        if (mustExist && !element) {
             throw new Error(`Display.getElement(): no element with id ${elementId}`);
         }
         return element;
     }
 
-    // Not currently used; may not need.
-    getElementHTML(elementId) {
-        const element = this.getElement(elementId);
-        return element.innerHTML;
-    }
-
-    getElementValue(elementId) {
-        const element = this.getElement(elementId);
+    static getElementValue(elementId) {
+        const element = Display.getElement(elementId);
         return element.value;
     }
 
-    setElementHTML(elementId, elementHTML) {
-        const element = this.getElement(elementId);
+    // Currently used only in Test.js.
+    static setElementHTML(elementId, elementHTML) {
+        const element = Display.getElement(elementId);
         element.innerHTML = elementHTML;
     }
 
-    setElementValue(elementId, elementValue) {
-        const element = this.getElement(elementId);
+    static setElementValue(elementId, elementValue) {
+        const element = Display.getElement(elementId);
         element.value = elementValue;
     }
 }
 
 export { Display };
 
-if (GLdisplayType === "prototype") {
-    Display.singleton().prototypeGame();
-} else if (GLdisplayType === "real") {
-    Display.singleton().realGame();
+if (GLdisplayGame) {
+    Display.singleton().displayGame();
 }

@@ -74,8 +74,11 @@ class Solver extends BaseLogger {
     // Solve in a fast way, based on whether it is better to solve
     // fromWord --> toWord or toWord --> fromWord.
     static fastSolve(wordChainDict, fromWord, toWord, excludedWords=new Set()) {
-        let fromWordNextWordsCount = wordChainDict.findNextWords(fromWord).length;
-        let toWordNextWordsCount = wordChainDict.findNextWords(toWord).length;
+        const fromWordNextWordsCount = wordChainDict.findNextWords(fromWord).size;
+        const toWordNextWordsCount = wordChainDict.findNextWords(toWord).size;
+
+        new BaseLogger().logDebug(`fromWordNextWordsCount: ${fromWordNextWordsCount}`, "solve");
+        new BaseLogger().logDebug(`toWordNextWordsCount:   ${toWordNextWordsCount}`, "solve");
 
         // Determine whether there are more "next words" from the "from" or "to"
         // word and construct a solver going from the one with the fewest to the most
@@ -339,7 +342,8 @@ class Solution extends BaseLogger {
             return this.errorMessage;
         } else {
             const separator = html ? "<p>" : " ";
-            return `${this.wordList}${separator}[${this.wordList.length - 1} steps to ${this.target}]${separator}${this.searchSize} nodes`;
+            const words = this.wordList.join(", ");
+            return `${words}${separator}[${this.wordList.length - 1} steps to ${this.target}]${separator}${this.searchSize} nodes`;
         }
     }
 }

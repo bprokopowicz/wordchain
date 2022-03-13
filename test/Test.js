@@ -43,14 +43,14 @@ class Test extends Display {
         this.displayTestSuite();
         this.displayDictTest();
         this.displaySolverTest();
-        this.addElement("hr");
+        Display.addElement("hr");
     }
 
     addTitle(title) {
-        this.addElement("hr");
-        this.addElement("p");
-        this.addElement("h2", {}, title);
-        this.addElement("p");
+        Display.addElement("hr");
+        Display.addElement("p");
+        Display.addElement("h2", {}, title);
+        Display.addElement("p");
     }
 
     /*
@@ -59,12 +59,12 @@ class Test extends Display {
 
     displayTestSuite() {
         this.addTitle("WordChain Test Suite");
-        this.addElement("button", {id: "runTests"}, "Run Tests");
-        this.addElement("p");
-        this.addElement("label", {id: "testResults"}, "");
-        this.addElement("p");
+        Display.addElement("button", {id: "runTests"}, "Run Tests");
+        Display.addElement("p");
+        Display.addElement("label", {id: "testResults"}, "");
+        Display.addElement("p");
 
-        this.getElement("runTests").addEventListener("click", runTestsCallback);
+        Display.getElement("runTests").addEventListener("click", runTestsCallback);
     }
 
     runTestsCallback() {
@@ -83,7 +83,7 @@ class Test extends Display {
         results += `Failure count: ${this.failureCount}<p>`;
         results += this.messages.join("<br>");
 
-        this.setElementHTML("testResults", results);
+        Display.setElementHTML("testResults", results);
     }
 
     verify(truthValue, message) {
@@ -123,9 +123,9 @@ class Test extends Display {
     testDictIsWord() {
         this.name = "DictIsWord";
         const tinyDict  = new WordChainDict(this.tinyList);
-        this.verify((tinyDict.getSize() === 3), "size !== 3") && 
-            this.verify(tinyDict.isWord("apple"), "apple is not a word") && 
-            this.verify(tinyDict.isWord("apPlE"), "apPlE is not a word") && 
+        this.verify((tinyDict.getSize() === 3), "size !== 3") &&
+            this.verify(tinyDict.isWord("apple"), "apple is not a word") &&
+            this.verify(tinyDict.isWord("apPlE"), "apPlE is not a word") &&
             this.verify(!tinyDict.isWord("peach"), "peach is not a word") &&
             this.success();
     }
@@ -138,9 +138,9 @@ class Test extends Display {
         const badAdders = smallDict.findAdderWords("bad");
         const batAdders = smallDict.findAdderWords("bat");
 
-        this.verify(cadAdders.has("scad"), "'scad' is not in 'cad' adders") && 
-            this.verify(badAdders.has("bald"), "'bald' is not in 'bad' adders") && 
-            this.verify(batAdders.has("bate"), "'bate' is not in 'bat' adders") && 
+        this.verify(cadAdders.has("scad"), "'scad' is not in 'cad' adders") &&
+            this.verify(badAdders.has("bald"), "'bald' is not in 'bad' adders") &&
+            this.verify(batAdders.has("bate"), "'bate' is not in 'bat' adders") &&
             this.success();
     }
 
@@ -152,9 +152,9 @@ class Test extends Display {
         const baldRemovers = smallDict.findRemoverWords("bald");
         const bateRemovers = smallDict.findRemoverWords("bate");
 
-        this.verify(ccadRemovers.has("cad"), "'cad' is not in 'ccad' removers") && 
-            this.verify(baldRemovers.has("bad"), "'bad' is not in 'bald' removers") && 
-            this.verify(bateRemovers.has("bat"), "'bat' is not in 'bate' removers") && 
+        this.verify(ccadRemovers.has("cad"), "'cad' is not in 'ccad' removers") &&
+            this.verify(baldRemovers.has("bad"), "'bad' is not in 'bald' removers") &&
+            this.verify(bateRemovers.has("bat"), "'bat' is not in 'bate' removers") &&
             this.success();
     }
 
@@ -165,9 +165,9 @@ class Test extends Display {
         const badReplacements = smallDict.findReplacementWords("bad");
         const cadReplacements = smallDict.findReplacementWords("cad");
 
-        this.verify(cadReplacements.has("bad"), "'bad' is not in 'cad' replacements") && 
-            this.verify(badReplacements.has("bid"), "'bid' is not in 'bad' replacements") && 
-            this.verify(badReplacements.has("bat"), "'bat' is not in 'bad' replacements") && 
+        this.verify(cadReplacements.has("bad"), "'bad' is not in 'cad' replacements") &&
+            this.verify(badReplacements.has("bid"), "'bid' is not in 'bad' replacements") &&
+            this.verify(badReplacements.has("bat"), "'bat' is not in 'bad' replacements") &&
             this.success();
     }
 
@@ -192,9 +192,9 @@ class Test extends Display {
         const expectedReplacementsSize = 2;
 
         this.verify((dictSize == expectedDictSize), `full dictionary has ${dictSize} words; expected ${expectedDictSize}`) &&
-            this.verify(this.fullDict.isWord("place"), "'place' is not in dict") && 
-            this.verify(this.fullDict.isWord("PlAcE"), "'PlAcE' is not in dict") && 
-            this.verify(!this.fullDict.isWord("zizzamatizzateezyman"), "'zizzamatizzateezyman' is in dict") && 
+            this.verify(this.fullDict.isWord("place"), "'place' is not in dict") &&
+            this.verify(this.fullDict.isWord("PlAcE"), "'PlAcE' is not in dict") &&
+            this.verify(!this.fullDict.isWord("zizzamatizzateezyman"), "'zizzamatizzateezyman' is in dict") &&
             this.verify((addersSize == expectedAddersSize), `adders has ${addersSize} words; expected ${expectedAddersSize}`) &&
             this.verify((replacementsSize == expectedReplacementsSize), `adders has ${replacementsSize} words; expected ${expectedReplacementsSize}`) &&
             this.success();
@@ -217,10 +217,10 @@ class Test extends Display {
         const dict = new WordChainDict(["bad", "bat", "cad", "cat", "dog"]);
         const solution = Solver.fastSolve(dict, "bat", "bat");
 
-        this.verify(solution.success(), `error in solving 'bat' to 'bat': ${solution.getError()}`) && 
-            this.verify((solution.numSteps() === 0), "solution for 'bat' to 'bat' is not 0") && 
-            this.verify((solution.getFirstWord() === 'bat'), "first word for 'bat' to 'bat' is not 'bat'") && 
-            this.verify((solution.getLastWord() === 'bat'), "last word for 'bat' to 'bat' is not 'bat'") && 
+        this.verify(solution.success(), `error in solving 'bat' to 'bat': ${solution.getError()}`) &&
+            this.verify((solution.numSteps() === 0), "solution for 'bat' to 'bat' is not 0") &&
+            this.verify((solution.getFirstWord() === 'bat'), "first word for 'bat' to 'bat' is not 'bat'") &&
+            this.verify((solution.getLastWord() === 'bat'), "last word for 'bat' to 'bat' is not 'bat'") &&
             this.success();
     }
 
@@ -237,9 +237,9 @@ class Test extends Display {
         // Nope
         const solutionNope = Solver.fastSolve(smallDict, "bat", "dog");
 
-        this.verify(solutionBadBade.success(), `error on adder 'bad' to 'bade': ${solutionBadBade.getError()}`) && 
-            this.verify(solutionBadeBad.success(), `error on remover 'bade' to 'bad': ${solutionBadeBad.getError()}`) && 
-            this.verify(solutionBatCat.success(), `error on replacer 'bat' to 'cat': ${solutionBatCat.getError()}`) && 
+        this.verify(solutionBadBade.success(), `error on adder 'bad' to 'bade': ${solutionBadBade.getError()}`) &&
+            this.verify(solutionBadeBad.success(), `error on remover 'bade' to 'bad': ${solutionBadeBad.getError()}`) &&
+            this.verify(solutionBatCat.success(), `error on replacer 'bat' to 'cat': ${solutionBatCat.getError()}`) &&
             this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'bad' to 'bade': ${solutionBadBade.getWords()}`) &&
             this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'bade' to 'bad': ${solutionBadeBad.getWords()}`) &&
             this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'bat' to 'cat': ${solutionBatCat.getWords()}`) &&
@@ -255,8 +255,8 @@ class Test extends Display {
         const solutionBatScad = Solver.fastSolve(smallDict, "bat", "scad");
         const solutionScadBat = Solver.fastSolve(smallDict, "scad", "bat");
 
-        this.verify(solutionBatScad.success(), `error on 'bat' to 'scad': ${solutionBatScad.getError()}`) && 
-            this.verify(solutionScadBat.success(), `error on 'scad' to 'bat': ${solutionScadBat.getError()}`) && 
+        this.verify(solutionBatScad.success(), `error on 'bat' to 'scad': ${solutionBatScad.getError()}`) &&
+            this.verify(solutionScadBat.success(), `error on 'scad' to 'bat': ${solutionScadBat.getError()}`) &&
             this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'bat' to 'scad': ${solutionBatScad.getWords()}`) &&
             this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'scad' to 'bat': ${solutionScadBat.getWords()}`) &&
             this.success();
@@ -402,44 +402,44 @@ class Test extends Display {
 
     displayDictTest() {
         this.addTitle("Dictionary Tester");
-        this.addElement("label", {}, "word: ");
-        this.addElement("input", {id: "someWord", type: "text"});
-        this.addElement("p");
-        this.addElement("button", {id: "lookup"}, "lookup");
-        this.addElement("p");
-        this.addElement("label", {id: "lookupAnswer"}, " Click the button to look up the word.");
-        this.addElement("p");
+        Display.addElement("label", {}, "word: ");
+        Display.addElement("input", {id: "someWord", type: "text"});
+        Display.addElement("p");
+        Display.addElement("button", {id: "lookup"}, "lookup");
+        Display.addElement("p");
+        Display.addElement("label", {id: "lookupAnswer"}, " Click the button to look up the word.");
+        Display.addElement("p");
 
-        this.getElement("lookup").addEventListener("click", lookupCallback);
-    }   
+        Display.getElement("lookup").addEventListener("click", lookupCallback);
+    }
 
     lookupCallback() {
-        const word = this.getElementValue("someWord");
+        const word = Display.getElementValue("someWord");
         if (! this.checkWord("someWord")) {
             alert(`${word} is not a word`);
             return;
         }
 
-        const nextWords = [...this.dict.findNextWords(word)].join();
-        this.setElementHTML("lookupAnswer", `Words after ${word}: ${nextWords}`);
+        const nextWords = [...this.dict.findNextWords(word)].join(", ");
+        Display.setElementHTML("lookupAnswer", `Words after ${word}: ${nextWords}`);
     }
 
     // Solver testing
 
     displaySolverTest() {
         this.addTitle("Solver Tester");
-        this.addElement("label", {}, "Start word: ");
-        this.addElement("input", {id: "solverStartWord", type: "text"});
-        this.addElement("p");
-        this.addElement("label", {}, "Target word: ");
-        this.addElement("input", {id: "solverTargetWord", type: "text"}, "Target word:");
-        this.addElement("p");
-        this.addElement("button", {id: "solve"}, "Solve!");
-        this.addElement("p");
-        this.addElement("label", {id: "solveAnswer"}, "Click the button to see the chain.");
-        this.addElement("p");
+        Display.addElement("label", {}, "Start word: ");
+        Display.addElement("input", {id: "solverStartWord", type: "text"});
+        Display.addElement("p");
+        Display.addElement("label", {}, "Target word: ");
+        Display.addElement("input", {id: "solverTargetWord", type: "text"}, "Target word:");
+        Display.addElement("p");
+        Display.addElement("button", {id: "solve"}, "Solve!");
+        Display.addElement("p");
+        Display.addElement("label", {id: "solveAnswer"}, "Click the button to see the chain.");
+        Display.addElement("p");
 
-        this.getElement("solve").addEventListener("click", solveCallback);
+        Display.getElement("solve").addEventListener("click", solveCallback);
     }
 
     solveCallback() {
@@ -456,7 +456,7 @@ class Test extends Display {
         }
 
         const solution = Solver.fastSolve(this.dict, startWord, targetWord);
-        this.setElementHTML("solveAnswer", solution.toHtml());
+        Display.setElementHTML("solveAnswer", solution.toHtml());
     }
 }
 

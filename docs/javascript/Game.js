@@ -9,6 +9,9 @@ class Game extends BaseLogger {
     static DEAD_END = "No solution from this word.";
     static DUPLICATE = "You already played that word.";
 
+    static NO_CHANGE = "*";
+    static CHANGE    = "!";
+
     constructor(dict, solution) {
         super();
         this.dict = dict;
@@ -27,17 +30,20 @@ class Game extends BaseLogger {
     }
 
     isSolved() {
-        return this.solutionInProgress.isSolved();
+        const lastWord = this.solutionInProgress.getLastWord()
+        const nextWords = this.dict.findNextWords(lastWord);
+        return nextWords.has(this.knownSolution.target);
     }
 
     playWord(word) {
         // Display will validate that the word is a valid word.
+        word = word.toLowerCase();
 
         if (this.solutionInProgress.isWordInSolution(word)) {
             this.logDebug(`${word} is already played`, "game");
             return Game.DUPLICATE;
         }
-    
+
         let lastWordPlayed = this.solutionInProgress.getLastWord();
         if (! this.dict.findNextWords(lastWordPlayed).has(word)) {
             this.logDebug(`${word} is not one step from ${lastWordPlayed}`, "game");
@@ -63,7 +69,7 @@ class Game extends BaseLogger {
             this.solutionInProgress.getWordSet());
         this.logDebug(`returned potentialNewSolution: ${potentialNewSolution.toStr()}`, "game");
 
-        // Does the user's word lead to a solution? 
+        // Does the user's word lead to a solution?
         if (potentialNewSolution.isSolved()) {
             // Yes. Update the known solution: append the potential solution (which has the user's word in it)
             // to (a copy of) the solution in progress.
@@ -82,12 +88,14 @@ class Game extends BaseLogger {
     showGame() {
         let playedWords = this.solutionInProgress.getWords();
         let solutionWords = this.knownSolution.getWords();
-        let resultStr = ""; 
+        let resultStr = "";
 
         let game = []
         for (let i = 0; i < solutionWords.length; i++) {
             if (i <= this.solutionInProgress.numSteps()) {
                 game.push(playedWords[i])
+            } else if (i == solutionWords.length - 1) {
+                game.push(solutionWords[i])
             } else {
                 game.push(this.showUnguessedWord(solutionWords[i], solutionWords[i-1]));
             }
@@ -101,13 +109,13 @@ class Game extends BaseLogger {
         if (word.length === previousWord.length) {
             for (let i = 0; i < word.length; i++) {
                 if (word[i] == previousWord[i]) {
-                    unguessedWord += "*";
+                    unguessedWord += Game.NO_CHANGE;
                 } else {
-                    unguessedWord += "!";
+                    unguessedWord += Game.CHANGE;
                 }
             }
         } else {
-            unguessedWord = "*".repeat(word.length);
+            unguessedWord = Game.NO_CHANGE.repeat(word.length);
         }
 
         return unguessedWord;

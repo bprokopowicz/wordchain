@@ -1,0 +1,228 @@
+/*
+** Default styling for Mobile Phones
+*/
+
+/* Global */
+
+* {
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+#root-div {
+}
+
+.game-button {
+    font-size: 1rem;
+    padding: .75rem;
+    border-width: 0;
+    border-radius: .5rem;
+    margin: 10px;
+    margin: 5px;
+    background: gainsboro;
+    color: black;
+}
+
+/* Header */
+
+#header-div {
+    display: flex;
+    justify-content: center;
+    background: lightsteelblue;
+    padding: 5px;
+}
+
+#title-div {
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding-right: 10px;
+}
+
+.header-button {
+    font-size: 1rem;
+    padding: .75rem;
+    border-width: 0;
+    border-radius: .5rem;
+    margin: 10px;
+    margin: 5px;
+}
+
+.active-button {
+    background: slategray;
+    color: white;
+}
+
+.not-active {
+    background: gainsboro;
+    color: black;
+}
+
+/* Practice Game Display */
+
+#practice-div {
+    padding: 20px;
+}
+
+/* Shell around the solution/keyboard/practice divs */
+
+#outer-div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.break {
+    flex-basis: 100%;
+}
+
+/* Solution Display (for Daily and Practice games) */
+
+#solution-div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+table {
+    border-spacing: 3px;
+}
+
+/* Tile td classes */
+
+.tile {
+    width: 20px;
+    height: 20px;
+    font-weight: bold;
+    font-size: 20px;
+    text-align: center;
+    vertical-align: middle;
+    color: black;
+    border: 2px solid black;
+}
+
+.letter-change {
+    border: 4px solid black;
+}
+
+.no-change {
+    border: 2px solid black;
+}
+
+.tile-enter {
+    background: lightsteelblue;
+}
+
+.no-enter {
+    background: white;
+}
+
+/* Letter div classes */
+
+.is-a-word {
+    color: black;
+}
+
+.not-a-word {
+    color: darkred;
+}
+
+.start-word {
+    color: black;
+}
+
+.target-word {
+    color: seagreen;
+}
+
+.shown-letter {
+    visibility: visible;
+}
+
+.hidden-letter {
+    visibility: hidden;
+}
+
+
+/* Keyboard Display (for Daily and Practice games) */
+
+#keyboard-div {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.keyboard-row {
+    display: flex;
+    margin-top: 0;
+    margin-right: auto;
+    margin-left: auto;
+    margin-bottom: 8px;
+    /* https://stackoverflow.com/questions/46167604/ios-html-disable-double-tap-to-zoom */
+    touch-action: manipulation;
+}
+
+.keyboard-key {
+    font-family: inherit;
+    font-weight: bold;
+    border: 0;
+    padding: 0;
+    margin-top: 0;
+    margin-right: 6px;
+    margin-bottom: 0;
+    margin-left: 0;
+    width: 58px;
+    height: 58px;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    background-color: lightgray;
+    color: black;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: uppercase;
+}
+
+.keyboard-spacer {
+    flex: 0.5;
+    visibility: hidden;
+}
+
+.keyboard-wide-key {
+    flex: 1.5;
+    background: lightsteelblue;
+    color: black;
+}
+
+
+/*
+** Override Styling for Tablets
+*/
+
+@media only screen and (min-width: 600px) {
+    table {
+        border-spacing: 10px;
+    }
+    .tile {
+        width: 30px;
+        height: 30px;
+        font-size: 24px;
+    }
+}
+
+/*
+** Override Styling for Larger Screens
+*/
+
+@media only screen and (min-width: 991px) {
+    table {
+        border-spacing: 15px;
+    }
+    .tile {
+        width: 40px;
+        height: 40px;
+        font-size: 36px;
+    }
+}
