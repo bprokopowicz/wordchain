@@ -2,9 +2,9 @@ import { Display } from '../docs/javascript/Display.js';
 import { WordChainDict } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
+import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
-// Forwarding functions; see big comment on Display.prototypeGame()
-// explaining how these came about.
+// Forwarding functions; see big comment in Display.js explaining how these came about.
 
 function runTestsCallback() {
     Test.singleton().runTestsCallback();
@@ -43,14 +43,14 @@ class Test extends Display {
         this.displayTestSuite();
         this.displayDictTest();
         this.displaySolverTest();
-        Display.addElement("hr");
+        ElementUtilities.addElement("hr");
     }
 
     addTitle(title) {
-        Display.addElement("hr");
-        Display.addElement("p");
-        Display.addElement("h2", {}, title);
-        Display.addElement("p");
+        ElementUtilities.addElement("hr");
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("h2", {}, title);
+        ElementUtilities.addElement("p");
     }
 
     /*
@@ -59,12 +59,12 @@ class Test extends Display {
 
     displayTestSuite() {
         this.addTitle("WordChain Test Suite");
-        Display.addElement("button", {id: "runTests"}, "Run Tests");
-        Display.addElement("p");
-        Display.addElement("label", {id: "testResults"}, "");
-        Display.addElement("p");
+        ElementUtilities.addElement("button", {id: "runTests"}, "Run Tests");
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {id: "testResults"}, "");
+        ElementUtilities.addElement("p");
 
-        Display.getElement("runTests").addEventListener("click", runTestsCallback);
+        ElementUtilities.getElement("runTests").addEventListener("click", runTestsCallback);
     }
 
     runTestsCallback() {
@@ -83,7 +83,7 @@ class Test extends Display {
         results += `Failure count: ${this.failureCount}<p>`;
         results += this.messages.join("<br>");
 
-        Display.setElementHTML("testResults", results);
+        ElementUtilities.setElementHTML("testResults", results);
     }
 
     verify(truthValue, message) {
@@ -402,44 +402,44 @@ class Test extends Display {
 
     displayDictTest() {
         this.addTitle("Dictionary Tester");
-        Display.addElement("label", {}, "word: ");
-        Display.addElement("input", {id: "someWord", type: "text"});
-        Display.addElement("p");
-        Display.addElement("button", {id: "lookup"}, "lookup");
-        Display.addElement("p");
-        Display.addElement("label", {id: "lookupAnswer"}, " Click the button to look up the word.");
-        Display.addElement("p");
+        ElementUtilities.addElement("label", {}, "word: ");
+        ElementUtilities.addElement("input", {id: "someWord", type: "text"});
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("button", {id: "lookup"}, "lookup");
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {id: "lookupAnswer"}, " Click the button to look up the word.");
+        ElementUtilities.addElement("p");
 
-        Display.getElement("lookup").addEventListener("click", lookupCallback);
+        ElementUtilities.getElement("lookup").addEventListener("click", lookupCallback);
     }
 
     lookupCallback() {
-        const word = Display.getElementValue("someWord");
+        const word = ElementUtilities.getElementValue("someWord");
         if (! this.checkWord("someWord")) {
             alert(`${word} is not a word`);
             return;
         }
 
         const nextWords = [...this.dict.findNextWords(word)].join(", ");
-        Display.setElementHTML("lookupAnswer", `Words after ${word}: ${nextWords}`);
+        ElementUtilities.setElementHTML("lookupAnswer", `Words after ${word}: ${nextWords}`);
     }
 
     // Solver testing
 
     displaySolverTest() {
         this.addTitle("Solver Tester");
-        Display.addElement("label", {}, "Start word: ");
-        Display.addElement("input", {id: "solverStartWord", type: "text"});
-        Display.addElement("p");
-        Display.addElement("label", {}, "Target word: ");
-        Display.addElement("input", {id: "solverTargetWord", type: "text"}, "Target word:");
-        Display.addElement("p");
-        Display.addElement("button", {id: "solve"}, "Solve!");
-        Display.addElement("p");
-        Display.addElement("label", {id: "solveAnswer"}, "Click the button to see the chain.");
-        Display.addElement("p");
+        ElementUtilities.addElement("label", {}, "Start word: ");
+        ElementUtilities.addElement("input", {id: "solverStartWord", type: "text"});
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {}, "Target word: ");
+        ElementUtilities.addElement("input", {id: "solverTargetWord", type: "text"}, "Target word:");
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("button", {id: "solve"}, "Solve!");
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {id: "solveAnswer"}, "Click the button to see the chain.");
+        ElementUtilities.addElement("p");
 
-        Display.getElement("solve").addEventListener("click", solveCallback);
+        ElementUtilities.getElement("solve").addEventListener("click", solveCallback);
     }
 
     solveCallback() {
@@ -456,7 +456,7 @@ class Test extends Display {
         }
 
         const solution = Solver.fastSolve(this.dict, startWord, targetWord);
-        Display.setElementHTML("solveAnswer", solution.toHtml());
+        ElementUtilities.setElementHTML("solveAnswer", solution.toHtml());
     }
 }
 

@@ -99,15 +99,18 @@ table {
     text-align: center;
     vertical-align: middle;
     color: black;
-    border: 2px solid black;
+    border-style: solid;
+    border-color: black;
 }
 
 .letter-change {
-    border: 4px solid black;
+    border-width: 4px;
+    padding: 0;
 }
 
 .no-change {
-    border: 2px solid black;
+    border-width: 2px;
+    padding: 2px;
 }
 
 .tile-enter {

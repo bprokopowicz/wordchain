@@ -2,6 +2,7 @@ import { BaseLogger } from './BaseLogger.js';
 import { WordChainDict } from './WordChainDict.js';
 import { Solver } from './Solver.js';
 import { Game } from './Game.js';
+import { ElementUtilities } from './ElementUtilities.js';
 
 
 /*
@@ -104,10 +105,10 @@ class Display extends BaseLogger {
 
     // This is the entry point for displaying the game.
     displayGame() {
-        this.rootDiv = Display.addElementTo("div", document.body, {id: "root-div"});
+        this.rootDiv = ElementUtilities.addElementTo("div", document.body, {id: "root-div"});
         this.createHeaderDiv();
 
-        this.outerDiv = Display.addElementTo("div", this.rootDiv, {id: "outer-div"});
+        this.outerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "outer-div"});
         this.createPracticeDiv(Display.HIDDEN);
         this.createSolutionDiv(Display.SHOWN);
         this.createKeyboardDiv(Display.SHOWN);
@@ -118,19 +119,19 @@ class Display extends BaseLogger {
     /* ----- Header ----- */
 
     createHeaderDiv() {
-        this.headerDiv = Display.addElementTo("div", this.rootDiv, {id: "header-div"});
+        this.headerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "header-div"});
 
-        const titleDiv = Display.addElementTo("div", this.headerDiv, {id: "title-div"});
+        const titleDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "title-div"});
 
-        Display.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
+        ElementUtilities.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
 
-        this.dailyGameButton = Display.addElementTo(
+        this.dailyGameButton = ElementUtilities.addElementTo(
             "button", titleDiv,
             {id: "daily-game", class: "header-button active-button"},
             "Daily");
         this.dailyGameButton.addEventListener("click", dailyGameCallback);
 
-        this.practiceGameButton = Display.addElementTo(
+        this.practiceGameButton = ElementUtilities.addElementTo(
             "button", titleDiv,
             {id: "practice-game", class: "header-button not-active"},
             "Practice");
@@ -140,30 +141,30 @@ class Display extends BaseLogger {
     /* ----- Keyboard ----- */
 
     addActionButton(rowElement, letter) {
-        const button = Display.addElementTo("button", rowElement, {'data-key': letter, class: "keyboard-key keyboard-wide-key"}, letter);
+        const button = ElementUtilities.addElementTo("button", rowElement, {'data-key': letter, class: "keyboard-key keyboard-wide-key"}, letter);
         this.keyboardButtons.push(button);
     }
 
     addLetterButton(rowElement, letter) {
-        const button = Display.addElementTo("button", rowElement, {'data-key': letter, class: "keyboard-key"}, letter);
+        const button = ElementUtilities.addElementTo("button", rowElement, {'data-key': letter, class: "keyboard-key"}, letter);
         this.keyboardButtons.push(button);
     }
 
     addSpacer(rowElement) {
-        Display.addElementTo("div", rowElement, {class: "keyboard-key keyboard-spacer"});
+        ElementUtilities.addElementTo("div", rowElement, {class: "keyboard-key keyboard-spacer"});
     }
 
     createKeyboardDiv(hidden) {
-        this.keyboardDiv = Display.addElementTo("div", this.outerDiv, {id: "keyboard-div"}, null);
+        this.keyboardDiv = ElementUtilities.addElementTo("div", this.outerDiv, {id: "keyboard-div"}, null);
         if (hidden) {
             this.keyboardDiv.style.display = "none";
         }
 
-        Display.addElementTo("p", this.keyboardDiv);
+        ElementUtilities.addElementTo("p", this.keyboardDiv);
 
-        const row1 = Display.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
-        const row2 = Display.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
-        const row3 = Display.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
+        const row1 = ElementUtilities.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
+        const row2 = ElementUtilities.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
+        const row3 = ElementUtilities.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
 
         // Add keys for row 1
         this.addLetterButton(row1, "q");
@@ -210,18 +211,18 @@ class Display extends BaseLogger {
     /* ----- Practice ----- */
 
     createPracticeDiv(hidden) {
-        this.practiceDiv = Display.addElementTo("div", this.outerDiv, {id: "practice-div"});
+        this.practiceDiv = ElementUtilities.addElementTo("div", this.outerDiv, {id: "practice-div"});
         if (hidden) {
             this.practiceDiv.style.display = "none";
         }
 
-        Display.addElementTo("label",   this.practiceDiv, {}, "Start word: ");
-        Display.addElementTo("input",   this.practiceDiv, {id: "game-start-word", type: "text"});
-        Display.addElementTo("p",       this.practiceDiv);
-        Display.addElementTo("label",   this.practiceDiv, {}, "Target word: ");
-        Display.addElementTo("input",   this.practiceDiv, {id: "game-target-word", type: "text"});
-        Display.addElementTo("p",       this.practiceDiv);
-        const startGameButton = Display.addElementTo(
+        ElementUtilities.addElementTo("label",   this.practiceDiv, {}, "Start word: ");
+        ElementUtilities.addElementTo("input",   this.practiceDiv, {id: "game-start-word", type: "text"});
+        ElementUtilities.addElementTo("p",       this.practiceDiv);
+        ElementUtilities.addElementTo("label",   this.practiceDiv, {}, "Target word: ");
+        ElementUtilities.addElementTo("input",   this.practiceDiv, {id: "game-target-word", type: "text"});
+        ElementUtilities.addElementTo("p",       this.practiceDiv);
+        const startGameButton = ElementUtilities.addElementTo(
             "button", this.practiceDiv,
             {id: "start-game", class: "game-button"},
             "Start Game");
@@ -231,7 +232,7 @@ class Display extends BaseLogger {
     /* ----- Solution ----- */
 
     createSolutionDiv(hidden) {
-        this.solutionDiv = Display.addElementTo("div", this.outerDiv, {id: "solution-div"}, null);
+        this.solutionDiv = ElementUtilities.addElementTo("div", this.outerDiv, {id: "solution-div"}, null);
         if (hidden) {
             this.solutionDiv.style.display = "none";
         }
@@ -239,7 +240,7 @@ class Display extends BaseLogger {
         // The div with class "break" forces whatever comes after this div
         // to be on a "new line" with display: flex, which we use for this div.
         // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-        Display.addElementTo("div", this.outerDiv, {class: "break"});
+        ElementUtilities.addElementTo("div", this.outerDiv, {class: "break"});
     }
 
     /*
@@ -260,11 +261,11 @@ class Display extends BaseLogger {
                 return;
             }
 
-            Display.setElementValue("game-start-word", startWord);
-            Display.setElementValue("game-target-word", targetWord);
+            ElementUtilities.setElementValue("game-start-word", startWord);
+            ElementUtilities.setElementValue("game-target-word", targetWord);
 
-            Display.editClass(/not-active/, "active-button", this.dailyGameButton);
-            Display.editClass(/active-button/, "not-active", this.practiceGameButton);
+            ElementUtilities.editClass(/not-active/, "active-button", this.dailyGameButton);
+            ElementUtilities.editClass(/active-button/, "not-active", this.practiceGameButton);
 
             // No need to check solution for success -- daily games will be
             // pre-verified to have a solution.
@@ -294,11 +295,11 @@ class Display extends BaseLogger {
 
     // This is the callback for the Practice and Start New Game buttons.
     practiceGameCallback() {
-        Display.setElementValue("game-start-word", "");
-        Display.setElementValue("game-target-word", "");
+        ElementUtilities.setElementValue("game-start-word", "");
+        ElementUtilities.setElementValue("game-target-word", "");
 
-        Display.editClass(/not-active/, "active-button", this.practiceGameButton);
-        Display.editClass(/active-button/, "not-active", this.dailyGameButton);
+        ElementUtilities.editClass(/not-active/, "active-button", this.practiceGameButton);
+        ElementUtilities.editClass(/active-button/, "not-active", this.dailyGameButton);
 
 
         if (this.practiceGame !== null) {
@@ -348,7 +349,7 @@ class Display extends BaseLogger {
     editClassForCurrentWord(fromPattern, toString, element, elementGetter) {
 
         if (element) {
-            Display.editClass(fromPattern, toString, element);
+            ElementUtilities.editClass(fromPattern, toString, element);
         } else {
             let elements = [];
             const wordLength = this.getCurrentWordLength();
@@ -356,7 +357,7 @@ class Display extends BaseLogger {
                 elements.push(elementGetter(this.currentRow, col));
             }
 
-            Display.editClass(fromPattern, toString, elements);
+            ElementUtilities.editClass(fromPattern, toString, elements);
         }
     }
 
@@ -374,7 +375,7 @@ class Display extends BaseLogger {
     }
 
     static getLetterElement(row, col) {
-        return Display.getElement(Display.getLetterId(row, col), false);
+        return ElementUtilities.getElement(Display.getLetterId(row, col), false);
     }
 
     static getLetterId(row, col) {
@@ -382,7 +383,7 @@ class Display extends BaseLogger {
     }
 
     static getTileElement(row, col) {
-        return Display.getElement(Display.getTileId(row, col), false);
+        return ElementUtilities.getElement(Display.getTileId(row, col), false);
     }
 
     static getTileId(row, col) {
@@ -390,7 +391,7 @@ class Display extends BaseLogger {
     }
 
     static getTileRowElement(row) {
-        return Display.getElement(Display.getTileRowId(row));
+        return ElementUtilities.getElement(Display.getTileRowId(row));
     }
 
     static getTileRowId(row) {
@@ -509,17 +510,65 @@ class Display extends BaseLogger {
         }
     }
 
-    showGameTiles(showSolution=false) {
+    showGameTiles(showSolution) {
         // Just return if we haven't started the game yet.
         if (! this.game) {
             return;
         }
 
-        // Delete current child elements.
-        Display.deleteChildren(this.solutionDiv);
+        this.updateGameTiles(showSolution);
 
-        const tableElement = Display.addElementTo("table", this.solutionDiv);
-        const tbodyElement = Display.addElementTo("tbody", tableElement);
+        if (showSolution) {
+            // Game is over; don't show keyboard.
+            this.keyboardDiv.style.display = "none";
+
+            // Note which game is over, and add Start New Game button if
+            // playing practice game.
+            if (this.game === this.dailyGame) {
+                this.dailyGameOver = true;
+            } else {
+                this.practiceGameOver = true;
+
+                // Set practiceGame to null so practiceGameCallback() knows to
+                // get new start/target words.
+                this.practiceGame = null;
+
+                // The div with class "break" forces the button to be on a "new line" with display: flex.
+                // to be on a "new line" with display: flex, which we use for this div.
+                // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+                ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
+                const startNewGameButton = ElementUtilities.addElementTo(
+                    "button", this.solutionDiv,
+                    {id: "start-new-game", class: "game-button"},
+                    "Start New Game");
+                startNewGameButton.addEventListener("click", practiceGameCallback);
+            }
+        } else {
+            // Game not over; add End Game button and show keyboard.
+
+            // The div with class "break" forces the button to be on a "new line" with display: flex.
+            // to be on a "new line" with display: flex, which we use for this div.
+            // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+            ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
+            const endGameButton = ElementUtilities.addElementTo(
+                "button", this.solutionDiv,
+                {id: "end-game", class: "game-button"},
+                "End Game");
+            endGameButton.addEventListener("click", endGameCallback);
+
+            this.keyboardDiv.style.display = "block";
+        }
+
+        this.solutionDiv.style.display = "flex";
+        this.practiceDiv.style.display = "none";
+    }
+
+    updateGameTiles(showSolution) {
+        // Delete current child elements.
+        ElementUtilities.deleteChildren(this.solutionDiv);
+
+        const tableElement = ElementUtilities.addElementTo("table", this.solutionDiv);
+        const tbodyElement = ElementUtilities.addElementTo("tbody", tableElement);
 
         // This will hold the row number where letters typed/clicked will go.
         this.currentRow = null;
@@ -537,7 +586,7 @@ class Display extends BaseLogger {
 
         for (let row = 0; row < gameSteps.length; row++) {
             const word = gameSteps[row];
-            const rowElement = Display.addElementTo("tr", tbodyElement, {id: Display.getTileRowId(row)});
+            const rowElement = ElementUtilities.addElementTo("tr", tbodyElement, {id: Display.getTileRowId(row)});
             rowElement.setAttribute("data-word-length", word.length);
 
             for (let col = 0; col < word.length; col++) {
@@ -576,54 +625,10 @@ class Display extends BaseLogger {
 
                 const tileId = Display.getTileId(row, col);
                 const letterId = Display.getLetterId(row, col);
-                const tdElement = Display.addElementTo("td", rowElement, {id: tileId, class: tileClass, 'data-tile-type': tileType});
-                Display.addElementTo("div", tdElement, {id: letterId, class: letterClass}, letter);
+                const tdElement = ElementUtilities.addElementTo("td", rowElement, {id: tileId, class: tileClass, 'data-tile-type': tileType});
+                ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: letterClass}, letter);
             }
         }
-
-        if (showSolution) {
-            // Game is over; don't show keyboard.
-            this.keyboardDiv.style.display = "none";
-
-            // Note which game is over, and add Start New Game button if
-            // playing practice game.
-            if (this.game === this.dailyGame) {
-                this.dailyGameOver = true;
-            } else {
-                this.practiceGameOver = true;
-
-                // Set practiceGame to null so practiceGameCallback() knows to
-                // get new start/target words.
-                this.practiceGame = null;
-
-                // The div with class "break" forces the button to be on a "new line" with display: flex.
-                // to be on a "new line" with display: flex, which we use for this div.
-                // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-                Display.addElementTo("div", this.solutionDiv, {class: "break"});
-                const startNewGameButton = Display.addElementTo(
-                    "button", this.solutionDiv,
-                    {id: "start-new-game", class: "game-button"},
-                    "Start New Game");
-                startNewGameButton.addEventListener("click", practiceGameCallback);
-            }
-        } else {
-            // Game not over; add End Game button and show keyboard.
-
-            // The div with class "break" forces the button to be on a "new line" with display: flex.
-            // to be on a "new line" with display: flex, which we use for this div.
-            // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-            Display.addElementTo("div", this.solutionDiv, {class: "break"});
-            const endGameButton = Display.addElementTo(
-                "button", this.solutionDiv,
-                {id: "end-game", class: "game-button"},
-                "End Game");
-            endGameButton.addEventListener("click", endGameCallback);
-
-            this.keyboardDiv.style.display = "block";
-        }
-
-        this.solutionDiv.style.display = "flex";
-        this.practiceDiv.style.display = "none";
     }
 
     /*
@@ -631,79 +636,13 @@ class Display extends BaseLogger {
     */
 
     checkWord(elementId) {
-        let word = Display.getElementValue(elementId);
+        let word = ElementUtilities.getElementValue(elementId);
         word = word.trim().toLowerCase();
         if (word.length === 0 || !this.dict.isWord(word)) {
             return null;
         }
 
         return word;
-    }
-
-    /*
-    ** ELEMENT MANIPULATION UTILITIES
-    */
-
-    static addElement(elementType, attributes=null, innerHTML=null) {
-        Display.addElementTo(elementType, document.body, attributes, innerHTML);
-    }
-
-    static addElementTo(elementType, parent, attributes=null, innerHTML=null) {
-        const element = document.createElement(elementType);
-        for (let attribute in attributes) {
-            element.setAttribute(attribute, attributes[attribute]);
-        }
-
-        if (innerHTML !== null) {
-            element.innerHTML = innerHTML;
-        }
-
-        parent.appendChild(element);
-
-        return element;
-    }
-
-    static deleteChildren(element) {
-        while (element.firstChild) {
-            element.removeChild(element.firstChild);
-        }
-    }
-
-    static editClass(fromPattern, toString, elements) {
-
-        if (! (elements instanceof Array)) {
-            elements = [elements];
-        }
-
-        for (let element of elements) {
-            let elementClass = element.getAttribute('class');
-            elementClass = elementClass.replace(fromPattern, toString);
-            element.setAttribute('class', elementClass);
-        }
-    }
-
-    static getElement(elementId, mustExist=true) {
-        const element = document.getElementById(elementId);
-        if (mustExist && !element) {
-            throw new Error(`Display.getElement(): no element with id ${elementId}`);
-        }
-        return element;
-    }
-
-    static getElementValue(elementId) {
-        const element = Display.getElement(elementId);
-        return element.value;
-    }
-
-    // Currently used only in Test.js.
-    static setElementHTML(elementId, elementHTML) {
-        const element = Display.getElement(elementId);
-        element.innerHTML = elementHTML;
-    }
-
-    static setElementValue(elementId, elementValue) {
-        const element = Display.getElement(elementId);
-        element.value = elementValue;
     }
 }
 
