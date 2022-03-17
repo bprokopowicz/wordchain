@@ -160,7 +160,7 @@ class Solver extends BaseLogger {
                 // got time to wait more than 7 seconds.
                 if (Date.now() - startTime > 7000) {
                     this.logDebug(`Too long! loopCount: ${loopCount}`, "perf");
-                    solution.addError("No solution");
+                    solution.addError("No solution within a reasonable time");
                     return solution;
                 }
                 this.logDebug(`loopCount: ${loopCount}: heap size: ${workingSolutions.getSize()}`, "perf")

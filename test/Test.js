@@ -210,6 +210,7 @@ class Test extends Display {
         this.testSolverMultiStep();
         this.testSolverDistance();
         this.testSolverLongChain();
+        this.testSolverFastestDirection();
     }
 
     testSolverIdentitySequence() {
@@ -289,6 +290,16 @@ class Test extends Display {
 
         this.verify(solutionTacoBimbo.success(), `error on 'taco' to 'bimbo': ${solutionTacoBimbo.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `foundWords: ${foundWords} is not as expected: ${expectedWords}`) &&
+            this.success();
+    }
+
+    testSolverFastestDirection() {
+        this.name = "SolverFastestDirection";
+
+        // This takes too long if the solver doesn't try to go from 'matzo'
+        // to 'ball' because 'ball' has so many next words.
+        const solutionMatzoBall = Solver.fastSolve(this.fullDict, "matzo", "ball");
+            this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'matzo' to 'ball': ${solutionMatzoBall.getError()}`) &&
             this.success();
     }
 
