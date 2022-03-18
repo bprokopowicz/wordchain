@@ -20,8 +20,10 @@ class ElementUtilities {
     }
 
     static deleteChildren(element) {
-        while (element.firstChild) {
-            element.removeChild(element.firstChild);
+        if (element) {
+            while (element.firstChild) {
+                element.removeChild(element.firstChild);
+            }
         }
     }
 
