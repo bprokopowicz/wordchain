@@ -258,6 +258,7 @@ class Display extends BaseLogger {
             if (this.dailyGameOver) {
                 this.game = this.dailyGame
                 this.showGameTiles(Display.SHOW_SOLUTION);
+                this.updateDisplay(Display.SHOW_SOLUTION);
                 return;
             }
 
@@ -276,11 +277,13 @@ class Display extends BaseLogger {
             }
             this.game = this.dailyGame
             this.showGameTiles(Display.SHOW_STEPS);
+            this.updateDisplay(Display.SHOW_STEPS);
         }, 200);
     }
 
     endGameCallback() {
         this.showGameTiles(Display.SHOW_SOLUTION);
+        this.updateDisplay(Display.SHOW_SOLUTION);
     }
 
     keyPressCallback(keyValue) {
@@ -288,6 +291,16 @@ class Display extends BaseLogger {
             this.keyPressDelete();
         } else if (keyValue === "↵") {
             this.keyPressEnter();
+            if (this.game.isSolved()) {
+                // Show the alert after 50 ms; this little delay results in the last word
+                // appearing on the display before the the alert pop-up.
+                setTimeout(() => {
+                    alert("Good job! You solved it!")
+                    if (this.game == this.dailyGame) {
+                        this.endGameCallback();
+                    }
+                }, 50);
+            }
         } else {
             this.keyPressLetter(keyValue);
         }
@@ -305,6 +318,7 @@ class Display extends BaseLogger {
         if (this.practiceGame !== null) {
             this.game = this.practiceGame;
             this.showGameTiles(Display.SHOW_STEPS);
+            this.updateDisplay(Display.SHOW_STEPS);
         } else {
             this.solutionDiv.style.display = "none";
             this.keyboardDiv.style.display = "none";
@@ -340,6 +354,7 @@ class Display extends BaseLogger {
         this.practiceGame = new Game(this.dict, solution);
         this.game = this.practiceGame;
         this.showGameTiles(Display.SHOW_STEPS);
+        this.updateDisplay(Display.SHOW_STEPS);
     }
 
     /*
@@ -458,16 +473,10 @@ class Display extends BaseLogger {
         const gameResult = this.game.playWord(enteredWord);
 
         if (gameResult !== Game.OK) {
-            alert (gameResult);
+            alert(gameResult);
         } else {
             this.showGameTiles(Display.SHOW_STEPS);
-            if (this.game.isSolved()) {
-                // Show the alert after 50 ms; this little delay results in the last word
-                // appearing on the display before the the alert pop-up.
-                setTimeout(() => {
-                    alert("Good job! You solved it!")
-                }, 50);
-            }
+            this.updateDisplay(Display.SHOW_STEPS);
         }
     }
 
@@ -516,54 +525,6 @@ class Display extends BaseLogger {
             return;
         }
 
-        this.updateGameTiles(showSolution);
-
-        if (showSolution) {
-            // Game is over; don't show keyboard.
-            this.keyboardDiv.style.display = "none";
-
-            // Note which game is over, and add Start New Game button if
-            // playing practice game.
-            if (this.game === this.dailyGame) {
-                this.dailyGameOver = true;
-            } else {
-                this.practiceGameOver = true;
-
-                // Set practiceGame to null so practiceGameCallback() knows to
-                // get new start/target words.
-                this.practiceGame = null;
-
-                // The div with class "break" forces the button to be on a "new line" with display: flex.
-                // to be on a "new line" with display: flex, which we use for this div.
-                // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-                ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
-                const startNewGameButton = ElementUtilities.addElementTo(
-                    "button", this.solutionDiv,
-                    {id: "start-new-game", class: "game-button"},
-                    "Start New Game");
-                startNewGameButton.addEventListener("click", practiceGameCallback);
-            }
-        } else {
-            // Game not over; add End Game button and show keyboard.
-
-            // The div with class "break" forces the button to be on a "new line" with display: flex.
-            // to be on a "new line" with display: flex, which we use for this div.
-            // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-            ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
-            const endGameButton = ElementUtilities.addElementTo(
-                "button", this.solutionDiv,
-                {id: "end-game", class: "game-button"},
-                "End Game");
-            endGameButton.addEventListener("click", endGameCallback);
-
-            this.keyboardDiv.style.display = "block";
-        }
-
-        this.solutionDiv.style.display = "flex";
-        this.practiceDiv.style.display = "none";
-    }
-
-    updateGameTiles(showSolution) {
         // Delete current child elements.
         ElementUtilities.deleteChildren(this.solutionDiv);
 
@@ -629,6 +590,53 @@ class Display extends BaseLogger {
                 ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: letterClass}, letter);
             }
         }
+
+    }
+
+    updateDisplay(showSolution) {
+        if (showSolution) {
+            // Game is over; don't show keyboard.
+            this.keyboardDiv.style.display = "none";
+
+            // Note which game is over, and add Start New Game button if
+            // playing practice game.
+            if (this.game === this.dailyGame) {
+                this.dailyGameOver = true;
+            } else {
+                this.practiceGameOver = true;
+
+                // Set practiceGame to null so practiceGameCallback() knows to
+                // get new start/target words.
+                this.practiceGame = null;
+
+                // The div with class "break" forces the button to be on a "new line" with display: flex.
+                // to be on a "new line" with display: flex, which we use for this div.
+                // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+                ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
+                const startNewGameButton = ElementUtilities.addElementTo(
+                    "button", this.solutionDiv,
+                    {id: "start-new-game", class: "game-button"},
+                    "Start New Game");
+                startNewGameButton.addEventListener("click", practiceGameCallback);
+            }
+        } else {
+            // Game not over; add End Game button and show keyboard.
+
+            // The div with class "break" forces the button to be on a "new line" with display: flex.
+            // to be on a "new line" with display: flex, which we use for this div.
+            // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+            ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
+            const endGameButton = ElementUtilities.addElementTo(
+                "button", this.solutionDiv,
+                {id: "end-game", class: "game-button"},
+                "End Game");
+            endGameButton.addEventListener("click", endGameCallback);
+
+            this.keyboardDiv.style.display = "block";
+        }
+
+        this.solutionDiv.style.display = "flex";
+        this.practiceDiv.style.display = "none";
     }
 
     /*
