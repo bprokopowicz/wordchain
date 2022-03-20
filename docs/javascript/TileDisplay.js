@@ -4,12 +4,29 @@ import { Game } from './Game.js';
 
 class TileDisplay extends BaseLogger {
 
+    // These will appear as Toast Notifications
+    static ALREADY_PLAYED = "Already played";
+    static INCOMPLETE = "Incomplete"
+    static NO_SOLUTION = "No solution";
+    static NOT_A_WORD = "Not a word";
+    static NOT_ONE_STEP = "Not one step";
+
+    // These will NOT appear as Toast Notifications
+    static OK = "OK"
+
+    static GAME_TO_TILE_DISPLAY = {};
+
     constructor(game, dict, solutionDiv) {
         super();
 
         this.setGame(game);
         this.dict = dict;
         this.solutionDiv = solutionDiv;
+
+        TileDisplay.GAME_TO_TILE_DISPLAY[Game.OK] =  TileDisplay.OK;
+        TileDisplay.GAME_TO_TILE_DISPLAY[Game.NOT_ONE_STEP] =  TileDisplay.NOT_ONE_STEP;
+        TileDisplay.GAME_TO_TILE_DISPLAY[Game.DEAD_END] =  TileDisplay.NO_SOLUTION;
+        TileDisplay.GAME_TO_TILE_DISPLAY[Game.DUPLICATE] =  TileDisplay.ALREADY_PLAYED;
     }
 
     editClassForCurrentWord(fromPattern, toString, element, elementGetter) {
@@ -75,7 +92,6 @@ class TileDisplay extends BaseLogger {
 
             const letter = letterElement.innerHTML;
             if (letter === Game.CHANGE | letter === Game.NO_CHANGE) {
-                alert("Not enough letters");
                 return null;
             }
             enteredWord += letter;
@@ -113,24 +129,15 @@ class TileDisplay extends BaseLogger {
     keyPressEnter() {
         const enteredWord = this.getWordFromTiles();
         if (! enteredWord) {
-            return;
+            return TileDisplay.INCOMPLETE;
         }
 
         if (! this.dict.isWord(enteredWord)) {
             // Tile letter color already changed to indicate it's not a word.
-            return;
+            return TileDisplay.NOT_A_WORD;
         }
 
-        return this.game.playWord(enteredWord);
-
-        /*
-        if (gameResult !== Game.OK) {
-            alert(gameResult);
-        } else {
-            this.showGameTiles(Display.SHOW_STEPS);
-            this.updateDisplay(Display.SHOW_STEPS);
-        }
-        */
+        return TileDisplay.GAME_TO_TILE_DISPLAY[this.game.playWord(enteredWord)];
     }
 
     keyPressLetter(keyValue) {
@@ -244,6 +251,14 @@ class TileDisplay extends BaseLogger {
             }
         }
 
+    }
+
+    showSolution() {
+        this.showGameTiles(true);
+    }
+
+    showSteps() {
+        this.showGameTiles(false);
     }
 
     setGame(game) {
