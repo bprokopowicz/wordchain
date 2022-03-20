@@ -181,7 +181,7 @@ class Test extends Display {
         // seemed to work. Then I just decided to use GLdictionary.
         //const fullDict = new WordChainDict();
         const dictSize = this.fullDict.getSize();
-        const expectedDictSize = 38807;
+        const expectedDictSize = 16604;
 
         const catAdders = this.fullDict.findAdderWords("cat");
         const addersSize = catAdders.size;
