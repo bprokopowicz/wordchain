@@ -53,6 +53,15 @@ class ElementUtilities {
         return element.value;
     }
 
+    static isHidden(element) {
+        return element.style.display === "none";
+    }
+
+    static isLetter(letter) {
+        // JavaScript doesn't have this builtin!
+        return letter.length === 1 && letter.match(/[a-z]/i);
+    }   
+
     // Currently used only in Test.js.
     static setElementHTML(elementId, elementHTML) {
         const element = ElementUtilities.getElement(elementId);

@@ -1,4 +1,4 @@
-import { TileDisplay } from './TileDisplay.js';
+import { TileDisplay, GameTileDisplay, PracticeTileDisplay } from './TileDisplay.js';
 import { BaseLogger } from './BaseLogger.js';
 import { WordChainDict } from './WordChainDict.js';
 import { Solver } from './Solver.js';
@@ -8,33 +8,40 @@ import { ElementUtilities } from './ElementUtilities.js';
 
 /*
 ** TODO:
+** - Comments in Display.js and TileDIsplay.js
 ** - Better handling of colors
-** - Change css px --> rem
-** - Keyboard for practice mode (Will need to change the click bindings for all buttons
-**   - show two squares to start, labeled start/target, first one blue to show "active"
-**   - click second to make it active
-**   - add a letter adds a new (blue) tile to the right
+** - Better images on ENTER/BACKSPACE keys
+** - Clear Words button in practice div
+** - Center elements of practice div
+** - Auto-fill unchanged letters (NOT in hard mode)
+** - What is the "score" of the game?
+** - Hard mode ... extra X points?
+** - What is the "share" graphic?
 */
 
 /*
 ** Forwarding functions
 **
-** When "this.startGameCallback" is passed, for example, as the listener on calls within the
+** When "this.startDailyGameCallback" is passed, for example, as the listener on calls within the
 ** within the Display class to addEventListener(), Chrome appears to call it (but refers
-** to it as HTMLButtonElement.startGameCallback, which doesn't exist!) and "this" within the
+** to it as HTMLButtonElement.startDailyGameCallback, which doesn't exist!) and "this" within the
 ** method is of type HTMLButtonElement, so the call within to "this.checkWord()" resolves
 ** to HTMLButtonElement.checkword, which is is not a function. This kind of makes
-** sense (except for why it  was able to call the Display.startGameCallback()
+** sense (except for why it  was able to call the Display.startDailyGameCallback()
 ** method at all!).
 **
 ** At that point I introduced the singleton idea. I thought that passing
-** Display.singleton().startGameCallback as the listener would work, but this also resulted in
+** Display.singleton().startDailyGameCallback as the listener would work, but this also resulted in
 ** "HTMLButtonElement.checkWord() is not a function." Sigh. I really don't understand why that
 ** is not working. But we carry on; introducing the "forwarding function" did the trick.
 */
 
 function dailyGameCallback() {
     Display.singleton().dailyGameCallback();
+}
+
+function endGameCallback() {
+    Display.singleton().endGameCallback();
 }
 
 function hardKeyboardCallback(event) {
@@ -48,6 +55,10 @@ function hardKeyboardCallback(event) {
     }
 }
 
+function practiceCallback() {
+    Display.singleton().practiceCallback();
+}
+
 function softKeyboardCallback() {
     // Here the "this" being the button works in our favor -- we can get
     // its data-key attribute value, which is the letter of the key that
@@ -55,16 +66,18 @@ function softKeyboardCallback() {
     Display.singleton().keyboardCallback(this.getAttribute("data-key"));
 }
 
-function practiceGameCallback() {
-    Display.singleton().practiceGameCallback();
+/*
+function startDailyGameCallback() {
+    Display.singleton().startDailyGameCallback();
+}
+*/
+
+function startNewGameCallback() {
+    Display.singleton().startNewGameCallback();
 }
 
-function startGameCallback() {
-    Display.singleton().startGameCallback();
-}
-
-function endGameCallback() {
-    Display.singleton().endGameCallback();
+function startPracticeGameCallback() {
+    Display.singleton().startPracticeGameCallback();
 }
 
 
@@ -96,12 +109,14 @@ class Display extends BaseLogger {
 
         this.rootDiv     = null;
         this.headerDiv   = null;
-        this.outerDiv    = null;
         this.practiceDiv = null;
         this.solutionDiv = null;
         this.keyboardDiv = null;
 
         this.keyboardButtons = [];
+
+        this.gameTileDisplay     = null;
+        this.practiceTileDisplay = null;
     }
 
     static singleton() {
@@ -125,7 +140,6 @@ class Display extends BaseLogger {
         this.createPracticeDiv(Display.HIDDEN);
         this.createSolutionDiv(Display.SHOWN);
         this.createKeyboardDiv(Display.SHOWN);
-
 
         window.addEventListener("keydown", hardKeyboardCallback);
 
@@ -157,7 +171,7 @@ class Display extends BaseLogger {
             "button", titleDiv,
             {id: "practice-game", class: "header-button not-active"},
             "Practice");
-        this.practiceGameButton.addEventListener("click", practiceGameCallback);
+        this.practiceGameButton.addEventListener("click", practiceCallback);
     }
 
     /* ----- Keyboard ----- */
@@ -238,17 +252,17 @@ class Display extends BaseLogger {
             this.practiceDiv.style.display = "none";
         }
 
-        ElementUtilities.addElementTo("label",   this.practiceDiv, {}, "Start word: ");
-        ElementUtilities.addElementTo("input",   this.practiceDiv, {id: "game-start-word", type: "text"});
-        ElementUtilities.addElementTo("p",       this.practiceDiv);
-        ElementUtilities.addElementTo("label",   this.practiceDiv, {}, "Target word: ");
-        ElementUtilities.addElementTo("input",   this.practiceDiv, {id: "game-target-word", type: "text"});
-        ElementUtilities.addElementTo("p",       this.practiceDiv);
-        const startGameButton = ElementUtilities.addElementTo(
-            "button", this.practiceDiv,
+
+        const helpText = `Words can be up to ${PracticeTileDisplay.MAX_WORD_LENGTH} letters. Press Return Key when done with a word.`
+        ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText);
+        this.practiceWordsDiv   = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-words-div"});
+        this.practiceButtonsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-buttons-div"});
+
+        const startPracticeGameButton = ElementUtilities.addElementTo(
+            "button", this.practiceButtonsDiv,
             {id: "start-game", class: "game-button"},
-            "Start Game");
-        startGameButton.addEventListener("click", startGameCallback);
+            "Start Practice Game");
+        startPracticeGameButton.addEventListener("click", startPracticeGameCallback);
     }
 
     /* ----- Solution ----- */
@@ -279,14 +293,11 @@ class Display extends BaseLogger {
         setTimeout(() => {
             if (this.dailyGameOver) {
                 this.game = this.dailyGame;
-                this.tileDisplay.setGame(this.game);
-                this.tileDisplay.showSolution();
+                this.gameTileDisplay.setGame(this.game);
+                this.gameTileDisplay.showSolution();
                 this.displaySolution();
                 return;
             }
-
-            ElementUtilities.setElementValue("game-start-word", startWord);
-            ElementUtilities.setElementValue("game-target-word", targetWord);
 
             ElementUtilities.editClass(/not-active/, "active-button", this.dailyGameButton);
             ElementUtilities.editClass(/active-button/, "not-active", this.practiceGameButton);
@@ -297,28 +308,37 @@ class Display extends BaseLogger {
 
             if (!this.dailyGame) {
                 this.dailyGame = new Game(this.dict, solution);
+                this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.solutionDiv);
             }
             this.game = this.dailyGame;
-            this.tileDisplay = new TileDisplay(this.game, this.dict, this.solutionDiv);
-            this.tileDisplay.showSteps();
+            this.gameTileDisplay.setGame(this.game);
+            this.gameTileDisplay.showSteps();
             this.displaySteps();
         }, 200);
     }
 
     endGameCallback() {
-        this.tileDisplay.showSolution();
+        this.gameTileDisplay.showSolution();
         this.displaySolution();
     }
 
     keyboardCallback(keyValue) {
+        if (ElementUtilities.isHidden(this.practiceDiv)) {
+            this.gameKeyboardCallback(keyValue);
+        } else {
+            this.practiceKeyboardCallback(keyValue);
+        }
+    }
+
+    gameKeyboardCallback(keyValue) {
         if (keyValue === Display.BACKSPACE) {
-            this.tileDisplay.keyPressDelete();
+            this.gameTileDisplay.keyPressDelete();
         } else if (keyValue === Display.ENTER) {
-            const gameResult = this.tileDisplay.keyPressEnter();
+            const gameResult = this.gameTileDisplay.keyPressEnter();
             if (gameResult !== TileDisplay.OK) {
                 this.showToast(gameResult);
             } else {
-                this.tileDisplay.showSteps();
+                this.gameTileDisplay.showSteps();
                 this.displaySteps();
             }
 
@@ -332,42 +352,82 @@ class Display extends BaseLogger {
                     }
                 }, 50);
             }
-        } else if (Display.isLetter(keyValue)) {
-            this.tileDisplay.keyPressLetter(keyValue);
+        } else if (ElementUtilities.isLetter(keyValue)) {
+            this.gameTileDisplay.keyPressLetter(keyValue);
         }
+        // No other keys cause a change.
     }
 
-    // This is the callback for the Practice and Start New Game buttons.
-    practiceGameCallback() {
-        ElementUtilities.setElementValue("game-start-word", "");
-        ElementUtilities.setElementValue("game-target-word", "");
-
+    // This is the callback for the Practice buttons.
+    practiceCallback() {
         ElementUtilities.editClass(/not-active/, "active-button", this.practiceGameButton);
         ElementUtilities.editClass(/active-button/, "not-active", this.dailyGameButton);
 
 
         if (this.practiceGame !== null) {
             this.game = this.practiceGame;
-            this.tileDisplay.setGame(this.game);
-            this.tileDisplay.showSteps();
+            this.gameTileDisplay.setGame(this.game);
+            this.gameTileDisplay.showSteps();
             this.displaySteps();
         } else {
+            if (! this.practiceTileDisplay) {
+                this.practiceTileDisplay = new PracticeTileDisplay(this.dict, this.practiceWordsDiv);
+                this.practiceTileDisplay.resetWords();
+            }
+            this.practiceTileDisplay.showPracticeWords();
             this.solutionDiv.style.display = "none";
-            this.keyboardDiv.style.display = "none";
+            this.keyboardDiv.style.display = "block";
             this.practiceDiv.style.display = "block";
         }
     }
 
-    startGameCallback() {
-        const startWord = this.checkWord("game-start-word")
-        if (! startWord) {
-            this.showToast("Invalid starting word.");
+    practiceKeyboardCallback(keyValue) {
+        if (keyValue === Display.BACKSPACE) {
+            this.practiceTileDisplay.keyPressDelete();
+        } else if (keyValue === Display.ENTER) {
+            const result = this.practiceTileDisplay.keyPressEnter();
+            if (result !== TileDisplay.OK) {
+                this.showToast(result);
+            }
+            this.practiceTileDisplay.showPracticeWords();
+        } else if (ElementUtilities.isLetter(keyValue)) {
+            this.practiceTileDisplay.keyPressLetter(keyValue);
+        }
+        // No other keys cause a change.
+    }
+
+    startDailyGameCallback() {
+        this.gameTileDisplay.showSteps();
+        this.displaySteps();
+    }
+
+    startNewGameCallback() {
+        // Set practiceGame to null so practiceCallback() knows to
+        // get new start/target words.
+        this.practiceGame = null;
+
+        // Set practiceTileDisplay to null so practiceCallback() knows to
+        // reset the practice game words in the tiles.
+        this.practiceTileDisplay = null;
+
+        this.practiceCallback();
+    }
+
+    startPracticeGameCallback() {
+        const gameWords  = this.practiceTileDisplay.getWords();
+        const startWord  = gameWords[0];
+        const targetWord = gameWords[1];
+        let result;
+
+        result = this.checkWord(startWord, "Start");
+        if (result !== null) {
+            this.showToast(result);
             return;
         }
 
-        const targetWord = this.checkWord("game-target-word")
-        if (! targetWord) {
-            this.showToast("Invalid target word.");
+        result = this.checkWord(targetWord, "Target");
+        if (result !== null) {
+            this.showToast(result);
             return;
         }
 
@@ -377,7 +437,6 @@ class Display extends BaseLogger {
         }
 
         const solution = Solver.fastSolve(this.dict, startWord, targetWord);
-
         if (!solution.success()) {
             this.showToast(TileDisplay.NO_SOLUTION);
             return;
@@ -385,8 +444,15 @@ class Display extends BaseLogger {
 
         this.practiceGame = new Game(this.dict, solution);
         this.game = this.practiceGame;
-        this.tileDisplay.setGame(this.game);
-        this.tileDisplay.showSteps();
+        this.gameTileDisplay.setGame(this.game);
+
+        // Delete the children in the practiceWordsDiv, so the id attributes
+        // of the game tiles won't be the same as those of the practice tiles.
+        // Element IDs must be unique or else undefined behavior occurs -- we use
+        // the ID to find the element, and if there are two it is undefined which
+        // one will be acted upon.
+        ElementUtilities.deleteChildren(this.practiceWordsDiv);
+        this.gameTileDisplay.showSteps();
         this.displaySteps();
     }
 
@@ -394,14 +460,16 @@ class Display extends BaseLogger {
     ** UTILITIES
     */
 
-    checkWord(elementId) {
-        let word = ElementUtilities.getElementValue(elementId);
+    checkWord(word, descriptor) {
         word = word.trim().toLowerCase();
-        if (word.length === 0 || !this.dict.isWord(word)) {
-            return null;
+        if (word.length === 0) {
+            return `${descriptor} word has not been entered`;
+        }
+        if (!this.dict.isWord(word)) {
+            return `${descriptor} word '${word}' is not in the dictionary`;
         }
 
-        return word;
+        return null;
     }
 
     displaySolution() {
@@ -410,11 +478,6 @@ class Display extends BaseLogger {
 
     displaySteps() {
         this.updateDisplay(false);
-    }
-
-    static isLetter(letter) {
-        // JavaScript doesn't have this builtin!
-        return letter.length === 1 && letter.match(/[a-z]/i);
     }
 
     showToast(message) {
@@ -437,7 +500,7 @@ class Display extends BaseLogger {
             } else {
                 this.practiceGameOver = true;
 
-                // Set practiceGame to null so practiceGameCallback() knows to
+                // Set practiceGame to null so practiceCallback() knows to
                 // get new start/target words.
                 this.practiceGame = null;
 
@@ -449,7 +512,7 @@ class Display extends BaseLogger {
                     "button", this.solutionDiv,
                     {id: "start-new-game", class: "game-button"},
                     "Start New Game");
-                startNewGameButton.addEventListener("click", practiceGameCallback);
+                startNewGameButton.addEventListener("click", startNewGameCallback);
             }
         } else {
             // Game not over; add End Game button and show keyboard.

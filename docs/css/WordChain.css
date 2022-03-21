@@ -150,6 +150,30 @@ table {
     border-color: black;
 }
 
+.tile-label {
+    width: 8rem;
+    height: 3rem;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    vertical-align: middle;
+    color: black;
+    border-style: none;
+}
+
+.tile-label-blank {
+    width: 0rem;
+    /*
+    height: 3rem;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    vertical-align: middle;
+    color: black;
+    border-style: none;
+    */
+}
+
 .letter-change {
     border-width: .3rem;
     padding: 0;
@@ -178,7 +202,7 @@ table {
     color: darkred;
 }
 
-.start-word {
+.label-word {
     color: black;
 }
 

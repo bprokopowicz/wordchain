@@ -4,39 +4,30 @@ import { Game } from './Game.js';
 
 class TileDisplay extends BaseLogger {
 
-    // These will appear as Toast Notifications
-    static ALREADY_PLAYED = "Already played";
-    static INCOMPLETE = "Incomplete"
-    static NO_SOLUTION = "No solution";
+    // This will appear as a Toast Notification
     static NOT_A_WORD = "Not a word";
-    static NOT_ONE_STEP = "Not one step";
+    static TOO_SHORT  = "Too short";
 
-    // These will NOT appear as Toast Notifications
+    // This will NOT appear as a Toast Notification
     static OK = "OK"
 
-    static GAME_TO_TILE_DISPLAY = {};
+    static TILES_ALL_ALPHABETIC = true;
+    static TILES_NOT_ALL_ALPHABETIC = false;
 
-    constructor(game, dict, solutionDiv) {
+    constructor(dict, containingDiv) {
         super();
 
-        this.setGame(game);
         this.dict = dict;
-        this.solutionDiv = solutionDiv;
-
-        TileDisplay.GAME_TO_TILE_DISPLAY[Game.OK] =  TileDisplay.OK;
-        TileDisplay.GAME_TO_TILE_DISPLAY[Game.NOT_ONE_STEP] =  TileDisplay.NOT_ONE_STEP;
-        TileDisplay.GAME_TO_TILE_DISPLAY[Game.DEAD_END] =  TileDisplay.NO_SOLUTION;
-        TileDisplay.GAME_TO_TILE_DISPLAY[Game.DUPLICATE] =  TileDisplay.ALREADY_PLAYED;
+        this.containingDiv = containingDiv;
     }
 
     editClassForCurrentWord(fromPattern, toString, element, elementGetter) {
-
         if (element) {
             ElementUtilities.editClass(fromPattern, toString, element);
         } else {
             let elements = [];
             const wordLength = this.getCurrentWordLength();
-            for (let col = 0; col < wordLength; col++) {
+            for (let col = 1; col <= wordLength; col++) {
                 elements.push(elementGetter(this.currentRow, col));
             }
 
@@ -81,8 +72,8 @@ class TileDisplay extends BaseLogger {
         return `tile-row-${row}`;
     }
 
-    getWordFromTiles() {
-        let column = 0;
+    getWordFromTiles(requireAllAlphabetic) {
+        let column = 1;
         let enteredWord = '';
         while (true) {
             const letterElement = TileDisplay.getLetterElement(this.currentRow, column);
@@ -91,19 +82,28 @@ class TileDisplay extends BaseLogger {
             }
 
             const letter = letterElement.innerHTML;
-            if (letter === Game.CHANGE | letter === Game.NO_CHANGE) {
-                return null;
+            if (! ElementUtilities.isLetter(letter)) {
+                // If we hit a non-alphabetic (e.g. a placeholder character for the
+                // game or in practice word start/target word) and we require all
+                // alphabetic for a word, that signifies that we don't yet have
+                // a complete word, so return null. Otherwise, break and return the
+                // the alphabetic characters.
+                if (requireAllAlphabetic) {
+                    return null;
+                } else {
+                    break;
+                }
             }
             enteredWord += letter;
             column++;
         }
 
-        return enteredWord;
+        return enteredWord.toLowerCase();
     }
 
     keyPressDelete() {
         // If user clicks delete beyond beginning of row, just return;
-        if (this.currentColumn <= 0) {
+        if (this.currentColumn <= 1) {
             return;
         }
         this.currentColumn--;
@@ -115,7 +115,7 @@ class TileDisplay extends BaseLogger {
         }
         this.editTileClass(/no-enter/, "tile-enter", tileElement);
 
-        if (this.currentColumn != this.getCurrentWordLength() - 1) {
+        if (this.currentColumn != this.getCurrentWordLength()) {
             const nextTileElement = TileDisplay.getTileElement(this.currentRow, this.currentColumn + 1);
             this.editTileClass(/tile-enter/, "no-enter", nextTileElement);
         }
@@ -126,28 +126,9 @@ class TileDisplay extends BaseLogger {
         this.editLetterClass(/not-a-word/, "is-a-word");
     }
 
-    keyPressEnter() {
-        const enteredWord = this.getWordFromTiles();
-        if (! enteredWord) {
-            return TileDisplay.INCOMPLETE;
-        }
-
-        if (! this.dict.isWord(enteredWord)) {
-            // Tile letter color already changed to indicate it's not a word.
-            return TileDisplay.NOT_A_WORD;
-        }
-
-        return TileDisplay.GAME_TO_TILE_DISPLAY[this.game.playWord(enteredWord)];
-    }
-
-    keyPressLetter(keyValue) {
-        // If current row has not been set, then we must be displaying a solution.
-        if (! this.currentRow) {
-            return;
-        }
-
-        if (this.currentColumn < 0) {
-            this.currentColumn = 0;
+    keyPressLetter(keyValue, wordLength) {
+        if (this.currentColumn < 1) {
+            this.currentColumn = 1;
         }
 
         const tileElement = TileDisplay.getTileElement(this.currentRow, this.currentColumn);
@@ -166,8 +147,8 @@ class TileDisplay extends BaseLogger {
 
         this.currentColumn++;
 
-        if (this.currentColumn >= this.getCurrentWordLength()) {
-            const enteredWord = this.getWordFromTiles();
+        if (this.currentColumn > wordLength) {
+            const enteredWord = this.getWordFromTiles(TileDisplay.TILES_ALL_ALPHABETIC);
             if (! this.dict.isWord(enteredWord)) {
                 this.editLetterClass(/is-a-word/, "not-a-word");
             }
@@ -179,16 +160,11 @@ class TileDisplay extends BaseLogger {
         }
     }
 
-    showGameTiles(showSolution) {
-        // Just return if we haven't started the game yet.
-        if (! this.game) {
-            return;
-        }
-
+    showTiles(wordList, containingDiv, isNewRow, isEntryTile, rowLabels=[]) {
         // Delete current child elements.
-        ElementUtilities.deleteChildren(this.solutionDiv);
+        ElementUtilities.deleteChildren(containingDiv);
 
-        const tableElement = ElementUtilities.addElementTo("table", this.solutionDiv);
+        const tableElement = ElementUtilities.addElementTo("table", containingDiv);
         const tbodyElement = ElementUtilities.addElementTo("tbody", tableElement);
 
         // This will hold the row number where letters typed/clicked will go.
@@ -196,29 +172,40 @@ class TileDisplay extends BaseLogger {
 
         // This will hold the column number where the next letter typed/clicked
         // will go (until ENTER) -- it is set in keyPressLetter().
-        this.currentColumn = 0;
+        this.currentColumn = 1;
 
-        let gameSteps;
-        if (showSolution) {
-            gameSteps = this.game.getKnownSolution().getWords();
-        } else {
-            gameSteps = this.game.showGame();
-        }
-
-        for (let row = 0; row < gameSteps.length; row++) {
-            const word = gameSteps[row];
+        let tileEntryDetermined = false;
+        for (let row = 0; row < wordList.length; row++) {
+            const word = wordList[row];
             const rowElement = ElementUtilities.addElementTo("tr", tbodyElement, {id: TileDisplay.getTileRowId(row)});
             rowElement.setAttribute("data-word-length", word.length);
 
-            for (let col = 0; col < word.length; col++) {
+            for (let col = 0; col <= word.length; col++) {
+                if (col === 0) {
+                    const tileId    = TileDisplay.getTileId(row, col);
+                    const letterId  = TileDisplay.getLetterId(row, col);
+                    const tileType  = "no-change";
+                    const tileClass = (rowLabels.length !== 0) ? "tile-label" : "tile-label-blank";
+                    const label     = (rowLabels.length !== 0) ? rowLabels[row] : "";
 
-                const letter = word[col].toUpperCase();
+                    const tdElement = ElementUtilities.addElementTo(
+                        "td", rowElement,
+                        {id: tileId, class: tileClass, 'data-tile-type': tileType}
+                        );
+                    ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: "label-word"}, label);
+                    continue;
+                }
+
+                const letter = word[col-1].toUpperCase();
                 let tileClass = "tile";
 
-                // First row containing a CHANGE or NO_CHANGE is the current row.
-                if (this.currentRow === null && (letter === Game.CHANGE|| letter === Game.NO_CHANGE)) {
+                if ((this.currentRow === null) && isNewRow(word, col)) {
                     this.currentRow = row;
+                }
+
+                if ((row === this.currentRow) && ! tileEntryDetermined && isEntryTile(word, col)) {
                     tileClass += " tile-enter";
+                    tileEntryDetermined = true;
                 } else {
                     tileClass += " no-enter";
                 }
@@ -238,9 +225,7 @@ class TileDisplay extends BaseLogger {
                     letterClass += " shown-letter";
                 }
 
-                if (row == 0) {
-                    letterClass += " start-word";
-                } else if (row == gameSteps.length - 1) {
+                if (row == wordList.length - 1) {
                     letterClass += " target-word";
                 }
 
@@ -250,7 +235,71 @@ class TileDisplay extends BaseLogger {
                 ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: letterClass}, letter);
             }
         }
+    }
+}
 
+class GameTileDisplay extends TileDisplay {
+    // These will appear as Toast Notifications
+    static ALREADY_PLAYED = "Already played";
+    static INCOMPLETE = "Incomplete"
+    static NO_SOLUTION = "No solution";
+    static NOT_ONE_STEP = "Not one step";
+
+    static GAME_TO_TILE_DISPLAY = {};
+
+    constructor(game, dict, solutionDiv) {
+        super(dict, solutionDiv);
+
+        this.setGame(game);
+        this.dict = dict;
+        this.solutionDiv = solutionDiv;
+
+        GameTileDisplay.GAME_TO_TILE_DISPLAY[Game.OK]           = TileDisplay.OK;
+        GameTileDisplay.GAME_TO_TILE_DISPLAY[Game.NOT_ONE_STEP] = GameTileDisplay.NOT_ONE_STEP;
+        GameTileDisplay.GAME_TO_TILE_DISPLAY[Game.DEAD_END]     = GameTileDisplay.NO_SOLUTION;
+        GameTileDisplay.GAME_TO_TILE_DISPLAY[Game.DUPLICATE]    = GameTileDisplay.ALREADY_PLAYED;
+    }
+
+    keyPressEnter() {
+        const enteredWord = this.getWordFromTiles(TileDisplay.TILES_ALL_ALPHABETIC);
+        if (! enteredWord) {
+            return GameTileDisplay.INCOMPLETE;
+        }
+
+        if (! this.dict.isWord(enteredWord)) {
+            // Tile letter color already changed to indicate it's not a word.
+            return TileDisplay.NOT_A_WORD;
+        }
+
+        return GameTileDisplay.GAME_TO_TILE_DISPLAY[this.game.playWord(enteredWord)];
+    }
+
+    keyPressLetter(keyValue) {
+        super.keyPressLetter(keyValue, this.getCurrentWordLength());
+    }
+
+    setGame(game) {
+        this.game = game;
+    }
+
+    showGameTiles(showSolution) {
+        // Just return if we haven't started the game yet.
+        if (! this.game) {
+            return;
+        }
+
+        let gameSteps;
+        if (showSolution) {
+            gameSteps = this.game.getKnownSolution().getWords();
+        } else {
+            gameSteps = this.game.showGame();
+        }
+        this.showTiles(
+            gameSteps,
+            this.solutionDiv,
+            (word, column) => {return ! ElementUtilities.isLetter(word[column-1]);},
+            (word, column) => {return ! ElementUtilities.isLetter(word[column-1]);},
+            );
     }
 
     showSolution() {
@@ -261,10 +310,74 @@ class TileDisplay extends BaseLogger {
         this.showGameTiles(false);
     }
 
-    setGame(game) {
-        this.game = game;
-    }
-
 }
 
-export { TileDisplay };
+class PracticeTileDisplay extends TileDisplay {
+    static MIN_WORD_LENGTH = 3;
+    static MAX_WORD_LENGTH = 6;
+
+    static PLACEHOLDER = "*";
+
+    constructor(dict, practiceDiv) {
+        super(dict, practiceDiv);
+
+        this.resetWords();
+        this.dict = dict;
+        this.practiceDiv = practiceDiv;
+    }
+
+    getWords() {
+        const startWord  = this.startWord[0]  === PracticeTileDisplay.PLACEHOLDER ? "" : this.startWord;
+        const targetWord = this.targetWord[0] === PracticeTileDisplay.PLACEHOLDER ? "" : this.targetWord;
+        return [startWord, targetWord];
+    }
+
+    keyPressEnter() {
+        // Practice word tiles will contain placeholder characters, so not all alphabetic.
+        const enteredWord = this.getWordFromTiles(TileDisplay.TILES_NOT_ALL_ALPHABETIC);
+        if (enteredWord.length === 0) {
+            // Ignore enter if no word yet.
+            return TileDisplay.OK;
+        }
+        if (enteredWord.length < PracticeTileDisplay.MIN_WORD_LENGTH) {
+            return TileDisplay.TOO_SHORT;
+        }
+
+        if (! this.dict.isWord(enteredWord)) {
+            // Tile letter color already changed to indicate it's not a word.
+            return TileDisplay.NOT_A_WORD;
+        }
+
+        if (this.currentRow === 0) {
+            this.startWord = enteredWord;
+        } else {
+            this.targetWord = enteredWord;
+        }
+
+        return TileDisplay.OK;
+    }
+
+    keyPressLetter(keyValue) {
+        super.keyPressLetter(keyValue, PracticeTileDisplay.MAX_WORD_LENGTH);
+    }
+
+    resetWords() {
+        this.startWord  = PracticeTileDisplay.PLACEHOLDER.repeat(PracticeTileDisplay.MAX_WORD_LENGTH);
+        this.targetWord = this.startWord;
+    }
+
+    showPracticeWords() {
+        this.showTiles(
+            [this.startWord, this.targetWord],
+            this.practiceDiv,
+            (word, column) => {return ((column === 1) && (word[0] === PracticeTileDisplay.PLACEHOLDER));},
+            (word, column) => {
+                let firstUnenteredLetter = word.indexOf(PracticeTileDisplay.PLACEHOLDER);
+                return (firstUnenteredLetter < 0) ? false : firstUnenteredLetter + 1 === column;
+            },
+            ["Start word:", "Target word:"]
+            );
+    }
+}
+
+export { TileDisplay, GameTileDisplay, PracticeTileDisplay };
