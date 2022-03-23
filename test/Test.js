@@ -1,10 +1,10 @@
-import { Display } from '../docs/javascript/Display.js';
+import { BaseLogger } from '../docs/javascript/BaseLogger.js';
 import { WordChainDict } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
-// Forwarding functions; see big comment in Display.js explaining how these came about.
+// Forwarding functions; see big comment in AppDisplay.js explaining how these came about.
 
 function runTestsCallback() {
     Test.singleton().runTestsCallback();
@@ -20,7 +20,7 @@ function solveCallback() {
 
 // Singleton class Test.
 
-class Test extends Display {
+class Test extends BaseLogger {
     static singletonObject = null;
 
     constructor() {

@@ -8,82 +8,95 @@ import { ElementUtilities } from './ElementUtilities.js';
 
 /*
 ** TODO:
-** - Comments in Display.js and TileDIsplay.js
+** Implementation
 ** - Better handling of colors
 ** - Better images on ENTER/BACKSPACE keys
-** - Clear Words button in practice div
-** - Center elements of practice div
 ** - Auto-fill unchanged letters (NOT in hard mode)
+** - Outline tiles:
+**   - green if played word does not increase solution length
+**   - else outline red.
+**   - this can drive the share image.
+** - Share graphic: mini version of tile outline/colors
+**   - need to keep track of words that increase solution length in Game.
+**   - call Game.getStepCount() before/after playing words; keep track in TileDisplay
 ** - What is the "score" of the game?
 ** - Hard mode ... extra X points?
-** - What is the "share" graphic?
+**
+** Deployment
+** - How to display/keep track of stats? (Learn about cookies.)
+** - How to create/minify one big js file
+** - Buy domain wordchain.com?
+** - Where to host?
+** - How to manage daily game words?
+** - Testing on various browsers/devices
+** - Settings menu
+** - Help screen
 */
 
 /*
 ** Forwarding functions
 **
-** When "this.startDailyGameCallback" is passed, for example, as the listener on calls within the
-** within the Display class to addEventListener(), Chrome appears to call it (but refers
-** to it as HTMLButtonElement.startDailyGameCallback, which doesn't exist!) and "this" within the
-** method is of type HTMLButtonElement, so the call within to "this.checkWord()" resolves
-** to HTMLButtonElement.checkword, which is is not a function. This kind of makes
-** sense (except for why it  was able to call the Display.startDailyGameCallback()
+** When "this.startPracticeGameCallback" is passed, for example, as the listener on calls
+** within the AppDisplay class to addEventListener(), Chrome appears to call it (but refers
+** to it as HTMLButtonElement.startPracticeGameCallback, which doesn't exist!) and "this"
+** within the method is of type HTMLButtonElement, so the call within to "this.checkWord()"
+** resolves to HTMLButtonElement.checkword, which is is not a function. This kind of makes
+** sense (except for why it  was able to call the AppDisplay.startPracticeGameCallback()
 ** method at all!).
 **
 ** At that point I introduced the singleton idea. I thought that passing
-** Display.singleton().startDailyGameCallback as the listener would work, but this also resulted in
-** "HTMLButtonElement.checkWord() is not a function." Sigh. I really don't understand why that
-** is not working. But we carry on; introducing the "forwarding function" did the trick.
+** AppDisplay.singleton().startPracticeGameCallback as the listener would work, but this
+** also resulted in "HTMLButtonElement.checkWord() is not a function." Sigh. I really don't
+** understand why that is not working. But we carry on; introducing the "forwarding function"
+** did the trick.
 */
 
-function dailyGameCallback() {
-    Display.singleton().dailyGameCallback();
+function clearLettersCallback() {
+    AppDisplay.singleton().clearLettersCallback();
+}
+
+function dailyCallback() {
+    AppDisplay.singleton().dailyCallback();
 }
 
 function endGameCallback() {
-    Display.singleton().endGameCallback();
+    AppDisplay.singleton().endGameCallback();
 }
 
 function hardKeyboardCallback(event) {
     if (event.key == "Backspace") {
-        Display.singleton().keyboardCallback(Display.BACKSPACE);
+        AppDisplay.singleton().keyboardCallback(AppDisplay.BACKSPACE);
     }
     else if (event.key == "Enter") {
-        Display.singleton().keyboardCallback(Display.ENTER);
+        AppDisplay.singleton().keyboardCallback(AppDisplay.ENTER);
     } else {
-        Display.singleton().keyboardCallback(event.key.toString().toLowerCase());
+        AppDisplay.singleton().keyboardCallback(event.key.toString().toLowerCase());
     }
 }
 
 function practiceCallback() {
-    Display.singleton().practiceCallback();
+    AppDisplay.singleton().practiceCallback();
 }
 
 function softKeyboardCallback() {
     // Here the "this" being the button works in our favor -- we can get
     // its data-key attribute value, which is the letter of the key that
     // was clicked.
-    Display.singleton().keyboardCallback(this.getAttribute("data-key"));
+    AppDisplay.singleton().keyboardCallback(this.getAttribute("data-key"));
 }
-
-/*
-function startDailyGameCallback() {
-    Display.singleton().startDailyGameCallback();
-}
-*/
 
 function startNewGameCallback() {
-    Display.singleton().startNewGameCallback();
+    AppDisplay.singleton().startNewGameCallback();
 }
 
 function startPracticeGameCallback() {
-    Display.singleton().startPracticeGameCallback();
+    AppDisplay.singleton().startPracticeGameCallback();
 }
 
 
-// Singleton class Display.
+// Singleton class AppDisplay.
 
-class Display extends BaseLogger {
+class AppDisplay extends BaseLogger {
     static singletonObject = null;
 
     // Constants for create*Div() methods.
@@ -120,10 +133,10 @@ class Display extends BaseLogger {
     }
 
     static singleton() {
-        if (Display.singletonObject === null) {
-            Display.singletonObject = new Display();
+        if (AppDisplay.singletonObject === null) {
+            AppDisplay.singletonObject = new AppDisplay();
         }
-        return Display.singletonObject;
+        return AppDisplay.singletonObject;
     }
 
     /*
@@ -137,13 +150,13 @@ class Display extends BaseLogger {
         this.createToastDiv();
 
         this.outerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "outer-div"});
-        this.createPracticeDiv(Display.HIDDEN);
-        this.createSolutionDiv(Display.SHOWN);
-        this.createKeyboardDiv(Display.SHOWN);
+        this.createPracticeDiv(AppDisplay.HIDDEN);
+        this.createSolutionDiv(AppDisplay.SHOWN);
+        this.createKeyboardDiv(AppDisplay.SHOWN);
 
         window.addEventListener("keydown", hardKeyboardCallback);
 
-        this.dailyGameCallback();
+        this.dailyCallback();
     }
 
     /* ----- Toast Notifications ----- */
@@ -163,15 +176,15 @@ class Display extends BaseLogger {
 
         this.dailyGameButton = ElementUtilities.addElementTo(
             "button", titleDiv,
-            {id: "daily-game", class: "header-button active-button"},
+            {id: "daily-game", class: "wordchain-button header-button active-button"},
             "Daily");
-        this.dailyGameButton.addEventListener("click", dailyGameCallback);
+        ElementUtilities.setButtonCallback(this.dailyGameButton, dailyCallback);
 
         this.practiceGameButton = ElementUtilities.addElementTo(
             "button", titleDiv,
-            {id: "practice-game", class: "header-button not-active"},
+            {id: "practice-game", class: "wordchain-button header-button not-active"},
             "Practice");
-        this.practiceGameButton.addEventListener("click", practiceCallback);
+        ElementUtilities.setButtonCallback(this.practiceGameButton, practiceCallback);
     }
 
     /* ----- Keyboard ----- */
@@ -228,7 +241,7 @@ class Display extends BaseLogger {
         this.addSpacer(row2);
 
         // Add keys for row 3, which has the BACKSPACE/ENTER "action buttons" on the left and right.
-        this.addActionButton(row3, Display.BACKSPACE);
+        this.addActionButton(row3, AppDisplay.BACKSPACE);
         this.addLetterButton(row3, "z");
         this.addLetterButton(row3, "x");
         this.addLetterButton(row3, "c");
@@ -236,7 +249,7 @@ class Display extends BaseLogger {
         this.addLetterButton(row3, "b");
         this.addLetterButton(row3, "n");
         this.addLetterButton(row3, "m");
-        this.addActionButton(row3, Display.ENTER);
+        this.addActionButton(row3, AppDisplay.ENTER);
 
         // Add the same click callback to each button.
         for (let button of this.keyboardButtons) {
@@ -244,7 +257,7 @@ class Display extends BaseLogger {
         }
     }
 
-    /* ----- Practice ----- */
+    /* ----- Practice Game Setup ----- */
 
     createPracticeDiv(hidden) {
         this.practiceDiv = ElementUtilities.addElementTo("div", this.outerDiv, {id: "practice-div"});
@@ -253,19 +266,33 @@ class Display extends BaseLogger {
         }
 
 
-        const helpText = `Words can be up to ${PracticeTileDisplay.MAX_WORD_LENGTH} letters. Press Return Key when done with a word.`
+        const helpText = `Words can be up to ${PracticeTileDisplay.MAX_WORD_LENGTH} letters. Press the Return key to enter a word.`
         ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText);
-        this.practiceWordsDiv   = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-words-div"});
-        this.practiceButtonsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-buttons-div"});
+        // The div with class "break" forces whatever comes after this div
+        // to be on a "new line" with display: flex, which we use for this div.
+        // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+        ElementUtilities.addElementTo("div", this.practiceDiv, {class: "break"});
 
+        this.practiceWordsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-words-div"});
+
+        // Add another break
+        ElementUtilities.addElementTo("div", this.practiceDiv, {class: "break"});
+
+        this.practiceButtonsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-buttons-div"});
         const startPracticeGameButton = ElementUtilities.addElementTo(
             "button", this.practiceButtonsDiv,
-            {id: "start-game", class: "game-button"},
+            {id: "start-game", class: "wordchain-button game-button"},
             "Start Practice Game");
-        startPracticeGameButton.addEventListener("click", startPracticeGameCallback);
+        ElementUtilities.setButtonCallback(startPracticeGameButton, startPracticeGameCallback);
+
+        const clearLettersButton = ElementUtilities.addElementTo(
+            "button", this.practiceButtonsDiv,
+            {id: "clear-letters", class: "wordchain-button game-button"},
+            "Clear Letters");
+        ElementUtilities.setButtonCallback(clearLettersButton, clearLettersCallback);
     }
 
-    /* ----- Solution ----- */
+    /* ----- Daily/Practice Game Solution ----- */
 
     createSolutionDiv(hidden) {
         this.solutionDiv = ElementUtilities.addElementTo("div", this.outerDiv, {id: "solution-div"}, null);
@@ -283,7 +310,23 @@ class Display extends BaseLogger {
     ** BUTTON CALLBACKS
     */
 
-    dailyGameCallback() {
+    // Callback for the Clear Letters button in the practice game setup screen.
+    clearLettersCallback() {
+        const startWord  = this.practiceTileDisplay.getStartWord();
+        const targetWord = this.practiceTileDisplay.getTargetWord();
+
+        // If the target word is already empty reset the start word;
+        // otherwise reset the target word.
+        if (targetWord[0] === PracticeTileDisplay.PLACEHOLDER) {
+            this.practiceTileDisplay.resetWords(PracticeTileDisplay.RESET_START);
+        } else {
+            this.practiceTileDisplay.resetWords(PracticeTileDisplay.RESET_TARGET);
+        }
+        this.practiceTileDisplay.showPracticeWords();
+    }
+
+    // Callback for the Daily header button.
+    dailyCallback() {
         // TEMPORARY
         const startWord = "cat";
         const targetWord = "dog";
@@ -291,6 +334,9 @@ class Display extends BaseLogger {
         // TODO: Takes a while for dictionary to load ... not sure what we have doesn't wait.
         // 100 ms not enough; 200 ms does the trick. Note: still being served from github.
         setTimeout(() => {
+            ElementUtilities.editClass(/not-active/, "active-button", this.dailyGameButton);
+            ElementUtilities.editClass(/active-button/, "not-active", this.practiceGameButton);
+
             if (this.dailyGameOver) {
                 this.game = this.dailyGame;
                 this.gameTileDisplay.setGame(this.game);
@@ -298,9 +344,6 @@ class Display extends BaseLogger {
                 this.displaySolution();
                 return;
             }
-
-            ElementUtilities.editClass(/not-active/, "active-button", this.dailyGameButton);
-            ElementUtilities.editClass(/active-button/, "not-active", this.practiceGameButton);
 
             // No need to check solution for success -- daily games will be
             // pre-verified to have a solution.
@@ -317,11 +360,17 @@ class Display extends BaseLogger {
         }, 200);
     }
 
+    // Callback for the End Game button
     endGameCallback() {
+        if (this.game === this.practiceGame) {
+            this.practiceTileDisplay.resetWords();
+        }
         this.gameTileDisplay.showSolution();
         this.displaySolution();
     }
 
+    // Global keyboard callback; calls specific game/practice callback
+    // based on whether the practis div is hidden.
     keyboardCallback(keyValue) {
         if (ElementUtilities.isHidden(this.practiceDiv)) {
             this.gameKeyboardCallback(keyValue);
@@ -330,10 +379,11 @@ class Display extends BaseLogger {
         }
     }
 
+    // This is the keyboard callback for daily/practice game play.
     gameKeyboardCallback(keyValue) {
-        if (keyValue === Display.BACKSPACE) {
+        if (keyValue === AppDisplay.BACKSPACE) {
             this.gameTileDisplay.keyPressDelete();
-        } else if (keyValue === Display.ENTER) {
+        } else if (keyValue === AppDisplay.ENTER) {
             const gameResult = this.gameTileDisplay.keyPressEnter();
             if (gameResult !== TileDisplay.OK) {
                 this.showToast(gameResult);
@@ -358,17 +408,22 @@ class Display extends BaseLogger {
         // No other keys cause a change.
     }
 
-    // This is the callback for the Practice buttons.
+    // This is the callback for the Practice header button.
     practiceCallback() {
         ElementUtilities.editClass(/not-active/, "active-button", this.practiceGameButton);
         ElementUtilities.editClass(/active-button/, "not-active", this.dailyGameButton);
 
 
+        // If we have an ongoing practice game set this.game to it and redraw.
         if (this.practiceGame !== null) {
             this.game = this.practiceGame;
             this.gameTileDisplay.setGame(this.game);
             this.gameTileDisplay.showSteps();
             this.displaySteps();
+
+        // Otherwise, create the practice tile display if we haven't yet
+        // and then ensure the right divs are showing. The user will see the
+        // screen to enter start/end words.
         } else {
             if (! this.practiceTileDisplay) {
                 this.practiceTileDisplay = new PracticeTileDisplay(this.dict, this.practiceWordsDiv);
@@ -377,14 +432,15 @@ class Display extends BaseLogger {
             this.practiceTileDisplay.showPracticeWords();
             this.solutionDiv.style.display = "none";
             this.keyboardDiv.style.display = "block";
-            this.practiceDiv.style.display = "block";
+            this.practiceDiv.style.display = "flex";
         }
     }
 
+    // This is the keyboard callback for practice game start/target word entry.
     practiceKeyboardCallback(keyValue) {
-        if (keyValue === Display.BACKSPACE) {
+        if (keyValue === AppDisplay.BACKSPACE) {
             this.practiceTileDisplay.keyPressDelete();
-        } else if (keyValue === Display.ENTER) {
+        } else if (keyValue === AppDisplay.ENTER) {
             const result = this.practiceTileDisplay.keyPressEnter();
             if (result !== TileDisplay.OK) {
                 this.showToast(result);
@@ -396,11 +452,9 @@ class Display extends BaseLogger {
         // No other keys cause a change.
     }
 
-    startDailyGameCallback() {
-        this.gameTileDisplay.showSteps();
-        this.displaySteps();
-    }
-
+    // Callback for the Start New Game button that appears after
+    // ending a practice game; this allows the user to see the solution
+    // until they are ready to start a new one.
     startNewGameCallback() {
         // Set practiceGame to null so practiceCallback() knows to
         // get new start/target words.
@@ -413,10 +467,10 @@ class Display extends BaseLogger {
         this.practiceCallback();
     }
 
+    // Callback for the Start Practice button in the practice game setup screen.
     startPracticeGameCallback() {
-        const gameWords  = this.practiceTileDisplay.getWords();
-        const startWord  = gameWords[0];
-        const targetWord = gameWords[1];
+        const startWord  = this.practiceTileDisplay.getStartWord();
+        const targetWord = this.practiceTileDisplay.getTargetWord();
         let result;
 
         result = this.checkWord(startWord, "Start");
@@ -462,7 +516,7 @@ class Display extends BaseLogger {
 
     checkWord(word, descriptor) {
         word = word.trim().toLowerCase();
-        if (word.length === 0) {
+        if (word.length === 0 || word[0] === PracticeTileDisplay.PLACEHOLDER) {
             return `${descriptor} word has not been entered`;
         }
         if (!this.dict.isWord(word)) {
@@ -510,9 +564,9 @@ class Display extends BaseLogger {
                 ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
                 const startNewGameButton = ElementUtilities.addElementTo(
                     "button", this.solutionDiv,
-                    {id: "start-new-game", class: "game-button"},
+                    {id: "start-new-game", class: "wordchain-button game-button"},
                     "Start New Game");
-                startNewGameButton.addEventListener("click", startNewGameCallback);
+                ElementUtilities.setButtonCallback(startNewGameButton, startNewGameCallback);
             }
         } else {
             // Game not over; add End Game button and show keyboard.
@@ -523,9 +577,9 @@ class Display extends BaseLogger {
             ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
             const endGameButton = ElementUtilities.addElementTo(
                 "button", this.solutionDiv,
-                {id: "end-game", class: "game-button"},
+                {id: "end-game", class: "wordchain-button game-button"},
                 "End Game");
-            endGameButton.addEventListener("click", endGameCallback);
+            ElementUtilities.setButtonCallback(endGameButton, endGameCallback);
 
             this.keyboardDiv.style.display = "block";
         }
@@ -535,8 +589,6 @@ class Display extends BaseLogger {
     }
 }
 
-export { Display };
+export { AppDisplay };
 
-if (GLdisplayGame) {
-    Display.singleton().displayGame();
-}
+AppDisplay.singleton().displayGame();

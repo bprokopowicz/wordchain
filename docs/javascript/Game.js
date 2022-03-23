@@ -29,6 +29,10 @@ class Game extends BaseLogger {
         return this.solutionInProgress;
     }
 
+    getStepCount() {
+        return this.knownSolution.length;
+    }
+
     isSolved() {
         const lastWord = this.solutionInProgress.getLastWord()
         const nextWords = this.dict.findNextWords(lastWord);

@@ -1,8 +1,12 @@
 /*
+************************************
 ** Default styling for Mobile Phones
+************************************
 */
 
-/* Global */
+/*
+** Global
+*/
 
 * {
     font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
@@ -11,32 +15,55 @@
 #root-div {
 }
 
-.game-button {
+.wordchain-button {
     font-size: 1rem;
     padding: .75rem;
     border-width: 0;
     border-radius: .5rem;
     margin: .5rem;
-    background: gainsboro;
-    color: black;
 }
 
-/* Toast Pop-ups */
+.wordchain-button:focus {
+    outline: none;
+}
 
-/* Position it at the bottom and in the middle of the screen */
+.game-button {
+    background: LightSteelBlue;
+}
+
+/* Shell around the solution/keyboard/practice divs */
+#outer-div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/*
+This class is used in divs with display: flex to force whatever comes
+after the div to be on a "new line".
+See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
+*/
+.break {
+    flex-basis: 100%;
+}
+
+/*
+** Toast Pop-ups
+*/
+
 #toast-div {
     visibility: hidden;
-    min-width: 6rem; /* Set a default minimum width */
-    margin-left: -3rem; /* Divide value of min-width by 2 */
     font-size: .75rem;
-    background-color: black;
-    color: white;
+    background-color: Black;
+    color: White;
     text-align: center;
     border-radius: .5rem;
     padding: .75rem;
-    position: fixed; /* Sit on top of the screen */
-    left: 50%; /* Center the toast */
-    top: 10rem; /* 10rem from the top */
+    min-width: 6rem;            /* Set a default minimum width */
+    margin-left: -3rem;         /* Divide value of min-width by 2 */
+    position: fixed;            /* Sit on top of the screen */
+    top: 10rem;                 /* 10rem from the top */
+    left: 50%;                  /* Center the toast */
 }
 
 #toast-div.show {
@@ -69,12 +96,15 @@
         opacity: 0;
     }
 }
-/* Header */
+
+/*
+** Header
+*/
 
 #header-div {
     display: flex;
     justify-content: center;
-    background: lightsteelblue;
+    background: LightSteelBlue;
     padding: .5rem;
     margin-bottom: 2rem;
 }
@@ -89,42 +119,32 @@
 }
 
 .header-button {
-    font-size: 1rem;
-    padding: .75rem;
-    border-width: 0;
-    border-radius: .5rem;
-    margin: .5rem;
+    background: gainsboro;
 }
 
 .active-button {
     background: slategray;
-    color: white;
+    color: White;
 }
 
 .not-active {
     background: gainsboro;
-    color: black;
+    color: Black;
 }
 
-/* Practice Game Display */
+/*
+** Practice Game Setup Display
+*/
 
 #practice-div {
-    padding: 1.5rem;
-}
-
-/* Shell around the solution/keyboard/practice divs */
-
-#outer-div {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
 }
 
-.break {
-    flex-basis: 100%;
-}
-
-/* Solution Display (for Daily and Practice games) */
+/*
+** Solution Display (for Daily and Practice games)
+*/
 
 #solution-div {
     display: flex;
@@ -145,9 +165,9 @@ table {
     font-size: 2.5rem;
     text-align: center;
     vertical-align: middle;
-    color: black;
+    color: Black;
     border-style: solid;
-    border-color: black;
+    border-color: Black;
 }
 
 .tile-label {
@@ -157,21 +177,12 @@ table {
     font-size: 1rem;
     text-align: center;
     vertical-align: middle;
-    color: black;
+    color: Black;
     border-style: none;
 }
 
 .tile-label-blank {
     width: 0rem;
-    /*
-    height: 3rem;
-    font-weight: bold;
-    font-size: 1rem;
-    text-align: center;
-    vertical-align: middle;
-    color: black;
-    border-style: none;
-    */
 }
 
 .letter-change {
@@ -185,7 +196,7 @@ table {
 }
 
 .tile-enter {
-    background: lightsteelblue;
+    background: LightSteelBlue;
 }
 
 .no-enter {
@@ -195,19 +206,19 @@ table {
 /* Letter div classes */
 
 .is-a-word {
-    color: black;
+    color: Black;
 }
 
 .not-a-word {
-    color: darkred;
+    color: DarkRed;
 }
 
 .label-word {
-    color: black;
+    color: Black;
 }
 
 .target-word {
-    color: seagreen;
+    color: DarkGreen;
 }
 
 .shown-letter {
@@ -250,8 +261,8 @@ table {
     border-radius: .3rem;
     cursor: pointer;
     user-select: none;
-    background-color: lightgray;
-    color: black;
+    background-color: LightGray;
+    color: Black;
     flex: 1;
     display: flex;
     justify-content: center;
@@ -266,13 +277,15 @@ table {
 
 .keyboard-wide-key {
     flex: 1.5;
-    background: lightsteelblue;
-    color: black;
+    background: LightSteelBlue;
+    color: Black;
 }
 
 
 /*
+*******************************
 ** Override Styling for Tablets
+*******************************
 */
 
 @media only screen and (min-width: 600px) {
@@ -294,7 +307,9 @@ table {
 }
 
 /*
+**************************************
 ** Override Styling for Larger Screens
+**************************************
 */
 
 @media only screen and (min-width: 991px) {
