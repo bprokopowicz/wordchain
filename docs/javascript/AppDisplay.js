@@ -9,18 +9,24 @@ import { ElementUtilities } from './ElementUtilities.js';
 /*
 ** TODO:
 ** Implementation
-** - Better handling of colors
-** - Better images on ENTER/BACKSPACE keys
-** - Auto-fill unchanged letters (NOT in hard mode)
 ** - Outline tiles:
 **   - green if played word does not increase solution length
 **   - else outline red.
 **   - this can drive the share image.
+** - Better handling of colors
+** - Better images on ENTER/BACKSPACE keys
+** - Auto-fill unchanged letters (NOT in hard mode)
 ** - Share graphic: mini version of tile outline/colors
 **   - need to keep track of words that increase solution length in Game.
 **   - call Game.getStepCount() before/after playing words; keep track in TileDisplay
 ** - What is the "score" of the game?
-** - Hard mode ... extra X points?
+**   - Hard mode ... extra X points?
+**   - No score? Just indicate hard in the share graphic?
+**
+** Before Sharing with Initial Friends
+** - Help screen
+** - Fix dictionary loading - deterministic; remove setTimeout()
+** - At least a temporary way to have different daily games for 30 days or so
 **
 ** Deployment
 ** - How to display/keep track of stats? (Learn about cookies.)
@@ -28,9 +34,14 @@ import { ElementUtilities } from './ElementUtilities.js';
 ** - Buy domain wordchain.com?
 ** - Where to host?
 ** - How to manage daily game words?
+**   - Maybe add a section to Test.js to generate potential daily games
+**   - Possible criteria:
+**     - Start/target word length 3-5
+**     - Solution #steps 5-6
+**     - Words change length >= 2 times
 ** - Testing on various browsers/devices
 ** - Settings menu
-** - Help screen
+** - Logo
 */
 
 /*
@@ -59,8 +70,8 @@ function dailyCallback() {
     AppDisplay.singleton().dailyCallback();
 }
 
-function endGameCallback() {
-    AppDisplay.singleton().endGameCallback();
+function showSolutionCallback() {
+    AppDisplay.singleton().showSolutionCallback();
 }
 
 function hardKeyboardCallback(event) {
@@ -111,13 +122,11 @@ class AppDisplay extends BaseLogger {
         super();
 
         this.dict = new WordChainDict();
+
         this.dailyGame    = null;
         this.practiceGame = null;
 
-        this.dailyGameOver    = false;
-        this.practiceGameOver = false;
-
-        // This will be whichever game is current.
+        // this.game will be set to whichever game is current.
         this.game = null;
 
         this.rootDiv     = null;
@@ -156,7 +165,7 @@ class AppDisplay extends BaseLogger {
 
         window.addEventListener("keydown", hardKeyboardCallback);
 
-        this.dailyCallback();
+        this.constructDailyGame();
     }
 
     /* ----- Toast Notifications ----- */
@@ -265,7 +274,6 @@ class AppDisplay extends BaseLogger {
             this.practiceDiv.style.display = "none";
         }
 
-
         const helpText = `Words can be up to ${PracticeTileDisplay.MAX_WORD_LENGTH} letters. Press the Return key to enter a word.`
         ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText);
         // The div with class "break" forces whatever comes after this div
@@ -273,23 +281,28 @@ class AppDisplay extends BaseLogger {
         // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
         ElementUtilities.addElementTo("div", this.practiceDiv, {class: "break"});
 
+        // Create a div for selecting practice game start/target words, and create
+        // a div within that to hold the tiles.
         this.practiceWordsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-words-div"});
+        this.practiceTileDisplay = new PracticeTileDisplay(this.dict, this.practiceWordsDiv);
+        this.practiceTileDisplay.resetWords();
 
         // Add another break
         ElementUtilities.addElementTo("div", this.practiceDiv, {class: "break"});
 
+        // Now create a div for the buttons in this display and add the buttons.
         this.practiceButtonsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-buttons-div"});
-        const startPracticeGameButton = ElementUtilities.addElementTo(
+        this.startPracticeGameButton = ElementUtilities.addElementTo(
             "button", this.practiceButtonsDiv,
             {id: "start-game", class: "wordchain-button game-button"},
             "Start Practice Game");
-        ElementUtilities.setButtonCallback(startPracticeGameButton, startPracticeGameCallback);
+        ElementUtilities.setButtonCallback(this.startPracticeGameButton, startPracticeGameCallback);
 
-        const clearLettersButton = ElementUtilities.addElementTo(
+        this.clearLettersButton = ElementUtilities.addElementTo(
             "button", this.practiceButtonsDiv,
             {id: "clear-letters", class: "wordchain-button game-button"},
             "Clear Letters");
-        ElementUtilities.setButtonCallback(clearLettersButton, clearLettersCallback);
+        ElementUtilities.setButtonCallback(this.clearLettersButton, clearLettersCallback);
     }
 
     /* ----- Daily/Practice Game Solution ----- */
@@ -304,6 +317,35 @@ class AppDisplay extends BaseLogger {
         // to be on a "new line" with display: flex, which we use for this div.
         // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
         ElementUtilities.addElementTo("div", this.outerDiv, {class: "break"});
+
+        // Create a div for the game play words and buttons and create a div within that to hold the tiles.
+        this.gameWordsDiv = ElementUtilities.addElementTo("div", this.solutionDiv, {id: "game-words-div"});
+
+        // Add another break
+        ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
+
+        // Now create a div for the buttons in this display and add the buttons.
+        this.solutionButtonsDiv = ElementUtilities.addElementTo("div", this.solutionDiv, {id: "solution-buttons-div"});
+
+        ElementUtilities.addElementTo("div", this.solutionButtonsDiv, {class: "break"});
+        this.startNewGameButton = ElementUtilities.addElementTo(
+            "button", this.solutionButtonsDiv,
+            {id: "start-new-game", class: "wordchain-button game-button"},
+            "Start New Game");
+        ElementUtilities.setButtonCallback(this.startNewGameButton, startNewGameCallback);
+
+        // Since we start with a daily game, of which there is only one per day,
+        // we set it's style.display to be "none" so it does not show; it will be
+        // changed when a practice game is shown.
+        this.startNewGameButton.style.display = "none";
+
+        // The default is to show this button, which we want for both daily and practice games;
+        // users should be able to display the solution for either.
+        this.showSolutionButton = ElementUtilities.addElementTo(
+            "button", this.solutionButtonsDiv,
+            {id: "show-solution", class: "wordchain-button game-button"},
+            "Show Solution");
+        ElementUtilities.setButtonCallback(this.showSolutionButton, showSolutionCallback);
     }
 
     /*
@@ -322,57 +364,25 @@ class AppDisplay extends BaseLogger {
         } else {
             this.practiceTileDisplay.resetWords(PracticeTileDisplay.RESET_TARGET);
         }
-        this.practiceTileDisplay.showPracticeWords();
+        this.practiceTileDisplay.showPracticeWordTiles();
     }
 
     // Callback for the Daily header button.
     dailyCallback() {
-        // TEMPORARY
-        const startWord = "cat";
-        const targetWord = "dog";
+        // Make Daily button active, and Practice inactive.
+        ElementUtilities.editClass(/not-active/, "active-button", this.dailyGameButton);
+        ElementUtilities.editClass(/active-button/, "not-active", this.practiceGameButton);
 
-        // TODO: Takes a while for dictionary to load ... not sure what we have doesn't wait.
-        // 100 ms not enough; 200 ms does the trick. Note: still being served from github.
-        setTimeout(() => {
-            ElementUtilities.editClass(/not-active/, "active-button", this.dailyGameButton);
-            ElementUtilities.editClass(/active-button/, "not-active", this.practiceGameButton);
+        // Don't display the Start New Game button.
+        this.startNewGameButton.style.display = "none";
 
-            if (this.dailyGameOver) {
-                this.game = this.dailyGame;
-                this.gameTileDisplay.setGame(this.game);
-                this.gameTileDisplay.showSolution();
-                this.displaySolution();
-                return;
-            }
-
-            // No need to check solution for success -- daily games will be
-            // pre-verified to have a solution.
-            const solution = Solver.fastSolve(this.dict, startWord, targetWord);
-
-            if (!this.dailyGame) {
-                this.dailyGame = new Game(this.dict, solution);
-                this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.solutionDiv);
-            }
-            this.game = this.dailyGame;
-            this.gameTileDisplay.setGame(this.game);
-            this.gameTileDisplay.showSteps();
-            this.displaySteps();
-        }, 200);
-    }
-
-    // Callback for the End Game button
-    endGameCallback() {
-        if (this.game === this.practiceGame) {
-            this.practiceTileDisplay.resetWords();
-        }
-        this.gameTileDisplay.showSolution();
-        this.displaySolution();
+        this.updateGameDisplay(this.dailyGame);
     }
 
     // Global keyboard callback; calls specific game/practice callback
     // based on whether the practis div is hidden.
     keyboardCallback(keyValue) {
-        if (ElementUtilities.isHidden(this.practiceDiv)) {
+        if (this.playingGame()) {
             this.gameKeyboardCallback(keyValue);
         } else {
             this.practiceKeyboardCallback(keyValue);
@@ -388,8 +398,7 @@ class AppDisplay extends BaseLogger {
             if (gameResult !== TileDisplay.OK) {
                 this.showToast(gameResult);
             } else {
-                this.gameTileDisplay.showSteps();
-                this.displaySteps();
+                this.updateGameDisplay();
             }
 
             if (this.game.isSolved()) {
@@ -397,9 +406,7 @@ class AppDisplay extends BaseLogger {
                 // appearing on the display before the the alert pop-up.
                 setTimeout(() => {
                     this.showToast("Solved!")
-                    if (this.game == this.dailyGame) {
-                        this.endGameCallback();
-                    }
+                    this.updateGameDisplay();
                 }, 50);
             }
         } else if (ElementUtilities.isLetter(keyValue)) {
@@ -408,28 +415,33 @@ class AppDisplay extends BaseLogger {
         // No other keys cause a change.
     }
 
+    // If practice div is hidden we are playing a game.
+    playingGame() {
+        return ElementUtilities.isHidden(this.practiceDiv)
+    }
+
     // This is the callback for the Practice header button.
+    // It is also called in startNewGameCallback().
     practiceCallback() {
         ElementUtilities.editClass(/not-active/, "active-button", this.practiceGameButton);
         ElementUtilities.editClass(/active-button/, "not-active", this.dailyGameButton);
 
-
-        // If we have an ongoing practice game set this.game to it and redraw.
+        // If we have an ongoing practice game update the display, passing this.practiceGame
+        // so that the current game is updated.
         if (this.practiceGame !== null) {
-            this.game = this.practiceGame;
-            this.gameTileDisplay.setGame(this.game);
-            this.gameTileDisplay.showSteps();
-            this.displaySteps();
+            // Display the Start New Game button.
+            this.updateGameDisplay(this.practiceGame);
 
-        // Otherwise, create the practice tile display if we haven't yet
-        // and then ensure the right divs are showing. The user will see the
-        // screen to enter start/end words.
+        // Otherwise, show the practice word selection tiles and ensure the right divs are showing.
         } else {
-            if (! this.practiceTileDisplay) {
-                this.practiceTileDisplay = new PracticeTileDisplay(this.dict, this.practiceWordsDiv);
-                this.practiceTileDisplay.resetWords();
-            }
-            this.practiceTileDisplay.showPracticeWords();
+            // Delete the children in the solutionDiv, so the id attributes
+            // of the practice word tiles won't be the same as those of the game tiles.
+            // Element IDs must be unique or else undefined behavior occurs -- we use
+            // the ID to find the element, and if there are two it is undefined which
+            // one will be acted upon.
+            ElementUtilities.deleteChildren(this.gameWordsDiv);
+
+            this.practiceTileDisplay.showPracticeWordTiles();
             this.solutionDiv.style.display = "none";
             this.keyboardDiv.style.display = "block";
             this.practiceDiv.style.display = "flex";
@@ -445,60 +457,68 @@ class AppDisplay extends BaseLogger {
             if (result !== TileDisplay.OK) {
                 this.showToast(result);
             }
-            this.practiceTileDisplay.showPracticeWords();
+            this.practiceTileDisplay.showPracticeWordTiles();
         } else if (ElementUtilities.isLetter(keyValue)) {
             this.practiceTileDisplay.keyPressLetter(keyValue);
         }
         // No other keys cause a change.
     }
 
-    // Callback for the Start New Game button that appears after
-    // ending a practice game; this allows the user to see the solution
-    // until they are ready to start a new one.
+    // Callback for the Show Solution button
+    showSolutionCallback() {
+        this.gameTileDisplay.endGame();
+        this.updateGameDisplay()
+    }
+
+    // Callback for the Start New Game button that appears when playing a practice
+    // game, along side the Show Solution button.
     startNewGameCallback() {
-        // Set practiceGame to null so practiceCallback() knows to
-        // get new start/target words.
+        // Set practiceGame to null so practiceCallback() knows to get new start/target words.
         this.practiceGame = null;
 
-        // Set practiceTileDisplay to null so practiceCallback() knows to
-        // reset the practice game words in the tiles.
-        this.practiceTileDisplay = null;
+        // Reset the start/end words so the display will be blank again.
+        this.practiceTileDisplay.resetWords();
 
+        // The rest is the same as clicking the Practice header button.
         this.practiceCallback();
     }
 
-    // Callback for the Start Practice button in the practice game setup screen.
+    // Callback for the Start Practice Game button in the practice game setup screen.
     startPracticeGameCallback() {
         const startWord  = this.practiceTileDisplay.getStartWord();
         const targetWord = this.practiceTileDisplay.getTargetWord();
         let result;
 
+        // Validate that the user's start/target words have actually been entered
+        // and are in the dictionary.
         result = this.checkWord(startWord, "Start");
         if (result !== null) {
             this.showToast(result);
             return;
         }
-
         result = this.checkWord(targetWord, "Target");
         if (result !== null) {
             this.showToast(result);
             return;
         }
 
+        // Don't create a game if the words are the same.
         if (startWord === targetWord) {
-            this.showToast("Hollow congratulations for creating an already solved game.");
+            this.showToast("Words are the same");
             return
         }
 
+        // Don't create a game if there is no path to a solution with the selected words.
         const solution = Solver.fastSolve(this.dict, startWord, targetWord);
         if (!solution.success()) {
             this.showToast(TileDisplay.NO_SOLUTION);
             return;
         }
 
-        this.practiceGame = new Game(this.dict, solution);
-        this.game = this.practiceGame;
-        this.gameTileDisplay.setGame(this.game);
+        // Just for fun, a little snark.
+        if (solution.isSolved) {
+            this.showToast("Solved (a bit of a hollow victory, though)");
+        }
 
         // Delete the children in the practiceWordsDiv, so the id attributes
         // of the game tiles won't be the same as those of the practice tiles.
@@ -506,8 +526,10 @@ class AppDisplay extends BaseLogger {
         // the ID to find the element, and if there are two it is undefined which
         // one will be acted upon.
         ElementUtilities.deleteChildren(this.practiceWordsDiv);
-        this.gameTileDisplay.showSteps();
-        this.displaySteps();
+
+        this.startNewGameButton.style.display = "block";
+        this.practiceGame = new Game(this.dict, solution);
+        this.updateGameDisplay(this.practiceGame);
     }
 
     /*
@@ -526,12 +548,23 @@ class AppDisplay extends BaseLogger {
         return null;
     }
 
-    displaySolution() {
-        this.updateDisplay(true);
-    }
+    constructDailyGame() {
+        // TEMPORARY
+        const startWord = "cat";
+        const targetWord = "dog";
 
-    displaySteps() {
-        this.updateDisplay(false);
+        // TODO: Takes a while for dictionary to load ... not sure what we have doesn't wait.
+        // 100 ms not enough; 200 ms does the trick. Note: still being served from github.
+        setTimeout(() => {
+            // No need to check solution for success -- daily games will be
+            // pre-verified to have a solution.
+            const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+
+            this.dailyGame = new Game(this.dict, solution);
+            this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv);
+
+            this.dailyCallback();
+        }, 200);
     }
 
     showToast(message) {
@@ -542,46 +575,25 @@ class AppDisplay extends BaseLogger {
         }, 3000);
     }
 
-    updateDisplay(showSolution) {
-        if (showSolution) {
-            // Game is over; don't show keyboard.
+    updateGameDisplay(currentGame=null) {
+        if (currentGame !== null) {
+            this.game = currentGame;
+            this.gameTileDisplay.setGame(currentGame);
+        }
+
+        this.gameTileDisplay.showSteps();
+        
+        // Determine whether to show the keyboard based on whether
+        // the game has been solved.
+        if (this.game.isSolved()) {
             this.keyboardDiv.style.display = "none";
-
-            // Note which game is over, and add Start New Game button if
-            // playing practice game.
-            if (this.game === this.dailyGame) {
-                this.dailyGameOver = true;
-            } else {
-                this.practiceGameOver = true;
-
-                // Set practiceGame to null so practiceCallback() knows to
-                // get new start/target words.
-                this.practiceGame = null;
-
-                // The div with class "break" forces the button to be on a "new line" with display: flex.
-                // to be on a "new line" with display: flex, which we use for this div.
-                // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-                ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
-                const startNewGameButton = ElementUtilities.addElementTo(
-                    "button", this.solutionDiv,
-                    {id: "start-new-game", class: "wordchain-button game-button"},
-                    "Start New Game");
-                ElementUtilities.setButtonCallback(startNewGameButton, startNewGameCallback);
-            }
         } else {
-            // Game not over; add End Game button and show keyboard.
-
-            // The div with class "break" forces the button to be on a "new line" with display: flex.
-            // to be on a "new line" with display: flex, which we use for this div.
-            // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-            ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
-            const endGameButton = ElementUtilities.addElementTo(
-                "button", this.solutionDiv,
-                {id: "end-game", class: "wordchain-button game-button"},
-                "End Game");
-            ElementUtilities.setButtonCallback(endGameButton, endGameCallback);
-
             this.keyboardDiv.style.display = "block";
+        }
+
+        // Show Start New Game button if playing practice game.
+        if (this.game !== this.dailyGame) {
+            this.startNewGameButton.style.display = "block";
         }
 
         this.solutionDiv.style.display = "flex";

@@ -19,6 +19,11 @@ class Game extends BaseLogger {
         this.solutionInProgress = new Solution([solution.getFirstWord()], solution.target);
     }
 
+
+    endGame() {
+        this.solutionInProgress = this.knownSolution;
+    }
+
     // This is used only for testing.
     getKnownSolution() {
         return this.knownSolution;
@@ -35,6 +40,10 @@ class Game extends BaseLogger {
 
     isSolved() {
         const lastWord = this.solutionInProgress.getLastWord()
+        if (lastWord === this.knownSolution.target) {
+            return true;
+        }
+
         const nextWords = this.dict.findNextWords(lastWord);
         return nextWords.has(this.knownSolution.target);
     }

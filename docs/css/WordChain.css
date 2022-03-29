@@ -142,6 +142,11 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     justify-content: center;
 }
 
+#practice-buttons-div {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 /*
 ** Solution Display (for Daily and Practice games)
 */
@@ -229,6 +234,10 @@ table {
     visibility: hidden;
 }
 
+#solution-buttons-div {
+    display: flex;
+    flex-wrap: wrap;
+}
 
 /* Keyboard Display (for Daily and Practice games) */
 

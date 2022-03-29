@@ -222,11 +222,11 @@ class TileDisplay extends BaseLogger {
 
     // Display the word list in the div provided.
     //
-    // isCurrentRow and isInputTile are functions that take two parameters:
+    // isCurrentRow and isInputTile are functions that take two arguments:
     // - the word in the row being processed
     // - the column being processed
     //
-    // isCurrentRow should return true if this tile cause the row to
+    // isCurrentRow should return true if this tile should cause the row to
     // be considered the current row.
     //
     // isInputTile should return true if this tile should receive input
@@ -297,13 +297,20 @@ class TileDisplay extends BaseLogger {
                 let tileType = "no-change";
                 let letterClass = "is-a-word";
                 if (letter === Game.CHANGE) {
+                    // This is a letter in a to-be-filled-in word that is the same length as the preceding
+                    // word, and this is the letter that should be changed. NOTE if/when we implement
+                    // hard mode this will not be shown differently if user has selected hard mode.
                     tileClass += " letter-change";
                     tileType = "change";
                     letterClass += " hidden-letter";
                 } else if (letter === Game.NO_CHANGE) {
+                    // This is a letter in a to-be-filled-in word that does not get "change this one"
+                    // styling, but should be hidden (because it's still to be filled in!).
                     tileClass += " no-change";
                     letterClass += " hidden-letter";
                 } else {
+                    // This is a letter in an already played word, so show it, but without "change this
+                    // one" styling.
                     tileClass += " no-change";
                     letterClass += " shown-letter";
                 }
@@ -321,8 +328,8 @@ class TileDisplay extends BaseLogger {
                     "td", rowElement,
                     {id: tileId, class: tileClass, 'data-tile-type': tileType});
                 ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: letterClass}, letter);
-            }
-        }
+            } // end for col
+        } // end for row
     }
 }
 
@@ -352,6 +359,10 @@ class GameTileDisplay extends TileDisplay {
         GameTileDisplay.GAME_TO_TILE_DISPLAY[Game.DUPLICATE]    = GameTileDisplay.ALREADY_PLAYED;
     }
 
+    endGame() {
+        this.game.endGame();
+    }
+
     // This method is called from the hard or soft keydown callback in the Display
     // class when the ENTER key is pressed to enter a word during game play.
     keyPressEnter() {
@@ -377,7 +388,8 @@ class GameTileDisplay extends TileDisplay {
     }
 
     // This method is called when the user clicks the Daily and Practice
-    // buttons to switch games.
+    // buttons to switch games, or when the user clicks the Start Practice Game
+    // button to start a new practice game.
     setGame(game) {
         this.game = game;
     }
@@ -396,10 +408,6 @@ class GameTileDisplay extends TileDisplay {
             this.solutionDiv,
             (word, column) => {return ! ElementUtilities.isLetter(word[column-1]);},
             (word, column) => {return ! ElementUtilities.isLetter(word[column-1]);});
-    }
-
-    showSolution() {
-        this.showGameTiles(this.game.getKnownSolution().getWords());
     }
 
     showSteps() {
@@ -494,7 +502,7 @@ class PracticeTileDisplay extends TileDisplay {
         }
     }
 
-    showPracticeWords() {
+    showPracticeWordTiles() {
         // The first row whose word's first character is a placeholder is the current row.
         // The first placeholder tile (in that word) is the one to receive input.
         this.showTiles(
