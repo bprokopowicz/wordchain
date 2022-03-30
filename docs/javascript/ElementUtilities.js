@@ -62,7 +62,7 @@ class ElementUtilities {
     static isLetter(letter) {
         // JavaScript doesn't have this builtin!
         return letter.length === 1 && letter.match(/[a-z]/i);
-    }   
+    }
 
     static setButtonCallback(buttonElement, callback) {
         // When button is clicked we get a PointerEvent. When you hit RETURN after clicking
@@ -104,6 +104,17 @@ class ElementUtilities {
     static setElementValue(elementId, elementValue) {
         const element = ElementUtilities.getElement(elementId);
         element.value = elementValue;
+    }
+
+    static toggleClass(className, elements) {
+
+        if (! (elements instanceof Array)) {
+            elements = [elements];
+        }
+
+        for (let element of elements) {
+            element.classList.toggle(className);
+        }
     }
 }
 

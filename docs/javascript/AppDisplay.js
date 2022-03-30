@@ -9,16 +9,9 @@ import { ElementUtilities } from './ElementUtilities.js';
 /*
 ** TODO:
 ** Implementation
-** - Outline tiles:
-**   - green if played word does not increase solution length
-**   - else outline red.
-**   - this can drive the share image.
-** - Better handling of colors
 ** - Better images on ENTER/BACKSPACE keys
 ** - Auto-fill unchanged letters (NOT in hard mode)
 ** - Share graphic: mini version of tile outline/colors
-**   - need to keep track of words that increase solution length in Game.
-**   - call Game.getStepCount() before/after playing words; keep track in TileDisplay
 ** - What is the "score" of the game?
 **   - Hard mode ... extra X points?
 **   - No score? Just indicate hard in the share graphic?
@@ -41,22 +34,25 @@ import { ElementUtilities } from './ElementUtilities.js';
 **     - Words change length >= 2 times
 ** - Testing on various browsers/devices
 ** - Settings menu
+**   - Dark mode
+**   - Colorblind mode
+**   - Hard mode
 ** - Logo
 */
 
 /*
 ** Forwarding functions
 **
-** When "this.startPracticeGameCallback" is passed, for example, as the listener on calls
+** When "this.startGameCallback" is passed, for example, as the listener on calls
 ** within the AppDisplay class to addEventListener(), Chrome appears to call it (but refers
-** to it as HTMLButtonElement.startPracticeGameCallback, which doesn't exist!) and "this"
+** to it as HTMLButtonElement.startGameCallback, which doesn't exist!) and "this"
 ** within the method is of type HTMLButtonElement, so the call within to "this.checkWord()"
 ** resolves to HTMLButtonElement.checkword, which is is not a function. This kind of makes
-** sense (except for why it  was able to call the AppDisplay.startPracticeGameCallback()
+** sense (except for why it  was able to call the AppDisplay.startGameCallback()
 ** method at all!).
 **
 ** At that point I introduced the singleton idea. I thought that passing
-** AppDisplay.singleton().startPracticeGameCallback as the listener would work, but this
+** AppDisplay.singleton().startGameCallback as the listener would work, but this
 ** also resulted in "HTMLButtonElement.checkWord() is not a function." Sigh. I really don't
 ** understand why that is not working. But we carry on; introducing the "forwarding function"
 ** did the trick.
@@ -85,6 +81,10 @@ function hardKeyboardCallback(event) {
     }
 }
 
+function newGameCallback() {
+    AppDisplay.singleton().newGameCallback();
+}
+
 function practiceCallback() {
     AppDisplay.singleton().practiceCallback();
 }
@@ -96,12 +96,8 @@ function softKeyboardCallback() {
     AppDisplay.singleton().keyboardCallback(this.getAttribute("data-key"));
 }
 
-function startNewGameCallback() {
-    AppDisplay.singleton().startNewGameCallback();
-}
-
-function startPracticeGameCallback() {
-    AppDisplay.singleton().startPracticeGameCallback();
+function startGameCallback() {
+    AppDisplay.singleton().startGameCallback();
 }
 
 
@@ -292,11 +288,11 @@ class AppDisplay extends BaseLogger {
 
         // Now create a div for the buttons in this display and add the buttons.
         this.practiceButtonsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-buttons-div"});
-        this.startPracticeGameButton = ElementUtilities.addElementTo(
+        this.startGameButton = ElementUtilities.addElementTo(
             "button", this.practiceButtonsDiv,
             {id: "start-game", class: "wordchain-button game-button"},
-            "Start Practice Game");
-        ElementUtilities.setButtonCallback(this.startPracticeGameButton, startPracticeGameCallback);
+            "Start Game");
+        ElementUtilities.setButtonCallback(this.startGameButton, startGameCallback);
 
         this.clearLettersButton = ElementUtilities.addElementTo(
             "button", this.practiceButtonsDiv,
@@ -328,16 +324,16 @@ class AppDisplay extends BaseLogger {
         this.solutionButtonsDiv = ElementUtilities.addElementTo("div", this.solutionDiv, {id: "solution-buttons-div"});
 
         ElementUtilities.addElementTo("div", this.solutionButtonsDiv, {class: "break"});
-        this.startNewGameButton = ElementUtilities.addElementTo(
+        this.newGameButton = ElementUtilities.addElementTo(
             "button", this.solutionButtonsDiv,
             {id: "start-new-game", class: "wordchain-button game-button"},
-            "Start New Game");
-        ElementUtilities.setButtonCallback(this.startNewGameButton, startNewGameCallback);
+            "New Game");
+        ElementUtilities.setButtonCallback(this.newGameButton, newGameCallback);
 
         // Since we start with a daily game, of which there is only one per day,
         // we set it's style.display to be "none" so it does not show; it will be
         // changed when a practice game is shown.
-        this.startNewGameButton.style.display = "none";
+        this.newGameButton.style.display = "none";
 
         // The default is to show this button, which we want for both daily and practice games;
         // users should be able to display the solution for either.
@@ -373,8 +369,8 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.editClass(/not-active/, "active-button", this.dailyGameButton);
         ElementUtilities.editClass(/active-button/, "not-active", this.practiceGameButton);
 
-        // Don't display the Start New Game button.
-        this.startNewGameButton.style.display = "none";
+        // Don't display the New Game button.
+        this.newGameButton.style.display = "none";
 
         this.updateGameDisplay(this.dailyGame);
     }
@@ -415,13 +411,26 @@ class AppDisplay extends BaseLogger {
         // No other keys cause a change.
     }
 
+    // Callback for the New Game button that appears when playing a practice
+    // game, along side the Show Solution button.
+    newGameCallback() {
+        // Set practiceGame to null so practiceCallback() knows to get new start/target words.
+        this.practiceGame = null;
+
+        // Reset the start/end words so the display will be blank again.
+        this.practiceTileDisplay.resetWords();
+
+        // The rest is the same as clicking the Practice header button.
+        this.practiceCallback();
+    }
+
     // If practice div is hidden we are playing a game.
     playingGame() {
         return ElementUtilities.isHidden(this.practiceDiv)
     }
 
     // This is the callback for the Practice header button.
-    // It is also called in startNewGameCallback().
+    // It is also called in newGameCallback().
     practiceCallback() {
         ElementUtilities.editClass(/not-active/, "active-button", this.practiceGameButton);
         ElementUtilities.editClass(/active-button/, "not-active", this.dailyGameButton);
@@ -429,7 +438,7 @@ class AppDisplay extends BaseLogger {
         // If we have an ongoing practice game update the display, passing this.practiceGame
         // so that the current game is updated.
         if (this.practiceGame !== null) {
-            // Display the Start New Game button.
+            // Display the New Game button.
             this.updateGameDisplay(this.practiceGame);
 
         // Otherwise, show the practice word selection tiles and ensure the right divs are showing.
@@ -464,27 +473,14 @@ class AppDisplay extends BaseLogger {
         // No other keys cause a change.
     }
 
-    // Callback for the Show Solution button
+    // Callback for the Show Solution button that appears for both daily and practice games.
     showSolutionCallback() {
         this.gameTileDisplay.endGame();
         this.updateGameDisplay()
     }
 
-    // Callback for the Start New Game button that appears when playing a practice
-    // game, along side the Show Solution button.
-    startNewGameCallback() {
-        // Set practiceGame to null so practiceCallback() knows to get new start/target words.
-        this.practiceGame = null;
-
-        // Reset the start/end words so the display will be blank again.
-        this.practiceTileDisplay.resetWords();
-
-        // The rest is the same as clicking the Practice header button.
-        this.practiceCallback();
-    }
-
-    // Callback for the Start Practice Game button in the practice game setup screen.
-    startPracticeGameCallback() {
+    // Callback for the Start Game button in the practice game setup screen.
+    startGameCallback() {
         const startWord  = this.practiceTileDisplay.getStartWord();
         const targetWord = this.practiceTileDisplay.getTargetWord();
         let result;
@@ -516,8 +512,8 @@ class AppDisplay extends BaseLogger {
         }
 
         // Just for fun, a little snark.
-        if (solution.isSolved) {
-            this.showToast("Solved (a bit of a hollow victory, though)");
+        if (solution.numSteps() === 1) {
+            this.showToast("Solved; a bit of a hollow victory, though");
         }
 
         // Delete the children in the practiceWordsDiv, so the id attributes
@@ -527,7 +523,7 @@ class AppDisplay extends BaseLogger {
         // one will be acted upon.
         ElementUtilities.deleteChildren(this.practiceWordsDiv);
 
-        this.startNewGameButton.style.display = "block";
+        this.newGameButton.style.display = "block";
         this.practiceGame = new Game(this.dict, solution);
         this.updateGameDisplay(this.practiceGame);
     }
@@ -582,7 +578,7 @@ class AppDisplay extends BaseLogger {
         }
 
         this.gameTileDisplay.showSteps();
-        
+
         // Determine whether to show the keyboard based on whether
         // the game has been solved.
         if (this.game.isSolved()) {
@@ -591,9 +587,9 @@ class AppDisplay extends BaseLogger {
             this.keyboardDiv.style.display = "block";
         }
 
-        // Show Start New Game button if playing practice game.
+        // Show New Game button if playing practice game.
         if (this.game !== this.dailyGame) {
-            this.startNewGameButton.style.display = "block";
+            this.newGameButton.style.display = "block";
         }
 
         this.solutionDiv.style.display = "flex";

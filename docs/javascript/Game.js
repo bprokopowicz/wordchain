@@ -17,11 +17,17 @@ class Game extends BaseLogger {
         this.dict = dict;
         this.knownSolution = solution;
         this.solutionInProgress = new Solution([solution.getFirstWord()], solution.target);
+        this.stepCountHistory = [];
+        this.stepCountHistory.push(this.getStepCount());
     }
 
 
     endGame() {
         this.solutionInProgress = this.knownSolution;
+    }
+
+    getCountHistory() {
+        return this.stepCountHistory;
     }
 
     // This is used only for testing.
@@ -35,7 +41,7 @@ class Game extends BaseLogger {
     }
 
     getStepCount() {
-        return this.knownSolution.length;
+        return this.knownSolution.numSteps();
     }
 
     isSolved() {
@@ -67,6 +73,7 @@ class Game extends BaseLogger {
         // just add that word to the solution in progress and we're done.
         let nextStep = this.solutionInProgress.numSteps() + 1;
         if (this.knownSolution.getWordByStep(nextStep) === word) {
+            this.stepCountHistory.push(this.getStepCount());
             this.solutionInProgress.addWord(word);
             return Game.OK;
         }
@@ -90,6 +97,7 @@ class Game extends BaseLogger {
             this.knownSolution = this.solutionInProgress.copy().append(potentialNewSolution)
 
             // Add the user's word to the solution in progress.
+            this.stepCountHistory.push(this.getStepCount());
             this.solutionInProgress.addWord(word);
             return Game.OK;
         } else {

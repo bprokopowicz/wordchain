@@ -220,117 +220,6 @@ class TileDisplay extends BaseLogger {
         }
     }
 
-    // Display the word list in the div provided.
-    //
-    // isCurrentRow and isInputTile are functions that take two arguments:
-    // - the word in the row being processed
-    // - the column being processed
-    //
-    // isCurrentRow should return true if this tile should cause the row to
-    // be considered the current row.
-    //
-    // isInputTile should return true if this tile should receive input
-    // from the keyboard.
-    showTiles(wordList, containingDiv, isCurrentRow, isInputTile, rowLabels=[]) {
-        // Delete current child elements.
-        ElementUtilities.deleteChildren(containingDiv);
-
-        const tableElement = ElementUtilities.addElementTo("table", containingDiv);
-        const tbodyElement = ElementUtilities.addElementTo("tbody", tableElement);
-
-        // This will hold the row number where letters typed/clicked will go.
-        this.currentRow = null;
-
-        // This will hold the column number where the next letter typed/clicked
-        // will go (until ENTER) -- it is changed in keyPressLetter() and keyPressDelete().
-        this.currentColumn = 1;
-
-        let inputTileDetermined = false;
-        for (let row = 0; row < wordList.length; row++) {
-            const word = wordList[row];
-
-            // Create a <tr> to hold the tiles for this row.
-            const rowElement = ElementUtilities.addElementTo("tr", tbodyElement, {id: TileDisplay.getTileRowId(row)});
-            rowElement.setAttribute("data-word-length", word.length);
-
-            // Construct the <td> and <div> elements for the tile.
-            for (let col = 0; col <= word.length; col++) {
-                // Give column 0 special styling to show or not show the label,
-                // depending on whether rowLabels was given.
-                if (col === 0) {
-                    const tileId    = TileDisplay.getTileId(row, col);
-                    const letterId  = TileDisplay.getLetterId(row, col);
-
-                    const tileType  = "no-change";
-                    const tileClass = (rowLabels.length !== 0) ? "tile-label" : "tile-label-blank";
-                    const label     = (rowLabels.length !== 0) ? rowLabels[row] : "";
-
-                    // Now, construct the elements.
-                    const tdElement = ElementUtilities.addElementTo(
-                        "td", rowElement,
-                        {id: tileId, class: tileClass, 'data-tile-type': tileType}
-                        );
-                    ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: "label-word"}, label);
-
-                    continue;
-                }
-
-                // If we're here we're dealing with a letter tile.
-
-                const letter = word[col-1].toUpperCase();
-                let tileClass = "tile";
-
-                // Determine whether this is the current row.
-                if ((this.currentRow === null) && isCurrentRow(word, col)) {
-                    this.currentRow = row;
-                }
-
-                // Determine whether this is the input tile and style accordingly.
-                if ((row === this.currentRow) && ! inputTileDetermined && isInputTile(word, col)) {
-                    tileClass += " tile-enter";
-                    inputTileDetermined = true;
-                } else {
-                    tileClass += " no-enter";
-                }
-
-                // Set tileType and letterClass based on the letter in the word.
-                let tileType = "no-change";
-                let letterClass = "is-a-word";
-                if (letter === Game.CHANGE) {
-                    // This is a letter in a to-be-filled-in word that is the same length as the preceding
-                    // word, and this is the letter that should be changed. NOTE if/when we implement
-                    // hard mode this will not be shown differently if user has selected hard mode.
-                    tileClass += " letter-change";
-                    tileType = "change";
-                    letterClass += " hidden-letter";
-                } else if (letter === Game.NO_CHANGE) {
-                    // This is a letter in a to-be-filled-in word that does not get "change this one"
-                    // styling, but should be hidden (because it's still to be filled in!).
-                    tileClass += " no-change";
-                    letterClass += " hidden-letter";
-                } else {
-                    // This is a letter in an already played word, so show it, but without "change this
-                    // one" styling.
-                    tileClass += " no-change";
-                    letterClass += " shown-letter";
-                }
-
-                // Style the target word a little differently.
-                if (row == wordList.length - 1) {
-                    letterClass += " target-word";
-                }
-
-                // Finally, construct values for the id attribute and create the elements.
-                const tileId = TileDisplay.getTileId(row, col);
-                const letterId = TileDisplay.getLetterId(row, col);
-
-                const tdElement = ElementUtilities.addElementTo(
-                    "td", rowElement,
-                    {id: tileId, class: tileClass, 'data-tile-type': tileType});
-                ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: letterClass}, letter);
-            } // end for col
-        } // end for row
-    }
 }
 
 // This class specializes TileDisplay to display the grid of tiles for
@@ -359,6 +248,41 @@ class GameTileDisplay extends TileDisplay {
         GameTileDisplay.GAME_TO_TILE_DISPLAY[Game.DUPLICATE]    = GameTileDisplay.ALREADY_PLAYED;
     }
 
+    colorTiles() {
+        // Make a copy of the count history because we're going to shift
+        // all of the items off of it.
+        let countHistory = [...this.game.getCountHistory()];
+
+        if (countHistory.length === 0) {
+            return;
+        }
+
+        const numRows = countHistory.length;
+        let previousCount = countHistory.shift();
+        for (let row = 1; row < numRows; row++) {
+            let nextCount = countHistory.shift();
+
+            let tileColorClass;
+            if (previousCount < 0 || nextCount <= previousCount) {
+                tileColorClass = " solution-same-length";
+            } else {
+                tileColorClass = " solution-longer";
+            }
+
+            let tileElements = [];
+            for (let col = 1; col <= PracticeTileDisplay.MAX_WORD_LENGTH; col++) {
+                const tileElement = TileDisplay.getTileElement(row, col);
+                if (tileElement === null) {
+                    break;
+                }
+                tileElements.push(tileElement);
+            }
+            this.editTileClass(/$/, tileColorClass, tileElements);
+
+            previousCount = nextCount;
+        }
+    }
+
     endGame() {
         this.game.endGame();
     }
@@ -376,8 +300,11 @@ class GameTileDisplay extends TileDisplay {
             return TileDisplay.NOT_A_WORD;
         }
 
-        // Play the word and return (a translated version of) the result.
-        return GameTileDisplay.GAME_TO_TILE_DISPLAY[this.game.playWord(enteredWord)];
+        // Play the word.
+        const playResult = this.game.playWord(enteredWord);
+
+        // Return (a translated version of) the result.
+        return GameTileDisplay.GAME_TO_TILE_DISPLAY[playResult];
     }
 
     // This method is called from the hard or soft keydown callback in the Display
@@ -394,26 +321,115 @@ class GameTileDisplay extends TileDisplay {
         this.game = game;
     }
 
-    // Show the game steps given (either a game in progress or a solution).
-    showGameTiles(gameSteps) {
+    // Show the game steps given (either a daily/practice game in progress or a solution).
+    showSteps() {
+        const wordList      = this.game.showGame();
+        const containingDiv = this.solutionDiv;
+
         // Just return if we haven't started the game yet.
         if (! this.game) {
             return;
         }
 
-        // The first row whose word has a non-alphabetic character is the current row.
-        // The first non-alphabetic tile (in that word) is the one to receive input.
-        this.showTiles(
-            gameSteps,
-            this.solutionDiv,
-            (word, column) => {return ! ElementUtilities.isLetter(word[column-1]);},
-            (word, column) => {return ! ElementUtilities.isLetter(word[column-1]);});
-    }
+        // Delete current child elements.
+        ElementUtilities.deleteChildren(containingDiv);
 
-    showSteps() {
-        this.showGameTiles(this.game.showGame());
-    }
+        const tableElement = ElementUtilities.addElementTo("table", containingDiv);
+        const tbodyElement = ElementUtilities.addElementTo("tbody", tableElement);
 
+        // This will hold the row number where letters typed/clicked will go.
+        this.currentRow = null;
+
+        // This will hold the column number where the next letter typed/clicked
+        // will go (until ENTER) -- it is changed in keyPressLetter() and keyPressDelete().
+        this.currentColumn = 1;
+
+        let inputTileDetermined = false;
+        for (let row = 0; row < wordList.length; row++) {
+            const word = wordList[row];
+
+            // Create a <tr> to hold the tiles for this row.
+            const rowElement = ElementUtilities.addElementTo("tr", tbodyElement, {id: TileDisplay.getTileRowId(row)});
+            rowElement.setAttribute("data-word-length", word.length);
+
+            // Construct the <td> and <div> elements for the tile.
+            for (let col = 0; col <= word.length; col++) {
+                // Construct IDs for the tile and letter.
+                const tileId    = TileDisplay.getTileId(row, col);
+                const letterId  = TileDisplay.getLetterId(row, col);
+
+                let tileType = "no-change";
+
+                // Give column 0 special styling to not show the label.
+                if (col === 0) {
+                    // Now, construct the elements.
+                    const tdElement = ElementUtilities.addElementTo(
+                        "td", rowElement,
+                        {id: tileId, class: "tile-label-blank", 'data-tile-type': tileType}
+                        );
+                    continue;
+                }
+
+                // If we're here we're dealing with a letter tile (not a label).
+                // Pull out the letter.
+                const letter = word[col-1].toUpperCase();
+
+                // Determine whether this is the current row: the first row whose word has
+                // a non-alphabetic character is the current row.
+                // Note: subtract 1 from col, because our non-label columns start at 1.
+                if ((this.currentRow === null) && ! ElementUtilities.isLetter(word[col-1])) {
+                    this.currentRow = row;
+                }
+
+                let tileClass = "tile";
+                let letterClass = "is-a-word";
+
+                // Determine whether this is the input tile and style accordingly.
+                // The first non-alphabetic tile (in in the current row's word)
+                // is the one to receive input.
+                if ((this.currentRow === null) && ! ElementUtilities.isLetter(word[col-1])) {
+                    tileClass += " tile-enter";
+                    inputTileDetermined = true;
+                }
+
+                // Set tileType, tileClass, and letterClass based on the letter in the word.
+                if (letter === Game.CHANGE) {
+                    // This is a letter in a to-be-filled-in word that is the same length as the preceding
+                    // word, and this is the letter that should be changed. NOTE if/when we implement
+                    // hard mode this will not be shown differently if user has selected hard mode.
+                    tileClass += " letter-change";
+                    tileType = "change";
+                    letterClass += " hidden-letter";
+                } else if (letter === Game.NO_CHANGE) {
+                    // This is a letter in a to-be-filled-in word that does not get "change this one"
+                    // styling, but should be hidden (because it's still to be filled in!).
+                    tileClass += " no-change";
+                    letterClass += " hidden-letter";
+                } else {
+                    // This is a letter in an already played word, so show it, but without "change this
+                    // one" styling.
+                    tileClass += " no-change";
+                    letterClass += " shown-letter";
+                }
+
+                // Style the start and target words a little differently.
+                if (row == 0 || row == wordList.length - 1) {
+                    letterClass += " start-target-letter";
+                    tileClass   += " start-target-tile";
+                }
+
+                // Finally, create the elements.
+                const tdElement = ElementUtilities.addElementTo(
+                    "td", rowElement,
+                    {id: tileId, class: tileClass, 'data-tile-type': tileType});
+                ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: letterClass}, letter);
+            } // end for col
+        } // end for row
+
+        // Color the tile rows according to whether the played word has
+        // lengthened the solution or not.
+        this.colorTiles();
+    }
 }
 
 // This class specializes TileDisplay to display the grid of tiles for
@@ -489,6 +505,7 @@ class PracticeTileDisplay extends TileDisplay {
         super.keyPressLetter(keyValue, PracticeTileDisplay.MAX_WORD_LENGTH);
     }
 
+    // Reset one or bothe of the start/target words to the "placeholder word".
     resetWords(resetType=PracticeTileDisplay.RESET_BOTH) {
 
         if (resetType === PracticeTileDisplay.RESET_BOTH ||
@@ -502,18 +519,96 @@ class PracticeTileDisplay extends TileDisplay {
         }
     }
 
+    // Display the tiles for entering the start/target words for
+    // a practice game.
     showPracticeWordTiles() {
-        // The first row whose word's first character is a placeholder is the current row.
-        // The first placeholder tile (in that word) is the one to receive input.
-        this.showTiles(
-            [this.startWord, this.targetWord],
-            this.practiceDiv,
-            (word, column) => {return ((column === 1) && (word[0] === PracticeTileDisplay.PLACEHOLDER));},
-            (word, column) => {
-                let firstUnenteredLetter = word.indexOf(PracticeTileDisplay.PLACEHOLDER);
-                return (firstUnenteredLetter < 0) ? false : column === firstUnenteredLetter + 1;
-            },
-            ["Start word:", "Target word:"]);
+        const wordList = [this.startWord, this.targetWord];
+        const containingDiv = this.practiceDiv;
+
+        // Delete current child elements.
+        ElementUtilities.deleteChildren(containingDiv);
+
+        const tableElement = ElementUtilities.addElementTo("table", containingDiv);
+        const tbodyElement = ElementUtilities.addElementTo("tbody", tableElement);
+
+        // This will hold the row number where letters typed/clicked will go.
+        this.currentRow = null;
+
+        // This will hold the column number where the next letter typed/clicked
+        // will go (until ENTER) -- it is changed in keyPressLetter() and keyPressDelete().
+        this.currentColumn = 1;
+
+        let inputTileDetermined = false;
+        const tileType  = "no-change";
+        const rowLabels = ["Start word:", "Target word:"];
+        for (let row = 0; row < wordList.length; row++) {
+            const word = wordList[row];
+
+            // Create a <tr> to hold the tiles for this row.
+            const rowElement = ElementUtilities.addElementTo("tr", tbodyElement, {id: TileDisplay.getTileRowId(row)});
+            rowElement.setAttribute("data-word-length", word.length);
+
+            // Construct the <td> and <div> elements for the tile.
+            for (let col = 0; col <= word.length; col++) {
+                // Construct IDs for the tile and letter.
+                const tileId    = TileDisplay.getTileId(row, col);
+                const letterId  = TileDisplay.getLetterId(row, col);
+
+                // Give column 0 special styling to show label.
+                if (col === 0) {
+                    const tileClass = "tile-label";
+                    const label     = rowLabels[row];
+
+                    // Now, construct the elements.
+                    const tdElement = ElementUtilities.addElementTo(
+                        "td", rowElement,
+                        {id: tileId, class: tileClass, 'data-tile-type': tileType});
+                    ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: "label-word"}, label);
+
+                    continue;
+                }
+
+                // If we're here we're dealing with a letter tile (not a label).
+                // Pull out the letter.
+                const letter = word[col-1].toUpperCase();
+
+                // Determine whether this is the current row. The first row whose word begins
+                // with a placeholder is current: it needs to be entered.
+                if ((this.currentRow === null) && (col === 1) && (word[0] === PracticeTileDisplay.PLACEHOLDER)){
+                    this.currentRow = row;
+                }
+
+                let tileClass = "tile";
+
+                // Determine whether this is the input tile and style accordingly.
+                if ((row === this.currentRow) && ! inputTileDetermined) {
+                    // If there is an unentered letter at this column, it's the
+                    // input tile. Note: add 1 to firstUnenteredLetter, because
+                    // our non-label columns start at 1.
+                    const firstUnenteredLetter = word.indexOf(PracticeTileDisplay.PLACEHOLDER);
+                    if ((firstUnenteredLetter >= 0) && (col === firstUnenteredLetter + 1)) {;
+                        tileClass += " tile-enter";
+                        inputTileDetermined = true;
+                    }
+                }
+
+                // Set letterClass based on the letter in the word.
+                let letterClass;
+                if (letter === Game.NO_CHANGE) {
+                    // Letter hasn't been entered yet; don't show the NO_CHANGE.
+                    letterClass = "hidden-letter";
+                } else {
+                    // Letter has been entered; show it.
+                    letterClass = "shown-letter";
+                }
+
+                // Finally, create the elements.
+                const tdElement = ElementUtilities.addElementTo(
+                    "td", rowElement,
+                    {id: tileId, class: tileClass, 'data-tile-type': tileType});
+                ElementUtilities.addElementTo("div", tdElement, {id: letterId, class: letterClass}, letter);
+            } // end for col
+        } // end for row
     }
 }
 

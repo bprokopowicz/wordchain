@@ -12,6 +12,46 @@
     font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 }
 
+:root,
+:root.light-mode {
+    /* Fonts */
+    --primary-fg:               Black;
+    --secondary-fg:             White;
+
+    /* Header */
+    --header-button-bg:         Gainsboro;
+    --active-button-bg:         SlateGray;
+    --inactive-button-bg:       Gainsboro;
+    --header-bg:                LightSteelBlue;
+
+    --game-button-bg:           LightSteelBlue;
+
+    /* Tiles and Letters */
+    --input-tile-bg:            LightSteelBlue;
+
+    --start-target-tile-bg:     SlateGray;
+    --start-target-letter-fg:   White;
+
+    --unplayed-word-tile-bg:    White;
+    --unplayed-word-tile-fg:    Black;
+
+    --played-word-same-bg:      #49B57A;    /* green */
+    --played-word-longer-bg:    #DE6FA6;    /* pink */
+    --played-word-letter-fg:    Black;
+
+    --invalid-word-letter-fg:   DarkRed;
+
+    /* Keyboard */
+    --key-bg:                   LightGray;
+    --wide-key-bg:              LightSteelBlue;
+
+    --toast-bg:                 Black;
+    --toast-fg:                 White;
+}
+
+:root.dark-mode {
+}
+
 #root-div {
 }
 
@@ -28,7 +68,7 @@
 }
 
 .game-button {
-    background: LightSteelBlue;
+    background: var(--game-button-bg);;
 }
 
 /* Shell around the solution/keyboard/practice divs */
@@ -54,8 +94,8 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 #toast-div {
     visibility: hidden;
     font-size: .75rem;
-    background-color: Black;
-    color: White;
+    background-color: var(--toast-bg);
+    color: var(--toast-fg);
     text-align: center;
     border-radius: .5rem;
     padding: .75rem;
@@ -104,7 +144,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 #header-div {
     display: flex;
     justify-content: center;
-    background: LightSteelBlue;
+    background: var(--header-bg);;
     padding: .5rem;
     margin-bottom: 2rem;
 }
@@ -119,17 +159,17 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 }
 
 .header-button {
-    background: gainsboro;
+    background: var(--header-button-bg);
 }
 
 .active-button {
-    background: slategray;
-    color: White;
+    background: var(--active-button-bg);
+    color: var(--secondary-fg);
 }
 
 .not-active {
-    background: gainsboro;
-    color: Black;
+    background: var(--inactive-button-bg);
+    color: var(--primary-fg);
 }
 
 /*
@@ -170,9 +210,7 @@ table {
     font-size: 2.5rem;
     text-align: center;
     vertical-align: middle;
-    color: Black;
     border-style: solid;
-    border-color: Black;
 }
 
 .tile-label {
@@ -182,12 +220,16 @@ table {
     font-size: 1rem;
     text-align: center;
     vertical-align: middle;
-    color: Black;
+    color: var(--primary-fg);
     border-style: none;
 }
 
 .tile-label-blank {
     width: 0rem;
+}
+
+.start-target-tile {
+    background: var(--start-target-tile-bg);
 }
 
 .letter-change {
@@ -201,29 +243,39 @@ table {
 }
 
 .tile-enter {
-    background: LightSteelBlue;
+    background: var(--input-tile-bg);
 }
 
 .no-enter {
-    background: white;
+    background: White;
+}
+
+.solution-longer {
+    background: var(--played-word-longer-bg);
+    color: var(--played-word-letter-fg);
+}
+
+.solution-same-length {
+    background: var(--played-word-same-bg);
+    color: var(--played-word-letter-fg);
 }
 
 /* Letter div classes */
 
 .is-a-word {
-    color: Black;
+    color: var(--primary-fg);
 }
 
 .not-a-word {
-    color: DarkRed;
+    color: var(--invalid-word-letter-fg);
 }
 
 .label-word {
-    color: Black;
+    color: var(--primary-fg);
 }
 
-.target-word {
-    color: DarkGreen;
+.start-target-letter {
+    color: var(--start-target-letter-fg);
 }
 
 .shown-letter {
@@ -270,8 +322,8 @@ table {
     border-radius: .3rem;
     cursor: pointer;
     user-select: none;
-    background-color: LightGray;
-    color: Black;
+    background-color: var(--key-bg);
+    color: var(--primary-fg);
     flex: 1;
     display: flex;
     justify-content: center;
@@ -286,8 +338,8 @@ table {
 
 .keyboard-wide-key {
     flex: 1.5;
-    background: LightSteelBlue;
-    color: Black;
+    background: var(--wide-key-bg);
+    color: var(--primary-fg);
 }
 
 
