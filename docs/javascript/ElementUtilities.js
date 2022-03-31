@@ -6,7 +6,15 @@ class ElementUtilities {
     }
 
     static addElementTo(elementType, parent, attributes=null, innerHTML=null) {
-        const element = document.createElement(elementType);
+        const svgElements = ["svg", "path"];
+
+        let element;
+        if (svgElements.includes(elementType)) {
+            element = document.createElementNS("http://www.w3.org/2000/svg", elementType);
+        } else {
+            element = document.createElement(elementType);
+        }
+
         for (let attribute in attributes) {
             element.setAttribute(attribute, attributes[attribute]);
         }

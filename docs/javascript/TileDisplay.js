@@ -45,11 +45,9 @@ class TileDisplay extends BaseLogger {
     static TILES_ALL_ALPHABETIC = true;
     static TILES_NOT_ALL_ALPHABETIC = false;
 
-    constructor(dict, containingDiv) {
+    constructor(dict) {
         super();
-
         this.dict = dict;
-        this.containingDiv = containingDiv;
     }
 
     // Edit the element class for a single letter or all the letters in the
@@ -236,7 +234,7 @@ class GameTileDisplay extends TileDisplay {
     static GAME_TO_TILE_DISPLAY = {};
 
     constructor(game, dict, solutionDiv) {
-        super(dict, solutionDiv);
+        super(dict);
 
         this.setGame(game);
         this.dict = dict;
@@ -261,6 +259,7 @@ class GameTileDisplay extends TileDisplay {
         let previousCount = countHistory.shift();
         for (let row = 1; row < numRows; row++) {
             let nextCount = countHistory.shift();
+            this.logDebug(`row: ${row}, previousCount: ${previousCount}, nextCount: ${nextCount}`, "tiles");
 
             let tileColorClass;
             if (previousCount < 0 || nextCount <= previousCount) {
@@ -268,6 +267,7 @@ class GameTileDisplay extends TileDisplay {
             } else {
                 tileColorClass = " solution-longer";
             }
+            this.logDebug(`tileColorClass: ${tileColorClass}`, "tiles");
 
             let tileElements = [];
             for (let col = 1; col <= PracticeTileDisplay.MAX_WORD_LENGTH; col++) {
@@ -275,6 +275,7 @@ class GameTileDisplay extends TileDisplay {
                 if (tileElement === null) {
                     break;
                 }
+                this.logDebug(`push row: ${row}, col: ${col}`, "tiles");
                 tileElements.push(tileElement);
             }
             this.editTileClass(/$/, tileColorClass, tileElements);
@@ -324,17 +325,13 @@ class GameTileDisplay extends TileDisplay {
     // Show the game steps given (either a daily/practice game in progress or a solution).
     showSteps() {
         const wordList      = this.game.showGame();
-        const containingDiv = this.solutionDiv;
 
         // Just return if we haven't started the game yet.
         if (! this.game) {
             return;
         }
 
-        // Delete current child elements.
-        ElementUtilities.deleteChildren(containingDiv);
-
-        const tableElement = ElementUtilities.addElementTo("table", containingDiv);
+        const tableElement = ElementUtilities.addElementTo("table", this.solutionDiv);
         const tbodyElement = ElementUtilities.addElementTo("tbody", tableElement);
 
         // This will hold the row number where letters typed/clicked will go.
@@ -447,7 +444,7 @@ class PracticeTileDisplay extends TileDisplay {
     static RESET_BOTH   = "both";
 
     constructor(dict, practiceDiv) {
-        super(dict, practiceDiv);
+        super(dict);
 
         this.resetWords();
         this.dict = dict;
@@ -521,14 +518,10 @@ class PracticeTileDisplay extends TileDisplay {
 
     // Display the tiles for entering the start/target words for
     // a practice game.
-    showPracticeWordTiles() {
+    showPracticeWords() {
         const wordList = [this.startWord, this.targetWord];
-        const containingDiv = this.practiceDiv;
 
-        // Delete current child elements.
-        ElementUtilities.deleteChildren(containingDiv);
-
-        const tableElement = ElementUtilities.addElementTo("table", containingDiv);
+        const tableElement = ElementUtilities.addElementTo("table", this.practiceDiv);
         const tbodyElement = ElementUtilities.addElementTo("tbody", tableElement);
 
         // This will hold the row number where letters typed/clicked will go.
