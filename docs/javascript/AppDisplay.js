@@ -4,6 +4,7 @@ import { WordChainDict } from './WordChainDict.js';
 import { Solver } from './Solver.js';
 import { Game } from './Game.js';
 import { ElementUtilities } from './ElementUtilities.js';
+import { Cookie } from './Cookie.js';
 
 
 /*
@@ -24,7 +25,7 @@ import { ElementUtilities } from './ElementUtilities.js';
 ** - Better settings checkboxes?
 **
 ** Deployment
-** - How to display/keep track of stats? (Learn about cookies.)
+** - How to display/keep track of stats?
 ** - How to create/minify one big js file
 ** - Buy domain wordchain.com?
 ** - Where to host?
@@ -35,10 +36,7 @@ import { ElementUtilities } from './ElementUtilities.js';
 **     - Solution #steps 5-6
 **     - Words change length >= 2 times
 ** - Testing on various browsers/devices
-** - Settings menu
-**   - Dark mode
-**   - Colorblind mode
-**   - Hard mode
+** - Make cookies secure?
 ** - Logo/favicon.ict
 */
 
@@ -200,10 +198,11 @@ class AppDisplay extends BaseLogger {
         this.gameTileDisplay     = null;
         this.practiceTileDisplay = null;
 
-        // Per-setting flags.
-        this.darkTheme      = false;
-        this.colorblindMode = false;
-        this.hardMode       = false;
+        // Per-setting flags; get initial values from cookies.
+        this.darkTheme      = null;
+        this.colorblindMode = null;
+        this.hardMode       = null;
+        this.getCookies();
 
         // Kick it all off.
         this.displayGame();
@@ -510,7 +509,7 @@ class AppDisplay extends BaseLogger {
     /* ----- Settings ----- */
 
     // Add a setting to settings-div's content div.
-    addSetting(title, type, value, description="") {
+    addSetting(title, type, checkboxIdOrLinkDisplay, checkboxOrLinkValue=null, description="") {
         // Create a div for one setting.
         const settingDiv = ElementUtilities.addElementTo("div", this.settingsContentDiv, {class: "setting"});
 
@@ -524,24 +523,19 @@ class AppDisplay extends BaseLogger {
 
         // Based on the type passed in, create the "interactive element".
         if (type === "checkbox") {
-            // When type is "checkbox" the value is the value of the element's id attribute.
             const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
-                {type: "checkbox", id: value, class: "setting-checkbox"});
+                {type: "checkbox", id: checkboxIdOrLinkDisplay, class: "setting-checkbox"});
             checkbox.addEventListener("change", checkboxCallback);
+            checkbox.checked = checkboxOrLinkValue;
         } else if (type === "link") {
-            // When type is "link" the value is the text to be displayed, and is also
-            // used to determine the href attribute value.
-            let hrefValue;
-            if (value === "Email") {
-                hrefValue = AppDisplay.EMAIL_HREF;
-            } else if (value === "FAQ") {
-                hrefValue = AppDisplay.FAQ_HREF;
-            }
-            ElementUtilities.addElementTo("a", interactiveDiv, {href: hrefValue}, value);
+            ElementUtilities.addElementTo("a", interactiveDiv, {href: checkboxOrLinkValue}, checkboxIdOrLinkDisplay);
         }
     }
 
     createSettingsDiv() {
+        const hardModeDescription = "Letter-change steps are not indicated with a thick letter box outline";
+        const feedbackDescription = "Dictionary suggestions? Gripes? Things you love? Feature ideas?";
+
         let settingsContainerDiv;
         [this.settingsDiv, settingsContainerDiv] = this.createAuxiliaryDiv("settings-div", closeAuxiliaryCallback);
 
@@ -550,12 +544,12 @@ class AppDisplay extends BaseLogger {
         this.settingsContentDiv = ElementUtilities.addElementTo("div", settingsContainerDiv, {id: "settings-content-div",});
         ElementUtilities.addElementTo("h1", this.settingsContentDiv, {align: "center"}, "SETTINGS");
 
-        //              title              type        value             description
-        this.addSetting("Dark Theme",      "checkbox", "dark");
-        this.addSetting("Colorblind Mode", "checkbox", "colorblind");
-        this.addSetting("Hard Mode",       "checkbox", "hard",           "Letter-change steps are not indicated with a thick letter box outline");
-        this.addSetting("Feedback",        "link",     "Email",          "Dictionary suggestions? Gripes? Things you love? Feature ideas?");
-        this.addSetting("Questions?",      "link",     "FAQ");
+        //              title              type         checkboxIdOrLinkDisplay  checkboxOrLinkValue     description
+        this.addSetting("Dark Theme",      "checkbox",  "dark",                  this.darkTheme);
+        this.addSetting("Colorblind Mode", "checkbox",  "colorblind",            this.colorblindMode);
+        this.addSetting("Hard Mode",       "checkbox",  "hard",                  this.hardMode,          hardModeDescription);
+        this.addSetting("Feedback",        "link",      "Email",                 AppDisplay.EMAIL_HREF,  feedbackDescription);
+        this.addSetting("Questions?",      "link",      "FAQ",                   AppDisplay.FAQ_HREF);
     }
 
     /* ----- Stats ----- */
@@ -593,12 +587,17 @@ class AppDisplay extends BaseLogger {
         // checkbox's id according to that.
         if (checkboxId === "dark") {
             this.darkTheme = event.srcElement.checked ? true : false;
-            this.setTheme();
+            AppDisplay.setCookie("darkTheme", this.darkTheme);
+            this.setColors();
+
         } else if (checkboxId === "colorblind") {
             this.colorblindMode = event.srcElement.checked ? true : false;
-            this.setPropertiesAffectedByColorblindMode();
+            AppDisplay.setCookie("colorblindMode", this.colorblindMode);
+            this.setColors();
+
         } else if (checkboxId === "hard") {
             this.hardMode = event.srcElement.checked ? true : false;
+            AppDisplay.setCookie("hardMode", this.hardMode);
             // Hard mode is implemented in the game tile display,
             // so tell it what mode we are in now.
             this.gameTileDisplay.setHardMode(this.hardMode);
@@ -878,6 +877,17 @@ class AppDisplay extends BaseLogger {
         const path   = ElementUtilities.addElementTo("path", svg, {d: svgPath, "data-related-div": relatedDiv});
     }
 
+    // Set the settings flags from the cookie values. If the values were never set,
+    // Cookie.get() will return null and the flag will be set to false.
+    getCookies() {
+        this.darkTheme      = Cookie.get("darkTheme") === "true";
+        this.colorblindMode = Cookie.get("colorblindMode") === "true";
+        this.hardMode       = Cookie.get("hardMode") === "true";
+
+        // Now set the colors based on darkTheme and colorblindMode.
+        this.setColors();
+    }
+    
     // Return the given CSS property value.
     static getCssProperty(property) {
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
@@ -921,11 +931,10 @@ class AppDisplay extends BaseLogger {
             // to put on the div.
             const divStyle = div.getAttribute("data-save-style");
 
-            // If restoring solution-div, update the properties affected
-            // by Colorblind Mode (and theme) and update the game display
-            // to make those changes take effect.
+            // If restoring solution-div, update the colors affected  by settings
+            // and update the game display to make those changes take effect.
             if (div.getAttribute("id") == "solution-div") {
-                this.setPropertiesAffectedByColorblindMode();
+                this.setColors();
                 this.updateGameDisplay();
             }
 
@@ -934,17 +943,32 @@ class AppDisplay extends BaseLogger {
         }
     }
 
+    static setCookie(cookieName, value) {
+        console.log("set cookie: ", cookieName, "to: ", value);
+        Cookie.set(cookieName, value.toString());
+    }
+
     // Set the given CSS property to the specified value.
     static setCssProperty(property, value) {
         document.documentElement.style.setProperty(`--${property}`, value);
     }
 
-    // Set the colors affected by Colorblind Mode according to the
-    // Colorblind Mode and Dark Mode settings.
-    setPropertiesAffectedByColorblindMode() {
-        // Is Colorblind Mode set: set good/bad colorblind variables based on whether
-        // Dark Mode is set and set the affected properties based on them.
+    // Set color properties according to the Dark Theme and Colorblind Mode settings.
+    setColors() {
+        // Change the document class name to switch the colors in general.
+        if (this.darkTheme) {
+            document.documentElement.className = "dark-mode";
+        } else {
+            document.documentElement.className = "light-mode";
+        }
+
+        // The properties with "dark" and "light" in the name are globallydefined in the
+        // CSS file, and the "properties affected by Colorblind Mode" are set in that file
+        // using those global properties.
         if (this.colorblindMode) {
+            // Colorblind Mode is checked: set good/bad colorblind variables based on whether
+            // Dark Mode is set, and set the properties affected by Colorblind Mode
+            // based on those variables.
             let colorblindGood, colorblindBad;
             if (this.darkTheme) {
                 colorblindGood = AppDisplay.getCssProperty("colorblind-good-dark");
@@ -957,8 +981,9 @@ class AppDisplay extends BaseLogger {
             AppDisplay.setCssProperty("played-word-longer-bg", colorblindBad);
             AppDisplay.setCssProperty("invalid-word-letter-fg", colorblindBad);
 
-        // Not Colorblind Mode: set the affected properties based on whether Dark Mode is set.
         } else {
+            // Colorblind Mode is not checked: restore the affected properties based on whether
+            // Dark Mode is set.
             if (this.darkTheme) {
                 AppDisplay.setCssProperty("played-word-same-bg",    AppDisplay.getCssProperty("played-word-same-bg-dark"));
                 AppDisplay.setCssProperty("played-word-longer-bg",  AppDisplay.getCssProperty("played-word-longer-bg-dark"));
@@ -969,18 +994,6 @@ class AppDisplay extends BaseLogger {
                 AppDisplay.setCssProperty("invalid-word-letter-fg", AppDisplay.getCssProperty("invalid-word-letter-fg-light"));
             }
         }
-    }
-
-    // Set the theme according to the Dark Theme setting.
-    setTheme() {
-        if (this.darkTheme) {
-            document.documentElement.className = "dark-mode";
-        } else {
-            document.documentElement.className = "light-mode";
-        }
-        // Theme setting changes also affect the properties that are affected
-        // by Colorblind Mode.
-        this.setPropertiesAffectedByColorblindMode();
     }
 
     // Show a "toast" pop-up (typically an error message).
