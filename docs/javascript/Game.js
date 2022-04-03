@@ -21,7 +21,6 @@ class Game extends BaseLogger {
         this.stepCountHistory.push(this.getStepCount());
     }
 
-
     endGame() {
         this.solutionInProgress = this.knownSolution;
     }

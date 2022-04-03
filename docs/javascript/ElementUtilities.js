@@ -92,7 +92,7 @@ class ElementUtilities {
         function localCallback(theEvent) {
             if ((theEvent instanceof PointerEvent) &&
                 (theEvent.pointerType.length !== 0)) {
-                callback();
+                callback(theEvent);
             }
         }
 
