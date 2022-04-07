@@ -1,6 +1,6 @@
 Start web server:
 
-    cd resources
+    cd /Users/bonnie/Projects/wordchain
     python3 -m http.server
 
 Navagate to in Chrome:

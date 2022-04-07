@@ -17,7 +17,6 @@ import { Cookie } from './Cookie.js';
 **   - No score? Just indicate hard in the share graphic?
 **
 ** Before Sharing with Initial Friends
-** - Fix dictionary loading - deterministic; remove setTimeout()
 ** - At least a temporary way to have different daily games for 30 days or so
 **   - How to control when a new daily game is available?
 ** - Create a faq and fix link
@@ -204,8 +203,34 @@ class AppDisplay extends BaseLogger {
         this.hardMode       = null;
         this.getCookies();
 
-        // Kick it all off.
-        this.displayGame();
+        // There seems to be no way in javascript to reliably load the dictionary
+        // synchronously, so we'll do the good old-fashioned "wait around 'til
+        // it's done" trick.
+        var attemptCount = 0;
+        const intervalId = setInterval(() => {
+            if (this.dict.isLoaded()) {
+                // Stop the interval timer.
+                clearInterval(intervalId);
+
+                // Dictionary is loaded -- kick it all off.
+                this.displayGame();
+                return;
+            }
+            attemptCount += 1;
+
+            // Try for a maximum of 20 seconds (10 tries * 200 ms).
+            if (attemptCount >= 10) {
+                // Stop the interval timer.
+                clearInterval(intervalId);
+
+                // Create a div to display a message.
+                const cannotLoadDiv = ElementUtilities.addElementTo("div", document.body,
+                    {id: "cannot-load-div", class: "pop-up show"},
+                    "Unable to download dictionary.<br>Please check your network.");
+                return;
+            }
+        // Every 200 msec
+        }, 200);
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
@@ -568,7 +593,7 @@ class AppDisplay extends BaseLogger {
     /* ----- Toast Notifications ----- */
 
     createToastDiv() {
-        this.toastDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "toast-div", class: "toast hide"});
+        this.toastDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "toast-div", class: "pop-up hide"});
     }
 
     /*
@@ -817,20 +842,16 @@ class AppDisplay extends BaseLogger {
         const startWord = "cat";
         const targetWord = "dog";
 
-        // TODO: Takes a while for dictionary to load ... not sure what we have doesn't wait.
-        // 100 ms not enough; 200 ms does the trick. Note: still being served from github.
-        setTimeout(() => {
-            // No need to check solution for success -- daily games will be
-            // pre-verified to have a solution.
-            const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+        // No need to check solution for success -- daily games will be
+        // pre-verified to have a solution.
+        const solution = Solver.fastSolve(this.dict, startWord, targetWord);
 
-            this.dailyGame = new Game(this.dict, solution);
-            this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv);
+        this.dailyGame = new Game(this.dict, solution);
+        this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv);
 
-            // Now, pretend the user clicked the Daily button, because we need
-            // to do exactly the same thing.
-            this.dailyCallback();
-        }, 200);
+        // Now, pretend the user clicked the Daily button, because we need
+        // to do exactly the same thing.
+        this.dailyCallback();
     }
 
     // This is a common method for creating the elements that are part of all Auxiliary screens.
@@ -887,7 +908,7 @@ class AppDisplay extends BaseLogger {
         // Now set the colors based on darkTheme and colorblindMode.
         this.setColors();
     }
-    
+
     // Return the given CSS property value.
     static getCssProperty(property) {
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
@@ -944,7 +965,6 @@ class AppDisplay extends BaseLogger {
     }
 
     static setCookie(cookieName, value) {
-        console.log("set cookie: ", cookieName, "to: ", value);
         Cookie.set(cookieName, value.toString());
     }
 

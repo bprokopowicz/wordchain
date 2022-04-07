@@ -1,26 +1,29 @@
 import { BaseLogger } from './BaseLogger.js';
 
 class WordChainDict extends BaseLogger {
-    constructor(wordList) {
+    constructor(wordList=[]) {
         super();
-        this.loadDict(wordList);
-    }
+        this.wordSet = null;
 
-    async fetchText(filePath) {
-        let response = await fetch(filePath);
-        let data = await response.text();
-        return data;
-    }
+        // If we were given a word list, just convert that to a set.
+        if (wordList.length !== 0) {
+            this.wordSet = new Set(wordList);
 
-    async loadDict(wordList=[]) {
-        if (wordList.length === 0) {
-            let wordFileText = await this.fetchText("https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict");
-            //let wordFileText = await this.fetchText("/docs/resources/dict/WordFreqDict");
-            wordList = wordFileText.split("\n");
-            // Without pop() we get an empty string in the set.
-            wordList.pop();
+        // Otherwise, fetch the word list from the interwebs.
+        } else {
+            const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
+            //const url = "/docs/resources/dict/WordFreqDict";
+
+            (async() => {
+                const response = await fetch(url);
+                const wordFileText = await response.text();
+                wordList = wordFileText.split("\n");
+
+                // Without pop() we get an empty string in the set.
+                wordList.pop();
+                this.wordSet = new Set(wordList);
+            })();
         }
-        this.wordSet = new Set(wordList);
     }
 
     // Find the words that result from adding one letter
@@ -119,6 +122,10 @@ class WordChainDict extends BaseLogger {
     // Get the size of the dictionary.
     getSize() {
         return this.wordSet.size;
+    }
+
+    isLoaded() {
+        return this.wordSet !== null;
     }
 
     // Test whether a word is in the dictionary.

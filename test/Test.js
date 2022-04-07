@@ -174,12 +174,6 @@ class Test extends BaseLogger {
     testDictFull() {
         this.name = "DictFull";
 
-        // For some reason this did not work -- seems to be a timing issue;
-        // fullDict.wordSet was not yet populated by the time getSize() was
-        // called. Maybe could make this method asyc and do:
-        // await new WordChainDict(), but creating it in the constructor
-        // seemed to work. Then I just decided to use GLdictionary.
-        //const fullDict = new WordChainDict();
         const dictSize = this.fullDict.getSize();
         const expectedDictSize = 16604;
 
@@ -426,12 +420,12 @@ class Test extends BaseLogger {
 
     lookupCallback() {
         const word = ElementUtilities.getElementValue("someWord");
-        if (! this.checkWord("someWord")) {
+        if (! this.fullDict.isWord(word)) {
             alert(`${word} is not a word`);
             return;
         }
 
-        const nextWords = [...this.dict.findNextWords(word)].join(", ");
+        const nextWords = [...this.fullDict.findNextWords(word)].join(", ");
         ElementUtilities.setElementHTML("lookupAnswer", `Words after ${word}: ${nextWords}`);
     }
 
@@ -454,19 +448,19 @@ class Test extends BaseLogger {
     }
 
     solveCallback() {
-        const startWord = this.checkWord("solverStartWord")
-        if (! startWord) {
+        const startWord = ElementUtilities.getElementValue("solverStartWord");
+        if (! this.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
             return;
         }
 
-        const targetWord = this.checkWord("solverTargetWord")
-        if (! targetWord) {
+        const targetWord = ElementUtilities.getElementValue("solverTargetWord");
+        if (! this.fullDict.isWord(targetWord)) {
             alert("Target word is empty or not a word");
             return;
         }
 
-        const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+        const solution = Solver.fastSolve(this.fullDict, startWord, targetWord);
         ElementUtilities.setElementHTML("solveAnswer", solution.toHtml());
     }
 }
