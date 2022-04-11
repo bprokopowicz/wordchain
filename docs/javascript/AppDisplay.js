@@ -13,19 +13,20 @@ import { Cookie } from './Cookie.js';
 ** - Auto-fill unchanged letters (NOT in hard mode)
 ** - Share graphic: mini version of tile outline/colors
 ** - What is the "score" of the game?
-**   - Hard mode ... extra X points?
-**   - No score? Just indicate hard in the share graphic?
+**   - Star icon if no extra steps
+**   - Else big numeral of how many extra steps
+**   - Special background color in hard mode
 **
 ** Before Sharing with Initial Friends
 ** - At least a temporary way to have different daily games for 30 days or so
 **   - How to control when a new daily game is available?
+** - Maximum of N (3?) practice games per day (per 24 hours?)
 ** - Create a faq and fix link
 ** - Better help message?
-** - Better settings checkboxes?
 **
 ** Deployment
 ** - How to display/keep track of stats?
-** - How to create/minify one big js file
+** - How to create/minify/obscure one big js file
 ** - Buy domain wordchain.com?
 ** - Where to host?
 ** - How to manage daily game words?
@@ -35,7 +36,10 @@ import { Cookie } from './Cookie.js';
 **     - Solution #steps 5-6
 **     - Words change length >= 2 times
 ** - Testing on various browsers/devices
-** - Make cookies secure?
+** - Cookies
+**   - Daily game words-so-far shouldd be in there, so user can return to them
+**   - Maybe practice game too?
+**   - Make secure?
 ** - Logo/favicon.ict
 */
 
@@ -102,6 +106,10 @@ function openAuxiliaryCallback(event) {
 
 function practiceCallback() {
     AppDisplay.singleton().practiceCallback();
+}
+
+function shareCallback() {
+    AppDisplay.singleton().shareCallback();
 }
 
 function softKeyboardCallback() {
@@ -588,6 +596,8 @@ class AppDisplay extends BaseLogger {
         const contentDiv = ElementUtilities.addElementTo("div", statsContainerDiv, {id: "stats-content-div",});
 
         // TODO
+        const shareButton = ElementUtilities.addElementTo("div", contentDiv, {class: "wordchain-button game-button"}, "Share");
+        ElementUtilities.setButtonCallback(shareButton, shareCallback);
     }
 
     /* ----- Toast Notifications ----- */
@@ -767,6 +777,23 @@ class AppDisplay extends BaseLogger {
             this.practiceTileDisplay.keyPressLetter(keyValue);
         }
         // No other keys cause a change.
+    }
+
+    shareCallback() {
+        const share = "\u{1F7E5}\u{1F7E9}\n\u{0031}\u{FE0F}\u{20E3} \u{2B1B}"
+        console.log("navigator: ", navigator);
+        if (navigator.share) {
+            navigator.share({
+                text: share,
+            })
+            .then(() => console.log("Successful share"))
+            .catch((error) => Console.log("Error sharing", error));
+        } else {
+            // COPY TO CLIPBOARD
+            console.error("Browser doesn't support Web Share");
+        }
+        ElementUtilities.addElementTo("div", this.statsDiv, {class: "break"});
+        ElementUtilities.addElementTo("div", this.statsDiv, {}, share);
     }
 
     // Callback for the Show Solution button that appears for both daily and practice games.
