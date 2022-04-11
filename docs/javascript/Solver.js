@@ -9,7 +9,7 @@ class SolutionHeap extends BaseLogger {
     constructor() {
         super();
 
-        const {MinQueue} = Heapify;
+        //const {MinQueue} = Heapify;
         this.objectIndexHeapq = new MinQueue(200000);
         this.objectMap = [];
     }
