@@ -1,3 +1,4 @@
+import { MinQueue } from 'heapify';
 import { BaseLogger } from './BaseLogger.js';
 
 // This class is a wrapper for MinQueue from Heapify, which only allows
