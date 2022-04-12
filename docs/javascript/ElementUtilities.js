@@ -90,7 +90,8 @@ class ElementUtilities {
         // button element. If we got PointerEvent with a non-empty pointerType
         // we'll call the "real callback" and otherwise we simply ignore the event.
         function localCallback(theEvent) {
-            if ((theEvent instanceof PointerEvent) &&
+            if ((theEvent instanceof TouchEvent) ||
+                (theEvent instanceof PointerEvent) &&
                 (theEvent.pointerType.length !== 0)) {
                 callback(theEvent);
             }
@@ -103,7 +104,7 @@ class ElementUtilities {
         buttonElement.addEventListener("keyup", localCallback);
         buttonElement.addEventListener("keydown", localCallback);
         */
-        buttonElement.addEventListener("click", callback);
+        buttonElement.addEventListener("touchstart", callback);
     }
 
     // Currently used only in Test.js.
