@@ -913,8 +913,8 @@ class AppDisplay extends BaseLogger {
         // screens, for example.
         const button = ElementUtilities.addElementTo("button", buttonContainer,
             {class: buttonClass, "data-related-div": relatedDiv});
-        //ElementUtilities.setButtonCallback(button, buttonCallback);
-        button.addEventListener("click", buttonCallback);
+        ElementUtilities.setButtonCallback(button, buttonCallback);
+        //button.addEventListener("click", buttonCallback);
 
         // Now, the create the svg element.
         // TODO: Should make the width controllable.

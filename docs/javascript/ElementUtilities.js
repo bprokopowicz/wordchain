@@ -98,13 +98,11 @@ class ElementUtilities {
         }
 
         // Now, assign our localCallback to all the events of interest.
-        /*
-        buttonElement.addEventListener("touchend", localCallback);
+        buttonElement.addEventListener("touchstart", localCallback);
         buttonElement.addEventListener("click", localCallback);
         buttonElement.addEventListener("keyup", localCallback);
         buttonElement.addEventListener("keydown", localCallback);
-        */
-        buttonElement.addEventListener("touchstart", callback);
+        //buttonElement.addEventListener("touchstart", callback);
     }
 
     // Currently used only in Test.js.
