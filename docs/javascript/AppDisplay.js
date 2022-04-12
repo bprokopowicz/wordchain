@@ -309,13 +309,13 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
 
         this.dailyGameButton = ElementUtilities.addElementTo(
-            "button", titleDiv,
+            "button", leftButtonDiv,
             {id: "daily-game", class: "wordchain-button header-game-button active-button"},
             "Daily");
         ElementUtilities.setButtonCallback(this.dailyGameButton, dailyCallback);
 
         this.practiceGameButton = ElementUtilities.addElementTo(
-            "button", titleDiv,
+            "button", leftButtonDiv,
             {id: "practice-game", class: "wordchain-button header-game-button not-active"},
             "Practice");
         ElementUtilities.setButtonCallback(this.practiceGameButton, practiceCallback);

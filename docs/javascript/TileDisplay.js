@@ -50,6 +50,34 @@ class TileDisplay extends BaseLogger {
         this.dict = dict;
     }
 
+    // Emoji code strings
+    static RED_SQUARE     = "\u{1F7E5}";
+    static GREEN_SQUARE   = "\u{1F7E9}";
+    static ORANGE_SQUARE  = "\u{1F7E7}";
+    static BLUE_SQUARE    = "\u{1F7E6}";
+    static STAR           = "\u{2B50}";
+    static PLUS           = "\u{2795}";     // Use if >= 10 steps?
+    static FIRE           = "\u{1F525}";
+    static ROCKET         = "\u{1F680}";
+    static FIREWORKS      = "\u{1F386}";
+    static TROPHY         = "\u{1F3C6}";
+    static LINK           = "\u{1F517}";
+    static CHAINS         = "\u{26D3}";
+    static NUMBERS        = [
+        "\u{0030}\u{FE0F}\u{20E3}",     // 0
+        "\u{0031}\u{FE0F}\u{20E3}",     // 1
+        "\u{0032}\u{FE0F}\u{20E3}",
+        "\u{0033}\u{FE0F}\u{20E3}",
+        "\u{0034}\u{FE0F}\u{20E3}",
+        "\u{0035}\u{FE0F}\u{20E3}",
+        "\u{0036}\u{FE0F}\u{20E3}",
+        "\u{0037}\u{FE0F}\u{20E3}",
+        "\u{0038}\u{FE0F}\u{20E3}",
+        "\u{0031}\u{FE0F}\u{20E3}",
+        "\u{0039}\u{FE0F}\u{20E3}",
+        "\u{1F51F}",                    // 10
+    ]
+
     // Edit the element class for a single letter or all the letters in the
     // current word, given a pattern to replace and a string to replace it with.
     // If a non-null element is given (presumably a tile or letter in the current word)

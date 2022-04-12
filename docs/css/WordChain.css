@@ -177,11 +177,11 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 */
 
 .wordchain-button {
-    font-size: 1rem;
-    padding: .75rem;
+    font-size: .75rem;
+    padding: .4rem;
     border-width: 0;
     border-radius: .5rem;
-    margin: .5rem;
+    margin: .25rem;
     color: var(--primary-fg);
 }
 
@@ -267,6 +267,9 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 
 #left-button-div {
     width: 30%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 #title-div {
@@ -284,9 +287,11 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 }
 
 .title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: bold;
+    /*
     padding-right: 1rem;
+    */
     color: var(--primary-fg);
 }
 
@@ -308,8 +313,8 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     background: var(--header-button-bg);
     border-radius: 50%;
     border-width: 0;
-    padding: .3rem;
-    margin: .3rem;
+    padding: .15rem;
+    margin: .15rem;
 }
 
 /*
@@ -527,6 +532,13 @@ a:link {
 #stats-content-div {
     display: block;
 }
+
+.stats-tile {
+    width: .5rem;
+    height: .5rem;
+    border-style: none;
+}
+
 
 /*
 ** Toast Pop-ups
