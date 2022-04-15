@@ -381,10 +381,10 @@ table {
 /* Tile td classes */
 
 .tile {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2rem;
+    height: 2rem;
     font-weight: bold;
-    font-size: 2rem;
+    font-size: 1.5rem;
     text-align: center;
     vertical-align: middle;
     color: var(--primary-fg);
