@@ -23,6 +23,9 @@ import { Cookie } from './Cookie.js';
 ** - Maximum of N (3?) practice games per day (per 24 hours?)
 ** - Create a faq and fix link
 ** - Better help message?
+** - Cookies
+**   - Daily game words-so-far shouldd be in there, so user can return to them
+**   - Maybe practice game too?
 **
 ** Deployment
 ** - How to display/keep track of stats?
@@ -36,10 +39,7 @@ import { Cookie } from './Cookie.js';
 **     - Solution #steps 5-6
 **     - Words change length >= 2 times
 ** - Testing on various browsers/devices
-** - Cookies
-**   - Daily game words-so-far shouldd be in there, so user can return to them
-**   - Maybe practice game too?
-**   - Make secure?
+** - Cookies: make secure?
 ** - Logo/favicon.ict
 */
 
@@ -766,7 +766,10 @@ class AppDisplay extends BaseLogger {
                 text: share,
             })
             .then(() => console.log("Successful share"))
-            .catch((error) => Console.log("Error sharing", error));
+            .catch((error) => {
+                this.showToast("Failed to share")
+                console.log("Failed to share: ", error);
+            });
         } else {
             // COPY TO CLIPBOARD
             console.error("Browser doesn't support Web Share");

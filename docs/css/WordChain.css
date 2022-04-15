@@ -231,6 +231,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 }
 
 .keyboard-key {
+    font-size: 1rem;
     font-family: inherit;
     font-weight: bold;
     border: 0;
@@ -240,13 +241,12 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     margin-bottom: 0;
     margin-left: 0;
     width: 1.7rem;
-    height: 2.7rem;
+    height: 2.3rem;
     border-radius: .3rem;
     cursor: pointer;
     user-select: none;
     background-color: var(--key-bg);
     color: var(--primary-fg);
-    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -254,12 +254,12 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 }
 
 .keyboard-spacer {
-    flex: 0.5;
+    width: 0.8rem;
     visibility: hidden;
 }
 
 .keyboard-wide-key {
-    flex: 1.5;
+    width: 2.5rem;
     background: var(--wide-key-bg);
     color: var(--primary-fg);
 }
@@ -634,8 +634,14 @@ a:link {
 
     .keyboard-key {
         font-size: 2rem;
-        width: 4rem;
-        height: 5.5rem;
+        width: 2.5rem;
+        height: 3.4rem;
+    }
+    .keyboard-spacer {
+        width: 1.3rem;
+    }
+    .keyboard-wide-key {
+        width: 3.8rem;
     }
 }
 
@@ -660,14 +666,21 @@ a:link {
         border-width: .4rem;
         padding: 0;
     }
-
     .no-change {
         border-width: .2rem;
         padding: .2rem;
     }
 
     .keyboard-key {
+        font-size: 2rem;
         width: 3rem;
-        height: 4.5rem;
+        height: 4rem;
     }
+    .keyboard-spacer {
+        width: 1.5rem;
+    }
+    .keyboard-wide-key {
+        width: 4.5rem;
+    }
+
 }
