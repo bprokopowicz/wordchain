@@ -327,6 +327,11 @@ class AppDisplay extends BaseLogger {
         this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, AppDisplay.HELP_PATH, "help-div");
         this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, AppDisplay.STATS_PATH, "stats-div");
         this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, AppDisplay.SETTINGS_PATH, "settings-div");
+
+        // A div with class "break" forces whatever comes after this div
+        // to be on a "new line" when the containing div is display: flex.
+        // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+        ElementUtilities.addElementTo("div", this.rootDiv, {class: "break"});
     }
 
     /* ----- GAME SETUP AND PLAY SCREENS ----- */
@@ -914,7 +919,6 @@ class AppDisplay extends BaseLogger {
         const button = ElementUtilities.addElementTo("button", buttonContainer,
             {class: buttonClass, "data-related-div": relatedDiv});
         ElementUtilities.setButtonCallback(button, buttonCallback);
-        //button.addEventListener("click", buttonCallback);
 
         // Now, the create the svg element.
         // TODO: Should make the width controllable.
