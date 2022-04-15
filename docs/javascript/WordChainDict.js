@@ -124,6 +124,10 @@ class WordChainDict extends BaseLogger {
         return this.wordSet.size;
     }
 
+    getWords() {
+        return this.wordSet;
+    }
+
     isLoaded() {
         return this.wordSet !== null;
     }

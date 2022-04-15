@@ -18,6 +18,10 @@ function solveCallback() {
     Test.singleton().solveCallback();
 }
 
+function puzzleFinderFindCallback() {
+    Test.singleton().puzzleFinderFindCallback();
+}
+
 // Singleton class Test.
 
 class Test extends BaseLogger {
@@ -43,6 +47,7 @@ class Test extends BaseLogger {
         this.displayTestSuite();
         this.displayDictTest();
         this.displaySolverTest();
+        this.displayPuzzleFinderTest();
         ElementUtilities.addElement("hr");
     }
 
@@ -463,7 +468,55 @@ class Test extends BaseLogger {
         const solution = Solver.fastSolve(this.fullDict, startWord, targetWord);
         ElementUtilities.setElementHTML("solveAnswer", solution.toHtml());
     }
+
+    // Puzzle Finder testing
+    displayPuzzleFinderTest() {
+        this.addTitle("Puzzle Finder Tester");
+        ElementUtilities.addElement("label", {}, "Start word: ");
+        ElementUtilities.addElement("input", {id: "puzzleFinderStartWord", type: "text"});
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {}, "required word len 1: ");
+        ElementUtilities.addElement("input", {id: "puzzleFinderReqWordLen1", type: "text"});
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {}, "required word len 2: ");
+        ElementUtilities.addElement("input", {id: "puzzleFinderReqWordLen2", type: "text"});
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {}, "final word len: ");
+        ElementUtilities.addElement("input", {id: "puzzleFinderFinalWordLen", type: "text"});
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("button", {id: "puzzleFinderFind"}, "Find!");
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {id: "puzzleFinderAnswer"}, "Click the button to see the target words.");
+        ElementUtilities.addElement("p");
+
+        ElementUtilities.getElement("puzzleFinderFind").addEventListener("click", puzzleFinderFindCallback);
+    }
+
+    puzzleFinderFindCallback() {
+        const startWord = ElementUtilities.getElementValue("puzzleFinderStartWord");
+        if (! this.fullDict.isWord(startWord)) {
+            alert("Starting word is empty or not a word");
+            return;
+        }
+
+        const reqWordLen1 = ElementUtilities.getElementValue("puzzleFinderReqWordLen1");
+        const reqWordLen2 = ElementUtilities.getElementValue("puzzleFinderReqWordLen2");
+        const finalWordLen = ElementUtilities.getElementValue("puzzleFinderFinalWordLen");
+
+        const goodTargets = 
+            [...this.fullDict.getWords()]
+            .filter(targetWord => (targetWord.length == finalWordLen))
+            .filter(targetWord => {
+                const solution = Solver.fastSolve(this.fullDict, startWord, targetWord);
+                return solution.isSolved() && 
+                       solution.getWords().filter(word => (word.length == reqWordLen1)).length > 0 &&
+                       solution.getWords().filter(word => (word.length == reqWordLen2)).length > 0;
+                });
+
+        ElementUtilities.setElementHTML("puzzleFinderAnswer", goodTargets.join(","));
+    }
 }
+
 
 Test.singleton().display();
 
