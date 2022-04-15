@@ -187,6 +187,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 }
 
 .game-button {
+    font-weight: bold;
     background: var(--game-button-bg);;
 }
 
@@ -308,6 +309,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 }
 
 .header-game-button {
+    font-weight: bold;
     background: var(--header-button-bg);
 }
 

@@ -1074,6 +1074,11 @@ class AppDisplay extends BaseLogger {
         // Show solution div and hide practice div.
         this.solutionDiv.style.display = "flex";
         this.practiceDiv.style.display = "none";
+
+        window.scroll({
+            top: 0,
+            left: 0,
+        });
     }
 
     // Update the practice game word selection screen (practice-div).
