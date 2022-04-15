@@ -428,23 +428,14 @@ class GameTileDisplay extends TileDisplay {
             rowElement.setAttribute("data-word-length", word.length);
 
             // Construct the <td> and <div> elements for the tile.
-            for (let col = 0; col <= word.length; col++) {
+            // No labels for the game rows, so we'll start col at 1.
+            for (let col = 1; col <= word.length; col++) {
                 // Construct IDs for the tile and letter.
                 const tileId    = TileDisplay.getTileId(row, col);
                 const letterId  = TileDisplay.getLetterId(row, col);
 
                 // Set the tile type, which will be updated as we go.
                 let tileType = "no-change";
-
-                // Give column 0 special styling to not show the label.
-                if (col === 0) {
-                    // Now, construct the elements.
-                    const tdElement = ElementUtilities.addElementTo(
-                        "td", rowElement,
-                        {id: tileId, class: "tile-label-blank", 'data-tile-type': tileType}
-                        );
-                    continue;
-                }
 
                 // If we're here we're dealing with a letter tile (not a label).
                 // Pull out the letter.

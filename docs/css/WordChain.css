@@ -8,14 +8,6 @@
 ** Global Settings
 */
 
-* {
-    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
-}
-
-html, body {
-    height: 100%
-}
-
 :root {
     /*
     ** These colors are defined for :root to enable implementation of both
@@ -142,18 +134,23 @@ html, body {
     --visited-link-fg:          #9b5bf0;    /* light purple */
 }
 
+* {
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+html, body {
+    /* vh means "viewport height" -- this says to make the body take 100% of the viewport height. */
+    height: 100vh;
+    margin: 0px;
+    background: var(--primary-bg);
+}
+
 #root-div {
     display: flex;
     flex-direction: column;
     justify-content: center;
     background: var(--primary-bg);
     height: 100%;
-    width: 100%;
-}
-
-#filler-div {
-    background: var(--primary-bg);
-    flex-grow: 1;
     width: 100%;
 }
 
@@ -196,9 +193,17 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 /* Shell around the solution/keyboard/practice divs */
 #lower-div {
     display: flex;
+    /*
+    ** For some reason, if we have "flex-direction: column;" here (and remove "flex-wrap: wrap;"),
+    ** it messes up the scrolling of games that no longer fit on the screen -- scrolling up as
+    ** far as possible cut off the top row(s) of tiles. If we have both settings, that messes up the
+    ** display and the keyboard is to the right of the game tiles, even with the "break div".
+    ** So we shoudln't change these settings because the scrolling works just right now!
+    */
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
+    /* This height, plus header-div height must be 100% */
     height: 93%;
 }
 
@@ -207,7 +212,9 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     position: sticky;
     bottom: 0;
     display: flex;
-    flex-wrap: wrap;
+    flex-shrink: 0;
+    flex-direction: column;
+    justify-content: flex-end;
     padding: .5rem;
     background: var(--primary-bg);
 }
@@ -263,12 +270,13 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 #header-div {
     position: sticky;
     top: 0;
+    /* This height, plus lower-div height must be 100% */
     height: 7%;
     display: flex;
-    flex-wrap: wrap;
+    flex-shrink: 0;
     background: var(--header-bg);;
-    margin-bottom: 1rem;
     padding: .5rem;
+    margin-bottom: 1rem;
 }
 
 #left-button-div {
@@ -326,17 +334,23 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 
 #practice-div {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#practice-words-div {
+    display: flex;
     justify-content: center;
 }
 
 #practice-buttons-div {
     display: flex;
-    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .help-info {
     color: var(--primary-fg);
+    text-align: center;
     margin-bottom: .75rem;
 }
 
@@ -346,7 +360,17 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 
 #solution-div {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#game-words-div {
+    display: flex;
+    justify-content: center;
+}
+
+#solution-buttons-div {
+    display: flex;
     justify-content: center;
 }
 
@@ -378,10 +402,6 @@ table {
     vertical-align: middle;
     color: var(--primary-fg);
     border-style: none;
-}
-
-.tile-label-blank {
-    width: 0rem;
 }
 
 .start-target-tile {
@@ -440,11 +460,6 @@ table {
 
 .hidden-letter {
     visibility: hidden;
-}
-
-#solution-buttons-div {
-    display: flex;
-    flex-wrap: wrap;
 }
 
 /*

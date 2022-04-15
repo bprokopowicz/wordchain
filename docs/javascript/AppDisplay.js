@@ -274,16 +274,6 @@ class AppDisplay extends BaseLogger {
         this.createSolutionDiv();
         this.createKeyboardDiv();
 
-        // Add a break and a "filler" so that when the dark theme is used the entire background
-        // is dark. This does the same for the light theme, but unless the light background is
-        // changed from white, it is not necessary (but not harmful) for the light theme.
-        //
-        // A div with class "break" forces whatever comes after this div
-        // to be on a "new line" when the containing div is display: flex.
-        // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-        ElementUtilities.addElementTo("div", this.rootDiv, {class: "break"});
-        const fillerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "filler-div"});
-
         // All hard keyboard events go to one listener.
         window.addEventListener("keydown", hardKeyboardCallback);
 
@@ -327,11 +317,6 @@ class AppDisplay extends BaseLogger {
         this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, AppDisplay.HELP_PATH, "help-div");
         this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, AppDisplay.STATS_PATH, "stats-div");
         this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, AppDisplay.SETTINGS_PATH, "settings-div");
-
-        // A div with class "break" forces whatever comes after this div
-        // to be on a "new line" when the containing div is display: flex.
-        // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-        ElementUtilities.addElementTo("div", this.rootDiv, {class: "break"});
     }
 
     /* ----- GAME SETUP AND PLAY SCREENS ----- */
@@ -347,19 +332,11 @@ class AppDisplay extends BaseLogger {
         const helpText = `Words can be up to ${PracticeTileDisplay.MAX_WORD_LENGTH} letters. Press the Return key to enter a word.`
         ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText);
 
-        // A div with class "break" forces whatever comes after this div
-        // to be on a "new line" when the containing div is display: flex.
-        // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-        ElementUtilities.addElementTo("div", this.practiceDiv, {class: "break"});
-
         // Create a div for selecting practice game start/target words, and create
         // a div within that to hold the tiles.
         this.practiceWordsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-words-div"});
         this.practiceTileDisplay = new PracticeTileDisplay(this.dict, this.practiceWordsDiv);
         this.practiceTileDisplay.resetWords();
-
-        // Add a break so the buttons are below the practice word tiles.
-        ElementUtilities.addElementTo("div", this.practiceDiv, {class: "break"});
 
         // Now create a div for the buttons in this display and add the buttons.
         this.practiceButtonsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-buttons-div"});
@@ -387,9 +364,6 @@ class AppDisplay extends BaseLogger {
 
         // Create a div for the game play words which will hold the tiles.
         this.gameWordsDiv = ElementUtilities.addElementTo("div", this.solutionDiv, {id: "game-words-div"});
-
-        // Add a break so the buttons are below the game tiles.
-        ElementUtilities.addElementTo("div", this.solutionDiv, {class: "break"});
 
         // Now create a div for the buttons in this display and add the buttons.
         this.solutionButtonsDiv = ElementUtilities.addElementTo("div", this.solutionDiv, {id: "solution-buttons-div"});
@@ -455,7 +429,7 @@ class AppDisplay extends BaseLogger {
 
         // This div is the one we style as none or flex to hide/show the div.
         this.keyboardDiv = ElementUtilities.addElementTo("div", this.lowerDiv, {id: "keyboard-div"}, null);
-        this.keyboardDiv.style.display = "block";
+        this.keyboardDiv.style.display = "flex";
         this.primaryDivs.push(this.keyboardDiv);
 
         // Create the keyboard rows; the tiles will be added to each row in turn.
@@ -880,6 +854,7 @@ class AppDisplay extends BaseLogger {
 
         this.dailyGame = new Game(this.dict, solution);
         this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv);
+        this.gameTileDisplay.setHardMode(this.hardMode);
 
         // Now, pretend the user clicked the Daily button, because we need
         // to do exactly the same thing.
@@ -1084,7 +1059,7 @@ class AppDisplay extends BaseLogger {
             this.keyboardDiv.style.display = "none";
             this.showSolutionButton.style.display = "none";
         } else {
-            this.keyboardDiv.style.display = "block";
+            this.keyboardDiv.style.display = "flex";
             this.showSolutionButton.style.display = "block";
         }
 
@@ -1113,7 +1088,7 @@ class AppDisplay extends BaseLogger {
         this.practiceTileDisplay.showPracticeWords();
 
         // Keyboard is always shown in the practice display.
-        this.keyboardDiv.style.display = "block";
+        this.keyboardDiv.style.display = "flex";
 
         // Hide solution div and show practice div.
         this.solutionDiv.style.display = "none";

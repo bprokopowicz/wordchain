@@ -437,7 +437,7 @@ class Test extends BaseLogger {
         ElementUtilities.addElement("input", {id: "solverStartWord", type: "text"});
         ElementUtilities.addElement("p");
         ElementUtilities.addElement("label", {}, "Target word: ");
-        ElementUtilities.addElement("input", {id: "solverTargetWord", type: "text"}, "Target word:");
+        ElementUtilities.addElement("input", {id: "solverTargetWord", type: "text"});
         ElementUtilities.addElement("p");
         ElementUtilities.addElement("button", {id: "solve"}, "Solve!");
         ElementUtilities.addElement("p");
