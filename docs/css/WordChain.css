@@ -361,7 +361,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 #solution-div {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 #game-words-div {
@@ -375,16 +375,16 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 }
 
 table {
-    border-spacing: .5rem;
+    border-spacing: .4rem;
 }
 
 /* Tile td classes */
 
 .tile {
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
     font-weight: bold;
-    font-size: 2.5rem;
+    font-size: 2rem;
     text-align: center;
     vertical-align: middle;
     color: var(--primary-fg);
