@@ -221,6 +221,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 
 .keyboard-row {
     display: flex;
+    flex-shrink: 0;
     margin-top: 0;
     margin-right: auto;
     margin-left: auto;
