@@ -19,6 +19,7 @@ brew install gh
 then authorize your shell session with
 gh auth login -w 
 
+USE HTTPS
 To switch between 'prokopowicz' and 'bprokopowicz' github accounts
 login to the one we want in the browser, then run gh auth login -w
 

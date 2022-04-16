@@ -6,6 +6,12 @@ import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
 // Forwarding functions; see big comment in AppDisplay.js explaining how these came about.
 
+const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
+
+const globalWordList = await fetch(url)
+  .then(resp => resp.text())
+  .then(text => text.split("\n"));
+
 function runTestsCallback() {
     Test.singleton().runTestsCallback();
 }
@@ -33,7 +39,7 @@ class Test extends BaseLogger {
         this.name = "NOT SET";
         this.tinyList  = ["apple", "pear", "banana"];
         this.smallList = ["bad", "bade", "bald", "bat", "bate", "bid", "cad", "cat", "dog", "scad"]
-        this.fullDict = new WordChainDict();
+        this.fullDict = new WordChainDict(globalWordList);
     }
 
     static singleton() {
