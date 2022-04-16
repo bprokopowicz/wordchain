@@ -61,6 +61,12 @@ import { Cookie } from './Cookie.js';
 ** did the trick.
 */
 
+
+const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
+const globalWordList = await fetch(url)
+  .then(resp => resp.text())
+  .then(text => text.split("\n"));
+
 function checkboxCallback(event) {
     AppDisplay.singleton().checkboxCallback(event);
 }
@@ -167,7 +173,7 @@ class AppDisplay extends BaseLogger {
     constructor() {
         super();
 
-        this.dict = new WordChainDict();
+        this.dict = new WordChainDict(globalWordList);
 
         this.dailyGame    = null;
         this.practiceGame = null;
@@ -211,34 +217,6 @@ class AppDisplay extends BaseLogger {
         this.hardMode       = null;
         this.getCookies();
 
-        // There seems to be no way in javascript to reliably load the dictionary
-        // synchronously, so we'll do the good old-fashioned "wait around 'til
-        // it's done" trick.
-        var attemptCount = 0;
-        const intervalId = setInterval(() => {
-            if (this.dict.isLoaded()) {
-                // Stop the interval timer.
-                clearInterval(intervalId);
-
-                // Dictionary is loaded -- kick it all off.
-                this.displayGame();
-                return;
-            }
-            attemptCount += 1;
-
-            // Try for a maximum of 20 seconds (10 tries * 200 ms).
-            if (attemptCount >= 10) {
-                // Stop the interval timer.
-                clearInterval(intervalId);
-
-                // Create a div to display a message.
-                const cannotLoadDiv = ElementUtilities.addElementTo("div", document.body,
-                    {id: "cannot-load-div", class: "pop-up show"},
-                    "Unable to download dictionary.<br>Please check your network.");
-                return;
-            }
-        // Every 200 msec
-        }, 200);
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
