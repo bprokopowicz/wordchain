@@ -62,11 +62,6 @@ import { Cookie } from './Cookie.js';
 */
 
 
-const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
-const globalWordList = await fetch(url)
-  .then(resp => resp.text())
-  .then(text => text.split("\n"));
-
 function checkboxCallback(event) {
     AppDisplay.singleton().checkboxCallback(event);
 }
@@ -129,6 +124,12 @@ function startGameCallback() {
     AppDisplay.singleton().startGameCallback();
 }
 
+
+// Synchronously wait for the word list to download.
+const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
+const globalWordList = await fetch(url)
+  .then(resp => resp.text())
+  .then(text => text.split("\n"));
 
 /*
 ** ==========================
@@ -217,6 +218,7 @@ class AppDisplay extends BaseLogger {
         this.hardMode       = null;
         this.getCookies();
 
+        this.displayGame();
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
