@@ -58,7 +58,7 @@ def main():
 
     with open(extraFileName, "r") as extraFile:
         for line in [line.strip() for line in extraFile]:
-            keepWords.add(word)
+            keepWords.add(line)
 
     """
     print("numGoodLines: {}".format(numGoodLines))
