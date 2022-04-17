@@ -11,11 +11,10 @@ import { Cookie } from './Cookie.js';
 ** TODO:
 ** Implementation
 ** - Auto-fill unchanged letters (NOT in hard mode)
-** - Share graphic: mini version of tile outline/colors
-** - What is the "score" of the game?
-**   - Star icon if no extra steps
-**   - Else big numeral of how many extra steps
-**   - Special background color in hard mode
+** - Stats screen
+** - Allow user to enter longer or shorter word than in "ideal solution"?
+**   - show additional tiles with light gray border
+**   - remove "incomplete" message (change to getWordFromTiles())
 **
 ** Before Sharing with Initial Friends
 ** - At least a temporary way to have different daily games for 30 days or so
@@ -23,9 +22,6 @@ import { Cookie } from './Cookie.js';
 ** - Maximum of N (3?) practice games per day (per 24 hours?)
 ** - Create a faq and fix link
 ** - Better help message?
-** - Cookies
-**   - Daily game words-so-far shouldd be in there, so user can return to them
-**   - Maybe practice game too?
 **
 ** Deployment
 ** - How to display/keep track of stats?
@@ -33,11 +29,6 @@ import { Cookie } from './Cookie.js';
 ** - Buy domain wordchain.com?
 ** - Where to host?
 ** - How to manage daily game words?
-**   - Maybe add a section to Test.js to generate potential daily games
-**   - Possible criteria:
-**     - Start/target word length 3-5
-**     - Solution #steps 5-6
-**     - Words change length >= 2 times
 ** - Testing on various browsers/devices
 ** - Cookies: make secure?
 ** - Logo/favicon.ict
@@ -78,10 +69,6 @@ function dailyCallback() {
     AppDisplay.singleton().dailyCallback();
 }
 
-function showSolutionCallback() {
-    AppDisplay.singleton().showSolutionCallback();
-}
-
 function hardKeyboardCallback(event) {
     if (event.key == "Backspace") {
         AppDisplay.singleton().keyboardCallback(AppDisplay.BACKSPACE);
@@ -111,6 +98,10 @@ function practiceCallback() {
 
 function shareCallback() {
     AppDisplay.singleton().shareCallback();
+}
+
+function showSolutionCallback() {
+    AppDisplay.singleton().showSolutionCallback();
 }
 
 function softKeyboardCallback() {
@@ -164,6 +155,34 @@ class AppDisplay extends BaseLogger {
 
     static EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
     static FAQ_HREF = "http://www.prokopowicz.org";
+
+    // Emoji code strings
+    static RED_SQUARE     = "\u{1F7E5}";
+    static GREEN_SQUARE   = "\u{1F7E9}";
+    static ORANGE_SQUARE  = "\u{1F7E7}";
+    static BLUE_SQUARE    = "\u{1F7E6}";
+    static STAR           = "\u{2B50}";
+    static PLUS           = "\u{2795}";     // Use if >= 10 steps?
+    static FIRE           = "\u{1F525}";
+    static ROCKET         = "\u{1F680}";
+    static FIREWORKS      = "\u{1F386}";
+    static TROPHY         = "\u{1F3C6}";
+    static LINK           = "\u{1F517}";
+    static CHAINS         = "\u{26D3}";
+    static NUMBERS        = [
+        "\u{0030}\u{FE0F}\u{20E3}",     // 0
+        "\u{0031}\u{FE0F}\u{20E3}",     // 1
+        "\u{0032}\u{FE0F}\u{20E3}",
+        "\u{0033}\u{FE0F}\u{20E3}",
+        "\u{0034}\u{FE0F}\u{20E3}",
+        "\u{0035}\u{FE0F}\u{20E3}",
+        "\u{0036}\u{FE0F}\u{20E3}",
+        "\u{0037}\u{FE0F}\u{20E3}",
+        "\u{0038}\u{FE0F}\u{20E3}",
+        "\u{0031}\u{FE0F}\u{20E3}",
+        "\u{0039}\u{FE0F}\u{20E3}",
+        "\u{1F51F}",                    // 10
+    ]
 
     /*
     ** ============
@@ -257,6 +276,11 @@ class AppDisplay extends BaseLogger {
         // All hard keyboard events go to one listener.
         window.addEventListener("keydown", hardKeyboardCallback);
 
+        // Construct a practice game (only gets constructed if the user already had one
+        // in progress in the cookies).
+        this.constructPracticeGame();
+
+        // Construct a daily game (either a new one or an in-progress one) and display it.
         this.constructDailyGame();
     }
 
@@ -555,6 +579,7 @@ class AppDisplay extends BaseLogger {
         const contentDiv = ElementUtilities.addElementTo("div", statsContainerDiv, {id: "stats-content-div",});
 
         // TODO
+        // Only show share button if it has been solved (and not if the user did show solution).
         const shareButton = ElementUtilities.addElementTo("div", contentDiv, {class: "wordchain-button game-button"}, "Share");
         ElementUtilities.setButtonCallback(shareButton, shareCallback);
     }
@@ -738,21 +763,21 @@ class AppDisplay extends BaseLogger {
         // No other keys cause a change.
     }
 
+    // Callback for the Share button on the Stats screen.
     shareCallback() {
-        const share = "\u{1F7E5}\u{1F7E9}\n\u{0031}\u{FE0F}\u{20E3} \u{2B1B}"
-        console.log("navigator: ", navigator);
+        const share = this.getShareString(this.dailyGame);
+
         if (navigator.share) {
             navigator.share({
                 text: share,
             })
-            .then(() => console.log("Successful share"))
             .catch((error) => {
                 this.showToast("Failed to share")
                 console.log("Failed to share: ", error);
             });
         } else {
-            // COPY TO CLIPBOARD
-            console.error("Browser doesn't support Web Share");
+            this.showToast("Copied to clipboard")
+            navigator.clipboard.writeText(share);
         }
         ElementUtilities.addElementTo("div", this.statsDiv, {class: "break"});
         ElementUtilities.addElementTo("div", this.statsDiv, {}, share);
@@ -761,7 +786,10 @@ class AppDisplay extends BaseLogger {
     // Callback for the Show Solution button that appears for both daily and practice games.
     showSolutionCallback() {
         this.gameTileDisplay.endGame();
-        this.updateGameDisplay()
+        if (this.game.getName === "DailyGame") {
+            AppDisplay.setCookie("DailyGameEnded", "true");
+        }
+        this.updateGameDisplay();
     }
 
     // Callback for the Start Game button in the practice game setup screen.
@@ -802,7 +830,7 @@ class AppDisplay extends BaseLogger {
         }
 
         this.newGameButton.style.display = "block";
-        this.practiceGame = new Game(this.dict, solution);
+        this.practiceGame = new Game("PracticeGame", this.dict, solution);
         this.updateGameDisplay(this.practiceGame);
     }
 
@@ -827,21 +855,70 @@ class AppDisplay extends BaseLogger {
 
     // Create today's daily game.
     constructDailyGame() {
-        // TEMPORARY
-        const startWord = "cat";
-        const targetWord = "dog";
 
-        // No need to check solution for success -- daily games will be
-        // pre-verified to have a solution.
-        const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+        /*
+        // Code here will need to look something like:
+        if (time to get a new daily game || ! this.dailyGameWords) {
+            get today's game and set startWord/targetWord
 
-        this.dailyGame = new Game(this.dict, solution);
+            // No need to check solution for success -- daily games will be
+            // pre-verified to have a solution.
+            const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+            this.dailyGame = new Game("DailyGame", this.dict, solution);
+            AppDisplay.setCookie("DailyGameEnded", "false");
+        } else
+            this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
+        }
+        */
+
+        if (this.dailyGameWords) {
+            this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
+        } else {
+            // TEMPORARY
+            let startWord = "fish";
+            let targetWord = "soup";
+
+            const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+            this.dailyGame = new Game("DailyGame", this.dict, solution);
+            AppDisplay.setCookie("DailyGameEnded", "false");
+        }
+
+        // Now use the daily game to construct the tile display.
         this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv);
         this.gameTileDisplay.setHardMode(this.hardMode);
 
         // Now, pretend the user clicked the Daily button, because we need
         // to do exactly the same thing.
         this.dailyCallback();
+    }
+
+    constructGameFromCookieWords(name, words) {
+        // Make a copy of the array of words.
+        words = [...words];
+
+        // The cookie words are the start word, the words played so far, and
+        // the target word. Pick off the start and target words and create a solution.
+        const startWord = words.shift();
+        const targetWord = words.pop();
+        const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+
+        // Use the solution to create a new game.
+        let game = new Game(name, this.dict, solution);
+
+        // The words remaining in the list are the words that the user played;
+        // play the game with them. No need to check the result because we only
+        // save in-progress games with good words to the cookies.
+        for (let word of words) {
+            game.playWord(word);
+        }
+
+        return game
+    }
+
+    constructPracticeGame() {
+        if (this.practiceGameWords) {
+            this.practiceGame = this.constructGameFromCookieWords("PracticeGame", this.practiceGameWords);
+        }
     }
 
     // This is a common method for creating the elements that are part of all Auxiliary screens.
@@ -880,12 +957,12 @@ class AppDisplay extends BaseLogger {
 
         // Now, the create the svg element.
         // TODO: Should make the width controllable.
-        const svg    = ElementUtilities.addElementTo("svg", button,
+        const svg = ElementUtilities.addElementTo("svg", button,
             {viewBox: "0 0 24 24", style: "width: 24; height: 24;", stroke: "None", "data-related-div": relatedDiv});
 
         // Finally, add the path, whose "d" attribute is passed to us
         // using the big, ugly class constants.
-        const path   = ElementUtilities.addElementTo("path", svg, {d: svgPath, "data-related-div": relatedDiv});
+        const path = ElementUtilities.addElementTo("path", svg, {d: svgPath, "data-related-div": relatedDiv});
     }
 
     // Set the settings flags from the cookie values. If the values were never set,
@@ -895,6 +972,22 @@ class AppDisplay extends BaseLogger {
         this.colorblindMode = Cookie.get("colorblindMode") === "true";
         this.hardMode       = Cookie.get("hardMode") === "true";
 
+
+        const dailyGameWords = Cookie.get("DailyGame");
+        if (dailyGameWords) {
+            this.dailyGameWords = JSON.parse(dailyGameWords);
+        } else {
+            this.dailyGameWords = null;
+        }
+        this.dailyGameEnded = Cookie.get("DailyGameEnded") === "true";
+
+        const practiceGameWords = Cookie.get("PracticeGame");
+        if (practiceGameWords) {
+            this.practiceGameWords = JSON.parse(practiceGameWords);
+        } else {
+            this.practiceGameWords = null;
+        }
+
         // Now set the colors based on darkTheme and colorblindMode.
         this.setColors();
     }
@@ -902,6 +995,79 @@ class AppDisplay extends BaseLogger {
     // Return the given CSS property value.
     static getCssProperty(property) {
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
+    }
+
+    // Return a share string for the specified game.
+    // Note that this is not HTML, but rather just a string, containing some
+    // Unicode characters to construct the graphic.
+    getShareString(game) {
+        // Get the game's solution, and number of words.
+        // the in-progress words includes the start word, but not the target word;
+        // the number of steps is the length of the list.
+        const userSolution = game.getKnownSolution();
+        const userSolutionSteps = userSolution.numSteps();
+        const userWords = userSolution.getWords();
+
+        // The words from the solution include the start and target words;
+        userWords.shift();
+        userWords.pop();
+
+        // The count history is a list of how many steps were required to  solve the
+        // game at the very beginning ("the best solution") and then for each step
+        // thereafter. Pop off the first number in the history and save that as the
+        // minimum solution length.
+        const countHistory = [...game.getCountHistory()];
+        const minimumSolutionSteps = countHistory.shift();
+
+        // TODO: XXX will be game # eventually
+        let shareString = "WordChain #xxx ";
+
+        // Determine what emoji to use to show the user's "score".
+        if (userSolutionSteps === minimumSolutionSteps) {
+            // Best score possible gets a star!
+            shareString += AppDisplay.STAR;
+        } else {
+            const extraSteps = userSolutionSteps - minimumSolutionSteps;
+            if (extraSteps > 10) {
+                // Too many extra steps; just show a plus.
+                shareString += AppDisplay.PLUS;
+            } else {
+                // Show the number emoji corresponding to how many extra steps.
+                shareString += AppDisplay.NUMBERS[extraSteps];
+            }
+        }
+
+        // Add special indicator if user played in hard mode, and a couple of newlines.
+        const hardModeIndicator = this.hardMode ? AppDisplay.FIRE : "";
+        shareString += ` ${hardModeIndicator}\n\n`;
+
+        // Now, construct the graphic showing the lengths of the user's
+        // played words, colored red or green to indicate whether that word
+        // did or did not increase the solution length.
+        let previousCount = minimumSolutionSteps;
+        for (let word of userWords) {
+            // Shift off the next count, which corresponds to the word that the user played.
+            let nextCount = countHistory.shift();
+
+            // Determine which color square to display for this word.
+            let emoji;
+            if (nextCount <= previousCount) {
+                // Word didn't increase the count; pick color indicating "good".
+                emoji = this.colorblindMode ? AppDisplay.BLUE_SQUARE : AppDisplay.GREEN_SQUARE;
+            } else {
+                // Word increased the count; pick color indicating "bad".
+                emoji = this.colorblindMode ? AppDisplay.ORANGE_SQUARE : AppDisplay.RED_SQUARE;
+            }
+
+            // Now repeat that emoji for the length of the word and add a newline,
+            // creating a row that looks like the row of tiles in the game.
+            shareString += emoji.repeat(word.length) + "\n";
+
+            // Set up for the next iteration.
+            previousCount = nextCount;
+        }
+
+        return shareString;
     }
 
     // Hide shown divs while showing an auxiliary screen (Help, Settings, Stats).

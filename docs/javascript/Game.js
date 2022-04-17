@@ -12,8 +12,9 @@ class Game extends BaseLogger {
     static NO_CHANGE = "*";
     static CHANGE    = "!";
 
-    constructor(dict, solution) {
+    constructor(name, dict, solution) {
         super();
+        this.name = name;
         this.dict = dict;
         this.knownSolution = solution;
         this.solutionInProgress = new Solution([solution.getFirstWord()], solution.target);
@@ -29,18 +30,24 @@ class Game extends BaseLogger {
         return this.stepCountHistory;
     }
 
-    // This is used only for testing.
     getKnownSolution() {
         return this.knownSolution;
     }
 
-    // This is used only for testing.
+    getName() {
+        return this.name;
+    }
+
     getSolutionInProgress() {
         return this.solutionInProgress;
     }
 
     getStepCount() {
         return this.knownSolution.numSteps();
+    }
+
+    getTarget() {
+        return this.knownSolution.getTarget();
     }
 
     isSolved() {

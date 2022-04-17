@@ -186,7 +186,7 @@ class Test extends BaseLogger {
         this.name = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedDictSize = 16604;
+        const expectedDictSize = 16608;
 
         const catAdders = this.fullDict.findAdderWords("cat");
         const addersSize = catAdders.size;
@@ -326,7 +326,7 @@ class Test extends BaseLogger {
 
         const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
         const solution = Solver.fastSolve(smallDict, "scad", "bat");
-        const game = new Game(smallDict, solution);
+        const game = new Game("small", smallDict, solution);
 
         const playResult = game.playWord("cad");
         this.verify((playResult === Game.OK), "Word played not OK") &&
@@ -338,7 +338,7 @@ class Test extends BaseLogger {
 
         const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
         const solution = Solver.fastSolve(smallDict, "scad", "bat");
-        const game = new Game(smallDict, solution);
+        const game = new Game("small", smallDict, solution);
 
         const playResult = game.playWord("dog");
         this.verify((playResult === Game.NOT_ONE_STEP), "Word played not NOT_ONE_STEP") &&
@@ -350,7 +350,7 @@ class Test extends BaseLogger {
 
         const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
         const origSolution = Solver.fastSolve(smallDict, "bad", "cat");
-        const game = new Game(smallDict, origSolution);
+        const game = new Game("small", smallDict, origSolution);
         const origStep2 = game.getKnownSolution().getWordByStep(2)
 
         // "bade" is not in the original solution (but we'll verify that below)..
@@ -370,7 +370,7 @@ class Test extends BaseLogger {
 
         const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
         const solution = Solver.fastSolve(smallDict, "bad", "scad");
-        const game = new Game(smallDict, solution);
+        const game = new Game("small", smallDict, solution);
 
         const playResult1 = game.playWord("cad");
         const playResult2 = game.playWord("scad");
@@ -383,7 +383,7 @@ class Test extends BaseLogger {
 
     testGameCompleteFullDict() {
         const origSolution = Solver.fastSolve(this.fullDict, "bad", "word");
-        const game = new Game(this.fullDict, origSolution);
+        const game = new Game("full", this.fullDict, origSolution);
         const origStep2 = game.getKnownSolution().getWordByStep(2)
 
         const playResult = game.playWord("cad");
@@ -400,7 +400,7 @@ class Test extends BaseLogger {
 
     testGameSolutionCannotHavePlayedWord() {
         const origSolution = Solver.fastSolve(this.fullDict, "cat", "dog");
-        const game = new Game(this.fullDict, origSolution);
+        const game = new Game("full", this.fullDict, origSolution);
 
         let playResult = game.playWord("cats")
         let wordsAfterFromWord = game.getKnownSolution().getWords().slice(1)
