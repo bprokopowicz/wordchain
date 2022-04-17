@@ -135,6 +135,7 @@ class Solver extends BaseLogger {
             // BUT, that solution must not contain words that have already been played.
             nextWords = nextWords.filter(w => !this.excludedWords.has(w));
 
+            solution.difficulty = solution.difficulty + nextWords.length;
             // Check if we have a solution; if so, add this latest word to it, and return it.
             if (nextWords.includes(this.toWord)) {
                 solution.addWord(this.toWord);
@@ -178,7 +179,7 @@ class Solver extends BaseLogger {
 }
 
 class Solution extends BaseLogger {
-    constructor(wordList, target, distance) {
+    constructor(wordList, target, distance, difficulty) {
         super();
 
         this.wordList = [...wordList];
@@ -186,6 +187,7 @@ class Solution extends BaseLogger {
         this.distance = distance ? distance : 100;
         this.errorMessage = "";
         this.searchSize = 0;
+        this.difficulty = difficulty ? difficulty : 1;
     }
 
     setSearchSize(n) {
@@ -209,12 +211,13 @@ class Solution extends BaseLogger {
     append(restOfSolution) {
         this.wordList = this.wordList.concat(restOfSolution.wordList);
         this.distance = restOfSolution.distance; // TODO: assert should be zero?
+        this.difficulty = this.difficulty + restOfSolution.difficulty;
         return this;
     }
 
     copy() {
         let wordListCopy = [...this.wordList];
-        return new Solution(wordListCopy, this.target, this.distance);
+        return new Solution(wordListCopy, this.target, this.distance, this.difficulty);
     }
 
     getDistance() {
@@ -344,7 +347,7 @@ class Solution extends BaseLogger {
         } else {
             const separator = html ? "<p>" : " ";
             const words = this.wordList.join(", ");
-            return `${words}${separator}[${this.wordList.length - 1} steps to ${this.target}]${separator}${this.searchSize} nodes`;
+            return `${words}${separator}[${this.wordList.length - 1} steps to ${this.target}]${separator}${this.searchSize} nodes${separator}difficulty: ${this.difficulty}`;
         }
     }
 }

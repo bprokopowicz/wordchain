@@ -436,8 +436,8 @@ class Test extends BaseLogger {
             return;
         }
 
-        const nextWords = [...this.fullDict.findNextWords(word)].join(", ");
-        ElementUtilities.setElementHTML("lookupAnswer", `Words after ${word}: ${nextWords}`);
+        const nextWords = [...this.fullDict.findNextWords(word)];
+        ElementUtilities.setElementHTML("lookupAnswer", `${nextWords.length} words from ${word}: ${nextWords.join(",")}`);
     }
 
     // Solver testing
@@ -509,17 +509,23 @@ class Test extends BaseLogger {
         const reqWordLen2 = ElementUtilities.getElementValue("puzzleFinderReqWordLen2");
         const finalWordLen = ElementUtilities.getElementValue("puzzleFinderFinalWordLen");
 
-        const goodTargets = 
+        const goodTargetsWithDifficulty = 
             [...this.fullDict.getWords()]
             .filter(targetWord => (targetWord.length == finalWordLen))
-            .filter(targetWord => {
+            .map(targetWord => {
                 const solution = Solver.fastSolve(this.fullDict, startWord, targetWord);
-                return solution.isSolved() && 
-                       solution.getWords().filter(word => (word.length == reqWordLen1)).length > 0 &&
-                       solution.getWords().filter(word => (word.length == reqWordLen2)).length > 0;
-                });
+                if (solution.isSolved() && 
+                    (solution.getWords().filter(word => (word.length == reqWordLen1)).length > 0) &&
+                    (solution.getWords().filter(word => (word.length == reqWordLen2)).length > 0)) {
+                    return [targetWord, solution.difficulty];
+                } else {
+                   return [];
+                }
+            })
+            .filter (pair => (pair.length == 2))
+            .map(pair => pair.join(":"));
 
-        ElementUtilities.setElementHTML("puzzleFinderAnswer", goodTargets.join(","));
+        ElementUtilities.setElementHTML("puzzleFinderAnswer", goodTargetsWithDifficulty.join(","));
     }
 }
 
