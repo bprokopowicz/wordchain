@@ -436,10 +436,12 @@ class AppDisplay extends BaseLogger {
         this.keyboardDiv.style.display = "flex";
         this.primaryDivs.push(this.keyboardDiv);
 
+        this.keyboardInnerDiv = ElementUtilities.addElementTo("div", this.keyboardDiv, {id: "keyboard-inner-div"}, null);
+
         // Create the keyboard rows; the tiles will be added to each row in turn.
-        const row1 = ElementUtilities.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
-        const row2 = ElementUtilities.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
-        const row3 = ElementUtilities.addElementTo("div", this.keyboardDiv, {class: "keyboard-row"});
+        const row1 = ElementUtilities.addElementTo("div", this.keyboardInnerDiv, {class: "keyboard-row"});
+        const row2 = ElementUtilities.addElementTo("div", this.keyboardInnerDiv, {class: "keyboard-row"});
+        const row3 = ElementUtilities.addElementTo("div", this.keyboardInnerDiv, {class: "keyboard-row"});
 
         // Add keys for row 1
         this.addLetterButton(row1, "q");
