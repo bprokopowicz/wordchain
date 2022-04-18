@@ -93,7 +93,7 @@ class ElementUtilities {
             const isSafari = navigator.vendor.toLowerCase().includes("apple");
             var clickEvent;
             if (isSafari) {
-                if (navigator.appVersion.toLowerCase.includes("mac os")) {
+                if (navigator.appVersion.toLowerCase().includes("mac os")) {
                     // Safari on MacOS sends MouseEvent, not PointerEvent -- and doesn't define TouchEvent!
                     // so "theEvent instanceof TouchEvent" results in a syntax error "can't find variable
                     // TouchEvent". Sigh!

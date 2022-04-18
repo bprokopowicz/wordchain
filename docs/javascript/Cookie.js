@@ -30,6 +30,7 @@ class Cookie {
     }
 
     static set(name, value, expires=null) {
+        value = value.toString();
         let cookieText = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
 
         let expiration;

@@ -82,6 +82,10 @@
     /* Links */
     --link-fg:                  Blue;
     --visited-link-fg:          Purple;
+
+    /* Stats */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
 }
 
 :root.dark-mode {
@@ -132,6 +136,10 @@
     /* Links */
     --link-fg:                  #5b6ef0;    /* light blue */
     --visited-link-fg:          #9b5bf0;    /* light purple */
+
+    /* Stats */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
 }
 
 * {
@@ -348,7 +356,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 #practice-div {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 #practice-words-div {
@@ -501,17 +509,32 @@ table {
 }
 
 .auxiliary-container-div {
-    width: 60%;
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     color: var(--primary-fg);
 }
 
+.auxiliary-container-div h1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.auxiliary-container-div h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+.auxiliary-container-div h3 {
+    font-size: 1rem;
+    font-weight: bold;
+}
+.auxiliary-container-div p {
+    font-size: 1rem;
+}
+
 /*
 ** Help screen
 */
-
 #help-content-div {
 }
 
@@ -563,13 +586,71 @@ a:link {
 */
 
 #stats-content-div {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .stats-tile {
     width: .5rem;
     height: .5rem;
     border-style: none;
+}
+
+/* This holds the group of stats at the top */
+#stats-container-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.one-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: .5rem;
+}
+
+.one-stat-value {
+    font-size: 2rem;
+}
+
+.one-stat-label {
+    font-size: .75rem;
+}
+
+/* This holds the distribution graph */
+#distribution-div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.one-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 30rem;
+    margin-bottom: .5rem;
+}
+
+.one-bar-label {
+    margin-right: .5rem;
+}
+
+.one-bar-bar {
+    background: var(--stats-bar-bg);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.one-bar-value {
+    color: var(--stats-bar-fg);
+    font-weight: bold;
+    margin-right: .5rem;
 }
 
 
@@ -683,6 +764,10 @@ a:link {
     .no-change {
         border-width: .2rem;
         padding: .2rem;
+    }
+
+    .auxiliary-container-div {
+        width: 60%;
     }
 
     .keyboard-key {

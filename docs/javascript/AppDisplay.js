@@ -11,15 +11,15 @@ import { Cookie } from './Cookie.js';
 ** TODO:
 ** Implementation
 ** - Auto-fill unchanged letters (NOT in hard mode)
-** - Stats screen
 ** - Allow user to enter longer or shorter word than in "ideal solution"?
 **   - show additional tiles with light gray border
 **   - remove "incomplete" message (change to getWordFromTiles())
+** - Maximum of N (3?) practice games per day (per 24 hours?)
+** - Disallow daily game words on practice game
 **
 ** Before Sharing with Initial Friends
 ** - At least a temporary way to have different daily games for 30 days or so
 **   - How to control when a new daily game is available?
-** - Maximum of N (3?) practice games per day (per 24 hours?)
 ** - Create a faq and fix link
 ** - Better help message?
 **
@@ -137,6 +137,9 @@ class AppDisplay extends BaseLogger {
 
     static singletonObject = null;
 
+    static PRACTICE_GAMES_PER_DAY = 3;
+    static TOO_MANY_EXTRA_STEPS   = 6;  // Shouldnt be > 9
+
     // Constants for keyboard action buttons.
     static BACKSPACE = "←";
     static ENTER = "↵";
@@ -156,21 +159,21 @@ class AppDisplay extends BaseLogger {
     static EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
     static FAQ_HREF = "http://www.prokopowicz.org";
 
-    // Emoji code strings
-    static RED_SQUARE     = "\u{1F7E5}";
-    static GREEN_SQUARE   = "\u{1F7E9}";
-    static ORANGE_SQUARE  = "\u{1F7E7}";
-    static BLUE_SQUARE    = "\u{1F7E6}";
-    static STAR           = "\u{2B50}";
-    static PLUS           = "\u{2795}";     // Use if >= 10 steps?
-    static FIRE           = "\u{1F525}";
-    static ROCKET         = "\u{1F680}";
-    static FIREWORKS      = "\u{1F386}";
-    static TROPHY         = "\u{1F3C6}";
-    static LINK           = "\u{1F517}";
-    static CHAINS         = "\u{26D3}";
-    static NUMBERS        = [
-        "\u{0030}\u{FE0F}\u{20E3}",     // 0
+    // Emoji code strings for share string
+    static RED_SQUARE     = "\u{1F7E5}";     // Extra steps in graphic
+    static GREEN_SQUARE   = "\u{1F7E9}";     // No extra steps in graphic
+    static ORANGE_SQUARE  = "\u{1F7E7}";     // Extra steps in graphic -- colorblind
+    static BLUE_SQUARE    = "\u{1F7E6}";     // No extra steps in graphic -- colorblind
+    static STAR           = "\u{2B50}";      // No extra steps in first share line
+    static CONFOUNDED     = "\u{1F616}";     // Too many extra steps in first share line
+    static FIRE           = "\u{1F525}";     // Hard mode in first share line
+    static ROCKET         = "\u{1F680}";     // Unused
+    static FIREWORKS      = "\u{1F386}";     // Unused
+    static TROPHY         = "\u{1F3C6}";     // Unused
+    static LINK           = "\u{1F517}";     // Unused
+    static CHAINS         = "\u{26D3}";      // Unused
+    static NUMBERS        = [                // Used in first share line
+        AppDisplay.STAR,                // 0
         "\u{0031}\u{FE0F}\u{20E3}",     // 1
         "\u{0032}\u{FE0F}\u{20E3}",
         "\u{0033}\u{FE0F}\u{20E3}",
@@ -180,8 +183,7 @@ class AppDisplay extends BaseLogger {
         "\u{0037}\u{FE0F}\u{20E3}",
         "\u{0038}\u{FE0F}\u{20E3}",
         "\u{0031}\u{FE0F}\u{20E3}",
-        "\u{0039}\u{FE0F}\u{20E3}",
-        "\u{1F51F}",                    // 10
+        "\u{0039}\u{FE0F}\u{20E3}",     // 9
     ]
 
     /*
@@ -378,10 +380,19 @@ class AppDisplay extends BaseLogger {
             "New Game");
         ElementUtilities.setButtonCallback(this.newGameButton, newGameCallback);
 
+        this.shareButton = ElementUtilities.addElementTo(
+            "button", this.solutionButtonsDiv,
+            {id: "share", class: "wordchain-button game-button"},
+            "Share");
+        ElementUtilities.setButtonCallback(this.shareButton, shareCallback);
+
         // Since we start with a daily game, of which there is only one per day,
         // we set its style.display to be "none" so it does not show; it will be
         // changed when a practice game is shown.
         this.newGameButton.style.display = "none";
+
+        // The share button will be shown if the user completes the daily game.
+        this.shareButton.style.display = "none";
 
         // The default is to show this button, which we want for both daily and practice games;
         // users should be able to display the solution for either.
@@ -517,8 +528,8 @@ class AppDisplay extends BaseLogger {
         the background of its letters will be red; otherwise they will be green.
         </p>
         <h3>
-        Every day there will be a new Daily WordChain game, but you can practice with your own
-        words any time. Have fun!
+        Every day there will be a new Daily WordChain game, and you can play up to ${AppDisplay.PRACTICE_GAMES_PER_DAY}
+        practice games per day. Have fun!
         </h3>
         `
         const contentDiv = ElementUtilities.addElementTo("div", helpContainerDiv, {id: "help-content-div",}, helpHTML);
@@ -580,10 +591,16 @@ class AppDisplay extends BaseLogger {
         // within settingsContainerDiv as a block (because of stats-content-div styling).
         const contentDiv = ElementUtilities.addElementTo("div", statsContainerDiv, {id: "stats-content-div",});
 
-        // TODO
-        // Only show share button if it has been solved (and not if the user did show solution).
-        const shareButton = ElementUtilities.addElementTo("div", contentDiv, {class: "wordchain-button game-button"}, "Share");
-        ElementUtilities.setButtonCallback(shareButton, shareCallback);
+        ElementUtilities.addElementTo("h1", contentDiv, {}, "DAILY GAME STATISTICS");
+        this.statsContainer = ElementUtilities.addElementTo("div", contentDiv, {id: "stats-container-div"});
+
+        ElementUtilities.addElementTo("h1", contentDiv, {}, "EXTRA STEPS DISTRIBUTION");
+        this.statsDistribution = ElementUtilities.addElementTo("div", contentDiv, {id: "distribution-div"});
+
+        // Update the stats content that was set when cookies were retrieved.
+        // If we don't update here, there will be no stats if the user clicks
+        // the stats button.
+        this.updateStatsContent();
     }
 
     /* ----- Toast Notifications ----- */
@@ -608,17 +625,17 @@ class AppDisplay extends BaseLogger {
         // checkbox's id according to that.
         if (checkboxId === "dark") {
             this.darkTheme = event.srcElement.checked ? true : false;
-            AppDisplay.setCookie("darkTheme", this.darkTheme);
+            Cookie.set("darkTheme", this.darkTheme);
             this.setColors();
 
         } else if (checkboxId === "colorblind") {
             this.colorblindMode = event.srcElement.checked ? true : false;
-            AppDisplay.setCookie("colorblindMode", this.colorblindMode);
+            Cookie.set("colorblindMode", this.colorblindMode);
             this.setColors();
 
         } else if (checkboxId === "hard") {
             this.hardMode = event.srcElement.checked ? true : false;
-            AppDisplay.setCookie("hardMode", this.hardMode);
+            Cookie.set("hardMode", this.hardMode);
             // Hard mode is implemented in the game tile display,
             // so tell it what mode we are in now.
             this.gameTileDisplay.setHardMode(this.hardMode);
@@ -684,6 +701,12 @@ class AppDisplay extends BaseLogger {
                 setTimeout(() => {
                     this.showToast("Solved!")
                     this.updateGameDisplay();
+
+                    if (this.game.getName() === "DailyGame") {
+                        // Set information relating to complete games: share graphic.
+                        // and statistics.
+                        this.saveGameInfo(this.dailyGame, true);
+                    }
                 }, 50);
             }
         } else if (ElementUtilities.isLetter(keyValue)) {
@@ -767,11 +790,9 @@ class AppDisplay extends BaseLogger {
 
     // Callback for the Share button on the Stats screen.
     shareCallback() {
-        const share = this.getShareString(this.dailyGame);
-
         if (navigator.share) {
             navigator.share({
-                text: share,
+                text: this.shareString,
             })
             .catch((error) => {
                 this.showToast("Failed to share")
@@ -779,17 +800,17 @@ class AppDisplay extends BaseLogger {
             });
         } else {
             this.showToast("Copied to clipboard")
-            navigator.clipboard.writeText(share);
+            navigator.clipboard.writeText(this.shareString);
         }
-        ElementUtilities.addElementTo("div", this.statsDiv, {class: "break"});
-        ElementUtilities.addElementTo("div", this.statsDiv, {}, share);
     }
 
     // Callback for the Show Solution button that appears for both daily and practice games.
     showSolutionCallback() {
         this.gameTileDisplay.endGame();
-        if (this.game.getName === "DailyGame") {
-            AppDisplay.setCookie("DailyGameEnded", "true");
+        if (this.game.getName() === "DailyGame") {
+            this.dailyGameEnded = true;
+            Cookie.set("DailyGameEnded", this.dailyGameEnded);
+            this.incrementStat("gamesShown");
         }
         this.updateGameDisplay();
     }
@@ -862,12 +883,14 @@ class AppDisplay extends BaseLogger {
         // Code here will need to look something like:
         if (time to get a new daily game || ! this.dailyGameWords) {
             get today's game and set startWord/targetWord
+            this.incrementStat("gamesPlayed");
 
             // No need to check solution for success -- daily games will be
             // pre-verified to have a solution.
             const solution = Solver.fastSolve(this.dict, startWord, targetWord);
             this.dailyGame = new Game("DailyGame", this.dict, solution);
-            AppDisplay.setCookie("DailyGameEnded", "false");
+            this.dailyGameEnded = false;
+            Cookie.set("DailyGameEnded", this.dailyGameEnded);
         } else
             this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
         }
@@ -877,12 +900,17 @@ class AppDisplay extends BaseLogger {
             this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
         } else {
             // TEMPORARY
-            let startWord = "fish";
-            let targetWord = "soup";
+            let startWord = "cat";
+            let targetWord = "dog";
+            this.incrementStat("gamesPlayed");
+            if (this.hardMode) {
+                this.incrementStat("gamesPlayedHardMode");
+            }
 
             const solution = Solver.fastSolve(this.dict, startWord, targetWord);
             this.dailyGame = new Game("DailyGame", this.dict, solution);
-            AppDisplay.setCookie("DailyGameEnded", "false");
+            this.dailyGameEnded = false;
+            Cookie.set("DailyGameEnded", this.dailyGameEnded);
         }
 
         // Now use the daily game to construct the tile display.
@@ -895,7 +923,7 @@ class AppDisplay extends BaseLogger {
     }
 
     constructGameFromCookieWords(name, words) {
-        // Make a copy of the array of words.
+        // Make a copy of the array of words because we will modify it.
         words = [...words];
 
         // The cookie words are the start word, the words played so far, and
@@ -912,6 +940,11 @@ class AppDisplay extends BaseLogger {
         // save in-progress games with good words to the cookies.
         for (let word of words) {
             game.playWord(word);
+        }
+
+        if (name === "DailyGame" && game.isSolved() && !this.dailyGameEnded) {
+            // Save the share graphic, but not stats; stats were already saved when the game completed.
+            this.saveGameInfo(game, false);
         }
 
         return game
@@ -967,22 +1000,30 @@ class AppDisplay extends BaseLogger {
         const path = ElementUtilities.addElementTo("path", svg, {d: svgPath, "data-related-div": relatedDiv});
     }
 
-    // Set the settings flags from the cookie values. If the values were never set,
-    // Cookie.get() will return null and the flag will be set to false.
+    // Set the settings flags and other instance variables from the cookie values.
+    // If the values were never set, Cookie.get() will return null and the the value
+    // will be initialized. Flags will be initialized to false.
     getCookies() {
         this.darkTheme      = Cookie.get("darkTheme") === "true";
         this.colorblindMode = Cookie.get("colorblindMode") === "true";
         this.hardMode       = Cookie.get("hardMode") === "true";
 
+        // Now set the colors based on darkTheme and colorblindMode.
+        this.setColors();
 
+        // The starting word, played words, and target words.
         const dailyGameWords = Cookie.get("DailyGame");
         if (dailyGameWords) {
             this.dailyGameWords = JSON.parse(dailyGameWords);
         } else {
             this.dailyGameWords = null;
         }
+
+        // This keeps track of whether the user clicked the Show Solution button
+        // for the daily game.
         this.dailyGameEnded = Cookie.get("DailyGameEnded") === "true";
 
+        // The starting word, played words, and target words.
         const practiceGameWords = Cookie.get("PracticeGame");
         if (practiceGameWords) {
             this.practiceGameWords = JSON.parse(practiceGameWords);
@@ -990,8 +1031,24 @@ class AppDisplay extends BaseLogger {
             this.practiceGameWords = null;
         }
 
-        // Now set the colors based on darkTheme and colorblindMode.
-        this.setColors();
+        // If we have a cookie for daily stats parse it, otherwise construct initial stats
+        // and save them to the cookies.
+        const dailyStats = Cookie.get("DailyStats");
+        if (dailyStats) {
+            this.dailyStats = JSON.parse(dailyStats);
+        } else {
+            this.dailyStats = {};
+            this.dailyStats.gamesPlayed         = 0;
+            this.dailyStats.gamesPlayedHardMode = 0;
+            this.dailyStats.gamesCompleted      = 0;
+            this.dailyStats.gamesShown          = 0;
+            this.dailyStats.tooManyExtraSteps   = 0;
+            for (let extraSteps = 0; extraSteps < AppDisplay.TOO_MANY_EXTRA_STEPS; extraSteps++) {
+                this.dailyStats[extraSteps] = 0;
+            }
+
+            Cookie.set("DailyStats", JSON.stringify(this.dailyStats));
+        }
     }
 
     // Return the given CSS property value.
@@ -999,12 +1056,70 @@ class AppDisplay extends BaseLogger {
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
     }
 
-    // Return a share string for the specified game.
-    // Note that this is not HTML, but rather just a string, containing some
-    // Unicode characters to construct the graphic.
-    getShareString(game) {
+    // Hide shown divs while showing an auxiliary screen (Help, Settings, Stats).
+    // Keep track of what divs were showing so they can be restored.
+    hideShownDivs() {
+        // To be saved for restoreHiddenDivs() to use.
+        this.activeDivs = [];
+
+        // Go through all the primary divs that were added to the list
+        // during display creation.
+        for (let div of this.primaryDivs) {
+            const divStyle = div.getAttribute("style");
+            // If the "style" attribute does NOT have "none" in it,
+            // then it is showing; save it.
+            if (! divStyle.includes("none")) {
+                this.activeDivs.push(div);
+
+                // Set the attribute "data-save-style" on the div, which will be
+                // used to restore the div.
+                div.setAttribute("data-save-style", divStyle);
+
+                // And hide it.
+                div.setAttribute("style", "display: none;");
+            }
+        }
+    }
+
+    // Increment the given stat, update the stats cookie, and update the stats display content.
+    incrementStat(whichStat) {
+        this.dailyStats[whichStat] += 1;
+        Cookie.set("DailyStats", JSON.stringify(this.dailyStats));
+        this.updateStatsContent();
+    }
+
+    // Return true if we are playing a game (i.e. if practice-div,
+    // used for game setup, is hidden).
+    playingGame() {
+        return ElementUtilities.isHidden(this.practiceDiv)
+    }
+
+    // Restore divs hidden with hideShownDivs().
+    restoreHiddenDivs() {
+        for (let div of this.activeDivs) {
+            // Get the attribute that we saved so we know what style
+            // to put on the div.
+            const divStyle = div.getAttribute("data-save-style");
+
+            // If restoring solution-div, update the colors affected  by settings
+            // and update the game display to make those changes take effect.
+            if (div.getAttribute("id") == "solution-div") {
+                this.setColors();
+                this.updateGameDisplay();
+            }
+
+            // Now set the attribute, which will show the div.
+            div.setAttribute("style", divStyle);
+        }
+    }
+
+    // Save a share graphic and (optionally) update statistics for thie specified game.
+    // Note that the share graphic is not HTML, but rather just a string, containing
+    // some Unicode characters to construct the graphic. The user will not be able
+    // to share unless the game is complete, so here we'll use the known solution.
+    saveGameInfo(game, updateStats) {
         // Get the game's solution, and number of words.
-        // the in-progress words includes the start word, but not the target word;
+        // the known solution includes the start word, but not the target word;
         // the number of steps is the length of the list.
         const userSolution = game.getKnownSolution();
         const userSolutionSteps = userSolution.numSteps();
@@ -1018,24 +1133,30 @@ class AppDisplay extends BaseLogger {
         // game at the very beginning ("the best solution") and then for each step
         // thereafter. Pop off the first number in the history and save that as the
         // minimum solution length.
-        const countHistory = [...game.getCountHistory()];
+        const countHistory = game.getCountHistory();
         const minimumSolutionSteps = countHistory.shift();
+
+        if (updateStats) {
+            this.incrementStat("gamesCompleted");
+        }
 
         // TODO: XXX will be game # eventually
         let shareString = "WordChain #xxx ";
 
         // Determine what emoji to use to show the user's "score".
-        if (userSolutionSteps === minimumSolutionSteps) {
-            // Best score possible gets a star!
-            shareString += AppDisplay.STAR;
+        const extraSteps = userSolutionSteps - minimumSolutionSteps;
+        if (extraSteps >= AppDisplay.TOO_MANY_EXTRA_STEPS) {
+            // Too many extra steps.
+            shareString += AppDisplay.CONFOUNDED;
+            if (updateStats) {
+                this.incrementStat("tooManyExtraSteps");
+            }
         } else {
-            const extraSteps = userSolutionSteps - minimumSolutionSteps;
-            if (extraSteps > 10) {
-                // Too many extra steps; just show a plus.
-                shareString += AppDisplay.PLUS;
-            } else {
-                // Show the number emoji corresponding to how many extra steps.
-                shareString += AppDisplay.NUMBERS[extraSteps];
+            // Show the emoji in NUMBERS corresponding to how many extra steps.
+            // A bit of a misnomer, but the value for 0 is a star.
+            shareString += AppDisplay.NUMBERS[extraSteps];
+            if (updateStats) {
+                this.incrementStat(extraSteps);
             }
         }
 
@@ -1069,61 +1190,7 @@ class AppDisplay extends BaseLogger {
             previousCount = nextCount;
         }
 
-        return shareString;
-    }
-
-    // Hide shown divs while showing an auxiliary screen (Help, Settings, Stats).
-    // Keep track of what divs were showing so they can be restored.
-    hideShownDivs() {
-        // To be saved for restoreHiddenDivs() to use.
-        this.activeDivs = [];
-
-        // Go through all the primary divs that were added to the list
-        // during display creation.
-        for (let div of this.primaryDivs) {
-            const divStyle = div.getAttribute("style");
-            // If the "style" attribute does NOT have "none" in it,
-            // then it is showing; save it.
-            if (! divStyle.includes("none")) {
-                this.activeDivs.push(div);
-
-                // Set the attribute "data-save-style" on the div, which will be
-                // used to restore the div.
-                div.setAttribute("data-save-style", divStyle);
-
-                // And hide it.
-                div.setAttribute("style", "display: none;");
-            }
-        }
-    }
-
-    // Return true if we are playing a game (i.e. if practice-div,
-    // used for game setup, is hidden).
-    playingGame() {
-        return ElementUtilities.isHidden(this.practiceDiv)
-    }
-
-    // Restore divs hidden with hideShownDivs().
-    restoreHiddenDivs() {
-        for (let div of this.activeDivs) {
-            // Get the attribute that we saved so we know what style
-            // to put on the div.
-            const divStyle = div.getAttribute("data-save-style");
-
-            // If restoring solution-div, update the colors affected  by settings
-            // and update the game display to make those changes take effect.
-            if (div.getAttribute("id") == "solution-div") {
-                this.setColors();
-                this.updateGameDisplay();
-            }
-
-            // Now set the attribute, which will show the div.
-            div.setAttribute("style", divStyle);
-        }
-    }
-
-    static setCookie(cookieName, value) {
-        Cookie.set(cookieName, value.toString());
+        this.shareString = shareString;
     }
 
     // Set the given CSS property to the specified value.
@@ -1214,8 +1281,14 @@ class AppDisplay extends BaseLogger {
             this.showSolutionButton.style.display = "block";
         }
 
-        // Show New Game button if playing practice game.
-        if (this.game !== this.dailyGame) {
+        if (this.game === this.dailyGame) {
+            // If daily game has been solved (and the Show Solution button
+            // wasn't used), show share button.
+            if (this.game.isSolved() && !this.dailyGameEnded) {
+                this.shareButton.style.display = "block";
+            }
+        } else {
+            // Show New Game button if playing practice game.
             this.newGameButton.style.display = "block";
         }
 
@@ -1249,6 +1322,73 @@ class AppDisplay extends BaseLogger {
         // Hide solution div and show practice div.
         this.solutionDiv.style.display = "none";
         this.practiceDiv.style.display = "flex";
+    }
+
+    // Update the statistics and distribution graph.
+    updateStatsContent() {
+        // Clear out the containers that we're about to add to.
+        ElementUtilities.deleteChildren(this.statsContainer);
+        ElementUtilities.deleteChildren(this.statsDistribution);
+
+        let oneStat;
+
+        // Local function to add a stat.
+        function addStat(value, label, parentDiv) {
+            oneStat = ElementUtilities.addElementTo("div", parentDiv, {class: "one-stat"});
+            ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-value"}, value);
+            ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-label"}, label);
+        }
+
+        // Calculate percentage stats.
+        const completionPercent = ((this.dailyStats.gamesCompleted / this.dailyStats.gamesPlayed) * 100).toFixed(1);
+        const hardModePercent   = ((this.dailyStats.gamesPlayedHardMode / this.dailyStats.gamesPlayed) * 100).toFixed(1);
+
+        // Add the stats.
+        addStat(this.dailyStats.gamesPlayed, "Played", this.statsContainer);
+        addStat(completionPercent, "Completion %", this.statsContainer);
+        addStat(hardModePercent, "Hard Mode %", this.statsContainer);
+        addStat(this.dailyStats.gamesShown, "Shown", this.statsContainer);
+
+        // Determine the maximum value among all the "extra step values".
+        let maxValue = 0;
+        for (let extraSteps = 0; extraSteps < AppDisplay.TOO_MANY_EXTRA_STEPS; extraSteps++) {
+            if (this.dailyStats[extraSteps] > maxValue) {
+                maxValue = this.dailyStats[extraSteps];
+            }
+        }
+        if (this.dailyStats.tooManyExtraSteps > maxValue) {
+            maxValue = this.dailyStats.tooManyExtraSteps;
+        }
+
+        // Local function to add a bar.
+        function addBar(barValue, barLabel, parentDiv) {
+
+            // Calculate the width of the bar as a percentage of the maximum value determined above.
+            // If width calculates to 0, set it to 5 so there's a bar to contain the value.
+            let width = Math.round((barValue / maxValue) * 100);
+            if (width === 0) {
+                width = 5;
+            }
+
+            // Add a div for this bar.
+            const oneBar = ElementUtilities.addElementTo("div", parentDiv, {class: "one-bar"});
+
+            // Add a div for the "label" -- the emoji for the this bar -- and the bar itself.
+            ElementUtilities.addElementTo("div", oneBar, {class: "one-bar-label"}, barLabel);
+            const bar = ElementUtilities.addElementTo("div", oneBar, {class: "one-bar-bar", style: `width: ${width}%;`});
+
+            // Add a div to the bar for its value.
+            ElementUtilities.addElementTo("div", bar, {class: "one-bar-value"}, barValue);
+        }
+
+        // Add a bar for each of the "regular" values; the emojis for these are in AppDisplay.NUMBERS.
+        for (let extraSteps = 0; extraSteps < AppDisplay.TOO_MANY_EXTRA_STEPS; extraSteps++) {
+            const barValue = this.dailyStats[extraSteps];
+            addBar(barValue, AppDisplay.NUMBERS[extraSteps], this.statsDistribution);
+        }
+
+        // Add a bar for too many extra steps.
+        addBar(this.dailyStats.tooManyExtraSteps, AppDisplay.CONFOUNDED, this.statsDistribution);
     }
 }
 

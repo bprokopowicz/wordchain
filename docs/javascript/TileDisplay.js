@@ -273,10 +273,7 @@ class GameTileDisplay extends TileDisplay {
     // Color the tiles in the game display to indicate for each of the user's
     // played words whether it made the solution longer (red) or not (green).
     colorTiles() {
-        // Make a copy of the game's count history because we're going to shift
-        // all of the items off of it and we don't want to clobber what's in the
-        // game object.
-        let countHistory = [...this.game.getCountHistory()];
+        let countHistory = this.game.getCountHistory();
 
         if (countHistory.length === 0) {
             return;
@@ -331,11 +328,35 @@ class GameTileDisplay extends TileDisplay {
     // This is called when the user clicks the Show Solution button
     // and is simply passed along to the game.
     endGame() {
-        this.game.endGame();
+        // Solution in progress includes start word and all the words
+        // that the user played.
+        const userSolutionWords = this.game.getSolutionInProgress().getWords();
+
+        // Known solution includes start word, the words the user played,
+        // the remaining words for a best solution, and the target word.
+        let wordsToPlay = this.game.getKnownSolution().getWords();
+
+        // Remove the target word from the known solution words. We don't want
+        // to play the target word, because the user doesn't play the target word.
+        wordsToPlay.pop()
+
+        // Remove the words that are already in the user's solution.
+        wordsToPlay.splice(0, userSolutionWords.length);
+
+        // Loop through the words in the known solution that haven't yet been
+        // played and play them. This way, when the game is displayed the solution
+        // will be shown.
+        for (let word of wordsToPlay) {
+            this.game.playWord(word);
+        }
+
         if (this.game.getName() === "PracticeGame") {
             // Clear out the game in the cookies so that if the user reloads
             // and clicks Practice they get taken to the screen to enter letters.
             Cookie.set(this.game.getName(), "");
+        } else {
+            // Save cookie.
+            this.setGameCookie();
         }
     }
 
@@ -357,13 +378,7 @@ class GameTileDisplay extends TileDisplay {
         // played so far plus the target word and save it as a cookie.
         const playResult = this.game.playWord(enteredWord);
         if (playResult === Game.OK) {
-            // The list of solution words includes the start word and all
-            // the words that the user has played. Get a copy of that and
-            // add the target word to it.
-            let solutionWords = [...this.game.getSolutionInProgress().getWords()]
-            solutionWords.push(this.game.getTarget());
-
-            Cookie.set(this.game.getName(), JSON.stringify(solutionWords));
+            this.setGameCookie();
         }
 
         // Return (a translated version of) the result.
@@ -382,6 +397,17 @@ class GameTileDisplay extends TileDisplay {
     // button to start a new practice game.
     setGame(game) {
         this.game = game;
+    }
+
+    // Set the cookie containing the words for the current game.
+    setGameCookie() {
+        // The list of solution words includes the start word and all
+        // the words that the user has played. Get the list and
+        // add the target word to it.
+        let solutionWords = this.game.getSolutionInProgress().getWords();
+        solutionWords.push(this.game.getTarget());
+
+        Cookie.set(this.game.getName(), JSON.stringify(solutionWords));
     }
 
     // This method is called when the user changes the Hard Mode setting.
