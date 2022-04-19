@@ -1367,7 +1367,7 @@ class AppDisplay extends BaseLogger {
             // If width calculates to 0, set it to 5 so there's a bar to contain the value.
             let width = Math.round((barValue / maxValue) * 100);
             if (width === 0) {
-                width = 5;
+                width = 10;
             }
 
             // Add a div for this bar.

@@ -514,6 +514,7 @@ table {
     flex-wrap: wrap;
     justify-content: center;
     color: var(--primary-fg);
+    margin: 1rem;
 }
 
 .auxiliary-container-div h1 {
@@ -631,7 +632,7 @@ a:link {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
-    width: 30rem;
+    width: 20rem;
     margin-bottom: .5rem;
 }
 
@@ -781,5 +782,4 @@ a:link {
     .keyboard-wide-key {
         width: 4.5rem;
     }
-
 }
