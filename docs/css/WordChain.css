@@ -514,7 +514,7 @@ table {
     flex-wrap: wrap;
     justify-content: center;
     color: var(--primary-fg);
-    margin: 1rem;
+    margin: 3rem;
 }
 
 .auxiliary-container-div h1 {
