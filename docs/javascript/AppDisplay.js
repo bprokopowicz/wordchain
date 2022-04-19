@@ -1300,8 +1300,13 @@ class AppDisplay extends BaseLogger {
             console.log("Practice game hide share");
         }
 
-        // Scroll to the bottom of the page so the end of the game is always showing.
-        window.scrollTo(0, document.body.scrollHeight);
+        if (this.gameTileDisplay.getNumFilledWords() <= 5) {
+            // Scroll to top of page to show beginning of game.
+            window.scrollTo(0, 0);
+        } else {
+            // Scroll to the bottom of the page so we show where the play occurs.
+            window.scrollTo(0, document.body.scrollHeight);
+        }
     }
 
     // Update the practice game word selection screen (practice-div).

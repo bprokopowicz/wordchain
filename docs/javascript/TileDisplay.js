@@ -325,6 +325,10 @@ class GameTileDisplay extends TileDisplay {
         }
     }
 
+    getNumFilledWords() {
+        return this.currentRow + 1;
+    }
+
     // This is called when the user clicks the Show Solution button
     // and is simply passed along to the game.
     endGame() {
