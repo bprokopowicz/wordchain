@@ -594,7 +594,7 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.addElementTo("h1", contentDiv, {}, "DAILY GAME STATISTICS");
         this.statsContainer = ElementUtilities.addElementTo("div", contentDiv, {id: "stats-container-div"});
 
-        ElementUtilities.addElementTo("h1", contentDiv, {}, "EXTRA STEPS DISTRIBUTION");
+        ElementUtilities.addElementTo("h1", contentDiv, {}, "EXTRA STEPS COUNTS");
         this.statsDistribution = ElementUtilities.addElementTo("div", contentDiv, {id: "distribution-div"});
 
         // Update the stats content that was set when cookies were retrieved.
@@ -1281,25 +1281,27 @@ class AppDisplay extends BaseLogger {
             this.showSolutionButton.style.display = "block";
         }
 
+        // Show solution div and hide practice div.
+        this.solutionDiv.style.display = "flex";
+        this.practiceDiv.style.display = "none";
+
         if (this.game === this.dailyGame) {
             // If daily game has been solved (and the Show Solution button
             // wasn't used), show share button.
             if (this.game.isSolved() && !this.dailyGameEnded) {
                 this.shareButton.style.display = "block";
+            } else {
+                this.shareButton.style.display = "none";
             }
         } else {
-            // Show New Game button if playing practice game.
+            // Show New Game button if playing practice game, but not share button.
             this.newGameButton.style.display = "block";
+            this.shareButton.style.display = "none";
+            console.log("Practice game hide share");
         }
 
-        // Show solution div and hide practice div.
-        this.solutionDiv.style.display = "flex";
-        this.practiceDiv.style.display = "none";
-
-        window.scroll({
-            top: 0,
-            left: 0,
-        });
+        // Scroll to the bottom of the page so the end of the game is always showing.
+        window.scrollTo(0, document.body.scrollHeight);
     }
 
     // Update the practice game word selection screen (practice-div).
