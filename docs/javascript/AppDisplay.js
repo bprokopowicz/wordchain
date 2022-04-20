@@ -1285,6 +1285,14 @@ class AppDisplay extends BaseLogger {
         this.solutionDiv.style.display = "flex";
         this.practiceDiv.style.display = "none";
 
+        // Get height of keyboard-inner-div and use it to set height of keyboard-div.
+        // This takes care of a really irritating problem with Safari on iOS, in which
+        // keyboard-div is sized with extra space at the top that occludes the game
+        // buttons unnecessarily (i.e. when there is plenty of room for them except
+        // for the extra size of keyboard-div).
+        const innerDivHeight = this.keyboardInnerDiv.offsetHeight;
+        this.keyboardDiv.style.height = `${innerDivHeight}px`
+
         if (this.game === this.dailyGame) {
             // If daily game has been solved (and the Show Solution button
             // wasn't used), show share button.
@@ -1300,7 +1308,7 @@ class AppDisplay extends BaseLogger {
             console.log("Practice game hide share");
         }
 
-        if (this.gameTileDisplay.getNumFilledWords() <= 5) {
+        if (this.gameTileDisplay.getNumFilledWords() <= 2) {
             // Scroll to top of page to show beginning of game.
             window.scrollTo(0, 0);
         } else {
@@ -1329,6 +1337,9 @@ class AppDisplay extends BaseLogger {
         // Hide solution div and show practice div.
         this.solutionDiv.style.display = "none";
         this.practiceDiv.style.display = "flex";
+
+        // Scroll to top of page.
+        window.scrollTo(0, 0);
     }
 
     // Update the statistics and distribution graph.
