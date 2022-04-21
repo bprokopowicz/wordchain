@@ -240,6 +240,11 @@ class AppDisplay extends BaseLogger {
         this.hardMode       = null;
         this.getCookies();
 
+        // Create a backup daily game, in case we cannot get one.
+        const solution = Solver.fastSolve(this.dict, "daily", "broken");
+        this.backupDailyGame = new Game("BackupDailyGame", this.dict, solution);
+
+        // Now, create all the elements.
         this.displayGame();
     }
 
@@ -884,26 +889,35 @@ class AppDisplay extends BaseLogger {
         // to create a new game.
         const todaysDaily = new DailyGame();
 
-        // If we've never saved a daily game number in the cookies or
-        // the number we saved isn't today's game number, set things up
-        // for a new daily game.
-        if ((! this.dailyGameNumber) || (this.dailyGameNumber != todaysDaily.getNumber())) {
-            // New daily game! Save the number and some other data in our object and cookies.
-            this.dailyGameNumber = todaysDaily.getNumber();
-            this.dailyGameEnded  = false;
-            Cookie.set("DailyGameNumber", this.dailyGameNumber);
-            Cookie.set("DailyGameEnded", this.dailyGameEnded);
-            this.incrementStat("gamesPlayed");
-
-            // Create a solution from today's daily game start/target words.
-            // No need to check solution for success -- daily games will be
-            // pre-verified to have a solution.
-            const solution = Solver.fastSolve(this.dict, todaysDaily.getStart(), todaysDaily.getTarget());
-            this.dailyGame = new Game("DailyGame", this.dict, solution);
+        if (! todaysDaily.isValidGame()) {
+            // No daily game? Something went awry; use the backup.
+            this.showToast("Unable to create daily game;<br>here is a fun back-up");
+            this.dailyGame = this.backupDailyGame;
         } else {
-            // Existing daily game; reconstruct it from the cookie (which we've saved
-            // as this.dailyGameWords).
-            this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
+            // If we've never saved a daily game number in the cookies or
+            // the number we saved isn't today's game number, set things up
+            // for a new daily game.
+            if ((! this.dailyGameNumber) || (this.dailyGameNumber != todaysDaily.getNumber())) {
+                // New daily game! Save the number and some other data in our object and cookies.
+                this.dailyGameNumber = todaysDaily.getNumber();
+                this.dailyGameEnded  = false;
+                Cookie.set("DailyGameNumber", this.dailyGameNumber);
+                Cookie.set("DailyGameEnded", this.dailyGameEnded);
+                this.incrementStat("gamesPlayed");
+                if (this.hardMode) {
+                    this.incrementStat("gamesPlayedHardMode");
+                }
+
+                // Create a solution from today's daily game start/target words.
+                // No need to check solution for success -- daily games will be
+                // pre-verified to have a solution.
+                const solution = Solver.fastSolve(this.dict, todaysDaily.getStart(), todaysDaily.getTarget());
+                this.dailyGame = new Game("DailyGame", this.dict, solution);
+            } else {
+                // Existing daily game; reconstruct it from the cookie (which we've saved
+                // as this.dailyGameWords).
+                this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
+            }
         }
 
         /*
@@ -1308,7 +1322,7 @@ class AppDisplay extends BaseLogger {
         const innerDivHeight = this.keyboardInnerDiv.offsetHeight;
         this.keyboardDiv.style.height = `${innerDivHeight}px`
 
-        if (this.game === this.dailyGame) {
+        if (this.game.getName() === "DailyGame") {
             // If daily game has been solved (and the Show Solution button
             // wasn't used), show share button.
             if (this.game.isSolved() && !this.dailyGameEnded) {
@@ -1316,7 +1330,7 @@ class AppDisplay extends BaseLogger {
             } else {
                 this.shareButton.style.display = "none";
             }
-        } else {
+        } else if (this.game.getName() !== "BackupDailyGame") {
             // Show New Game button if playing practice game, but not share button.
             this.newGameButton.style.display = "block";
             this.shareButton.style.display = "none";
