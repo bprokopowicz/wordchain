@@ -73,9 +73,9 @@ class ElementUtilities {
     }
 
     static setButtonCallback(buttonElement, callback) {
-        // When button is clicked we get a PointerEvent. When you hit RETURN after clicking
-        // a button **while the mouse is still in the button** the button retains focus,
-        // and a subsequent RETURN results in BOTH a PointerEvent and a KeyboardEvent.
+        // When button is clicked (in Chrome on MacOS) we get a PointerEvent. When you hit RETURN
+        // after clicking a button **while the mouse is still in the button** the button retains
+        // focus, and a subsequent RETURN results in BOTH a PointerEvent and a KeyboardEvent.
         // When you click a button "normally" (mouse or touch) you just get a PointerEvent.
         // We want to react to the PointerEvents that are from a mouse/touch click, but not
         // those that are from pressing RETURN (because in the case of the practice div,
@@ -90,9 +90,25 @@ class ElementUtilities {
         // button element. If we got PointerEvent with a non-empty pointerType
         // we'll call the "real callback" and otherwise we simply ignore the event.
         function localCallback(theEvent) {
-            if ((theEvent instanceof TouchEvent) ||
-                (theEvent instanceof PointerEvent) &&
-                (theEvent.pointerType.length !== 0)) {
+            const isSafari = navigator.vendor.toLowerCase().includes("apple");
+            var clickEvent;
+            if (isSafari) {
+                if (navigator.appVersion.toLowerCase().includes("mac os")) {
+                    // Safari on MacOS sends MouseEvent, not PointerEvent -- and doesn't define TouchEvent!
+                    // so "theEvent instanceof TouchEvent" results in a syntax error "can't find variable
+                    // TouchEvent". Sigh!
+                    clickEvent = MouseEvent;
+                } else {
+                    // However, Safari on iOS sends TouchEvent when a button is tapped.
+                    clickEvent = TouchEvent;
+                }
+            }
+            // Chrome (on MacOS, at least) sends PointerEvent when a button is clicked;
+            // PointerEvent is derived from MouseEvent, so we don't want to check clickEvent
+            // if the browser is Safari ... sigh!.
+            if ((isSafari && theEvent instanceof clickEvent) ||
+                ((theEvent instanceof PointerEvent) &&
+                 (theEvent.pointerType.length !== 0))) {
                 callback(theEvent);
             }
         }

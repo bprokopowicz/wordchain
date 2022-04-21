@@ -82,6 +82,10 @@
     /* Links */
     --link-fg:                  Blue;
     --visited-link-fg:          Purple;
+
+    /* Stats */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
 }
 
 :root.dark-mode {
@@ -132,6 +136,10 @@
     /* Links */
     --link-fg:                  #5b6ef0;    /* light blue */
     --visited-link-fg:          #9b5bf0;    /* light purple */
+
+    /* Stats */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
 }
 
 * {
@@ -199,7 +207,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     ** it messes up the scrolling of games that no longer fit on the screen -- scrolling up as
     ** far as possible cut off the top row(s) of tiles. If we have both settings, that messes up the
     ** display and the keyboard is to the right of the game tiles, even with the "break div".
-    ** So we shoudln't change these settings because the scrolling works just right now!
+    ** So we shouldn't change these settings because the scrolling works just right now!
     */
     flex-wrap: wrap;
     justify-content: center;
@@ -207,22 +215,28 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     /* This height, plus header-div height must be 100% */
     height: 93%;
 }
+#lower-div div:nth-of-type(4) {
+    flex-basis: 0px;
+}
 
 /* Keyboard Display (for Daily and Practice games) */
 #keyboard-div {
     position: sticky;
     bottom: 0;
     display: flex;
-    flex-shrink: 0;
     flex-direction: column;
     justify-content: flex-end;
     padding: .5rem;
     background: var(--primary-bg);
 }
 
+#keyboard-inner-div {
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
 .keyboard-row {
     display: flex;
-    flex-shrink: 0;
     margin-top: 0;
     margin-right: auto;
     margin-left: auto;
@@ -275,7 +289,6 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     /* This height, plus lower-div height must be 100% */
     height: 7%;
     display: flex;
-    flex-shrink: 0;
     background: var(--header-bg);;
     padding: .5rem;
     margin-bottom: 1rem;
@@ -338,7 +351,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 #practice-div {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 #practice-words-div {
@@ -365,7 +378,6 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    flex-grow: 1;
 }
 
 #game-words-div {
@@ -490,17 +502,33 @@ table {
 }
 
 .auxiliary-container-div {
-    width: 60%;
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     color: var(--primary-fg);
+    margin: 1.5rem;
+}
+
+.auxiliary-container-div h1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.auxiliary-container-div h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+.auxiliary-container-div h3 {
+    font-size: 1rem;
+    font-weight: bold;
+}
+.auxiliary-container-div p {
+    font-size: 1rem;
 }
 
 /*
 ** Help screen
 */
-
 #help-content-div {
 }
 
@@ -552,13 +580,71 @@ a:link {
 */
 
 #stats-content-div {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .stats-tile {
     width: .5rem;
     height: .5rem;
     border-style: none;
+}
+
+/* This holds the group of stats at the top */
+#stats-container-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.one-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: .5rem;
+}
+
+.one-stat-value {
+    font-size: 2rem;
+}
+
+.one-stat-label {
+    font-size: .75rem;
+}
+
+/* This holds the distribution graph */
+#distribution-div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.one-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 20rem;
+    margin-bottom: .5rem;
+}
+
+.one-bar-label {
+    margin-right: .5rem;
+}
+
+.one-bar-bar {
+    background: var(--stats-bar-bg);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.one-bar-value {
+    color: var(--stats-bar-fg);
+    font-weight: bold;
+    margin-right: .5rem;
 }
 
 
@@ -674,6 +760,10 @@ a:link {
         padding: .2rem;
     }
 
+    .auxiliary-container-div {
+        width: 60%;
+    }
+
     .keyboard-key {
         font-size: 2rem;
         width: 3rem;
@@ -685,5 +775,4 @@ a:link {
     .keyboard-wide-key {
         width: 4.5rem;
     }
-
 }
