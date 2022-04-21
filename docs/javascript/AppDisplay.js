@@ -5,6 +5,7 @@ import { Solver } from './Solver.js';
 import { Game } from './Game.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { Cookie } from './Cookie.js';
+import { DailyGame } from './DailyGame.js';
 
 
 /*
@@ -876,26 +877,36 @@ class AppDisplay extends BaseLogger {
         return null;
     }
 
-    // Create today's daily game.
+    // Create and display today's daily game.
     constructDailyGame() {
 
-        /*
-        // Code here will need to look something like:
-        if (time to get a new daily game || ! this.dailyGameWords) {
-            get today's game and set startWord/targetWord
+        // Get today's daily game; we'll use it to determine whether it is time
+        // to create a new game.
+        const todaysDaily = new DailyGame();
+
+        // If we've never saved a daily game number in the cookies or
+        // the number we saved isn't today's game number, set things up
+        // for a new daily game.
+        if ((! this.dailyGameNumber) || (this.dailyGameNumber != todaysDaily.getNumber())) {
+            // New daily game! Save the number and some other data in our object and cookies.
+            this.dailyGameNumber = todaysDaily.getNumber();
+            this.dailyGameEnded  = false;
+            Cookie.set("DailyGameNumber", this.dailyGameNumber);
+            Cookie.set("DailyGameEnded", this.dailyGameEnded);
             this.incrementStat("gamesPlayed");
 
+            // Create a solution from today's daily game start/target words.
             // No need to check solution for success -- daily games will be
             // pre-verified to have a solution.
-            const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+            const solution = Solver.fastSolve(this.dict, todaysDaily.getStart(), todaysDaily.getTarget());
             this.dailyGame = new Game("DailyGame", this.dict, solution);
-            this.dailyGameEnded = false;
-            Cookie.set("DailyGameEnded", this.dailyGameEnded);
-        } else
+        } else {
+            // Existing daily game; reconstruct it from the cookie (which we've saved
+            // as this.dailyGameWords).
             this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
         }
-        */
 
+        /*
         if (this.dailyGameWords) {
             this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
         } else {
@@ -912,6 +923,7 @@ class AppDisplay extends BaseLogger {
             this.dailyGameEnded = false;
             Cookie.set("DailyGameEnded", this.dailyGameEnded);
         }
+        */
 
         // Now use the daily game to construct the tile display.
         this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv);
@@ -1022,6 +1034,9 @@ class AppDisplay extends BaseLogger {
         // This keeps track of whether the user clicked the Show Solution button
         // for the daily game.
         this.dailyGameEnded = Cookie.get("DailyGameEnded") === "true";
+
+        // This keeps track of the most recently played daily game number.
+        this.dailyGameNumber = Cookie.get("DailyGameNumber");
 
         // The starting word, played words, and target words.
         const practiceGameWords = Cookie.get("PracticeGame");
@@ -1305,7 +1320,6 @@ class AppDisplay extends BaseLogger {
             // Show New Game button if playing practice game, but not share button.
             this.newGameButton.style.display = "block";
             this.shareButton.style.display = "none";
-            console.log("Practice game hide share");
         }
 
         if (this.gameTileDisplay.getNumFilledWords() <= 2) {

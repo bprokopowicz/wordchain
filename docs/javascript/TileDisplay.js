@@ -259,6 +259,7 @@ class GameTileDisplay extends TileDisplay {
         super(dict);
 
         this.setGame(game);
+        this.setGameCookie();
         this.dict = dict;
         this.solutionDiv = solutionDiv;
 
