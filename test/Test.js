@@ -475,9 +475,9 @@ class Test extends BaseLogger {
         ElementUtilities.setElementHTML("solveAnswer", solution.toHtml());
     }
 
-    // Puzzle Finder testing
+    // Puzzle Finder 
     displayPuzzleFinderTest() {
-        this.addTitle("Puzzle Finder Tester");
+        this.addTitle("Puzzle Finder");
         ElementUtilities.addElement("label", {}, "Start word: ");
         ElementUtilities.addElement("input", {id: "puzzleFinderStartWord", type: "text"});
         ElementUtilities.addElement("p");
@@ -490,6 +490,19 @@ class Test extends BaseLogger {
         ElementUtilities.addElement("label", {}, "final word len: ");
         ElementUtilities.addElement("input", {id: "puzzleFinderFinalWordLen", type: "text"});
         ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {}, "min steps: ");
+        ElementUtilities.addElement("input", {id: "puzzleFinderMinSteps", type: "text"});
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {}, "max steps: ");
+        ElementUtilities.addElement("input", {id: "puzzleFinderMaxSteps", type: "text"});
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {}, "min difficulty: ");
+        ElementUtilities.addElement("input", {id: "puzzleFinderMinDifficulty", type: "text"});
+        ElementUtilities.addElement("p");
+        ElementUtilities.addElement("label", {}, "max difficulty: ");
+        ElementUtilities.addElement("input", {id: "puzzleFinderMaxDifficulty", type: "text"});
+        ElementUtilities.addElement("p");
+
         ElementUtilities.addElement("button", {id: "puzzleFinderFind"}, "Find!");
         ElementUtilities.addElement("p");
         ElementUtilities.addElement("label", {id: "puzzleFinderAnswer"}, "Click the button to see the target words.");
@@ -505,18 +518,29 @@ class Test extends BaseLogger {
             return;
         }
 
-        const reqWordLen1 = ElementUtilities.getElementValue("puzzleFinderReqWordLen1");
-        const reqWordLen2 = ElementUtilities.getElementValue("puzzleFinderReqWordLen2");
-        const finalWordLen = ElementUtilities.getElementValue("puzzleFinderFinalWordLen");
+        const reqWordLen1 = parseInt(ElementUtilities.getElementValue("puzzleFinderReqWordLen1"));
+        const reqWordLen2 = parseInt(ElementUtilities.getElementValue("puzzleFinderReqWordLen2"));
+        const minSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMinSteps"));
+        const maxSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxSteps"));
+        const minDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMinDifficulty"));
+        const maxDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxDifficulty"));
+        const targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen"));
 
+        
         const goodTargetsWithDifficulty = 
             [...this.fullDict.getWords()]
-            .filter(targetWord => (targetWord.length == finalWordLen))
+            .filter(targetWord => (targetWord.length === targetWordLen))
             .map(targetWord => {
+                console.log("target: ", targetWord, " len is ", targetWord.length);
                 const solution = Solver.fastSolve(this.fullDict, startWord, targetWord);
-                if (solution.isSolved() && 
-                    (solution.getWords().filter(word => (word.length == reqWordLen1)).length > 0) &&
-                    (solution.getWords().filter(word => (word.length == reqWordLen2)).length > 0)) {
+                if ( solution.isSolved() && 
+                    (solution.numSteps() >= minSteps) &&
+                    (solution.numSteps() <= maxSteps) &&
+                    (solution.difficulty >= minDifficulty) &&
+                    (solution.difficulty <= maxDifficulty) &&
+                    (solution.getWords().filter(word => (word.length === reqWordLen1)).length > 0) &&
+                    (solution.getWords().filter(word => (word.length === reqWordLen2)).length > 0)
+                   ) {
                     return [targetWord, solution.difficulty];
                 } else {
                    return [];
