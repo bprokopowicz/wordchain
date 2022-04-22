@@ -25,11 +25,13 @@ class DailyGame {
         const currentDailyGameNumber = Cookie.get("DailyGameNumber");
 
         // Debug-only cookie that can be manually added to reduce a day
-        // to mere minutes.`
+        // to mere minutes.
         const debugIncrement = Cookie.get("DebugDateIncrementMin");
 
         // Are we debugging daily games?
-        if (debugIncrement) {
+        // (Cookies are stored as strings, so if we have a cookie, convert it to a number.)
+        if (debugIncrement && parseInt(debugIncrement)) {
+            console.log("debugging");
             // Yes, we're debugging, so override the standard one day increment.
             DailyGame.DateIncrementMs = debugIncrement * 60 * 1000;
 

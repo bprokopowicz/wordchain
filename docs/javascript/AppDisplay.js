@@ -15,7 +15,6 @@ import { DailyGame } from './DailyGame.js';
 ** - Allow user to enter longer or shorter word than in "ideal solution"?
 **   - show additional tiles with light gray border
 **   - remove "incomplete" message (change to getWordFromTiles())
-** - Maximum of N (3?) practice games per day (per 24 hours?)
 ** - Countdown to new daily game?
 **
 ** Before Sharing with Initial Friends
@@ -185,6 +184,9 @@ class AppDisplay extends BaseLogger {
         "\u{0039}\u{FE0F}\u{20E3}",     // 9
     ]
 
+    static MAX_PRACTICE_GAMES_PER_DAY = 3;
+    static MaxGamesTimePeriod = 24 * 60 *60 * 1000; // one day in ms
+
     /*
     ** ============
     ** CONSTRUCTION
@@ -237,6 +239,15 @@ class AppDisplay extends BaseLogger {
         this.colorblindMode = null;
         this.hardMode       = null;
         this.getCookies();
+
+        // Debug-only cookie that can be manually added to the time period.
+        const debugPracticeGameTimePeriod = Cookie.get("DebugPracticeGameTimePeriod");
+
+        // Are we debugging limiting practice games?
+        // (Cookies are stored as strings, so if we have a cookie, convert it to a number.)
+        if (debugPracticeGameTimePeriod && parseInt(debugPracticeGameTimePeriod)) {
+            AppDisplay.MaxGamesTimePeriod = debugPracticeGameTimePeriod * 60 * 1000;
+        }
 
         // Create a backup daily game, in case we cannot get one.
         const solution = Solver.fastSolve(this.dict, "daily", "broken");
@@ -821,13 +832,46 @@ class AppDisplay extends BaseLogger {
 
     // Callback for the Start Game button in the practice game setup screen.
     startGameCallback() {
+        const now = (new Date()).getTime();
+
+        // Make sure the user hasn't used up their practice games for the day.
+        if (this.practiceGameTimestamps.length >= AppDisplay.MAX_PRACTICE_GAMES_PER_DAY) {
+            let popped = false;
+
+            // See whether any games have aged out. The list is a queue, with the
+            // first item being the oldest.
+            while (this.practiceGameTimestamps.length != 0) {
+                const timeSinceLastGame = now - this.practiceGameTimestamps[0];
+                if (timeSinceLastGame > AppDisplay.MaxGamesTimePeriod) {
+                    // This one has aged out; pop it and note that we popped one,
+                    // i.e. that the user can play a game.
+                    this.practiceGameTimestamps.shift();
+                    popped = true;
+                } else {
+                    // This hasn't aged out, and anything on the list is newer,
+                    // so we're done.
+                    break;
+                }
+            }
+
+            // If we didn't pop anything, all games are too new.
+            if (! popped) {
+                this.showToast(`Only ${AppDisplay.MAX_PRACTICE_GAMES_PER_DAY} games allowed per day`);
+                return;
+            }
+        }
+
+        // Save the timestamp of this game in the instance and cookies.
+        this.practiceGameTimestamps.push(now);
+        Cookie.set("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
+
+        // Get the user's words from the tiles.
         const startWord  = this.practiceTileDisplay.getStartWord();
         const targetWord = this.practiceTileDisplay.getTargetWord();
-        let result;
 
         // Validate that the user's start/target words have actually been entered
         // and are in the dictionary.
-        result = this.checkWord(startWord, "Start");
+        let result = this.checkWord(startWord, "Start");
         if (result !== null) {
             this.showToast(result);
             return;
@@ -1068,6 +1112,15 @@ class AppDisplay extends BaseLogger {
             this.practiceGameWords = JSON.parse(practiceGameWords);
         } else {
             this.practiceGameWords = null;
+        }
+
+        // These timestamps are used to ensure the user doesn't play more than
+        // the maximum number of timestamps per day.
+        const practiceGameTimestamps = Cookie.get("PracticeGameTimestamps");
+        if (practiceGameTimestamps) {
+            this.practiceGameTimestamps = JSON.parse(practiceGameTimestamps);
+        } else {
+            this.practiceGameTimestamps = [];
         }
 
         // If we have a cookie for daily stats parse it, otherwise construct initial stats
