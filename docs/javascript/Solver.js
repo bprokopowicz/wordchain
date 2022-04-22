@@ -243,6 +243,10 @@ class Solution extends BaseLogger {
         return this.wordList[this.wordList.length - 2];
     }
 
+    getStart() {
+        return this.wordList[0];
+    }
+
     getTarget() {
         return this.target;
     }

@@ -16,11 +16,9 @@ import { DailyGame } from './DailyGame.js';
 **   - show additional tiles with light gray border
 **   - remove "incomplete" message (change to getWordFromTiles())
 ** - Maximum of N (3?) practice games per day (per 24 hours?)
-** - Disallow daily game words on practice game
+** - Countdown to new daily game?
 **
 ** Before Sharing with Initial Friends
-** - At least a temporary way to have different daily games for 30 days or so
-**   - How to control when a new daily game is available?
 ** - Create a faq and fix link
 ** - Better help message?
 **
@@ -534,7 +532,7 @@ class AppDisplay extends BaseLogger {
         the background of its letters will be red; otherwise they will be green.
         </p>
         <h3>
-        Every day there will be a new Daily WordChain game, and you can play up to ${AppDisplay.PRACTICE_GAMES_PER_DAY}
+        Every day there will be a new daily WordChain game, and you can play up to ${AppDisplay.PRACTICE_GAMES_PER_DAY}
         practice games per day. Have fun!
         </h3>
         `
@@ -846,6 +844,13 @@ class AppDisplay extends BaseLogger {
             return
         }
 
+        // Don't let them use the same words as the daily game.
+        if ((startWord == this.dailyStartWord && targetWord == this.dailyTargetWord) ||
+            (startWord == this.dailyTargetWord && targetWord == this.dailyStartWord)) {
+            this.showToast("Cannot use the daily game words; nice try, though");
+            return
+        }
+
         // Don't create a game if there is no path to a solution with the selected words.
         const solution = Solver.fastSolve(this.dict, startWord, targetWord);
         if (!solution.success()) {
@@ -919,6 +924,11 @@ class AppDisplay extends BaseLogger {
                 this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
             }
         }
+
+        // Save the start/target words so we can prevent the user from creating
+        // a practice game using these words.
+        this.dailyStartWord = this.dailyGame.getStart();
+        this.dailyTargetWord = this.dailyGame.getTarget();
 
         /*
         if (this.dailyGameWords) {

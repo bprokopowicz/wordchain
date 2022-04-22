@@ -38,6 +38,10 @@ class Game extends BaseLogger {
         return this.solutionInProgress;
     }
 
+    getStart() {
+        return this.knownSolution.getStart();
+    }
+
     getStepCount() {
         return this.knownSolution.numSteps();
     }
