@@ -1,6 +1,7 @@
 import { MinQueue } from 'https://unpkg.com/heapify/heapify.mjs';
 import { BaseLogger } from './BaseLogger.js';
 
+
 // This class is a wrapper for MinQueue from Heapify, which only allows
 // pushing integers onto the heap. The Solver class wants to push Solution
 // objects, so we maintain an object map (just an array of objects, where
@@ -265,7 +266,7 @@ class Solution extends BaseLogger {
     }
 
     isSolved() {
-        return this.target === this.getLastWord();
+        return this.success() && (this.target === this.getLastWord());
     }
 
     isWordInSolution(word) {

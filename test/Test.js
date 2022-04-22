@@ -216,6 +216,7 @@ class Test extends BaseLogger {
         this.testSolverDistance();
         this.testSolverLongChain();
         this.testSolverFastestDirection();
+        this.testSolverReverseSearchNoSolution();
     }
 
     testSolverIdentitySequence() {
@@ -298,6 +299,7 @@ class Test extends BaseLogger {
             this.success();
     }
 
+
     testSolverFastestDirection() {
         this.name = "SolverFastestDirection";
 
@@ -308,6 +310,12 @@ class Test extends BaseLogger {
             this.success();
     }
 
+    testSolverReverseSearchNoSolution() {
+        this.name = "SolverReverseSearchNoSolution";
+        const triedReverseSearchNoSolution = Solver.fastSolve(this.fullDict, "frog", "echo");
+        this.verify(!triedReverseSearchNoSolution.isSolved(), `expected 'No solution' on 'frog' to 'echo'`) &&
+        this.success();
+    }
     /*
     ** Game tests
     */
