@@ -484,6 +484,7 @@ class GameTileDisplay extends TileDisplay {
                 // Determine whether this is the input tile and set style variable accordingly.
                 // The first unfilled tile (in in the current row's word) is the one to receive input.
                 if ((row === this.currentRow) && (! inputTileDetermined) && GameTileDisplay.isUnfilledLetter(letter)) {
+                    this.currentColumn = col;
                     tileColorClass = "tile-enter";
                     inputTileDetermined = true;
                 }

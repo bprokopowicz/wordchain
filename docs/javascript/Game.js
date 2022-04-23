@@ -128,6 +128,9 @@ class Game extends BaseLogger {
                 wordToPush = playedWords[i];
             } else if (i == solutionWords.length - 1) {
                 wordToPush = solutionWords[i];
+            } else if (i == this.solutionInProgress.numSteps() + 1) {
+                const withHints = true;
+                wordToPush = this.showUnguessedWord(solutionWords[i], solutionWords[i-1], withHints);
             } else {
                 wordToPush = this.showUnguessedWord(solutionWords[i], solutionWords[i-1]);
             }
@@ -142,12 +145,16 @@ class Game extends BaseLogger {
         return game;
     }
 
-    showUnguessedWord(word, previousWord) {
+    showUnguessedWord(word, previousWord, withHints=false) {
         let unguessedWord = ""
         if (word.length === previousWord.length) {
             for (let i = 0; i < word.length; i++) {
-                if (word[i] == previousWord[i]) {
-                    unguessedWord += Game.NO_CHANGE;
+                if (word[i] === previousWord[i]) {
+                    if (withHints) {
+                       unguessedWord += previousWord[i]; 
+                    } else {
+                       unguessedWord += Game.NO_CHANGE;
+                    }
                 } else {
                     unguessedWord += Game.CHANGE;
                 }
