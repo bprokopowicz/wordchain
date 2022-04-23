@@ -15,7 +15,6 @@ import { DailyGame } from './DailyGame.js';
 ** - Allow user to enter longer or shorter word than in "ideal solution"?
 **   - show additional tiles with light gray border
 **   - remove "incomplete" message (change to getWordFromTiles())
-** - Countdown to new daily game?
 **
 ** Before Sharing with Initial Friends
 ** - Create a faq and fix link
@@ -609,13 +608,16 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.addElementTo("h1", contentDiv, {}, "DAILY GAME STATISTICS");
         this.statsContainer = ElementUtilities.addElementTo("div", contentDiv, {id: "stats-container-div"});
 
+        ElementUtilities.addElementTo("hr", contentDiv, {});
+
         ElementUtilities.addElementTo("h1", contentDiv, {}, "EXTRA STEPS COUNTS");
         this.statsDistribution = ElementUtilities.addElementTo("div", contentDiv, {id: "distribution-div"});
 
-        // Update the stats content that was set when cookies were retrieved.
-        // If we don't update here, there will be no stats if the user clicks
-        // the stats button.
-        this.updateStatsContent();
+        ElementUtilities.addElementTo("hr", contentDiv, {});
+
+        ElementUtilities.addElementTo("h1", contentDiv, {}, "NEXT DAILY GAME IN");
+        const countdown = ElementUtilities.addElementTo("div", contentDiv, {id: "countdown-div"});
+        this.countdownClock = ElementUtilities.addElementTo("div", countdown, {id: "countdown-clock"});
     }
 
     /* ----- Toast Notifications ----- */
@@ -680,6 +682,11 @@ class AppDisplay extends BaseLogger {
         // do by setting its display to "none".
         const sourceElementId = event.srcElement.getAttribute("data-related-div");
         const sourceElement = ElementUtilities.getElement(sourceElementId);
+
+        if (sourceElementId === "stats-div") {
+            this.stopCountdownClock();
+        }
+
         sourceElement.style.display = "none";
 
         // Now restore the divs that we saved when the auxiliary screen was opened.
@@ -766,6 +773,11 @@ class AppDisplay extends BaseLogger {
         // do by setting its display to "flex".
         const sourceElementId = event.srcElement.getAttribute("data-related-div");
         const sourceElement = ElementUtilities.getElement(sourceElementId);
+
+        if (sourceElementId === "stats-div") {
+            this.updateStatsContent();
+            this.startCountdownClock();
+        }
         sourceElement.style.display = "flex";
     }
 
@@ -1340,6 +1352,29 @@ class AppDisplay extends BaseLogger {
         setTimeout(() => {
             ElementUtilities.editClass(/show/, "hide", this.toastDiv);
         }, 3000);
+    }
+
+    // This is called when the user opens the Stats screen to display a
+    // countdown clock until the next daily game is available.
+    startCountdownClock() {
+        function msToDuration(ms) {
+            return new Date(ms).toISOString().substr(11, 8);
+        }
+
+        // Set the initial clock display.
+        let msUntilNextGame = DailyGame.getMsUntilNextGame();
+        this.countdownClock.textContent = msToDuration(msUntilNextGame);
+
+        // Set a timer to change the clock and display every second.
+        this.clockIntervalTimer = setInterval(() => {
+            msUntilNextGame -= 1000;
+            this.countdownClock.textContent = msToDuration(msUntilNextGame);
+        }, 1000);
+    }
+
+    // This is called when the user Xes out of Stats screen.
+    stopCountdownClock() {
+        clearInterval(this.clockIntervalTimer);
     }
 
     // Update the daily/practice game screen (solution-div).

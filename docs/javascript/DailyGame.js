@@ -54,7 +54,7 @@ class DailyGame {
         // Now, determine the game number and get the game data from the GameWords object.
         // TODO: try/catch and show a toast message.
         if (this.gameNumber in DailyGame.GameWords) {
-            this.gameNumber = this.calculateGameNum();
+            this.gameNumber = DailyGame.calculateGameNum();
             this.gameData = DailyGame.GameWords[this.gameNumber];
             this.validGame = true;
         } else {
@@ -62,7 +62,7 @@ class DailyGame {
         }
     }
 
-    calculateGameNum() {
+    static calculateGameNum() {
         const nowTimestamp = (new Date()).getTime();
         const msElapsed = nowTimestamp - DailyGame.BaseTimestamp;
         return Math.floor(msElapsed / DailyGame.DateIncrementMs) + 1;
@@ -79,6 +79,12 @@ class DailyGame {
     getTarget() {
         return this.gameData.target;
     }
+
+    static getMsUntilNextGame() {
+        const nextGameNum = DailyGame.calculateGameNum() + 1;
+        const nextGameTimestamp = DailyGame.BaseTimestamp + (nextGameNum * DailyGame.DateIncrementMs)
+        return nextGameTimestamp - (new Date()).getTime();
+    };
 
     isValidGame() {
         return this.validGame;

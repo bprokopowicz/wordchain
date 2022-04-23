@@ -153,6 +153,11 @@ html, body {
     background: var(--primary-bg);
 }
 
+hr {
+    /* Need to set this for when it is within a display: flex else it doesn't show up. */
+    width: 100%;
+}
+
 #root-div {
     display: flex;
     flex-direction: column;
@@ -645,6 +650,13 @@ a:link {
     color: var(--stats-bar-fg);
     font-weight: bold;
     margin-right: .5rem;
+}
+
+#countdown-clock {
+    background: var(--primary-bg);
+    color: var(--primary-fg);
+    font-size: 4rem;
+    padding: .5rem;
 }
 
 
