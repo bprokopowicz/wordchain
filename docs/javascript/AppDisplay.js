@@ -17,12 +17,13 @@ import { DailyGame } from './DailyGame.js';
 **   - Hard
 ** - Type saving mode means:
 **   - prefill determined letters in current line [done]
-**   - auto-enter when all letters are filled in
+**   - auto-enter when all letters are filled in -- maybe only when it's a hinted row.
 **   - doesn't display grayed boxes????
 **
 ** Before Sharing with Initial Friends
 ** - Create a faq and fix link
 ** - Better help message
+** - Change practice game max back to 3
 ** - 30 days of daily games
 **
 ** Deployment
@@ -353,7 +354,7 @@ class AppDisplay extends BaseLogger {
         this.practiceDiv.style.display = "none";
         this.primaryDivs.push(this.practiceDiv);
 
-        const helpText = `Words can be up to ${PracticeTileDisplay.MAX_WORD_LENGTH} letters. Press the Return key to enter a word.`
+        const helpText = `Words can be up to ${Game.MAX_WORD_LENGTH} letters. Press the Return key to enter a word.`
         ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText);
 
         // Create a div for selecting practice game start/target words, and create
@@ -529,21 +530,21 @@ class AppDisplay extends BaseLogger {
         to the target word in as few steps as possible.
         </h2>
         <p>
-        A step consists of:
-        <bl>
-        <li>Adding a letter</li>
-        <li>Deleting a letter</li>
-        <li>Changing a letter</li>
-        </bl>
-        </p>
+        A step consists of adding, deleting, or changing a letter.
         <p>
         WordChain shows letter boxes for the shortest solution.
-        When playing in regular mode, the boxes around letters that should be changed
-        are thicker; hard mode eliminates these hints.
+        When playing in normal mode, the boxes around letters that should be changed
+        are thicker. Hard mode eliminates these hints, and type-saver mode fills in
+        the other letters for you.
+        </p>
+        <p>
+        An extra letter is shown with a gray outline in case you want to chose
+        a longer word (and a different solution path) next.
         </p>
         <p>
         If you play a word that increases the number of steps from the start to the target word,
-        the background of its letters will be red; otherwise they will be green.
+        the background of its letters will be red; otherwise they will be green
+        (or orange/blue in colorblind mode).
         </p>
         <h3>
         Every day there will be a new daily WordChain game, and you can play up to ${AppDisplay.PRACTICE_GAMES_PER_DAY}
@@ -761,6 +762,9 @@ class AppDisplay extends BaseLogger {
         // Reset the start/end words so the display will be blank again.
         this.practiceTileDisplay.resetWords();
 
+        // Clear out the cookie for the words played for the current practice game.
+        Cookie.set(this.game.getName(), "");
+
         // The rest is the same as clicking the Practice header button.
         this.practiceCallback();
     }
@@ -836,13 +840,21 @@ class AppDisplay extends BaseLogger {
     }
 
     // Callback for the Show Solution button that appears for both daily and practice games.
+    // (And also back-up daily games.)
     showSolutionCallback() {
-        this.gameTileDisplay.endGame();
+        // Note when the daily game has ended; only the daily game contributes
+        // to stats, so we don't need to keep track of whether practice or
+        // back-up daily games have been ended.
         if (this.game.getName() === "DailyGame") {
             this.dailyGameEnded = true;
             Cookie.set("DailyGameEnded", this.dailyGameEnded);
             this.incrementStat("gamesShown");
         }
+
+        // This call to endGame will play the (remaining) words of the
+        // revealed solution, just like a real game; this sets thing up
+        // for the call to updateGameDisplay().
+        this.gameTileDisplay.endGame();
         this.updateGameDisplay();
     }
 
