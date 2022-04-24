@@ -23,14 +23,12 @@
     --colorblind-bad-light:             #ebaf42;    /* orange */
     --played-word-same-bg-light:        #85daac;    /* green */
     --played-word-longer-bg-light:      #ea9797;    /* red */
-    --invalid-word-letter-fg-light:     #ac0706;    /* red */
 
     /* Dark */
     --colorblind-good-dark:             #2b558c;    /* blue */
     --colorblind-bad-dark:              #d58b04;    /* orange */
     --played-word-same-bg-dark:         #076707;    /* green */
     --played-word-longer-bg-dark:       #ac0706;    /* red */
-    --invalid-word-letter-fg-dark:      #ac0706;    /* red */
 }
 
 :root,
@@ -57,6 +55,7 @@
     /* Tiles and Letters */
     --input-tile-bg:            var(--header-button-input-bg);
     --tile-border:              var(--primary-fg);;
+    --tile-border-grayed:       LightGray;
 
     --start-target-tile-bg:     var(--start-target-active-bg);
     --start-target-letter-fg:   var(--secondary-fg);;
@@ -66,7 +65,6 @@
     /* These properties are affected by changes in the Colorblind Mode setting */
     --played-word-same-bg:      var(--played-word-same-bg-light);
     --played-word-longer-bg:    var(--played-word-longer-bg-light);
-    --invalid-word-letter-fg:   var(--invalid-word-letter-fg-light);
 
     /* Keyboard */
     --key-bg:                   var(--letter-key-inactive-bg);
@@ -111,6 +109,7 @@
     /* Tiles and Letters */
     --input-tile-bg:            var(--game-button-input-bg);
     --tile-border:              var(--primary-fg);;
+    --tile-border-grayed:       LightGray;
 
     --start-target-tile-bg:     var(--start-target-active-bg);
     --start-target-letter-fg:   var(--secondary-fg);;
@@ -120,7 +119,6 @@
     /* These properties are affected by changes in the Colorblind Mode setting */
     --played-word-same-bg:      var(--played-word-same-bg-dark);
     --played-word-longer-bg:    var(--played-word-longer-bg-dark);
-    --invalid-word-letter-fg:   var(--invalid-word-letter-fg-dark);
 
     /* Keyboard */
     --key-bg:                   var(--letter-key-inactive-bg);
@@ -425,6 +423,18 @@ table {
     border-style: none;
 }
 
+.tile-grayed {
+    border-color: var(--tile-border-grayed);
+}
+
+.tile-hidden {
+    border-color: var(--primary-bg);
+}
+
+.tile-not-grayed {
+    border-color: var(--tile-border);
+}
+
 .start-target-tile {
     background: var(--start-target-tile-bg);
 }
@@ -458,14 +468,6 @@ table {
 }
 
 /* Letter div classes */
-
-.is-a-word {
-    color: var(--primary-fg);
-}
-
-.not-a-word {
-    color: var(--invalid-word-letter-fg);
-}
 
 .label-word {
     color: var(--primary-fg);

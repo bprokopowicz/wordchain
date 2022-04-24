@@ -11,6 +11,10 @@ class Game extends BaseLogger {
 
     static NO_CHANGE = "*";
     static CHANGE    = "!";
+    static EXTRA     = "+";
+
+    static MIN_WORD_LENGTH = 3;
+    static MAX_WORD_LENGTH = 6;
 
     constructor(name, dict, solution) {
         super();
@@ -118,14 +122,21 @@ class Game extends BaseLogger {
         let resultStr = "";
 
         let game = []
+        let wordToPush;
         for (let i = 0; i < solutionWords.length; i++) {
             if (i <= this.solutionInProgress.numSteps()) {
-                game.push(playedWords[i])
+                wordToPush = playedWords[i];
             } else if (i == solutionWords.length - 1) {
-                game.push(solutionWords[i])
+                wordToPush = solutionWords[i];
             } else {
-                game.push(this.showUnguessedWord(solutionWords[i], solutionWords[i-1]));
+                wordToPush = this.showUnguessedWord(solutionWords[i], solutionWords[i-1]);
             }
+
+            // Add the "EXTRA" special character to pad the word out to the maximum length.
+            for (let i = wordToPush.length; i < Game.MAX_WORD_LENGTH; i++) {
+                wordToPush += Game.EXTRA;
+            }
+            game.push(wordToPush);
         }
 
         return game;

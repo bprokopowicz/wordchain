@@ -134,7 +134,7 @@ class AppDisplay extends BaseLogger {
 
     static singletonObject = null;
 
-    static PRACTICE_GAMES_PER_DAY = 3;
+    static PRACTICE_GAMES_PER_DAY = 30;
     static TOO_MANY_EXTRA_STEPS   = 6;  // Shouldnt be > 9
 
     // Constants for keyboard action buttons.
@@ -183,7 +183,6 @@ class AppDisplay extends BaseLogger {
         "\u{0039}\u{FE0F}\u{20E3}",     // 9
     ]
 
-    static MAX_PRACTICE_GAMES_PER_DAY = 3;
     static MaxGamesTimePeriod = 24 * 60 *60 * 1000; // one day in ms
 
     /*
@@ -847,7 +846,7 @@ class AppDisplay extends BaseLogger {
         const now = (new Date()).getTime();
 
         // Make sure the user hasn't used up their practice games for the day.
-        if (this.practiceGameTimestamps.length >= AppDisplay.MAX_PRACTICE_GAMES_PER_DAY) {
+        if (this.practiceGameTimestamps.length >= AppDisplay.PRACTICE_GAMES_PER_DAY) {
             let popped = false;
 
             // See whether any games have aged out. The list is a queue, with the
@@ -868,7 +867,7 @@ class AppDisplay extends BaseLogger {
 
             // If we didn't pop anything, all games are too new.
             if (! popped) {
-                this.showToast(`Only ${AppDisplay.MAX_PRACTICE_GAMES_PER_DAY} games allowed per day`);
+                this.showToast(`Only ${AppDisplay.PRACTICE_GAMES_PER_DAY} games allowed per day`);
                 return;
             }
         }
@@ -922,6 +921,7 @@ class AppDisplay extends BaseLogger {
         this.newGameButton.style.display = "block";
         this.practiceGame = new Game("PracticeGame", this.dict, solution);
         this.updateGameDisplay(this.practiceGame);
+        Cookie.set(this.game.getName(), "");
     }
 
     /*
