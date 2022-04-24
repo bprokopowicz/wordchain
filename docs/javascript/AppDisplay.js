@@ -11,21 +11,26 @@ import { DailyGame } from './DailyGame.js';
 /*
 ** TODO:
 ** Implementation
-** - Auto-fill unchanged letters (NOT in hard mode)
-** - Allow user to enter longer or shorter word than in "ideal solution"?
-**   - show additional tiles with light gray border
-**   - remove "incomplete" message (change to getWordFromTiles())
+** - Modify "hard mode" setting to a mode setting with 3 choices:
+**   - Normal
+**   - Type-saving
+**   - Hard
+** - Type saving mode means:
+**   - prefill determined letters in current line [done]
+**   - auto-enter when all letters are filled in
+**   - doesn't display grayed boxes????
 **
 ** Before Sharing with Initial Friends
 ** - Create a faq and fix link
-** - Better help message?
+** - Better help message
+** - 30 days of daily games
 **
 ** Deployment
 ** - How to display/keep track of stats?
 ** - How to create/minify/obscure one big js file
 ** - Buy domain wordchain.com?
 ** - Where to host?
-** - How to manage daily game words?
+** - How to manage daily game words long-term?
 ** - Testing on various browsers/devices
 ** - Cookies: make secure?
 ** - Logo/favicon.ict

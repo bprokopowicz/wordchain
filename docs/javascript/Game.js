@@ -151,7 +151,7 @@ class Game extends BaseLogger {
             for (let i = 0; i < word.length; i++) {
                 if (word[i] === previousWord[i]) {
                     if (withHints) {
-                       unguessedWord += previousWord[i]; 
+                       unguessedWord += previousWord[i];
                     } else {
                        unguessedWord += Game.NO_CHANGE;
                     }
