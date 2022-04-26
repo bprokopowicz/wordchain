@@ -50,18 +50,20 @@ class Test extends BaseLogger {
     }
 
     display() {
+        this.outerDiv = ElementUtilities.addElement("div", {style: "margin: 2rem;"});
+        console.log(this.outerDiv);
         this.displayTestSuite();
         this.displayDictTest();
         this.displaySolverTest();
         this.displayPuzzleFinderTest();
-        ElementUtilities.addElement("hr");
+        ElementUtilities.addElementTo("hr", this.outerDiv);
     }
 
     addTitle(title) {
-        ElementUtilities.addElement("hr");
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("h2", {}, title);
-        ElementUtilities.addElement("p");
+        ElementUtilities.addElementTo("hr", this.outerDiv);
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("h2", this.outerDiv, {}, title);
+        ElementUtilities.addElementTo("p", this.outerDiv);
     }
 
     /*
@@ -70,10 +72,10 @@ class Test extends BaseLogger {
 
     displayTestSuite() {
         this.addTitle("WordChain Test Suite");
-        ElementUtilities.addElement("button", {id: "runTests"}, "Run Tests");
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {id: "testResults"}, "");
-        ElementUtilities.addElement("p");
+        ElementUtilities.addElementTo("button", this.outerDiv, {id: "runTests"}, "Run Tests");
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {id: "testResults"}, "");
+        ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.getElement("runTests").addEventListener("click", runTestsCallback);
     }
@@ -429,7 +431,7 @@ class Test extends BaseLogger {
         let gameWords = game.showGame();
         this.verify(gameWords[1] === "c!t+++") && this.success();
     }
-        
+
     /*
     ** Additional testing assets
     */
@@ -438,13 +440,13 @@ class Test extends BaseLogger {
 
     displayDictTest() {
         this.addTitle("Dictionary Tester");
-        ElementUtilities.addElement("label", {}, "word: ");
-        ElementUtilities.addElement("input", {id: "someWord", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("button", {id: "lookup"}, "lookup");
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {id: "lookupAnswer"}, " Click the button to look up the word.");
-        ElementUtilities.addElement("p");
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "word: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "someWord", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("button", this.outerDiv, {id: "lookup"}, "lookup");
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {id: "lookupAnswer"}, " Click the button to look up the word.");
+        ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.getElement("lookup").addEventListener("click", lookupCallback);
     }
@@ -464,16 +466,16 @@ class Test extends BaseLogger {
 
     displaySolverTest() {
         this.addTitle("Solver Tester");
-        ElementUtilities.addElement("label", {}, "Start word: ");
-        ElementUtilities.addElement("input", {id: "solverStartWord", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {}, "Target word: ");
-        ElementUtilities.addElement("input", {id: "solverTargetWord", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("button", {id: "solve"}, "Solve!");
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {id: "solveAnswer"}, "Click the button to see the chain.");
-        ElementUtilities.addElement("p");
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "Start word: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "solverStartWord", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "Target word: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "solverTargetWord", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("button", this.outerDiv, {id: "solve"}, "Solve!");
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {id: "solveAnswer"}, "Click the button to see the chain.");
+        ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.getElement("solve").addEventListener("click", solveCallback);
     }
@@ -495,38 +497,38 @@ class Test extends BaseLogger {
         ElementUtilities.setElementHTML("solveAnswer", solution.toHtml());
     }
 
-    // Puzzle Finder 
+    // Puzzle Finder
     displayPuzzleFinderTest() {
         this.addTitle("Puzzle Finder");
-        ElementUtilities.addElement("label", {}, "Start word: ");
-        ElementUtilities.addElement("input", {id: "puzzleFinderStartWord", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {}, "required word len 1: ");
-        ElementUtilities.addElement("input", {id: "puzzleFinderReqWordLen1", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {}, "required word len 2: ");
-        ElementUtilities.addElement("input", {id: "puzzleFinderReqWordLen2", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {}, "final word len: ");
-        ElementUtilities.addElement("input", {id: "puzzleFinderFinalWordLen", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {}, "min steps: ");
-        ElementUtilities.addElement("input", {id: "puzzleFinderMinSteps", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {}, "max steps: ");
-        ElementUtilities.addElement("input", {id: "puzzleFinderMaxSteps", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {}, "min difficulty: ");
-        ElementUtilities.addElement("input", {id: "puzzleFinderMinDifficulty", type: "text"});
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {}, "max difficulty: ");
-        ElementUtilities.addElement("input", {id: "puzzleFinderMaxDifficulty", type: "text"});
-        ElementUtilities.addElement("p");
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "Start word: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderStartWord", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 1: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen1", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 2: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen2", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "final word len: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min steps: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinSteps", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "max steps: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxSteps", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min difficulty: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinDifficulty", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "max difficulty: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxDifficulty", type: "text"});
+        ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.addElement("button", {id: "puzzleFinderFind"}, "Find!");
-        ElementUtilities.addElement("p");
-        ElementUtilities.addElement("label", {id: "puzzleFinderAnswer"}, "Click the button to see the target words.");
-        ElementUtilities.addElement("p");
+        ElementUtilities.addElementTo("button", this.outerDiv, {id: "puzzleFinderFind"}, "Find!");
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {id: "puzzleFinderAnswer"}, "Click the button to see the target words.");
+        ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.getElement("puzzleFinderFind").addEventListener("click", puzzleFinderFindCallback);
     }
@@ -546,14 +548,14 @@ class Test extends BaseLogger {
         const maxDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxDifficulty"));
         const targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen"));
 
-        
-        const goodTargetsWithDifficulty = 
+
+        const goodTargetsWithDifficulty =
             [...this.fullDict.getWords()]
             .filter(targetWord => (targetWord.length === targetWordLen))
             .map(targetWord => {
                 console.log("target: ", targetWord, " len is ", targetWord.length);
                 const solution = Solver.fastSolve(this.fullDict, startWord, targetWord);
-                if ( solution.isSolved() && 
+                if ( solution.isSolved() &&
                     (solution.numSteps() >= minSteps) &&
                     (solution.numSteps() <= maxSteps) &&
                     (solution.difficulty >= minDifficulty) &&

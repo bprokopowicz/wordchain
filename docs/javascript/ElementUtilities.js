@@ -2,7 +2,7 @@
 // checking, setting aspects of HTML elements.
 class ElementUtilities {
     static addElement(elementType, attributes=null, innerHTML=null) {
-        ElementUtilities.addElementTo(elementType, document.body, attributes, innerHTML);
+        return ElementUtilities.addElementTo(elementType, document.body, attributes, innerHTML);
     }
 
     static addElementTo(elementType, parent, attributes=null, innerHTML=null) {
