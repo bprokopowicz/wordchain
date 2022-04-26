@@ -11,23 +11,15 @@ import { DailyGame } from './DailyGame.js';
 /*
 ** TODO:
 ** Implementation
-** - Modify "hard mode" setting to a mode setting with 3 choices:
-**   - Normal
-**   - Type-saving
-**   - Hard
-** - Type saving mode means:
-**   - prefill determined letters in current line [done]
-**   - auto-enter when all letters are filled in -- maybe only when it's a hinted row.
-**   - doesn't display grayed boxes????
 **
 ** Before Sharing with Initial Friends
+** - Adjust phone/iPad styling
 ** - Create a faq and fix link
-** - Better help message
+** - Review help message
 ** - Change practice game max back to 3
 ** - 30 days of daily games
 **
 ** Deployment
-** - How to display/keep track of stats?
 ** - How to create/minify/obscure one big js file
 ** - Buy domain wordchain.com?
 ** - Where to host?
@@ -97,6 +89,10 @@ function openAuxiliaryCallback(event) {
 
 function practiceCallback() {
     AppDisplay.singleton().practiceCallback();
+}
+
+function radioCallback(event) {
+    AppDisplay.singleton().radioCallback(event);
 }
 
 function shareCallback() {
@@ -242,6 +238,7 @@ class AppDisplay extends BaseLogger {
         this.darkTheme      = null;
         this.colorblindMode = null;
         this.hardMode       = null;
+        this.typeSavingMode = null;
         this.getCookies();
 
         // Debug-only cookie that can be manually added to the time period.
@@ -255,7 +252,7 @@ class AppDisplay extends BaseLogger {
 
         // Create a backup daily game, in case we cannot get one.
         const solution = Solver.fastSolve(this.dict, "daily", "broken");
-        this.backupDailyGame = new Game("BackupDailyGame", this.dict, solution);
+        this.backupDailyGame = new Game("BackupDailyGame", this.dict, solution, this.typeSavingMode);
 
         // Now, create all the elements.
         this.displayGame();
@@ -557,32 +554,71 @@ class AppDisplay extends BaseLogger {
     /* ----- Settings ----- */
 
     // Add a setting to settings-div's content div.
-    addSetting(title, type, checkboxIdOrLinkDisplay, checkboxOrLinkValue=null, description="") {
+    addSetting(title, settingClass, description="") {
         // Create a div for one setting.
-        const settingDiv = ElementUtilities.addElementTo("div", this.settingsContentDiv, {class: "setting"});
+        const settingDiv = ElementUtilities.addElementTo("div", this.settingsContentDiv, {class: settingClass});
 
         // Create a div for just the text to be displayed.
         const textDiv = ElementUtilities.addElementTo("div", settingDiv, {class: "setting-text"});
         ElementUtilities.addElementTo("div", textDiv, {class: "setting-title"}, title);
         ElementUtilities.addElementTo("div", textDiv, {class: "setting-description"}, description);
 
-        // Create a div to hold the interactive part.
-        const interactiveDiv = ElementUtilities.addElementTo("div", settingDiv, {});
+        // Create and return a div to hold the interactive part.
+        return ElementUtilities.addElementTo("div", settingDiv, {});
+    }
 
-        // Based on the type passed in, create the "interactive element".
-        if (type === "checkbox") {
-            const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
-                {type: "checkbox", id: checkboxIdOrLinkDisplay, class: "setting-checkbox"});
-            checkbox.addEventListener("change", checkboxCallback);
-            checkbox.checked = checkboxOrLinkValue;
-        } else if (type === "link") {
-            ElementUtilities.addElementTo("a", interactiveDiv, {href: checkboxOrLinkValue}, checkboxIdOrLinkDisplay);
+    // Add a setting whose input is a checkbox.
+    addCheckboxSetting(title, id, value, description) {
+        // setting-simple class styles the contents of the setting (title/description,
+        // checkbox input) horizontally.
+        const interactiveDiv = this.addSetting(title, "setting-simple", description);
+
+        const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
+            {type: "checkbox", id: id, class: "setting-checkbox"});
+        checkbox.addEventListener("change", checkboxCallback);
+        checkbox.checked = value;
+    }
+
+    // Add a setting whose "input" is clicking a link.
+    addLinkSetting(title, linkText, linkHref, description) {
+        // setting-simple class styles the contents of the setting (title/description, link)
+        // horizontally.
+        const interactiveDiv = this.addSetting(title, "setting-simple", description);
+        ElementUtilities.addElementTo("a", interactiveDiv, {href: linkHref}, linkText);
+    }
+
+    // Add a setting whose input is a (mutually exclusive) set of radio buttons.
+    addRadioSetting(title, radioInfoList, radioName, description) {
+        // setting-complex class styles the contents of the setting (title/description, radio inputs
+        // and their labels) vertically, i.e. title/description on one line, then each input on
+        // a subsequent line.
+        const interactiveDiv = this.addSetting(title, "setting-complex", description);
+
+        // To get nice formatting, especially on smaller devices where the description will wrap,
+        // create a table.
+        const table = ElementUtilities.addElementTo("table", interactiveDiv, {class: "radio-container"});
+
+        // radioInfoList is a list of objects containing properties: id, description, and checked.
+        for (let radioInfo of radioInfoList) {
+            // One row for each option.
+            const tableRow = ElementUtilities.addElementTo("tr", table, {});
+
+            // Column 1: the radio input. Set its checked attribute according to the info,
+            // and add an event listener to handle changes to it. We'll use the same listener
+            // for all the radio inputs.
+            const tdCol1 = ElementUtilities.addElementTo("td", tableRow, {});
+            const radio = ElementUtilities.addElementTo("input", tdCol1,
+                {id: radioInfo.id, value: radioInfo.id, name: radioName, class: "setting-radio", type: "radio"});
+            radio.checked = radioInfo.checked;
+            radio.addEventListener("change", radioCallback);
+
+            // Column 2: the description of the radio item.
+            const tdCol2 = ElementUtilities.addElementTo("td", tableRow, {});
+            ElementUtilities.addElementTo("label", tdCol2, {class: "radio-label"}, radioInfo.desc);
         }
     }
 
     createSettingsDiv() {
-        const hardModeDescription = "Letter-change steps are not indicated with a thick letter box outline";
-        const feedbackDescription = "Dictionary suggestions? Gripes? Things you love? Feature ideas?";
 
         let settingsContainerDiv;
         [this.settingsDiv, settingsContainerDiv] = this.createAuxiliaryDiv("settings-div", closeAuxiliaryCallback);
@@ -592,12 +628,29 @@ class AppDisplay extends BaseLogger {
         this.settingsContentDiv = ElementUtilities.addElementTo("div", settingsContainerDiv, {id: "settings-content-div",});
         ElementUtilities.addElementTo("h1", this.settingsContentDiv, {align: "center"}, "SETTINGS");
 
-        //              title              type         checkboxIdOrLinkDisplay  checkboxOrLinkValue     description
-        this.addSetting("Dark Theme",      "checkbox",  "dark",                  this.darkTheme);
-        this.addSetting("Colorblind Mode", "checkbox",  "colorblind",            this.colorblindMode);
-        this.addSetting("Hard Mode",       "checkbox",  "hard",                  this.hardMode,          hardModeDescription);
-        this.addSetting("Feedback",        "link",      "Email",                 AppDisplay.EMAIL_HREF,  feedbackDescription);
-        this.addSetting("Questions?",      "link",      "FAQ",                   AppDisplay.FAQ_HREF);
+        // All the settings will be added to settings-content-div.
+        this.addCheckboxSetting("Dark Theme",      "dark",                  this.darkTheme);
+        this.addCheckboxSetting("Colorblind Mode", "colorblind",            this.colorblindMode);
+
+        const radioInfo = [{
+                id:      "Normal",
+                desc:    "<b>Normal:</b> Letter-change steps are indicated with a thick letter box outline",
+                checked: !(this.hardMode || this.typeSavingMode),
+            }, {
+                id:      "Type-Saving",
+                desc:    "<b>Type-Saving:</b> Letters are automatically filled in when the word has not changed length",
+                checked: this.typeSavingMode,
+            }, {
+                id:      "Hard",
+                desc:    "<b>Hard:</b> No automatically filled letters or thick outline",
+                checked: this.hardMode,
+            }
+        ]
+        this.addRadioSetting("Game Play Mode", radioInfo, "game-play-mode");
+
+        const feedbackDescription = "Dictionary suggestions? Gripes? Things you love? Feature ideas?";
+        this.addLinkSetting("Feedback",   "Email", AppDisplay.EMAIL_HREF, feedbackDescription);
+        this.addLinkSetting("Questions?", "FAQ",   AppDisplay.FAQ_HREF);
     }
 
     /* ----- Stats ----- */
@@ -607,7 +660,7 @@ class AppDisplay extends BaseLogger {
         [this.statsDiv, statsContainerDiv] = this.createAuxiliaryDiv("stats-div", closeAuxiliaryCallback);
 
         // Add a div for the content, which will be centered (because of the styling of aux-container-div).
-        // within settingsContainerDiv as a block (because of stats-content-div styling).
+    // within settingsContainerDiv as a block (because of stats-content-div styling).
         const contentDiv = ElementUtilities.addElementTo("div", statsContainerDiv, {id: "stats-content-div",});
 
         ElementUtilities.addElementTo("h1", contentDiv, {}, "DAILY GAME STATISTICS");
@@ -655,12 +708,6 @@ class AppDisplay extends BaseLogger {
             Cookie.set("colorblindMode", this.colorblindMode);
             this.setColors();
 
-        } else if (checkboxId === "hard") {
-            this.hardMode = event.srcElement.checked ? true : false;
-            Cookie.set("hardMode", this.hardMode);
-            // Hard mode is implemented in the game tile display,
-            // so tell it what mode we are in now.
-            this.gameTileDisplay.setHardMode(this.hardMode);
         }
     }
 
@@ -823,6 +870,30 @@ class AppDisplay extends BaseLogger {
         // No other keys cause a change.
     }
 
+    // Callback for Settings radio button changes.
+    radioCallback(event) {
+        const selection = event.srcElement.value;
+        if (selection == "Hard") {
+            this.hardMode = true;
+            this.typeSavingMode = false;
+        } else if (selection === "Type-Saving") {
+            this.typeSavingMode = true;
+            this.hardMode = false;
+        } else {
+            this.typeSavingMode = false;
+            this.hardMode = false;
+        }
+
+        // Save both cookies.
+        Cookie.set("hardMode", this.hardMode);
+        Cookie.set("typeSavingMode", this.typeSavingMode);
+
+        // Hard and Type-Saving modes are implemented in the game tile display,
+        // so tell it what our modes are now.
+        this.gameTileDisplay.setHardMode(this.hardMode);
+        this.gameTileDisplay.setTypeSavingMode(this.typeSavingMode);
+    }
+
     // Callback for the Share button on the Stats screen.
     shareCallback() {
         if (navigator.share) {
@@ -936,9 +1007,8 @@ class AppDisplay extends BaseLogger {
         }
 
         this.newGameButton.style.display = "block";
-        this.practiceGame = new Game("PracticeGame", this.dict, solution);
+        this.practiceGame = new Game("PracticeGame", this.dict, solution, this.typeSavingMode);
         this.updateGameDisplay(this.practiceGame);
-        Cookie.set(this.game.getName(), "");
     }
 
     /*
@@ -990,7 +1060,7 @@ class AppDisplay extends BaseLogger {
                 // No need to check solution for success -- daily games will be
                 // pre-verified to have a solution.
                 const solution = Solver.fastSolve(this.dict, todaysDaily.getStart(), todaysDaily.getTarget());
-                this.dailyGame = new Game("DailyGame", this.dict, solution);
+                this.dailyGame = new Game("DailyGame", this.dict, solution, this.typeSavingMode);
             } else {
                 // Existing daily game; reconstruct it from the cookie (which we've saved
                 // as this.dailyGameWords).
@@ -1023,8 +1093,12 @@ class AppDisplay extends BaseLogger {
         */
 
         // Now use the daily game to construct the tile display.
-        this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv);
+        this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv, this);
+
+        // Hard and Type-Saving modes are implemented in the game tile display,
+        // so tell it what our modes are.
         this.gameTileDisplay.setHardMode(this.hardMode);
+        this.gameTileDisplay.setTypeSavingMode(this.typeSavingMode);
 
         // Now, pretend the user clicked the Daily button, because we need
         // to do exactly the same thing.
@@ -1042,7 +1116,7 @@ class AppDisplay extends BaseLogger {
         const solution = Solver.fastSolve(this.dict, startWord, targetWord);
 
         // Use the solution to create a new game.
-        let game = new Game(name, this.dict, solution);
+        let game = new Game(name, this.dict, solution, this.typeSavingMode);
 
         // The words remaining in the list are the words that the user played;
         // play the game with them. No need to check the result because we only
@@ -1116,6 +1190,7 @@ class AppDisplay extends BaseLogger {
         this.darkTheme      = Cookie.get("darkTheme") === "true";
         this.colorblindMode = Cookie.get("colorblindMode") === "true";
         this.hardMode       = Cookie.get("hardMode") === "true";
+        this.typeSavingMode = Cookie.get("typeSavingMode") === "true";
 
         // Now set the colors based on darkTheme and colorblindMode.
         this.setColors();

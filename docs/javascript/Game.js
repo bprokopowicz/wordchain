@@ -16,7 +16,7 @@ class Game extends BaseLogger {
     static MIN_WORD_LENGTH = 3;
     static MAX_WORD_LENGTH = 6;
 
-    constructor(name, dict, solution) {
+    constructor(name, dict, solution, typeSavingMode=false) {
         super();
         this.name = name;
         this.dict = dict;
@@ -24,6 +24,7 @@ class Game extends BaseLogger {
         this.solutionInProgress = new Solution([solution.getFirstWord()], solution.target);
         this.stepCountHistory = [];
         this.stepCountHistory.push(this.getStepCount());
+        this.typeSavingMode = typeSavingMode;
     }
 
     getCountHistory() {
@@ -62,6 +63,10 @@ class Game extends BaseLogger {
 
         const nextWords = this.dict.findNextWords(lastWord);
         return nextWords.has(this.knownSolution.target);
+    }
+
+    static isTypeSavingWord(word) {
+        return word.includes(Game.CHANGE) && ! word.includes(Game.NO_CHANGE);
     }
 
     playWord(word) {
@@ -116,6 +121,10 @@ class Game extends BaseLogger {
         }
     }
 
+    setTypeSavingMode(mode) {
+        this.typeSavingMode = mode;
+    }
+
     showGame() {
         let playedWords = this.solutionInProgress.getWords();
         let solutionWords = this.knownSolution.getWords();
@@ -129,8 +138,7 @@ class Game extends BaseLogger {
             } else if (i == solutionWords.length - 1) {
                 wordToPush = solutionWords[i];
             } else if (i == this.solutionInProgress.numSteps() + 1) {
-                const withHints = true;
-                wordToPush = this.showUnguessedWord(solutionWords[i], solutionWords[i-1], withHints);
+                wordToPush = this.showUnguessedWord(solutionWords[i], solutionWords[i-1], this.typeSavingMode);
             } else {
                 wordToPush = this.showUnguessedWord(solutionWords[i], solutionWords[i-1]);
             }

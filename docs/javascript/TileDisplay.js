@@ -43,6 +43,8 @@ class TileDisplay extends BaseLogger {
     // This will NOT appear as a Toast Notification
     static OK = "OK"
 
+    static ENTER_KEY = "↵";
+
     constructor(dict) {
         super();
         this.dict = dict;
@@ -237,13 +239,13 @@ class GameTileDisplay extends TileDisplay {
     // Mapping from Game class values to TileDisplay/GameTileDisplay values.
     static GAME_TO_TILE_DISPLAY = {};
 
-    constructor(game, dict, solutionDiv) {
+    constructor(game, dict, solutionDiv, appDisplay) {
         super(dict);
 
         this.setGame(game);
-        this.setGameCookie();
         this.dict = dict;
         this.solutionDiv = solutionDiv;
+        this.appDisplay = appDisplay;
 
         this.hardMode = false;
 
@@ -369,7 +371,7 @@ class GameTileDisplay extends TileDisplay {
         }
 
         // Play the word. If the word was OK, construct an array of the words
-        // played so far plus the target word and save it as a cookie.
+        // played so far, plus the target word, and save it as a cookie.
         const playResult = this.game.playWord(enteredWord);
         if (playResult === Game.OK) {
             this.setGameCookie();
@@ -384,6 +386,31 @@ class GameTileDisplay extends TileDisplay {
     keyPressLetter(keyValue) {
         // Display tiles up to the the current word's length.
         super.keyPressLetter(keyValue, this.getCurrentWordLength());
+
+        if (this.typeSavingMode) {
+            // Determine whether all tiles in the current word have letters.
+            let wordComplete = true;
+            for (let col = 1; col <= Game.MAX_WORD_LENGTH; col++) {
+                const letterElement = TileDisplay.getLetterElement(this.currentRow, col);
+                const letter = letterElement.innerHTML;
+                if (letter == Game.EXTRA) {
+                    break;
+                }
+                if (! ElementUtilities.isLetter(letter)) {
+                    wordComplete = false;
+                    break;
+                }
+            }
+
+            // If the current word is a type-saving word, and all the letters are filled in,
+            // then automatically "press" enter. We do this by calling back to AppDisplay's
+            // callback, so we get the exact same behavior. Note that this.currentWord is
+            // the word as returned from Game.showGame(), and now we ask the Game class to
+            // let us know if it's a word to which type-saving was applied.
+            if (Game.isTypeSavingWord(this.currentWord) && wordComplete) {
+                this.appDisplay.gameKeyboardCallback(TileDisplay.ENTER_KEY);
+            }
+        }
     }
 
     // This method is called when the user clicks the Daily and Practice
@@ -391,6 +418,7 @@ class GameTileDisplay extends TileDisplay {
     // button to start a new practice game.
     setGame(game) {
         this.game = game;
+        this.setGameCookie();
     }
 
     // Set the cookie containing the words for the current game.
@@ -404,9 +432,15 @@ class GameTileDisplay extends TileDisplay {
         Cookie.set(this.game.getName(), JSON.stringify(solutionWords));
     }
 
-    // This method is called when the user changes the Hard Mode setting.
+    // This method is called when the user changes the Game Play Mode setting.
     setHardMode(hardMode) {
         this.hardMode = hardMode;
+    }
+
+    // This method is called when the user changes the Game Play Mode setting.
+    setTypeSavingMode(typeSavingMode) {
+        this.typeSavingMode = typeSavingMode;
+        this.game.setTypeSavingMode(typeSavingMode);
     }
 
     // Show the game steps given, either a daily/practice game in progress or a solution.
@@ -417,8 +451,10 @@ class GameTileDisplay extends TileDisplay {
         const tableElement = ElementUtilities.addElementTo("table", this.solutionDiv);
         const tbodyElement = ElementUtilities.addElementTo("tbody", tableElement);
 
-        // This will hold the row number where letters typed/clicked will go.
+        // These will hold the row number where letters typed/clicked will go,
+        // and the corresponding word from wordList.
         this.currentRow = null;
+        this.currentWord = "";
 
         // This will hold the column number where the next letter typed/clicked
         // will go (until ENTER) -- it is changed in keyPressLetter/Enter/Delete().
@@ -478,7 +514,8 @@ class GameTileDisplay extends TileDisplay {
                 // an unfilled letter is the current row.
                 // is the current row.
                 if ((this.currentRow === null) && GameTileDisplay.isUnfilledLetter(letter)) {
-                    this.currentRow = row;
+                    this.currentRow  = row;
+                    this.currentWord = word;
                 }
 
                 // Determine whether this is the input tile and set style variable accordingly.

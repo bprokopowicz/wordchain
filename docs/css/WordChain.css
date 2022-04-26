@@ -547,7 +547,7 @@ table {
     display: block;
 }
 
-.setting {
+.setting-simple {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -562,6 +562,7 @@ table {
 
 .setting-title {
     font-size: 1rem;
+    font-weight: bold;
 }
 
 .setting-description {
@@ -580,6 +581,29 @@ a:link {
 
 a:link {
     color: var(--visited-link-fg);
+}
+
+.setting-complex {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--setting-separator);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+input.setting-radio {
+    width: 1rem;
+    height: 1rem;
+    margin-right: .5rem;
+}
+
+.radio-container {
+    margin-top: 1rem;
+}
+
+.radio-label {
+    font-size: 1rem;
 }
 
 /*
