@@ -1336,8 +1336,7 @@ class AppDisplay extends BaseLogger {
             this.incrementStat("gamesCompleted");
         }
 
-        // TODO: XXX will be game # eventually
-        let shareString = "WordChain #xxx ";
+        let shareString = `WordChain #${this.dailyGameNumber} `;
 
         // Determine what emoji to use to show the user's "score".
         const extraSteps = userSolutionSteps - minimumSolutionSteps;

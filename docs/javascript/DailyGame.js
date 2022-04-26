@@ -2,7 +2,7 @@ import { Cookie } from './Cookie.js';
 
 class DailyGame {
     // TODO: Update!
-    static BaseDate = new Date("2022-04-20T00:00:00.000+00:00");
+    static BaseDate = new Date("2022-04-26T00:00:00.000+00:00");
     static BaseTimestamp = null;
     static DateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
@@ -30,8 +30,7 @@ class DailyGame {
 
         // Are we debugging daily games?
         // (Cookies are stored as strings, so if we have a cookie, convert it to a number.)
-        if (debugIncrement && parseInt(debugIncrement)) {
-            console.log("debugging");
+        if (debugIncrement && parseInt(debugIncrement) != 0) {
             // Yes, we're debugging, so override the standard one day increment.
             DailyGame.DateIncrementMs = debugIncrement * 60 * 1000;
 
@@ -53,8 +52,8 @@ class DailyGame {
 
         // Now, determine the game number and get the game data from the GameWords object.
         // TODO: try/catch and show a toast message.
+        this.gameNumber = DailyGame.calculateGameNum();
         if (this.gameNumber in DailyGame.GameWords) {
-            this.gameNumber = DailyGame.calculateGameNum();
             this.gameData = DailyGame.GameWords[this.gameNumber];
             this.validGame = true;
         } else {

@@ -357,6 +357,15 @@ class GameTileDisplay extends TileDisplay {
     }
 
     // This method is called from the hard or soft keydown callback in the AppDisplay
+    // class when the BACKSPACE key is pressed during game play.
+    keyPressDelete() {
+        if (this.typeSavingMode) {
+            return;
+        }
+        super.keyPressDelete();
+    }
+
+    // This method is called from the hard or soft keydown callback in the AppDisplay
     // class when the ENTER key is pressed to enter a word during game play.
     keyPressEnter() {
         const enteredWord = this.getWordFromTiles();
