@@ -327,6 +327,7 @@ class Test extends BaseLogger {
         this.testGameCompleteSmallDict();
         this.testGameCompleteFullDict();
         this.testGameSolutionCannotHavePlayedWord();
+        this.testGameTypeSavingMode();
     }
 
     testGameCorrectFirstWord() {
@@ -390,6 +391,7 @@ class Test extends BaseLogger {
     }
 
     testGameCompleteFullDict() {
+        this.name = "GameCompleteFullDict";
         const origSolution = Solver.fastSolve(this.fullDict, "bad", "word");
         const game = new Game("full", this.fullDict, origSolution);
         const origStep2 = game.getKnownSolution().getWordByStep(2)
@@ -407,6 +409,7 @@ class Test extends BaseLogger {
     }
 
     testGameSolutionCannotHavePlayedWord() {
+        this.name = "GameSolutionCannotHavePlayedWord";
         const origSolution = Solver.fastSolve(this.fullDict, "cat", "dog");
         const game = new Game("full", this.fullDict, origSolution);
 
@@ -418,6 +421,15 @@ class Test extends BaseLogger {
             this.success();
     }
 
+    testGameTypeSavingMode() {
+        this.name = "GameTypeSavingMode";
+        const origSolution = Solver.fastSolve(this.fullDict, "cat", "dog");
+        const typeSavingMode = true;
+        const game = new Game("full", this.fullDict, origSolution, typeSavingMode);
+        let gameWords = game.showGame();
+        this.verify(gameWords[1] === "c!t+++") && this.success();
+    }
+        
     /*
     ** Additional testing assets
     */
