@@ -6,6 +6,7 @@ import { Game } from './Game.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { Cookie } from './Cookie.js';
 import { DailyGame } from './DailyGame.js';
+import * as Const from './Const.js';
 
 
 /*
@@ -66,10 +67,10 @@ function dailyCallback() {
 
 function hardKeyboardCallback(event) {
     if (event.key == "Backspace") {
-        AppDisplay.singleton().keyboardCallback(AppDisplay.BACKSPACE);
+        AppDisplay.singleton().keyboardCallback(Const.BACKSPACE);
     }
     else if (event.key == "Enter") {
-        AppDisplay.singleton().keyboardCallback(AppDisplay.ENTER);
+        AppDisplay.singleton().keyboardCallback(Const.ENTER);
     } else {
         AppDisplay.singleton().keyboardCallback(event.key.toString().toLowerCase());
     }
@@ -116,8 +117,7 @@ function startGameCallback() {
 
 
 // Synchronously wait for the word list to download.
-const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
-const globalWordList = await fetch(url)
+const globalWordList = await fetch(Const.DICT_URL)
   .then(resp => resp.text())
   .then(text => text.split("\n"));
 
@@ -135,28 +135,6 @@ class AppDisplay extends BaseLogger {
     */
 
     static singletonObject = null;
-
-    static PRACTICE_GAMES_PER_DAY = 30;
-    static TOO_MANY_EXTRA_STEPS   = 6;  // Shouldnt be > 9
-
-    // Constants for keyboard action buttons.
-    static BACKSPACE = "←";
-    static ENTER = "↵";
-
-    // SVG (Scalable Vector Graphics) paths for keyboard keys, copy/pasted from
-    // various corners of the interwebs.
-    static BACKSPACE_PATH = "M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z";
-    static ENTER_PATH = "M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7h-2z";
-
-    // SVG paths for icons.
-    static CLOSE_PATH = "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
-    static HELP_PATH = "M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z";
-    static MENU_PATH = "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z";
-    static SETTINGS_PATH = "M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z";
-    static STATS_PATH = "M16,11V3H8v6H2v12h20V11H16z M10,5h4v14h-4V5z M4,11h4v8H4V11z M20,19h-4v-6h4V19z";
-
-    static EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
-    static FAQ_HREF = "http://www.prokopowicz.org";
 
     // Emoji code strings for share string
     static RED_SQUARE     = "\u{1F7E5}";     // Extra steps in graphic
@@ -336,9 +314,9 @@ class AppDisplay extends BaseLogger {
         const rightButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "right-button-div"});
 
         const buttonClass = "header-aux-button"
-        this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, AppDisplay.HELP_PATH, "help-div");
-        this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, AppDisplay.STATS_PATH, "stats-div");
-        this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, AppDisplay.SETTINGS_PATH, "settings-div");
+        this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, Const.HELP_PATH, "help-div");
+        this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, Const.STATS_PATH, "stats-div");
+        this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, Const.SETTINGS_PATH, "settings-div");
     }
 
     /* ----- GAME SETUP AND PLAY SCREENS ----- */
@@ -351,7 +329,7 @@ class AppDisplay extends BaseLogger {
         this.practiceDiv.style.display = "none";
         this.primaryDivs.push(this.practiceDiv);
 
-        const helpText = `Words can be up to ${Game.MAX_WORD_LENGTH} letters. Press the Return key to enter a word.`
+        const helpText = `Words can be up to ${Const.MAX_WORD_LENGTH} letters. Press the Return key to enter a word.`
         ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText);
 
         // Create a div for selecting practice game start/target words, and create
@@ -424,10 +402,10 @@ class AppDisplay extends BaseLogger {
     // This method is used to add the ENTER and BACKSPACE buttons.
     addActionButton(rowElement, letter) {
         let svgPath;
-        if (letter === AppDisplay.ENTER) {
-            svgPath = AppDisplay.ENTER_PATH;
+        if (letter === Const.ENTER) {
+            svgPath = Const.ENTER_PATH;
         } else {
-            svgPath = AppDisplay.BACKSPACE_PATH;
+            svgPath = Const.BACKSPACE_PATH;
         }
 
         const button = ElementUtilities.addElementTo("button", rowElement, {'data-key': letter, class: "keyboard-key keyboard-wide-key"});
@@ -496,7 +474,7 @@ class AppDisplay extends BaseLogger {
         this.addSpacer(row2);
 
         // Add keys for row 3, which has the BACKSPACE/ENTER "action buttons" on the left and right.
-        this.addActionButton(row3, AppDisplay.BACKSPACE);
+        this.addActionButton(row3, Const.BACKSPACE);
         this.addLetterButton(row3, "z");
         this.addLetterButton(row3, "x");
         this.addLetterButton(row3, "c");
@@ -504,7 +482,7 @@ class AppDisplay extends BaseLogger {
         this.addLetterButton(row3, "b");
         this.addLetterButton(row3, "n");
         this.addLetterButton(row3, "m");
-        this.addActionButton(row3, AppDisplay.ENTER);
+        this.addActionButton(row3, Const.ENTER);
 
         // Add the same click callback to each button.
         for (let button of this.keyboardButtons) {
@@ -544,7 +522,7 @@ class AppDisplay extends BaseLogger {
         (or orange/blue in colorblind mode).
         </p>
         <h3>
-        Every day there will be a new daily WordChain game, and you can play up to ${AppDisplay.PRACTICE_GAMES_PER_DAY}
+        Every day there will be a new daily WordChain game, and you can play up to ${Const.PRACTICE_GAMES_PER_DAY}
         practice games per day. Have fun!
         </h3>
         `
@@ -649,8 +627,8 @@ class AppDisplay extends BaseLogger {
         this.addRadioSetting("Game Play Mode", radioInfo, "game-play-mode");
 
         const feedbackDescription = "Dictionary suggestions? Gripes? Things you love? Feature ideas?";
-        this.addLinkSetting("Feedback",   "Email", AppDisplay.EMAIL_HREF, feedbackDescription);
-        this.addLinkSetting("Questions?", "FAQ",   AppDisplay.FAQ_HREF);
+        this.addLinkSetting("Feedback",   "Email", Const.EMAIL_HREF, feedbackDescription);
+        this.addLinkSetting("Questions?", "FAQ",   Const.FAQ_HREF);
     }
 
     /* ----- Stats ----- */
@@ -718,10 +696,10 @@ class AppDisplay extends BaseLogger {
 
         // If the target word is already empty, reset the start word;
         // otherwise reset the target word.
-        if (targetWord[0] === PracticeTileDisplay.PLACEHOLDER) {
-            this.practiceTileDisplay.resetWords(PracticeTileDisplay.RESET_START);
+        if (targetWord[0] === Const.PLACEHOLDER) {
+            this.practiceTileDisplay.resetWords(Const.RESET_START);
         } else {
-            this.practiceTileDisplay.resetWords(PracticeTileDisplay.RESET_TARGET);
+            this.practiceTileDisplay.resetWords(Const.RESET_TARGET);
         }
         this.updatePracticeDisplay();
     }
@@ -759,11 +737,11 @@ class AppDisplay extends BaseLogger {
 
     // This is the keyboard callback for daily/practice game play.
     gameKeyboardCallback(keyValue) {
-        if (keyValue === AppDisplay.BACKSPACE) {
+        if (keyValue === Const.BACKSPACE) {
             this.gameTileDisplay.keyPressDelete();
-        } else if (keyValue === AppDisplay.ENTER) {
+        } else if (keyValue === Const.ENTER) {
             const gameResult = this.gameTileDisplay.keyPressEnter();
-            if (gameResult !== TileDisplay.OK) {
+            if (gameResult !== Const.OK) {
                 this.showToast(gameResult);
             } else {
                 this.updateGameDisplay();
@@ -856,11 +834,11 @@ class AppDisplay extends BaseLogger {
 
     // This is the keyboard callback for practice game start/target word entry.
     practiceKeyboardCallback(keyValue) {
-        if (keyValue === AppDisplay.BACKSPACE) {
+        if (keyValue === Const.BACKSPACE) {
             this.practiceTileDisplay.keyPressDelete();
-        } else if (keyValue === AppDisplay.ENTER) {
+        } else if (keyValue === Const.ENTER) {
             const result = this.practiceTileDisplay.keyPressEnter();
-            if (result !== TileDisplay.OK) {
+            if (result !== Const.OK) {
                 this.showToast(result);
             }
             this.updatePracticeDisplay();
@@ -934,7 +912,7 @@ class AppDisplay extends BaseLogger {
         const now = (new Date()).getTime();
 
         // Make sure the user hasn't used up their practice games for the day.
-        if (this.practiceGameTimestamps.length >= AppDisplay.PRACTICE_GAMES_PER_DAY) {
+        if (this.practiceGameTimestamps.length >= Const.PRACTICE_GAMES_PER_DAY) {
             let popped = false;
 
             // See whether any games have aged out. The list is a queue, with the
@@ -955,7 +933,7 @@ class AppDisplay extends BaseLogger {
 
             // If we didn't pop anything, all games are too new.
             if (! popped) {
-                this.showToast(`Only ${AppDisplay.PRACTICE_GAMES_PER_DAY} games allowed per day`);
+                this.showToast(`Only ${Const.PRACTICE_GAMES_PER_DAY} games allowed per day`);
                 return;
             }
         }
@@ -1020,7 +998,7 @@ class AppDisplay extends BaseLogger {
     // Check whether a start/target word has been entered and is valid.
     checkWord(word, descriptor) {
         word = word.trim().toLowerCase();
-        if (word.length === 0 || word[0] === PracticeTileDisplay.PLACEHOLDER) {
+        if (word.length === 0 || word[0] === Const.PLACEHOLDER) {
             return `${descriptor} word has not been entered`;
         }
         if (!this.dict.isWord(word)) {
@@ -1153,7 +1131,7 @@ class AppDisplay extends BaseLogger {
         // styled, but its content (the button) will be right-justified in this div because of the
         // styling of close-button-div..
         const buttonDiv = ElementUtilities.addElementTo("div", containerDiv, {class: "close-button-div",});
-        this.createSvgButton(buttonDiv, "close-button", closeAuxiliaryCallback, AppDisplay.CLOSE_PATH, divId);
+        this.createSvgButton(buttonDiv, "close-button", closeAuxiliaryCallback, Const.CLOSE_PATH, divId);
 
         // Add a break so that the content appears below the close button.
         ElementUtilities.addElementTo("div", containerDiv, {class: "break"});
@@ -1239,7 +1217,7 @@ class AppDisplay extends BaseLogger {
             this.dailyStats.gamesCompleted      = 0;
             this.dailyStats.gamesShown          = 0;
             this.dailyStats.tooManyExtraSteps   = 0;
-            for (let extraSteps = 0; extraSteps < AppDisplay.TOO_MANY_EXTRA_STEPS; extraSteps++) {
+            for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
                 this.dailyStats[extraSteps] = 0;
             }
 
@@ -1340,23 +1318,23 @@ class AppDisplay extends BaseLogger {
 
         // Determine what emoji to use to show the user's "score".
         const extraSteps = userSolutionSteps - minimumSolutionSteps;
-        if (extraSteps >= AppDisplay.TOO_MANY_EXTRA_STEPS) {
+        if (extraSteps >= Const.TOO_MANY_EXTRA_STEPS) {
             // Too many extra steps.
-            shareString += AppDisplay.CONFOUNDED;
+            shareString += Const.CONFOUNDED;
             if (updateStats) {
                 this.incrementStat("tooManyExtraSteps");
             }
         } else {
             // Show the emoji in NUMBERS corresponding to how many extra steps.
             // A bit of a misnomer, but the value for 0 is a star.
-            shareString += AppDisplay.NUMBERS[extraSteps];
+            shareString += Const.NUMBERS[extraSteps];
             if (updateStats) {
                 this.incrementStat(extraSteps);
             }
         }
 
         // Add special indicator if user played in hard mode, and a couple of newlines.
-        const hardModeIndicator = this.hardMode ? AppDisplay.FIRE : "";
+        const hardModeIndicator = this.hardMode ? Const.FIRE : "";
         shareString += ` ${hardModeIndicator}\n\n`;
 
         // Now, construct the graphic showing the lengths of the user's
@@ -1371,10 +1349,10 @@ class AppDisplay extends BaseLogger {
             let emoji;
             if (nextCount <= previousCount) {
                 // Word didn't increase the count; pick color indicating "good".
-                emoji = this.colorblindMode ? AppDisplay.BLUE_SQUARE : AppDisplay.GREEN_SQUARE;
+                emoji = this.colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
             } else {
                 // Word increased the count; pick color indicating "bad".
-                emoji = this.colorblindMode ? AppDisplay.ORANGE_SQUARE : AppDisplay.RED_SQUARE;
+                emoji = this.colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
             }
 
             // Now repeat that emoji for the length of the word and add a newline,
@@ -1586,7 +1564,7 @@ class AppDisplay extends BaseLogger {
 
         // Determine the maximum value among all the "extra step values".
         let maxValue = 0;
-        for (let extraSteps = 0; extraSteps < AppDisplay.TOO_MANY_EXTRA_STEPS; extraSteps++) {
+        for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
             if (this.dailyStats[extraSteps] > maxValue) {
                 maxValue = this.dailyStats[extraSteps];
             }
@@ -1617,13 +1595,13 @@ class AppDisplay extends BaseLogger {
         }
 
         // Add a bar for each of the "regular" values; the emojis for these are in AppDisplay.NUMBERS.
-        for (let extraSteps = 0; extraSteps < AppDisplay.TOO_MANY_EXTRA_STEPS; extraSteps++) {
+        for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
             const barValue = this.dailyStats[extraSteps];
             addBar(barValue, AppDisplay.NUMBERS[extraSteps], this.statsDistribution);
         }
 
         // Add a bar for too many extra steps.
-        addBar(this.dailyStats.tooManyExtraSteps, AppDisplay.CONFOUNDED, this.statsDistribution);
+        addBar(this.dailyStats.tooManyExtraSteps, Const.CONFOUNDED, this.statsDistribution);
     }
 }
 

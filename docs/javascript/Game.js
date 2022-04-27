@@ -1,20 +1,10 @@
 import { BaseLogger } from './BaseLogger.js';
 import { Solution, Solver } from './Solver.js';
+import * as Const from './Const.js';
 
 // NOTE: This class assumes words that are played in the game have
 // already been validated to be in the dictionary.
 class Game extends BaseLogger {
-    static OK = "ok";
-    static NOT_ONE_STEP = "Your word is not one step away from the last word.";
-    static DEAD_END = "No solution from this word.";
-    static DUPLICATE = "You already played that word.";
-
-    static NO_CHANGE = "*";
-    static CHANGE    = "!";
-    static EXTRA     = "+";
-
-    static MIN_WORD_LENGTH = 3;
-    static MAX_WORD_LENGTH = 6;
 
     constructor(name, dict, solution, typeSavingMode=false) {
         super();
@@ -66,7 +56,7 @@ class Game extends BaseLogger {
     }
 
     static isTypeSavingWord(word) {
-        return word.includes(Game.CHANGE) && ! word.includes(Game.NO_CHANGE);
+        return word.includes(Const.CHANGE) && ! word.includes(Const.NO_CHANGE);
     }
 
     playWord(word) {
@@ -75,13 +65,13 @@ class Game extends BaseLogger {
 
         if (this.solutionInProgress.isWordInSolution(word)) {
             this.logDebug(`${word} is already played`, "game");
-            return Game.DUPLICATE;
+            return Const.DUPLICATE;
         }
 
         let lastWordPlayed = this.solutionInProgress.getLastWord();
         if (! this.dict.findNextWords(lastWordPlayed).has(word)) {
             this.logDebug(`${word} is not one step from ${lastWordPlayed}`, "game");
-            return Game.NOT_ONE_STEP;
+            return Const.NOT_ONE_STEP;
         }
 
         // If user gave the next word that was in the current solution,
@@ -90,7 +80,7 @@ class Game extends BaseLogger {
         if (this.knownSolution.getWordByStep(nextStep) === word) {
             this.stepCountHistory.push(this.getStepCount());
             this.solutionInProgress.addWord(word);
-            return Game.OK;
+            return Const.OK;
         }
 
         // See whether we find a solution with the user's new word.
@@ -114,10 +104,10 @@ class Game extends BaseLogger {
             // Add the user's word to the solution in progress.
             this.stepCountHistory.push(this.getStepCount());
             this.solutionInProgress.addWord(word);
-            return Game.OK;
+            return Const.OK;
         } else {
             // No. tell the user it's a dead end.
-            return Game.DEAD_END;
+            return Const.DEAD_END;
         }
     }
 
@@ -144,8 +134,8 @@ class Game extends BaseLogger {
             }
 
             // Add the "EXTRA" special character to pad the word out to the maximum length.
-            for (let i = wordToPush.length; i < Game.MAX_WORD_LENGTH; i++) {
-                wordToPush += Game.EXTRA;
+            for (let i = wordToPush.length; i < Const.MAX_WORD_LENGTH; i++) {
+                wordToPush += Const.EXTRA;
             }
             game.push(wordToPush);
         }
@@ -161,14 +151,14 @@ class Game extends BaseLogger {
                     if (withHints) {
                        unguessedWord += previousWord[i];
                     } else {
-                       unguessedWord += Game.NO_CHANGE;
+                       unguessedWord += Const.NO_CHANGE;
                     }
                 } else {
-                    unguessedWord += Game.CHANGE;
+                    unguessedWord += Const.CHANGE;
                 }
             }
         } else {
-            unguessedWord = Game.NO_CHANGE.repeat(word.length);
+            unguessedWord = Const.NO_CHANGE.repeat(word.length);
         }
 
         return unguessedWord;

@@ -51,7 +51,6 @@ class DailyGame {
         }
 
         // Now, determine the game number and get the game data from the GameWords object.
-        // TODO: try/catch and show a toast message.
         this.gameNumber = DailyGame.calculateGameNum();
         if (this.gameNumber in DailyGame.GameWords) {
             this.gameData = DailyGame.GameWords[this.gameNumber];

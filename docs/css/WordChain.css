@@ -449,11 +449,11 @@ table {
     padding: .15rem;
 }
 
-.tile-enter {
+.input-tile {
     background: var(--input-tile-bg);
 }
 
-.no-enter {
+.not-input-tile {
     background: var(--primary-bg);
 }
 
