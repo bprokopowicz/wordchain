@@ -562,7 +562,7 @@ class AppDisplay extends BaseLogger {
         // setting-simple class styles the contents of the setting (title/description, link)
         // horizontally.
         const interactiveDiv = this.addSetting(title, "setting-simple", description);
-        ElementUtilities.addElementTo("a", interactiveDiv, {href: linkHref}, linkText);
+        ElementUtilities.addElementTo("a", interactiveDiv, {href: linkHref, target: "_blank"}, linkText);
     }
 
     // Add a setting whose input is a (mutually exclusive) set of radio buttons.

@@ -7,16 +7,17 @@ import sys
 From this directory execute:
 
 SRC=../../../../DictionarySource
-./groomDict.py $SRC/lemmas_60k_words_m2068.txt $SRC/MISSING_FROM_WordFreq WordFreqDict
+./groomDict.py $SRC/lemmas_60k_words_m2068.txt $SRC/MISSING_FROM_WordFreq $SRC/REMOVE_FROM_WordFreq WordFreqDict
 """
 
 def main():
-    inFileName    = sys.argv[1]
-    extraFileName = sys.argv[2]
-    outFileName   = sys.argv[3]
+    inFileName     = sys.argv[1]
+    extraFileName  = sys.argv[2]
+    removeFileName = sys.argv[3]
+    outFileName    = sys.argv[4]
 
-    if len(sys.argv) < 4:
-        print("USAGE: groomDict.py inFile extraWordsFile outFile")
+    if len(sys.argv) < 5:
+        print("USAGE: groomDict.py inFile extraWordsFile removeWordsFile outFile")
         sys.exit(1)
 
     with open(inFileName, "r") as inFile:
@@ -41,7 +42,12 @@ def main():
 
             word = fields[5]
 
+            # Make sure all alphabetic.
             if not re.match(r'^[a-zA-Z]+$', word):
+                continue
+
+            # Make sure there is a vowel.
+            if not re.match('^.*[aeiouyAEIOUY].*$', word):
                 continue
 
             numGoodWords += 1
@@ -57,8 +63,12 @@ def main():
                 keepWords.add(word)
 
     with open(extraFileName, "r") as extraFile:
-        for line in [line.strip() for line in extraFile]:
-            keepWords.add(line)
+        for word in [line.strip() for line in extraFile]:
+            keepWords.add(word)
+
+    with open(removeFileName, "r") as removeFile:
+        for word in [line.strip() for line in removeFile]:
+            keepWords.discard(word)
 
     """
     print("numGoodLines: {}".format(numGoodLines))

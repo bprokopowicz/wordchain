@@ -692,7 +692,7 @@ input.setting-radio {
 
 .pop-up {
     visibility: hidden;
-    font-size: .75rem;
+    font-size: 1rem;
     background: var(--toast-bg);
     color: var(--toast-fg);
     text-align: center;

@@ -36,7 +36,7 @@ export const PLACEHOLDER_WORD = PLACEHOLDER.repeat(MAX_WORD_LENGTH);
 
 // Constants for settings screen
 export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
-export const FAQ_HREF   = "http://www.prokopowicz.org";
+export const FAQ_HREF   = "FAQ.html";
 
 // Constants for sharing graphic and stats screen
 // Emoji code strings for share string
