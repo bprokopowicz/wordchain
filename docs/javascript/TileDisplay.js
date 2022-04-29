@@ -136,6 +136,15 @@ class TileDisplay extends BaseLogger {
         return enteredWord.toLowerCase();
     }
 
+    // Get the "word" from the tiles at the specified row, and return it only
+    // if it is in the dictionary -- otherwise return empty string.
+    getValidWordFromTiles(row) {
+        const word = this.getWordFromTiles(row);
+
+        // Return the word if it is in the dictionary, else empty string.
+        return (! word || !this.dict.isWord(word)) ? "" : word;
+    }
+
     // This method is called from the hard or soft keydown callback in the AppDisplay
     // class when the BACKSPACE key is pressed to delete the previously entered letter.
     keyPressDelete() {
@@ -347,7 +356,6 @@ class GameTileDisplay extends TileDisplay {
 
         // Return if the word is not in our dictionary.
         if (! this.dict.isWord(enteredWord)) {
-            // Tile letter color already changed to indicate it's not a word.
             return Const.NOT_A_WORD;
         }
 
@@ -608,7 +616,7 @@ class PracticeTileDisplay extends TileDisplay {
     // Get the letters in the start word tiles, set this.startWord accordingly,
     // and return the word.
     getStartWord() {
-        this.startWord = this.getWordFromTiles(0);
+        this.startWord = this.getValidWordFromTiles(0);
         if (this.startWord.length === 0) {
             this.startWord = Const.PLACEHOLDER_WORD;
         }
@@ -618,7 +626,7 @@ class PracticeTileDisplay extends TileDisplay {
     // Get the letters in the target word tiles, set this.targetWord accordingly,
     // and return the word.
     getTargetWord() {
-        this.targetWord = this.getWordFromTiles(1);
+        this.targetWord = this.getValidWordFromTiles(1);
         if (this.targetWord.length === 0) {
             this.targetWord = Const.PLACEHOLDER_WORD;
         }

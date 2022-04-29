@@ -1002,8 +1002,12 @@ class AppDisplay extends BaseLogger {
         if (word.length === 0 || word[0] === Const.PLACEHOLDER) {
             return `${descriptor} word has not been entered`;
         }
+
+        // We should never get here (because PracticeTileDisplay.getStart/TargetWord()
+        // return an empty string if the word is not in the dictionary, so we'd hit the
+        // check above), but just in case ...
         if (!this.dict.isWord(word)) {
-            return `${descriptor} word '${word}' is not in the dictionary`;
+            return `${descriptor} word '${word}' is not in the word list`;
         }
 
         return null;
