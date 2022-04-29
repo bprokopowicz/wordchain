@@ -403,7 +403,7 @@ class GameTileDisplay extends TileDisplay {
                 // And make this (original) current column the input tile.
                 this.editTileClass(/not-input-tile/, "input-tile");
 
-                this.appDisplay.gameKeyboardCallback(Const.ENTER_KEY);
+                this.appDisplay.gameKeyboardCallback(Const.ENTER);
             }
         }
     }
@@ -540,9 +540,18 @@ class GameTileDisplay extends TileDisplay {
                         continue;
                     } else {
                         // The user has not played this word, and we want to give the user an opportunity
-                        // to choose a longer word, so we show a tile with a gray outline to indicate
+                        // to choose a longer word, if appropriate. It is appropriate if the length of the
+                        // previous word in the solution is not shorter than this word; you can't add
+                        // two letters in one step. We show a tile with a gray outline to indicate
                         // it's not filled in our solution.
-                        tileOutlineColorClass = "tile-grayed";
+                        // NOTE: We cannot get the length of the words in wordList; they are all
+                        // MAX_WORD_LENGTH, so we must use the game class interface.
+                        if (this.game.getWordLength(row) <= this.game.getWordLength(row - 1)) {
+                            tileOutlineColorClass = "tile-grayed";
+                        } else {
+                            // No extra tile needed, so we are done with displaying this word.
+                            break;
+                        }
                     }
                 } else {
                     // This is a letter in an already played word, so we need to show it.

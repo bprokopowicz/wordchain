@@ -185,11 +185,11 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 */
 
 .wordchain-button {
-    font-size: .75rem;
-    padding: .4rem;
+    font-size: .8rem;
+    padding: .3rem;
     border-width: 0;
     border-radius: .5rem;
-    margin: .25rem;
+    margin: .1rem;
     color: var(--primary-fg);
 }
 
@@ -208,7 +208,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     /*
     ** For some reason, if we have "flex-direction: column;" here (and remove "flex-wrap: wrap;"),
     ** it messes up the scrolling of games that no longer fit on the screen -- scrolling up as
-    ** far as possible cut off the top row(s) of tiles. If we have both settings, that messes up the
+    ** far as possible cuts off the top row(s) of tiles. If we have both settings, that messes up the
     ** display and the keyboard is to the right of the game tiles, even with the "break div".
     ** So we shouldn't change these settings because the scrolling works just right now!
     */
@@ -224,13 +224,13 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 
 /* Keyboard Display (for Daily and Practice games) */
 #keyboard-div {
+    background: var(--primary-bg);
     position: sticky;
     bottom: 0;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     padding: .5rem;
-    background: var(--primary-bg);
 }
 
 #keyboard-inner-div {
@@ -258,9 +258,9 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     margin-right: .3rem;
     margin-bottom: 0;
     margin-left: 0;
-    width: 1.7rem;
-    height: 2.3rem;
-    border-radius: .3rem;
+    width: 1.9rem;
+    height: 2.4rem;
+    border-radius: .2rem;
     cursor: pointer;
     user-select: none;
     background-color: var(--key-bg);
@@ -272,12 +272,12 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 }
 
 .keyboard-spacer {
-    width: 0.8rem;
+    width: 0.95rem;
     visibility: hidden;
 }
 
 .keyboard-wide-key {
-    width: 2.5rem;
+    width: 3rem;
     background: var(--wide-key-bg);
     color: var(--primary-fg);
 }
@@ -293,7 +293,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     height: 7%;
     display: flex;
     background: var(--header-bg);;
-    padding: .5rem;
+    padding: .25rem;
     margin-bottom: 1rem;
 }
 
@@ -344,7 +344,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     border-radius: 50%;
     border-width: 0;
     padding: .15rem;
-    margin: .15rem;
+    margin: .2rem;
 }
 
 /*
@@ -360,6 +360,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 #practice-words-div {
     display: flex;
     justify-content: center;
+    margin-top: .25rem;
 }
 
 #practice-buttons-div {
@@ -370,7 +371,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 .help-info {
     color: var(--primary-fg);
     text-align: center;
-    margin-bottom: .75rem;
+    margin-bottom: .25rem;
 }
 
 /*
@@ -753,22 +754,38 @@ input.setting-radio {
         border-spacing: .7rem;
     }
 
+    .title {
+        font-size: 2rem;
+    }
+
+    .header-aux-button {
+        padding: .35rem;
+        margin: .5rem;
+    }
+
+    .wordchain-button {
+        font-size: 1.25rem;
+        padding: .3rem;
+        margin: .5rem;
+    }
+
     .tile {
-        width: 5rem;
-        height: 5rem;
-        font-size: 4rem;
+        width: 3rem;
+        height: 3rem;
+        font-size: 2rem;
     }
 
     .keyboard-key {
         font-size: 2rem;
         width: 2.5rem;
         height: 3.4rem;
+        margin-right: .5rem;
     }
     .keyboard-spacer {
         width: 1.3rem;
     }
     .keyboard-wide-key {
-        width: 3.8rem;
+        width: 4.2rem;
     }
 }
 
@@ -781,12 +798,6 @@ input.setting-radio {
 @media only screen and (min-width: 991px) {
     table {
         border-spacing: .9rem;
-    }
-
-    .tile {
-        width: 3rem;
-        height: 3rem;
-        font-size: 2rem;
     }
 
     .letter-change {
@@ -802,15 +813,33 @@ input.setting-radio {
         width: 60%;
     }
 
+    #keyboard-div {
+        /*
+        ** Extend keyboard right/left to take up the whole viewport so that if the user's standard
+        ** size (i.e. 1rem) is so large that solution-div is wider than the keyboard, the entire
+        ** solution-div is obscured  when scrolling, i.e. no bits of game tiles around the edges
+        ** of the keyboard.
+        **
+        ** NOTE: If we have these changes for phone or tablet, it causes a horizontal scroll bar,
+        ** which makes the whole screen seem to jiggle. In those environments, the problem this
+        ** is solving doesn't exist.
+        */
+        padding-right: 50vw;
+        padding-left: 50vw;
+        /* But just a bit of padding on the top and bottom. */
+        padding-top: .5rem;
+        padding-bottom: .5rem;
+    }
     .keyboard-key {
         font-size: 2rem;
         width: 3rem;
         height: 4rem;
+        margin-right: .5rem;
     }
     .keyboard-spacer {
         width: 1.5rem;
     }
     .keyboard-wide-key {
-        width: 4.5rem;
+        width: 5rem;
     }
 }

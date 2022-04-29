@@ -14,11 +14,10 @@ import * as Const from './Const.js';
 ** Implementation
 **
 ** Before Sharing with Initial Friends
-** - Adjust phone/iPad styling
-** - Create a faq and fix link
 ** - Review help message
 ** - Change practice game max back to 3
 ** - 30 days of daily games
+** - Execute test plan on iPhone/iPad (Safari) and desk/laptop (Chrome)
 **
 ** Deployment
 ** - How to create/minify/obscure one big js file
@@ -163,7 +162,7 @@ class AppDisplay extends BaseLogger {
         "\u{0039}\u{FE0F}\u{20E3}",     // 9
     ]
 
-    static MaxGamesTimePeriod = 24 * 60 *60 * 1000; // one day in ms
+    static MaxGamesInterval = 24 * 60 *60 * 1000; // one day in ms
 
     /*
     ** ============
@@ -220,12 +219,12 @@ class AppDisplay extends BaseLogger {
         this.getCookies();
 
         // Debug-only cookie that can be manually added to the time period.
-        const debugPracticeGameTimePeriod = Cookie.get("DebugPracticeGameTimePeriod");
+        const debugPracticeGameIntervalMin = Cookie.get("DebugPracticeGameIntervalMin");
 
         // Are we debugging limiting practice games?
         // (Cookies are stored as strings, so if we have a cookie, convert it to a number.)
-        if (debugPracticeGameTimePeriod && parseInt(debugPracticeGameTimePeriod)) {
-            AppDisplay.MaxGamesTimePeriod = debugPracticeGameTimePeriod * 60 * 1000;
+        if (debugPracticeGameIntervalMin && parseInt(debugPracticeGameIntervalMin)) {
+            AppDisplay.MaxGamesInterval = debugPracticeGameIntervalMin * 60 * 1000;
         }
 
         // Create a backup daily game, in case we cannot get one.
@@ -329,8 +328,10 @@ class AppDisplay extends BaseLogger {
         this.practiceDiv.style.display = "none";
         this.primaryDivs.push(this.practiceDiv);
 
-        const helpText = `Words can be up to ${Const.MAX_WORD_LENGTH} letters. Press the Return key to enter a word.`
-        ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText);
+        const helpText1 = `Words can be up to ${Const.MAX_WORD_LENGTH} letters.`
+        ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText1);
+        const helpText2 = `Press the Return key to enter a word.`
+        ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText2);
 
         // Create a div for selecting practice game start/target words, and create
         // a div within that to hold the tiles.
@@ -514,7 +515,7 @@ class AppDisplay extends BaseLogger {
         </p>
         <p>
         An extra letter is shown with a gray outline in case you want to chose
-        a longer word (and a different solution path) next.
+        a longer word (and a different solution path) next, if a longer word would be a valid move.
         </p>
         <p>
         If you play a word that increases the number of steps from the start to the target word,
@@ -919,7 +920,7 @@ class AppDisplay extends BaseLogger {
             // first item being the oldest.
             while (this.practiceGameTimestamps.length != 0) {
                 const timeSinceLastGame = now - this.practiceGameTimestamps[0];
-                if (timeSinceLastGame > AppDisplay.MaxGamesTimePeriod) {
+                if (timeSinceLastGame > AppDisplay.MaxGamesInterval) {
                     // This one has aged out; pop it and note that we popped one,
                     // i.e. that the user can play a game.
                     this.practiceGameTimestamps.shift();

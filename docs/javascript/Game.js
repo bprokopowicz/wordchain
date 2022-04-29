@@ -45,6 +45,10 @@ class Game extends BaseLogger {
         return this.knownSolution.getTarget();
     }
 
+    getWordLength(wordNum) {
+        return this.knownSolution.getWordLength(wordNum);
+    }
+
     isSolved() {
         const lastWord = this.solutionInProgress.getLastWord()
         if (lastWord === this.knownSolution.target) {

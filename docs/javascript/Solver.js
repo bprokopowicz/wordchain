@@ -261,6 +261,15 @@ class Solution extends BaseLogger {
         return new Set(this.wordList);
     }
 
+    getWordLength(wordNum) {
+        if (wordNum < this.wordList.length) {
+            return this.wordList[wordNum].length;
+        } else {
+            console.log(`Solution.getWordLength(): wordList is length ${this.wordList.length}; invalid wordNum ${wordNum}`);
+            return 0
+        }
+    }
+
     getWords() {
         return [...this.wordList];
     }
