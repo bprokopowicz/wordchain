@@ -2,7 +2,7 @@ import { Cookie } from './Cookie.js';
 
 class DailyGame {
     // TODO: Update!
-    static BaseDate = new Date("2022-04-26T00:00:00.000+00:00");
+    static BaseDate = new Date("2022-04-29T00:00:00.000+00:00");
     static BaseTimestamp = null;
     static DateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
@@ -22,15 +22,14 @@ class DailyGame {
     constructor() {
         // Get the DailyGameNumber cookie; this can be manually deleted
         // to restart the daily game number determination.
-        const currentDailyGameNumber = Cookie.get("DailyGameNumber");
+        const currentDailyGameNumber = Cookie.getInt("DailyGameNumber");
 
         // Debug-only cookie that can be manually added to reduce a day
         // to mere minutes.
-        const debugIncrement = Cookie.get("DebugDateIncrementMin");
+        const debugIncrement = Cookie.getInt("DebugDateIncrementMin");
 
         // Are we debugging daily games?
-        // (Cookies are stored as strings, so if we have a cookie, convert it to a number.)
-        if (debugIncrement && parseInt(debugIncrement) != 0) {
+        if (debugIncrement) {
             // Yes, we're debugging, so override the standard one day increment.
             DailyGame.DateIncrementMs = debugIncrement * 60 * 1000;
 
@@ -38,10 +37,10 @@ class DailyGame {
             if (!currentDailyGameNumber) {
                 // Yes! Set the base timestamp to now and save it in a debug-only cookie.
                 DailyGame.BaseTimestamp = (new Date()).getTime();
-                Cookie.set("DebugBaseTimestamp", DailyGame.BaseTimestamp);
+                Cookie.saveInt("DebugBaseTimestamp", DailyGame.BaseTimestamp);
             } else {
                 // No, but we're debugging, so get get the timestamp from the cookie.
-                DailyGame.BaseTimestamp = Cookie.get("DebugBaseTimestamp");
+                DailyGame.BaseTimestamp = Cookie.getInt("DebugBaseTimestamp");
             }
         } else {
             // Not debugging daily games; set the base timestamp based

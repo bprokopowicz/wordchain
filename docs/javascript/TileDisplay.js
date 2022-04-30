@@ -326,7 +326,7 @@ class GameTileDisplay extends TileDisplay {
         if (this.game.getName() === "PracticeGame") {
             // Clear out the game in the cookies so that if the user reloads
             // and clicks Practice they get taken to the screen to enter letters.
-            Cookie.set(this.game.getName(), "");
+            Cookie.save(this.game.getName(), "");
         } else {
             // Save cookie.
             this.setGameCookie();
@@ -432,7 +432,7 @@ class GameTileDisplay extends TileDisplay {
         let solutionWords = this.game.getSolutionInProgress().getWords();
         solutionWords.push(this.game.getTarget());
 
-        Cookie.set(this.game.getName(), JSON.stringify(solutionWords));
+        Cookie.saveJson(this.game.getName(), solutionWords);
     }
 
     // This method is called when the user changes the Game Play Mode setting.

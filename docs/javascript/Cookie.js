@@ -6,12 +6,38 @@ class Cookie {
         return localStorage.getItem(name);
     }
 
-    static set(name, value) {
-        localStorage.setItem(name, value.toString());
+    static getBoolean(name) {
+        return Cookie.get(name) === "true";
+    }
+
+    static getInt(name) {
+        const strVal = Cookie.get(name);
+        return strVal ? parseInt(strVal) : null;
+    }
+
+    static getJsonOrElse(name, defaultVal=null) {
+        const strVal = Cookie.get(name);
+        if (strVal) {
+            return JSON.parse(strVal);
+        } else {
+            return defaultVal;
+        }
     }
 
     static remove(name, secure) {
         localStorage.removeItem(name);
+    }
+
+    static save(name, value) {
+        localStorage.setItem(name, value.toString());
+    }
+
+    static saveInt(name, intVal) {
+        Cookie.save(name, intVal);
+    }
+
+    static saveJson(name, val) {
+        Cookie.save(name, JSON.stringify(val));
     }
 }
 

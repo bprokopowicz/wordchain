@@ -162,7 +162,7 @@ class AppDisplay extends BaseLogger {
         "\u{0039}\u{FE0F}\u{20E3}",     // 9
     ]
 
-    static MaxGamesInterval = 24 * 60 *60 * 1000; // one day in ms
+    static MaxGamesIntervalMs = 24 * 60 *60 * 1000; // one day in ms
 
     /*
     ** ============
@@ -211,21 +211,54 @@ class AppDisplay extends BaseLogger {
         this.gameTileDisplay     = null;
         this.practiceTileDisplay = null;
 
-        // Per-setting flags; get initial values from cookies.
-        this.darkTheme      = null;
-        this.colorblindMode = null;
-        this.hardMode       = null;
-        this.typeSavingMode = null;
-        this.getCookies();
+        // Flags from stats screen
+        this.darkTheme      = Cookie.getBoolean("DarkTheme");
+        this.colorblindMode = Cookie.getBoolean("ColorblindMode");
+        this.hardMode       = Cookie.getBoolean("HardMode");
+        this.typeSavingMode = Cookie.getBoolean("TypeSavingMode");
+
+        // This keeps track of whether the user clicked the Show Solution button
+        // for the daily game.
+        this.dailySolutionShown = Cookie.getBoolean("DailySolutionShown");
+
+        // Now set the colors based on darkTheme and colorblindMode.
+        this.setColors();
+
+        // This keeps track of the most recently played daily game number.
+        this.dailyGameNumber = Cookie.getInt("DailyGameNumber");
 
         // Debug-only cookie that can be manually added to the time period.
-        const debugPracticeGameIntervalMin = Cookie.get("DebugPracticeGameIntervalMin");
+        this.debugPracticeGameIntervalMin = Cookie.getInt("DebugPracticeGameIntervalMin");
 
         // Are we debugging limiting practice games?
-        // (Cookies are stored as strings, so if we have a cookie, convert it to a number.)
-        if (debugPracticeGameIntervalMin && parseInt(debugPracticeGameIntervalMin)) {
-            AppDisplay.MaxGamesInterval = debugPracticeGameIntervalMin * 60 * 1000;
+        if (this.debugPracticeGameIntervalMin) {
+            AppDisplay.MaxGamesIntervalMs = debugPracticeGameIntervalMin * 60 * 1000;
         }
+
+        // The starting word, played words, and target words.
+        this.dailyGameWords    = Cookie.getJsonOrElse("DailyGame", []);
+        this.practiceGameWords = Cookie.getJsonOrElse("PracticeGame", []);
+
+        // These timestamps are used to ensure the user doesn't play more than
+        // the maximum number of timestamps per day.
+        this.practiceGameTimestamps = Cookie.getJsonOrElse("PracticeGameTimestamps", []);
+
+        // If we have a cookie for daily stats parse it, otherwise construct initial stats
+        // and save them to the cookies.
+        let initialStats = {
+            gamesPlayed:         0,
+            gamesPlayedHardMode: 0,
+            gamesCompleted:      0,
+            gamesShown:          0,
+            tooManyExtraSteps:   0,
+        }
+        for (let extraSteps = 0; extraSteps <= Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
+            initialStats[extraSteps] = 0;
+        }
+
+        this.dailyStats = Cookie.getJsonOrElse("DailyStats", initialStats);
+        // In case the cookie was initially not set, i.e. is now initialStats, save the value.
+        //Cookie.saveJson("DailyStats", this.dailyStats);
 
         // Create a backup daily game, in case we cannot get one.
         const solution = Solver.fastSolve(this.dict, "daily", "broken");
@@ -506,21 +539,20 @@ class AppDisplay extends BaseLogger {
         to the target word in as few steps as possible.
         </h2>
         <p>
-        A step consists of adding, deleting, or changing a letter.
+        A step consists of adding, deleting, or changing one letter.
         <p>
         WordChain shows letter boxes for the shortest solution.
-        When playing in normal mode, the boxes around letters that should be changed
-        are thicker. Hard mode eliminates these hints, and type-saver mode fills in
-        the other letters for you.
+        When playing in Normal Mode, the boxes around letters that should be changed are thicker.
+        Hard Mode eliminates these hints, and Type-Saver Mode fills in the other letters for you.
         </p>
         <p>
-        An extra letter is shown with a gray outline in case you want to chose
-        a longer word (and a different solution path) next, if a longer word would be a valid move.
+        An extra letter is shown with a gray outline if a longer word would be a valid move,
+        in case you want to chose a longer word (and a different solution path) next.
         </p>
         <p>
         If you play a word that increases the number of steps from the start to the target word,
         the background of its letters will be red; otherwise they will be green
-        (or orange/blue in colorblind mode).
+        (or orange/blue in Colorblind Mode).
         </p>
         <h3>
         Every day there will be a new daily WordChain game, and you can play up to ${Const.PRACTICE_GAMES_PER_DAY}
@@ -679,12 +711,12 @@ class AppDisplay extends BaseLogger {
         // checkbox's id according to that.
         if (checkboxId === "dark") {
             this.darkTheme = event.srcElement.checked ? true : false;
-            Cookie.set("darkTheme", this.darkTheme);
+            Cookie.save("DarkTheme", this.darkTheme);
             this.setColors();
 
         } else if (checkboxId === "colorblind") {
             this.colorblindMode = event.srcElement.checked ? true : false;
-            Cookie.set("colorblindMode", this.colorblindMode);
+            Cookie.save("ColorblindMode", this.colorblindMode);
             this.setColors();
 
         }
@@ -789,7 +821,7 @@ class AppDisplay extends BaseLogger {
         this.practiceTileDisplay.resetWords();
 
         // Clear out the cookie for the words played for the current practice game.
-        Cookie.set(this.game.getName(), "");
+        Cookie.save(this.game.getName(), "");
 
         // The rest is the same as clicking the Practice header button.
         this.practiceCallback();
@@ -864,8 +896,8 @@ class AppDisplay extends BaseLogger {
         }
 
         // Save both cookies.
-        Cookie.set("hardMode", this.hardMode);
-        Cookie.set("typeSavingMode", this.typeSavingMode);
+        Cookie.save("HardMode", this.hardMode);
+        Cookie.save("TypeSavingMode", this.typeSavingMode);
 
         // Hard and Type-Saving modes are implemented in the game tile display,
         // so tell it what our modes are now.
@@ -896,8 +928,8 @@ class AppDisplay extends BaseLogger {
         // to stats, so we don't need to keep track of whether practice or
         // back-up daily games have been ended.
         if (this.game.getName() === "DailyGame") {
-            this.dailyGameEnded = true;
-            Cookie.set("DailyGameEnded", this.dailyGameEnded);
+            this.dailySolutionShown = true;
+            Cookie.save("DailySolutionShown", this.dailySolutionShown);
             this.incrementStat("gamesShown");
         }
 
@@ -920,7 +952,7 @@ class AppDisplay extends BaseLogger {
             // first item being the oldest.
             while (this.practiceGameTimestamps.length != 0) {
                 const timeSinceLastGame = now - this.practiceGameTimestamps[0];
-                if (timeSinceLastGame > AppDisplay.MaxGamesInterval) {
+                if (timeSinceLastGame > AppDisplay.MaxGamesIntervalMs) {
                     // This one has aged out; pop it and note that we popped one,
                     // i.e. that the user can play a game.
                     this.practiceGameTimestamps.shift();
@@ -941,7 +973,7 @@ class AppDisplay extends BaseLogger {
 
         // Save the timestamp of this game in the instance and cookies.
         this.practiceGameTimestamps.push(now);
-        Cookie.set("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
+        Cookie.save("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
 
         // Get the user's words from the tiles.
         const startWord  = this.practiceTileDisplay.getStartWord();
@@ -1031,9 +1063,9 @@ class AppDisplay extends BaseLogger {
             if ((! this.dailyGameNumber) || (this.dailyGameNumber != todaysDaily.getNumber())) {
                 // New daily game! Save the number and some other data in our object and cookies.
                 this.dailyGameNumber = todaysDaily.getNumber();
-                this.dailyGameEnded  = false;
-                Cookie.set("DailyGameNumber", this.dailyGameNumber);
-                Cookie.set("DailyGameEnded", this.dailyGameEnded);
+                this.dailySolutionShown  = false;
+                Cookie.save("DailyGameNumber", this.dailyGameNumber);
+                Cookie.save("DailySolutionShown", this.dailySolutionShown);
                 this.incrementStat("gamesPlayed");
                 if (this.hardMode) {
                     this.incrementStat("gamesPlayedHardMode");
@@ -1070,8 +1102,8 @@ class AppDisplay extends BaseLogger {
 
             const solution = Solver.fastSolve(this.dict, startWord, targetWord);
             this.dailyGame = new Game("DailyGame", this.dict, solution);
-            this.dailyGameEnded = false;
-            Cookie.set("DailyGameEnded", this.dailyGameEnded);
+            this.dailySolutionShown = false;
+            Cookie.save("DailySolutionShown", this.dailySolutionShown);
         }
         */
 
@@ -1108,7 +1140,7 @@ class AppDisplay extends BaseLogger {
             game.playWord(word);
         }
 
-        if (name === "DailyGame" && game.isSolved() && !this.dailyGameEnded) {
+        if (name === "DailyGame" && game.isSolved() && !this.dailySolutionShown) {
             // Save the share graphic, but not stats; stats were already saved when the game completed.
             this.saveGameInfo(game, false);
         }
@@ -1117,7 +1149,7 @@ class AppDisplay extends BaseLogger {
     }
 
     constructPracticeGame() {
-        if (this.practiceGameWords) {
+        if (this.practiceGameWords.length > 0) {
             this.practiceGame = this.constructGameFromCookieWords("PracticeGame", this.practiceGameWords);
         }
     }
@@ -1166,70 +1198,6 @@ class AppDisplay extends BaseLogger {
         const path = ElementUtilities.addElementTo("path", svg, {d: svgPath, "data-related-div": relatedDiv});
     }
 
-    // Set the settings flags and other instance variables from the cookie values.
-    // If the values were never set, Cookie.get() will return null and the the value
-    // will be initialized. Flags will be initialized to false.
-    getCookies() {
-        this.darkTheme      = Cookie.get("darkTheme") === "true";
-        this.colorblindMode = Cookie.get("colorblindMode") === "true";
-        this.hardMode       = Cookie.get("hardMode") === "true";
-        this.typeSavingMode = Cookie.get("typeSavingMode") === "true";
-
-        // Now set the colors based on darkTheme and colorblindMode.
-        this.setColors();
-
-        // The starting word, played words, and target words.
-        const dailyGameWords = Cookie.get("DailyGame");
-        if (dailyGameWords) {
-            this.dailyGameWords = JSON.parse(dailyGameWords);
-        } else {
-            this.dailyGameWords = null;
-        }
-
-        // This keeps track of whether the user clicked the Show Solution button
-        // for the daily game.
-        this.dailyGameEnded = Cookie.get("DailyGameEnded") === "true";
-
-        // This keeps track of the most recently played daily game number.
-        this.dailyGameNumber = Cookie.get("DailyGameNumber");
-
-        // The starting word, played words, and target words.
-        const practiceGameWords = Cookie.get("PracticeGame");
-        if (practiceGameWords) {
-            this.practiceGameWords = JSON.parse(practiceGameWords);
-        } else {
-            this.practiceGameWords = null;
-        }
-
-        // These timestamps are used to ensure the user doesn't play more than
-        // the maximum number of timestamps per day.
-        const practiceGameTimestamps = Cookie.get("PracticeGameTimestamps");
-        if (practiceGameTimestamps) {
-            this.practiceGameTimestamps = JSON.parse(practiceGameTimestamps);
-        } else {
-            this.practiceGameTimestamps = [];
-        }
-
-        // If we have a cookie for daily stats parse it, otherwise construct initial stats
-        // and save them to the cookies.
-        const dailyStats = Cookie.get("DailyStats");
-        if (dailyStats) {
-            this.dailyStats = JSON.parse(dailyStats);
-        } else {
-            this.dailyStats = {};
-            this.dailyStats.gamesPlayed         = 0;
-            this.dailyStats.gamesPlayedHardMode = 0;
-            this.dailyStats.gamesCompleted      = 0;
-            this.dailyStats.gamesShown          = 0;
-            this.dailyStats.tooManyExtraSteps   = 0;
-            for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
-                this.dailyStats[extraSteps] = 0;
-            }
-
-            Cookie.set("DailyStats", JSON.stringify(this.dailyStats));
-        }
-    }
-
     // Return the given CSS property value.
     static getCssProperty(property) {
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
@@ -1263,7 +1231,7 @@ class AppDisplay extends BaseLogger {
     // Increment the given stat, update the stats cookie, and update the stats display content.
     incrementStat(whichStat) {
         this.dailyStats[whichStat] += 1;
-        Cookie.set("DailyStats", JSON.stringify(this.dailyStats));
+        Cookie.saveJson("DailyStats", this.dailyStats);
         this.updateStatsContent();
     }
 
@@ -1494,18 +1462,19 @@ class AppDisplay extends BaseLogger {
         const innerDivHeight = this.keyboardInnerDiv.offsetHeight;
         this.keyboardDiv.style.height = `${innerDivHeight}px`
 
-        if (this.game.getName() === "DailyGame") {
-            // If daily game has been solved (and the Show Solution button
-            // wasn't used), show share button.
-            if (this.game.isSolved() && !this.dailyGameEnded) {
-                this.shareButton.style.display = "block";
-            } else {
-                this.shareButton.style.display = "none";
-            }
-        } else if (this.game.getName() !== "BackupDailyGame") {
-            // Show New Game button if playing practice game, but not share button.
-            this.newGameButton.style.display = "block";
+        // Decide whether to show Share button. We only show it if: daily game has been
+        // solved *and* the Show Solution button wasn't used.
+        if (this.game.getName() === "DailyGame" && this.game.isSolved() && !this.dailySolutionShown) {
+            this.shareButton.style.display = "block";
+        } else {
             this.shareButton.style.display = "none";
+        }
+
+        // Decide whether to show New Game button; only for practice games.
+        if (this.game.getName() === "PracticeGame") {
+            this.newGameButton.style.display = "block";
+        } else {
+            this.newGameButton.style.display = "none";
         }
 
         if (this.gameTileDisplay.getNumFilledWords() <= 2) {
