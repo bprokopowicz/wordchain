@@ -329,7 +329,7 @@ class GameTileDisplay extends TileDisplay {
             Cookie.save(this.game.getName(), "");
         } else {
             // Save cookie.
-            this.setGameCookie();
+            this.saveGameCookie();
         }
     }
 
@@ -363,7 +363,7 @@ class GameTileDisplay extends TileDisplay {
         // played so far, plus the target word, and save it as a cookie.
         const playResult = this.game.playWord(enteredWord);
         if (playResult === Const.OK) {
-            this.setGameCookie();
+            this.saveGameCookie();
         }
 
         return playResult;
@@ -416,16 +416,8 @@ class GameTileDisplay extends TileDisplay {
         }
     }
 
-    // This method is called when the user clicks the Daily and Practice
-    // buttons to switch games, or when the user clicks the Start Practice Game
-    // button to start a new practice game.
-    setGame(game) {
-        this.game = game;
-        this.setGameCookie();
-    }
-
     // Set the cookie containing the words for the current game.
-    setGameCookie() {
+    saveGameCookie() {
         // The list of solution words includes the start word and all
         // the words that the user has played. Get the list and
         // add the target word to it.
@@ -433,6 +425,14 @@ class GameTileDisplay extends TileDisplay {
         solutionWords.push(this.game.getTarget());
 
         Cookie.saveJson(this.game.getName(), solutionWords);
+    }
+
+    // This method is called when the user clicks the Daily and Practice
+    // buttons to switch games, or when the user clicks the Start Practice Game
+    // button to start a new practice game.
+    setGame(game) {
+        this.game = game;
+        this.saveGameCookie();
     }
 
     // This method is called when the user changes the Game Play Mode setting.

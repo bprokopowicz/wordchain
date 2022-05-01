@@ -181,32 +181,6 @@ class AppDisplay extends BaseLogger {
         // this.game will be set to whichever game is current.
         this.game = null;
 
-        // The mother of all divs.
-        this.rootDiv = null;
-
-        // Divs that appear during game setup and play; header/lower are children of root-div.
-        this.headerDiv   = null;
-        this.lowerDiv    = null; // Contains the following 3 divs
-        this.practiceDiv = null;
-        this.solutionDiv = null;
-        this.keyboardDiv = null;
-
-        // Buttons in the keyboard div; used to add event listeners to them.
-        this.keyboardButtons = [];
-
-        // Divs that hold auxiliary screens (Help, Settings, Stats); all children of root-div.
-        this.helpDiv     = null;
-        this.settingsDiv = null;
-        this.statsDiv    = null;
-
-        // Div for toast pop-ups; child of root-div.
-        this.toastDiv    = null;
-
-        // This is the set of divs that need to be hidden when an auxiliary screen is
-        // shown, and shown when an auxiliary screen is cclosed. Methods that create the
-        // divs will add them to this list.
-        this.primaryDivs = [];
-
         // Objects for the tile displays.
         this.gameTileDisplay     = null;
         this.practiceTileDisplay = null;
@@ -235,7 +209,7 @@ class AppDisplay extends BaseLogger {
             AppDisplay.MaxGamesIntervalMs = debugPracticeGameIntervalMin * 60 * 1000;
         }
 
-        // The starting word, played words, and target words.
+        // The starting word, played words, and target words of each game.
         this.dailyGameWords    = Cookie.getJsonOrElse("DailyGame", []);
         this.practiceGameWords = Cookie.getJsonOrElse("PracticeGame", []);
 
@@ -243,8 +217,7 @@ class AppDisplay extends BaseLogger {
         // the maximum number of timestamps per day.
         this.practiceGameTimestamps = Cookie.getJsonOrElse("PracticeGameTimestamps", []);
 
-        // If we have a cookie for daily stats parse it, otherwise construct initial stats
-        // and save them to the cookies.
+        // Construct initial stats to be used if we don't have a cookie for daily stats.
         let initialStats = {
             gamesPlayed:         0,
             gamesPlayedHardMode: 0,
@@ -256,6 +229,7 @@ class AppDisplay extends BaseLogger {
             initialStats[extraSteps] = 0;
         }
 
+        // If we have a cookie for daily stats parse it; otherwise set it to initial values. 
         this.dailyStats = Cookie.getJsonOrElse("DailyStats", initialStats);
         // In case the cookie was initially not set, i.e. is now initialStats, save the value.
         //Cookie.saveJson("DailyStats", this.dailyStats);
@@ -264,8 +238,39 @@ class AppDisplay extends BaseLogger {
         const solution = Solver.fastSolve(this.dict, "daily", "broken");
         this.backupDailyGame = new Game("BackupDailyGame", this.dict, solution, this.typeSavingMode);
 
-        // Now, create all the elements.
-        this.displayGame();
+        // The mother of all divs.
+        this.rootDiv = null;
+
+        // Divs that appear during game setup and play; header/lower are children of root-div.
+        this.headerDiv        = null;
+        this.lowerDiv         = null; // Contains the following 3 divs
+        this.practiceEntryDiv = null;
+        this.gameDiv          = null;
+        this.keyboardDiv      = null;
+
+        // Buttons in the keyboard div; used to add event listeners to them.
+        this.keyboardButtons = [];
+
+        // Divs that hold auxiliary screens (Help, Settings, Stats); all children of root-div.
+        this.helpDiv     = null;
+        this.settingsDiv = null;
+        this.statsDiv    = null;
+
+        // Div for toast pop-ups; child of root-div.
+        this.toastDiv    = null;
+
+        // Now, create all the screens. This will create all the divs listed above.
+        this.createScreens();
+
+        // This is the set of divs that need to be hidden when an auxiliary screen is
+        // shown, and shown when an auxiliary screen is closed.
+        this.primaryDivs = [
+            this.headerDiv,
+            this.practiceEntryDiv,
+            this.gameDiv,
+            this.keyboardDiv,
+        ];
+
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
@@ -283,8 +288,8 @@ class AppDisplay extends BaseLogger {
     ** ================================
     */
 
-    // This is the entry point for displaying the game.
-    displayGame() {
+    // This is the entry point for creating the screens and displaying the game.
+    createScreens() {
         this.rootDiv = ElementUtilities.addElementTo("div", document.body, {id: "root-div"});
         this.createHeaderDiv();
 
@@ -297,8 +302,8 @@ class AppDisplay extends BaseLogger {
 
         // The lower-div contains the divs for game setup and game play.
         this.lowerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "lower-div"});
-        this.createPracticeDiv();
-        this.createSolutionDiv();
+        this.createPracticeEntryDiv();
+        this.createGameDiv();
         this.createKeyboardDiv();
 
         // All hard keyboard events go to one listener.
@@ -318,7 +323,6 @@ class AppDisplay extends BaseLogger {
         // This div is the one we style as none or flex to hide/show the div.
         this.headerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "header-div"});
         this.headerDiv.style.display = "flex";
-        this.primaryDivs.push(this.headerDiv);
 
         // left-button-div is a placeholder for now. It allows styling that puts title-div
         // and right-button-div where we want them.
@@ -331,14 +335,16 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
 
         this.dailyGameButton = ElementUtilities.addElementTo(
-            "button", leftButtonDiv,
-            {id: "daily-game", class: "wordchain-button header-game-button active-button"},
+            "button",
+            leftButtonDiv,
+            {class: "wordchain-button header-game-button active-button"},
             "Daily");
         ElementUtilities.setButtonCallback(this.dailyGameButton, dailyCallback);
 
         this.practiceGameButton = ElementUtilities.addElementTo(
-            "button", leftButtonDiv,
-            {id: "practice-game", class: "wordchain-button header-game-button not-active"},
+            "button",
+            leftButtonDiv,
+            {class: "wordchain-button header-game-button not-active"},
             "Practice");
         ElementUtilities.setButtonCallback(this.practiceGameButton, practiceCallback);
 
@@ -355,25 +361,24 @@ class AppDisplay extends BaseLogger {
 
     /* ----- Practice Game Setup ----- */
 
-    createPracticeDiv() {
+    createPracticeEntryDiv() {
         // This div is the one we style as none or flex to hide/show the div.
-        this.practiceDiv = ElementUtilities.addElementTo("div", this.lowerDiv, {id: "practice-div"});
-        this.practiceDiv.style.display = "none";
-        this.primaryDivs.push(this.practiceDiv);
+        this.practiceEntryDiv = ElementUtilities.addElementTo("div", this.lowerDiv, {id: "practice-entry-div"});
+        this.practiceEntryDiv.style.display = "none";
 
         const helpText1 = `Words can be up to ${Const.MAX_WORD_LENGTH} letters.`
-        ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText1);
+        ElementUtilities.addElementTo("label", this.practiceEntryDiv, {class: "help-info"}, helpText1);
         const helpText2 = `Press the Return key to enter a word.`
-        ElementUtilities.addElementTo("label", this.practiceDiv, {class: "help-info"}, helpText2);
+        ElementUtilities.addElementTo("label", this.practiceEntryDiv, {class: "help-info"}, helpText2);
 
         // Create a div for selecting practice game start/target words, and create
         // a div within that to hold the tiles.
-        this.practiceWordsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-words-div"});
+        this.practiceWordsDiv = ElementUtilities.addElementTo("div", this.practiceEntryDiv, {id: "practice-words-div"});
         this.practiceTileDisplay = new PracticeTileDisplay(this.dict, this.practiceWordsDiv);
         this.practiceTileDisplay.resetWords();
 
         // Now create a div for the buttons in this display and add the buttons.
-        this.practiceButtonsDiv = ElementUtilities.addElementTo("div", this.practiceDiv, {id: "practice-buttons-div"});
+        this.practiceButtonsDiv = ElementUtilities.addElementTo("div", this.practiceEntryDiv, {id: "practice-buttons-div"});
 
         this.startGameButton = ElementUtilities.addElementTo(
             "button", this.practiceButtonsDiv,
@@ -388,19 +393,18 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.setButtonCallback(this.clearLettersButton, clearLettersCallback);
     }
 
-    /* ----- Daily/Practice Game Solution ----- */
+    /* ----- Daily/Practice Game ----- */
 
-    createSolutionDiv() {
+    createGameDiv() {
         // This div is the one we style as none or flex to hide/show the div.
-        this.solutionDiv = ElementUtilities.addElementTo("div", this.lowerDiv, {id: "solution-div"}, null);
-        this.solutionDiv.style.display = "flex";
-        this.primaryDivs.push(this.solutionDiv);
+        this.gameDiv = ElementUtilities.addElementTo("div", this.lowerDiv, {id: "game-div"}, null);
+        this.gameDiv.style.display = "flex";
 
         // Create a div for the game play words which will hold the tiles.
-        this.gameWordsDiv = ElementUtilities.addElementTo("div", this.solutionDiv, {id: "game-words-div"});
+        this.gameWordsDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "game-words-div"});
 
         // Now create a div for the buttons in this display and add the buttons.
-        this.solutionButtonsDiv = ElementUtilities.addElementTo("div", this.solutionDiv, {id: "solution-buttons-div"});
+        this.solutionButtonsDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "solution-buttons-div"});
 
         this.newGameButton = ElementUtilities.addElementTo(
             "button", this.solutionButtonsDiv,
@@ -473,7 +477,6 @@ class AppDisplay extends BaseLogger {
         // This div is the one we style as none or flex to hide/show the div.
         this.keyboardDiv = ElementUtilities.addElementTo("div", this.lowerDiv, {id: "keyboard-div"}, null);
         this.keyboardDiv.style.display = "flex";
-        this.primaryDivs.push(this.keyboardDiv);
 
         this.keyboardInnerDiv = ElementUtilities.addElementTo("div", this.keyboardDiv, {id: "keyboard-inner-div"}, null);
 
@@ -530,7 +533,7 @@ class AppDisplay extends BaseLogger {
 
     createHelpDiv() {
         let helpContainerDiv;
-        [this.helpDiv, helpContainerDiv] = this.createAuxiliaryDiv("help-div", closeAuxiliaryCallback);
+        [this.helpDiv, helpContainerDiv] = this.createAuxiliaryDiv("help-div");
 
         const helpHTML = `
         <h1 align=center>HOW TO PLAY</h1>
@@ -559,7 +562,8 @@ class AppDisplay extends BaseLogger {
         practice games per day. Have fun!
         </h3>
         `
-        const contentDiv = ElementUtilities.addElementTo("div", helpContainerDiv, {id: "help-content-div",}, helpHTML);
+        // Add to the container div that was created above.
+        ElementUtilities.addElementTo("div", helpContainerDiv, {id: "help-content-div",}, helpHTML);
     }
 
     /* ----- Settings ----- */
@@ -579,10 +583,10 @@ class AppDisplay extends BaseLogger {
     }
 
     // Add a setting whose input is a checkbox.
-    addCheckboxSetting(title, id, value, description) {
+    addCheckboxSetting(title, id, value) {
         // setting-simple class styles the contents of the setting (title/description,
         // checkbox input) horizontally.
-        const interactiveDiv = this.addSetting(title, "setting-simple", description);
+        const interactiveDiv = this.addSetting(title, "setting-simple");
 
         const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
             {type: "checkbox", id: id, class: "setting-checkbox"});
@@ -599,7 +603,7 @@ class AppDisplay extends BaseLogger {
     }
 
     // Add a setting whose input is a (mutually exclusive) set of radio buttons.
-    addRadioSetting(title, radioInfoList, radioName, description) {
+    addRadioSetting(title, radioInfoList, radioName, description, callbackFunction) {
         // setting-complex class styles the contents of the setting (title/description, radio inputs
         // and their labels) vertically, i.e. title/description on one line, then each input on
         // a subsequent line.
@@ -619,9 +623,9 @@ class AppDisplay extends BaseLogger {
             // for all the radio inputs.
             const tdCol1 = ElementUtilities.addElementTo("td", tableRow, {});
             const radio = ElementUtilities.addElementTo("input", tdCol1,
-                {id: radioInfo.id, value: radioInfo.id, name: radioName, class: "setting-radio", type: "radio"});
+                {value: radioInfo.value, name: radioName, class: "setting-radio", type: "radio"});
             radio.checked = radioInfo.checked;
-            radio.addEventListener("change", radioCallback);
+            radio.addEventListener("change", callbackFunction);
 
             // Column 2: the description of the radio item.
             const tdCol2 = ElementUtilities.addElementTo("td", tableRow, {});
@@ -632,7 +636,7 @@ class AppDisplay extends BaseLogger {
     createSettingsDiv() {
 
         let settingsContainerDiv;
-        [this.settingsDiv, settingsContainerDiv] = this.createAuxiliaryDiv("settings-div", closeAuxiliaryCallback);
+        [this.settingsDiv, settingsContainerDiv] = this.createAuxiliaryDiv("settings-div");
 
         // Add a div for the content, which will be centered (because of the styling of aux-container-div).
         // within settingsContainerDiv as a block (because of settings-content-div styling).
@@ -640,38 +644,40 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.addElementTo("h1", this.settingsContentDiv, {align: "center"}, "SETTINGS");
 
         // All the settings will be added to settings-content-div.
-        this.addCheckboxSetting("Dark Theme",      "dark",                  this.darkTheme);
-        this.addCheckboxSetting("Colorblind Mode", "colorblind",            this.colorblindMode);
+        this.addCheckboxSetting("Dark Theme",      "dark",       this.darkTheme);
+        this.addCheckboxSetting("Colorblind Mode", "colorblind", this.colorblindMode);
 
         const radioInfo = [{
-                id:      "Normal",
-                desc:    "<b>Normal:</b> Letter-change steps are indicated with a thick letter box outline",
+                value:   "Normal",
+                desc:    "<b>Normal:</b> Letter-change steps are indicated with a thick outline",
                 checked: !(this.hardMode || this.typeSavingMode),
             }, {
-                id:      "Type-Saving",
-                desc:    "<b>Type-Saving:</b> Letters are automatically filled in when the word has not changed length",
+                value:   "Type-Saving",
+                desc:    "<b>Type-Saving:</b> Saves typing by filling in known letters",
                 checked: this.typeSavingMode,
             }, {
-                id:      "Hard",
+                value:   "Hard",
                 desc:    "<b>Hard:</b> No automatically filled letters or thick outline",
                 checked: this.hardMode,
             }
         ]
-        this.addRadioSetting("Game Play Mode", radioInfo, "game-play-mode");
+        const gamePlayModeDescription = "Which way do you want to play?"
+        this.addRadioSetting("Game Play Mode", radioInfo, "game-play-mode", gamePlayModeDescription, radioCallback);
 
         const feedbackDescription = "Dictionary suggestions? Gripes? Things you love? Feature ideas?";
+        const faqDescription = "Everything you want to know and then some!";
         this.addLinkSetting("Feedback",   "Email", Const.EMAIL_HREF, feedbackDescription);
-        this.addLinkSetting("Questions?", "FAQ",   Const.FAQ_HREF);
+        this.addLinkSetting("Questions?", "FAQ",   Const.FAQ_HREF, faqDescription);
     }
 
     /* ----- Stats ----- */
 
     createStatsDiv() {
         let statsContainerDiv;
-        [this.statsDiv, statsContainerDiv] = this.createAuxiliaryDiv("stats-div", closeAuxiliaryCallback);
+        [this.statsDiv, statsContainerDiv] = this.createAuxiliaryDiv("stats-div");
 
         // Add a div for the content, which will be centered (because of the styling of aux-container-div).
-    // within settingsContainerDiv as a block (because of stats-content-div styling).
+        // within settingsContainerDiv as a block (because of stats-content-div styling).
         const contentDiv = ElementUtilities.addElementTo("div", statsContainerDiv, {id: "stats-content-div",});
 
         ElementUtilities.addElementTo("h1", contentDiv, {}, "DAILY GAME STATISTICS");
@@ -1166,7 +1172,7 @@ class AppDisplay extends BaseLogger {
 
         // This div will be centered in its parent div because of how auxiliary-container-div is
         // styled, but its content (the button) will be right-justified in this div because of the
-        // styling of close-button-div..
+        // styling of close-button-div.
         const buttonDiv = ElementUtilities.addElementTo("div", containerDiv, {class: "close-button-div",});
         this.createSvgButton(buttonDiv, "close-button", closeAuxiliaryCallback, Const.CLOSE_PATH, divId);
 
@@ -1235,10 +1241,10 @@ class AppDisplay extends BaseLogger {
         this.updateStatsContent();
     }
 
-    // Return true if we are playing a game (i.e. if practice-div,
+    // Return true if we are playing a game (i.e. if practice-entry-div,
     // used for game setup, is hidden).
     playingGame() {
-        return ElementUtilities.isHidden(this.practiceDiv)
+        return ElementUtilities.isHidden(this.practiceEntryDiv)
     }
 
     // Restore divs hidden with hideShownDivs().
@@ -1248,9 +1254,9 @@ class AppDisplay extends BaseLogger {
             // to put on the div.
             const divStyle = div.getAttribute("data-save-style");
 
-            // If restoring solution-div, update the colors affected  by settings
+            // If restoring game-div, update the colors affected  by settings
             // and update the game display to make those changes take effect.
-            if (div.getAttribute("id") == "solution-div") {
+            if (div.getAttribute("id") == "game-div") {
                 this.setColors();
                 this.updateGameDisplay();
             }
@@ -1419,7 +1425,7 @@ class AppDisplay extends BaseLogger {
         clearInterval(this.clockIntervalTimer);
     }
 
-    // Update the daily/practice game screen (solution-div).
+    // Update the daily/practice game screen (game-div).
     updateGameDisplay(currentGame=null) {
         // If currentGame is given, it means we are changing the game between
         // daily and practice games, so we update instance variables accordingly.
@@ -1451,8 +1457,8 @@ class AppDisplay extends BaseLogger {
         }
 
         // Show solution div and hide practice div.
-        this.solutionDiv.style.display = "flex";
-        this.practiceDiv.style.display = "none";
+        this.gameDiv.style.display = "flex";
+        this.practiceEntryDiv.style.display = "none";
 
         // Get height of keyboard-inner-div and use it to set height of keyboard-div.
         // This takes care of a really irritating problem with Safari on iOS, in which
@@ -1486,7 +1492,7 @@ class AppDisplay extends BaseLogger {
         }
     }
 
-    // Update the practice game word selection screen (practice-div).
+    // Update the practice game word selection screen (practice-entry-div).
     updatePracticeDisplay() {
         // Delete the children in both "tile/word divs" because the same IDs
         // are used for tile/letter elements across these two divs.
@@ -1504,8 +1510,8 @@ class AppDisplay extends BaseLogger {
         this.keyboardDiv.style.display = "flex";
 
         // Hide solution div and show practice div.
-        this.solutionDiv.style.display = "none";
-        this.practiceDiv.style.display = "flex";
+        this.gameDiv.style.display = "none";
+        this.practiceEntryDiv.style.display = "flex";
 
         // Scroll to top of page.
         window.scrollTo(0, 0);

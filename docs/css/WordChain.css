@@ -181,7 +181,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 }
 
 /*
-** Common settings for "primary screens" (Solution and Practice Setup Screens (including their common header))
+** Common styling for "primary screens" (Solution and Practice Setup Screens (including their common header))
 */
 
 .wordchain-button {
@@ -351,7 +351,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 ** Practice Game Setup Screen
 */
 
-#practice-div {
+#practice-entry-div {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -378,7 +378,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 ** Solution Screen (for Daily and Practice games)
 */
 
-#solution-div {
+#game-div {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -487,7 +487,7 @@ table {
 }
 
 /*
-** Common settings for "auxiliary screens" (Help, Settings, Stats)
+** Common styling for "auxiliary screens" (Help, Settings, Stats)
 */
 
 .close-button-div {
@@ -593,6 +593,10 @@ a:link {
     padding-bottom: 1rem;
 }
 
+#setting-radio-tr {
+    padding-bottom: .5rem;
+}
+
 input.setting-radio {
     width: 1rem;
     height: 1rem;
@@ -601,6 +605,8 @@ input.setting-radio {
 
 .radio-container {
     margin-top: 1rem;
+    /* First value sets horizontal spacing; second one sets vertical. */
+    border-spacing: .4rem .2rem;
 }
 
 .radio-label {
@@ -816,8 +822,8 @@ input.setting-radio {
     #keyboard-div {
         /*
         ** Extend keyboard right/left to take up the whole viewport so that if the user's standard
-        ** size (i.e. 1rem) is so large that solution-div is wider than the keyboard, the entire
-        ** solution-div is obscured  when scrolling, i.e. no bits of game tiles around the edges
+        ** size (i.e. 1rem) is so large that game-div is wider than the keyboard, the entire
+        ** game-div is obscured  when scrolling, i.e. no bits of game tiles around the edges
         ** of the keyboard.
         **
         ** NOTE: If we have these changes for phone or tablet, it causes a horizontal scroll bar,
