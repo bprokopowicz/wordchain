@@ -95,7 +95,7 @@ class Game extends BaseLogger {
         // be a non-solution!
         const potentialNewSolution = Solver.fastSolve(
             this.dict, word, this.knownSolution.getTarget(),
-            this.solutionInProgress.getWordSet());
+            this.solutionInProgress.wordList);
         this.logDebug(`returned potentialNewSolution: ${potentialNewSolution.toStr()}`, "game");
 
         // Does the user's word lead to a solution?

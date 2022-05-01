@@ -2,6 +2,8 @@ import { BaseLogger } from '../docs/javascript/BaseLogger.js';
 import { WordChainDict } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
+import * as Const from '../docs/javascript/Const.js';
+
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
 // Forwarding functions; see big comment in AppDisplay.js explaining how these came about.
@@ -188,7 +190,7 @@ class Test extends BaseLogger {
         this.name = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedDictSize = 16608;
+        const expectedMinDictSize = 16000;
 
         const catAdders = this.fullDict.findAdderWords("cat");
         const addersSize = catAdders.size;
@@ -198,7 +200,7 @@ class Test extends BaseLogger {
         const replacementsSize = badeReplacements.size;
         const expectedReplacementsSize = 2;
 
-        this.verify((dictSize == expectedDictSize), `full dictionary has ${dictSize} words; expected ${expectedDictSize}`) &&
+        this.verify((dictSize >= expectedMinDictSize), `full dictionary has ${dictSize} words; expected at least ${expectedMinDictSize}`) &&
             this.verify(this.fullDict.isWord("place"), "'place' is not in dict") &&
             this.verify(this.fullDict.isWord("PlAcE"), "'PlAcE' is not in dict") &&
             this.verify(!this.fullDict.isWord("zizzamatizzateezyman"), "'zizzamatizzateezyman' is in dict") &&
@@ -294,7 +296,7 @@ class Test extends BaseLogger {
 
         const solutionTacoBimbo = Solver.fastSolve(this.fullDict, "taco", "bimbo");
         const foundWords = solutionTacoBimbo.getWords();
-        const expectedWords = [ "taco", "tao", "tam", "lam", "lamb", "limb", "limbo", "bimbo" ];
+        const expectedWords = [ "taco", "tao", "tab", "lab", "lamb", "limb", "limbo", "bimbo" ];
 
         this.verify(solutionTacoBimbo.success(), `error on 'taco' to 'bimbo': ${solutionTacoBimbo.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `foundWords: ${foundWords} is not as expected: ${expectedWords}`) &&
@@ -340,7 +342,7 @@ class Test extends BaseLogger {
         const game = new Game("small", smallDict, solution);
 
         const playResult = game.playWord("cad");
-        this.verify((playResult === Game.OK), "Word played not OK") &&
+        this.verify((playResult === Const.OK), "Word played not OK") &&
             this.success();
     }
 
@@ -352,7 +354,7 @@ class Test extends BaseLogger {
         const game = new Game("small", smallDict, solution);
 
         const playResult = game.playWord("dog");
-        this.verify((playResult === Game.NOT_ONE_STEP), "Word played not NOT_ONE_STEP") &&
+        this.verify((playResult === Const.NOT_ONE_STEP), "Word played not NOT_ONE_STEP") &&
             this.success();
     }
 
@@ -369,8 +371,8 @@ class Test extends BaseLogger {
         const knownStep1 = game.getKnownSolution().getWordByStep(1)
         const knownStep2 = game.getKnownSolution().getWordByStep(2)
 
-        this.verify((playResult === Game.OK), "Word played not OK") &&
-            this.verify((! origSolution.getWordSet().has('bade')), "Original solution has 'bade'") &&
+        this.verify((playResult === Const.OK), "Word played not OK") &&
+            this.verify((! origSolution.wordList.includes('bade')), "Original solution has 'bade'") &&
             this.verify((knownStep1 === "bade"), `Known step 1 unexpected: ${knownStep1}`) &&
             this.verify((knownStep2 !== origStep2), `Known step 2 same as original: ${knownStep2}`) &&
             this.success();
@@ -386,8 +388,8 @@ class Test extends BaseLogger {
         const playResult1 = game.playWord("cad");
         const playResult2 = game.playWord("scad");
 
-        this.verify((playResult1 === Game.OK), "Word 1 played not OK") &&
-            this.verify((playResult2 === Game.OK), "Word 2 played not OK") &&
+        this.verify((playResult1 === Const.OK), "Word 1 played not OK") &&
+            this.verify((playResult2 === Const.OK), "Word 2 played not OK") &&
             this.verify(game.getSolutionInProgress().isSolved(), `Solution in progress is not solved`) &&
             this.success();
     }
@@ -403,7 +405,7 @@ class Test extends BaseLogger {
         const knownStep2  = game.getKnownSolution().getWordByStep(2)
         const inProgStep1 = game.getSolutionInProgress().getWordByStep(1)
 
-        this.verify((playResult === Game.OK), "Word played not OK") &&
+        this.verify((playResult === Const.OK), "Word played not OK") &&
             this.verify((knownStep1 === "cad"), `Known step 1 unexpected: ${knownStep1}`) &&
             this.verify((inProgStep1 === "cad"), `In progress step 1 unexpected: ${inProgStep1}`) &&
             this.verify((knownStep2 !== origStep2), `Known step 2 same as original: ${knownStep2}`) &&
@@ -418,7 +420,7 @@ class Test extends BaseLogger {
         let playResult = game.playWord("cats")
         let wordsAfterFromWord = game.getKnownSolution().getWords().slice(1)
 
-        this.verify((playResult === Game.OK), "No solution from 'cat, cats' to 'dog'") &&
+        this.verify((playResult === Const.OK), "No solution from 'cat, cats' to 'dog'") &&
             this.verify(! wordsAfterFromWord.includes("cat"), "Solution of 'cats' to 'dog' contains 'cat'") &&
             this.success();
     }
@@ -553,7 +555,7 @@ class Test extends BaseLogger {
             [...this.fullDict.getWords()]
             .filter(targetWord => (targetWord.length === targetWordLen))
             .map(targetWord => {
-                console.log("target: ", targetWord, " len is ", targetWord.length);
+                console.log("target: ", targetWord);
                 const solution = Solver.fastSolve(this.fullDict, startWord, targetWord);
                 if ( solution.isSolved() &&
                     (solution.numSteps() >= minSteps) &&

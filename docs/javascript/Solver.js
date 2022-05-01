@@ -11,7 +11,7 @@ class SolutionHeap extends BaseLogger {
         super();
 
         //const {MinQueue} = Heapify;
-        this.objectIndexHeapq = new MinQueue(200000);
+        this.objectIndexHeapq = new MinQueue(800000);
         this.objectMap = [];
     }
 
@@ -53,7 +53,7 @@ class SolutionHeap extends BaseLogger {
 // NOTE: This class expects its user to verify that the fromWord and toWord
 // are valid words in the wordChainDict given to its constructor args.
 class Solver extends BaseLogger {
-    constructor(wordChainDict, fromWord, toWord, excludedWords=new Set()) {
+    constructor(wordChainDict, fromWord, toWord, excludedWords=new Array()) {
         super();
         this.dict     = wordChainDict;
         this.fromWord = fromWord;
@@ -75,7 +75,7 @@ class Solver extends BaseLogger {
 
     // Solve in a fast way, based on whether it is better to solve
     // fromWord --> toWord or toWord --> fromWord.
-    static fastSolve(wordChainDict, fromWord, toWord, excludedWords=new Set()) {
+    static fastSolve(wordChainDict, fromWord, toWord, excludedWords=new Array()) {
         const fromWordNextWordsCount = wordChainDict.findNextWords(fromWord).size;
         const toWordNextWordsCount = wordChainDict.findNextWords(toWord).size;
 
@@ -103,11 +103,13 @@ class Solver extends BaseLogger {
 
         // Create a heap for our working solutions and push this starting working solution on the heap.
         const workingSolutions = new SolutionHeap();
+        const wordsTried = new Set();
         workingSolutions.push(startingWorkingSolution, startingWorkingSolution.getDistance());
 
         let solution = null;
         let longestSolution = 0;
         let loopCount = 0;
+        let dupsSkipped = 0;
         let startTime = Date.now()
         while (workingSolutions.getSize() !== 0) {
             // Get the solution with the shortest distance to the "target word"
@@ -118,8 +120,9 @@ class Solver extends BaseLogger {
             if (solution.numSteps() > longestSolution) {
                 longestSolution = solution.numSteps()
                 this.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "perf");
-                this.logDebug(`loopCount: ${loopCount}: heap size: ${workingSolutions.getSize()}`, "perf")
-                this.logDebug(`loopCount: ${loopCount}: map size:  ${workingSolutions.getMapSize()}`, "perf")
+                this.logDebug(`loopCount: ${loopCount}: heap size: ${workingSolutions.getSize()}`, "perf");
+                this.logDebug(`loopCount: ${loopCount}: map size:  ${workingSolutions.getMapSize()}`, "perf");
+                this.logDebug(`loopCount: ${loopCount}: dups skipped:  ${dupsSkipped}`, "perf");
             }
 
             // Find all possible "next words" from the last word in the solution so far.
@@ -127,14 +130,19 @@ class Solver extends BaseLogger {
             let nextWords = Array.from(this.dict.findNextWords(lastWord));
 
             // Remove words that are already in the solution from nextWords.
-            nextWords = nextWords.filter(w => !solution.getWordSet().has(w));
+            nextWords = nextWords.filter(w => !solution.wordList.includes(w));
 
             // Remove previously played words from the solution. This addresses the case where
             // we are solving a game in which the user plays a word that is not in the (current)
             // known solution. In that case, we create a solver from the user's new word to the
             // target to see whether the new word leads to a solution (however long it may be).
             // BUT, that solution must not contain words that have already been played.
-            nextWords = nextWords.filter(w => !this.excludedWords.has(w));
+            nextWords = nextWords.filter(w => !this.excludedWords.includes(w));
+
+            // Remove words that have already been added to some possible solution earlier
+            const beforeOpt = nextWords.length;
+            nextWords = nextWords.filter(w => !wordsTried.has(w));
+            dupsSkipped += beforeOpt - nextWords.length;
 
             solution.difficulty = solution.difficulty + nextWords.length;
             // Check if we have a solution; if so, add this latest word to it, and return it.
@@ -150,6 +158,7 @@ class Solver extends BaseLogger {
             // NOTE: Without sorting nextWords, we do not consistently find the same solution.
             for (let word of nextWords.sort()) {
                 // Note that addWord() will calculate the distance of newWorkingSolution.
+                wordsTried.add(word);
                 let newWorkingSolution = solution.copy().addWord(word);
                 this.logDebug(`   adding ${newWorkingSolution.toStr()}`, "solveDetail");
                 workingSolutions.push(newWorkingSolution, newWorkingSolution.getDistance());
@@ -203,7 +212,7 @@ class Solution extends BaseLogger {
 
     addWord(newWord) {
         this.wordList.push(newWord)
-        this.distance = Solution.wordDistance(newWord, this.target) + this.wordList.length;
+        this.distance = Solution.wordDistance(newWord, this.target)/100 + this.wordList.length;
         return this;
     }
 
@@ -255,10 +264,6 @@ class Solution extends BaseLogger {
     // Used only in tests.
     getWordByStep(step) {
         return this.wordList[step];
-    }
-
-    getWordSet() {
-        return new Set(this.wordList);
     }
 
     getWordLength(wordNum) {
@@ -361,7 +366,7 @@ class Solution extends BaseLogger {
         } else {
             const separator = html ? "<p>" : " ";
             const words = this.wordList.join(", ");
-            return `${words}${separator}[${this.wordList.length - 1} steps to ${this.target}]${separator}${this.searchSize} nodes${separator}difficulty: ${this.difficulty}`;
+            return `${words}${separator}[${this.wordList.length - 1} steps to ${this.target}]${separator}${this.searchSize} nodes${separator}distance: ${this.distance}`;
         }
     }
 }
