@@ -219,6 +219,7 @@ class Test extends BaseLogger {
         this.testSolverMultiStep();
         this.testSolverDistance();
         this.testSolverLongChain();
+        this.testGameNotShortestSolutionBug();
         this.testSolverFastestDirection();
         this.testSolverReverseSearchNoSolution();
     }
@@ -411,6 +412,17 @@ class Test extends BaseLogger {
             this.verify((knownStep2 !== origStep2), `Known step 2 same as original: ${knownStep2}`) &&
             this.success();
     }
+
+    testGameNotShortestSolutionBug() {
+        this.name = "GameNotShortestSolutionBug";
+        const solution = Solver.fastSolve(this.fullDict, "broken", "baked");
+        const foundWords = solution.getWords();
+        const expectedWords = [ "broken", "broke", "brake", "bake", "baked" ];
+        this.verify(solution.success(), `error on 'broken' to 'baked': ${solution.getError()}`) &&
+                this.verify((foundWords.toString() == expectedWords.toString()), `solution: ${foundWords} is not expected: ${expectedWords}`) &&
+                this.success();
+    }
+
 
     testGameSolutionCannotHavePlayedWord() {
         this.name = "GameSolutionCannotHavePlayedWord";
