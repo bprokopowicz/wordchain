@@ -389,7 +389,7 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     justify-content: center;
 }
 
-#solution-buttons-div {
+#game-buttons-div {
     display: flex;
     justify-content: center;
 }

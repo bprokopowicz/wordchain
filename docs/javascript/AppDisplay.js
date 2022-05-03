@@ -5,7 +5,7 @@ import { Solver } from './Solver.js';
 import { Game } from './Game.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { Cookie } from './Cookie.js';
-import { DailyGame } from './DailyGame.js';
+import { DailyGameGenerator } from './DailyGameGenerator.js';
 import * as Const from './Const.js';
 
 
@@ -178,7 +178,8 @@ class AppDisplay extends BaseLogger {
         this.dailyGame    = null;
         this.practiceGame = null;
 
-        // this.game will be set to whichever game is current.
+        // this.game will be set to whichever Game (daily or practice) is
+        // currently being played.
         this.game = null;
 
         // Objects for the tile displays.
@@ -231,8 +232,6 @@ class AppDisplay extends BaseLogger {
 
         // If we have a cookie for daily stats parse it; otherwise set it to initial values. 
         this.dailyStats = Cookie.getJsonOrElse("DailyStats", initialStats);
-        // In case the cookie was initially not set, i.e. is now initialStats, save the value.
-        //Cookie.saveJson("DailyStats", this.dailyStats);
 
         // Create a backup daily game, in case we cannot get one.
         const solution = Solver.fastSolve(this.dict, "daily", "broken");
@@ -404,16 +403,16 @@ class AppDisplay extends BaseLogger {
         this.gameWordsDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "game-words-div"});
 
         // Now create a div for the buttons in this display and add the buttons.
-        this.solutionButtonsDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "solution-buttons-div"});
+        const gameButtonsDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "game-buttons-div"});
 
         this.newGameButton = ElementUtilities.addElementTo(
-            "button", this.solutionButtonsDiv,
+            "button", gameButtonsDiv,
             {id: "start-new-game", class: "wordchain-button game-button"},
             "New Game");
         ElementUtilities.setButtonCallback(this.newGameButton, newGameCallback);
 
         this.shareButton = ElementUtilities.addElementTo(
-            "button", this.solutionButtonsDiv,
+            "button", gameButtonsDiv,
             {id: "share", class: "wordchain-button game-button"},
             "Share");
         ElementUtilities.setButtonCallback(this.shareButton, shareCallback);
@@ -429,7 +428,7 @@ class AppDisplay extends BaseLogger {
         // The default is to show this button, which we want for both daily and practice games;
         // users should be able to display the solution for either.
         this.showSolutionButton = ElementUtilities.addElementTo(
-            "button", this.solutionButtonsDiv,
+            "button", gameButtonsDiv,
             {id: "show-solution", class: "wordchain-button game-button"},
             "Show Solution");
         ElementUtilities.setButtonCallback(this.showSolutionButton, showSolutionCallback);
@@ -478,6 +477,10 @@ class AppDisplay extends BaseLogger {
         this.keyboardDiv = ElementUtilities.addElementTo("div", this.lowerDiv, {id: "keyboard-div"}, null);
         this.keyboardDiv.style.display = "flex";
 
+        // keyboard-div always ends up with extra space at the top. The only way I was able
+        // to get rid of it is to create keyboard-inner-div, which has no extra space, and
+        // then in the JavaScript code set the height of keyboard-div to match that of
+        // keyboard-inner-div.
         this.keyboardInnerDiv = ElementUtilities.addElementTo("div", this.keyboardDiv, {id: "keyboard-inner-div"}, null);
 
         // Create the keyboard rows; the tiles will be added to each row in turn.
@@ -813,7 +816,7 @@ class AppDisplay extends BaseLogger {
         if (this.playingGame()) {
             this.gameKeyboardCallback(keyValue);
         } else {
-            this.practiceKeyboardCallback(keyValue);
+            this.practiceEntryKeyboardCallback(keyValue);
         }
     }
 
@@ -872,7 +875,7 @@ class AppDisplay extends BaseLogger {
     }
 
     // This is the keyboard callback for practice game start/target word entry.
-    practiceKeyboardCallback(keyValue) {
+    practiceEntryKeyboardCallback(keyValue) {
         if (keyValue === Const.BACKSPACE) {
             this.practiceTileDisplay.keyPressDelete();
         } else if (keyValue === Const.ENTER) {
@@ -1054,24 +1057,20 @@ class AppDisplay extends BaseLogger {
     // Create and display today's daily game.
     constructDailyGame() {
 
-        // Get today's daily game; we'll use it to determine whether it is time
+        // Get today's daily game descriptor; we'll use it to determine whether it is time
         // to create a new game.
-        const todaysDaily = new DailyGame();
+        const todaysDailyGameDescriptor = DailyGameGenerator.generate();
 
-        if (! todaysDaily.isValidGame()) {
+        if (! todaysDailyGameDescriptor.isValidGame()) {
             // No daily game? Something went awry; use the backup.
             this.showToast("Unable to create daily game;<br>here is a fun back-up");
             this.dailyGame = this.backupDailyGame;
         } else {
-            // If we've never saved a daily game number in the cookies or
-            // the number we saved isn't today's game number, set things up
-            // for a new daily game.
-            if ((! this.dailyGameNumber) || (this.dailyGameNumber != todaysDaily.getNumber())) {
-                // New daily game! Save the number and some other data in our object and cookies.
-                this.dailyGameNumber = todaysDaily.getNumber();
-                this.dailySolutionShown  = false;
-                Cookie.save("DailyGameNumber", this.dailyGameNumber);
-                Cookie.save("DailySolutionShown", this.dailySolutionShown);
+            if (todaysDailyGameDescriptor.isNewGame()) {
+                this.dailyGameNumber = todaysDailyGameDescriptor.getNumber();
+                this.dailySolutionShown = false;
+
+                // Update stats relating to a new daily game.
                 this.incrementStat("gamesPlayed");
                 if (this.hardMode) {
                     this.incrementStat("gamesPlayedHardMode");
@@ -1080,11 +1079,12 @@ class AppDisplay extends BaseLogger {
                 // Create a solution from today's daily game start/target words.
                 // No need to check solution for success -- daily games will be
                 // pre-verified to have a solution.
-                const solution = Solver.fastSolve(this.dict, todaysDaily.getStart(), todaysDaily.getTarget());
+                const solution = Solver.fastSolve(
+                    this.dict, todaysDailyGameDescriptor.getStart(), todaysDailyGameDescriptor.getTarget());
                 this.dailyGame = new Game("DailyGame", this.dict, solution, this.typeSavingMode);
             } else {
-                // Existing daily game; reconstruct it from the cookie (which we've saved
-                // as this.dailyGameWords).
+                // Existing daily game; reconstruct it from the cookie (which we've recovered
+                // and saved as this.dailyGameWords).
                 this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
             }
         }
@@ -1093,25 +1093,6 @@ class AppDisplay extends BaseLogger {
         // a practice game using these words.
         this.dailyStartWord = this.dailyGame.getStart();
         this.dailyTargetWord = this.dailyGame.getTarget();
-
-        /*
-        if (this.dailyGameWords) {
-            this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
-        } else {
-            // TEMPORARY
-            let startWord = "cat";
-            let targetWord = "dog";
-            this.incrementStat("gamesPlayed");
-            if (this.hardMode) {
-                this.incrementStat("gamesPlayedHardMode");
-            }
-
-            const solution = Solver.fastSolve(this.dict, startWord, targetWord);
-            this.dailyGame = new Game("DailyGame", this.dict, solution);
-            this.dailySolutionShown = false;
-            Cookie.save("DailySolutionShown", this.dailySolutionShown);
-        }
-        */
 
         // Now use the daily game to construct the tile display.
         this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv, this);
@@ -1410,7 +1391,7 @@ class AppDisplay extends BaseLogger {
         }
 
         // Set the initial clock display.
-        let msUntilNextGame = DailyGame.getMsUntilNextGame();
+        let msUntilNextGame = DailyGameGenerator.getMsUntilNextGame();
         this.countdownClock.textContent = msToDuration(msUntilNextGame);
 
         // Set a timer to change the clock and display every second.
