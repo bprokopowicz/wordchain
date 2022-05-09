@@ -2,7 +2,7 @@ import { Cookie } from './Cookie.js';
 
 class DailyGameGenerator {
     // TODO: Update!
-    static BaseDate = new Date("2022-05-01T00:00:00.000+00:00");
+    static BaseDate = new Date("2022-05-09T00:00:00.000+00:00");
     static BaseTimestamp = null;
     static DateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
@@ -16,6 +16,9 @@ class DailyGameGenerator {
         }, 3: {
             start:  "hat",
             target: "shoes",
+        }, 4: {
+            start:  "boy",
+            target: "girl",
         }
     }
 
