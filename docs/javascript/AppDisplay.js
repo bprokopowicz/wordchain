@@ -1017,7 +1017,7 @@ class AppDisplay extends BaseLogger {
         // Don't create a game if there is no path to a solution with the selected words.
         const solution = Solver.fastSolve(this.dict, startWord, targetWord);
         if (!solution.success()) {
-            this.showToast(GameTileDisplay.NO_SOLUTION);
+            this.showToast(Const.DEAD_END);
             return;
         }
 

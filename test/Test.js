@@ -466,7 +466,7 @@ class Test extends BaseLogger {
     }
 
     lookupCallback() {
-        const word = ElementUtilities.getElementValue("someWord");
+        const word = ElementUtilities.getElementValue("someWord").toLowerCase();
         if (! this.fullDict.isWord(word)) {
             alert(`${word} is not a word`);
             return;
@@ -495,13 +495,13 @@ class Test extends BaseLogger {
     }
 
     solveCallback() {
-        const startWord = ElementUtilities.getElementValue("solverStartWord");
+        const startWord = ElementUtilities.getElementValue("solverStartWord").toLowerCase();
         if (! this.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
             return;
         }
 
-        const targetWord = ElementUtilities.getElementValue("solverTargetWord");
+        const targetWord = ElementUtilities.getElementValue("solverTargetWord").toLowerCase();
         if (! this.fullDict.isWord(targetWord)) {
             alert("Target word is empty or not a word");
             return;
@@ -527,16 +527,16 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "min steps: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinSteps", type: "text"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinSteps", type: "text", value: "1"});
         ElementUtilities.addElementTo("p", this.outerDiv);
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "max steps: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxSteps", type: "text"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxSteps", type: "text", value: "1000"});
         ElementUtilities.addElementTo("p", this.outerDiv);
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "min difficulty: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinDifficulty", type: "text"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinDifficulty", type: "text", value: "1" });
         ElementUtilities.addElementTo("p", this.outerDiv);
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "max difficulty: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxDifficulty", type: "text"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxDifficulty", type: "text", value: "1000"});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("button", this.outerDiv, {id: "puzzleFinderFind"}, "Find!");
@@ -548,7 +548,7 @@ class Test extends BaseLogger {
     }
 
     puzzleFinderFindCallback() {
-        const startWord = ElementUtilities.getElementValue("puzzleFinderStartWord");
+        const startWord = ElementUtilities.getElementValue("puzzleFinderStartWord").toLowerCase();
         if (! this.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
             return;
@@ -561,7 +561,6 @@ class Test extends BaseLogger {
         const minDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMinDifficulty"));
         const maxDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxDifficulty"));
         const targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen"));
-
 
         const goodTargetsWithDifficulty =
             [...this.fullDict.getWords()]
