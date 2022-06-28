@@ -2,23 +2,50 @@ import { Cookie } from './Cookie.js';
 
 class DailyGameGenerator {
     // TODO: Update!
-    static BaseDate = new Date("2022-05-09T00:00:00.000+00:00");
+    static BaseDate = new Date("2022-06-28T00:00:00.000+00:00");
     static BaseTimestamp = null;
     static DateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
     static GameWords = {
            1: {
-            start:  "fish",
-            target: "soup",
+            start:  "mister",
+            target: "egg",
         }, 2: {
-            start:  "cat",
-            target: "dog",
+            start:  "big",
+            target: "calves",
         }, 3: {
-            start:  "hat",
-            target: "shoes",
+            start:  "night",
+            target: "hawk",
         }, 4: {
-            start:  "boy",
-            target: "girl",
+            start:  "broken",
+            target: "spoon",
+        }, 5: {
+            start:  "knee",
+            target: "space",
+        }, 6: {
+            start:  "burned",
+            target: "pasta",
+        }, 7: {
+            start:  "night",
+            target: "hawk",
+        }, 8: {
+            start:  "magic",
+            target: "comic",
+        }, 9: {
+            start:  "house",
+            target: "beer",
+        }, 10: {
+            start:  "plan",
+            target: "age",
+        }, 11: {
+            start:  "south",
+            target: "west",
+        }, 12: {
+            start:  "cashew",
+            target: "eaters",
+        }, 13: {
+            start:  "tiny",
+            target: "shrub",
         }
     }
 
