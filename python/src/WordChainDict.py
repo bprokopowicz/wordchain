@@ -13,7 +13,8 @@ class WordChainDict(GenericBaseClass):
         else:
             #dictFile = open("../../resources/ScrabbleDict279498", "r")
             #dictFile = open("../../resources/EnableDict172819", "r")
-            dictFile = open("../../resources/WordFreq38807", "r")
+            #dictFile = open("../../resources/WordFreq38807", "r")
+            dictFile = open("../../docs/resources/dict/WordFreqDict", "r")
             wordList = [line.strip().lower() for line in dictFile]
             dictFile.close()
 
