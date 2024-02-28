@@ -1,7 +1,9 @@
 BUGS:
 It now fails if you enter a non-word.  It is stuck there.
 
-Don't show extra space if it is not the best path.  
+document how to run tests.
+
+Don't show extra tile if it is not the best path.  
 
 For "delete one letter" step, show the whole word (again, below previous word) with an 'x' in the corner of
 each letter that can be removed and create a word THAT HAS A SOLUTION PATH.   
