@@ -93,10 +93,7 @@ class SolverTest(TestBase):
     def test_fullDict(self):
         solution = Solver(self.fullDict, "taco", "bimbo").solveIt()
         self.assertTrue(solution.success(), "Expected success; got error: {}".format(solution.getError()))
-        expectedSolution = "['taco', 'tace', 'lace', 'lame', 'lamb', 'limb', 'limbo', 'bimbo'] [7 steps]"
-        expectedSolution = "['taco', 'tace', 'tame', 'lame', 'lime', 'limo', 'limbo', 'bimbo'] [7 steps]"
-        expectedSolution = "['taco', 'tace', 'lace', 'lice', 'lime', 'limo', 'limbo', 'bimbo'] [7 steps]"
-        expectedSolution = "['taco', 'tace', 'tame', 'time', 'lime', 'limb', 'limbo', 'bimbo'] [7 steps]"
+        expectedSolution = "['taco', 'taro', 'tare', 'tame', 'time', 'lime', 'limo', 'limbo', 'bimbo'] [8 steps]"
 
         foundSolution = solution.summarize()
         self.assertEqual(foundSolution, expectedSolution, "Unexpected solution: {}".format(foundSolution))

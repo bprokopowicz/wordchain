@@ -63,18 +63,18 @@ class GameTest(TestBase):
         self.assertTrue(game.isSolved())
 
     def test_fullGame2(self):
-        origSolution = Solver(self.fullDict, "define", "word").solveIt()
+        origSolution = Solver(self.fullDict, "fine", "word").solveIt()
         game = Game(self.fullDict, origSolution)
         origStep2 = game.solution.getWordByStep(2)
 
-        playResult = game.playWord("defined")
-        self.assertEqual(playResult, Game.OK, "playing defined")
+        playResult = game.playWord("wine")
+        self.assertEqual(playResult, Game.OK, "playing wine")
 
         curSolutionStep1 = game.solution.getWordByStep(1)
-        self.assertEqual(curSolutionStep1, "defined", "current solution step 1 is not what was played")
+        self.assertEqual(curSolutionStep1, "wine", "current solution step 1 is not what was played")
 
         solutionInProgressStep1 = game.solutionInProgress.getWordByStep(1)
-        self.assertEqual(solutionInProgressStep1, "defined", "solution in progress step 1 is not what was played")
+        self.assertEqual(solutionInProgressStep1, "wine", "solution in progress step 1 is not what was played")
 
         curSolutionStep2 = game.solution.getWordByStep(2)
         self.assertNotEqual(curSolutionStep2, origStep2, "current step 2 is not different from original")

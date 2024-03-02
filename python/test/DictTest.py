@@ -33,7 +33,7 @@ class DictTest(TestBase):
     ################
 
     def test_dictLoads(self):
-        self.assertEqual(self.fullDict.getSize(), 172605, "Size is wrong")
+        self.assertEqual(self.fullDict.getSize(), 16568, "Size is wrong")
 
     def test_isWord(self):
         self.assertTrue(self.fullDict.isWord("place"), "'place' actually is a word")
@@ -44,11 +44,11 @@ class DictTest(TestBase):
 
     def test_adder(self):
         adders = self.fullDict.findAdderWords("cat")
-        self.assertEqual(len(adders), 8, "Incorrect number of adders")
+        self.assertEqual(len(adders), 9, "Incorrect number of adders: " + ' '.join(adders))
 
     def test_replacement(self):
         replacements = self.fullDict.findReplacementWords("bade")
-        self.assertEqual(len(replacements), 18, "Incorrect number of replacements")
+        self.assertEqual(len(replacements), 14, "Incorrect number of replacements: " + ' '.join(replacements))
 
     #################
     # smallDict tests

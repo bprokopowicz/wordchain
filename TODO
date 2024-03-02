@@ -1,7 +1,7 @@
 BUGS:
-It now fails if you enter a non-word.  It is stuck there.
+It now fails if you enter a non-word.  It is stuck there and throws an exception.
 
-document how to run tests.
+document how to run tests - js and python.
 
 Don't show extra tile if it is not the best path.  
 
