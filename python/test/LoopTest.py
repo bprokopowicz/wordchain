@@ -11,13 +11,11 @@ from WordChainDict import *
 def main():
     wordChainDict = WordChainDict()
 
-    prompt = "="*40 + "\nEnter solve|play word1 word2 or 'q' to quit: "
+    mainPrompt = "="*40 + "\nEnter solve|play word1 word2 or 'q' to quit: "
 
-    while (True):
-        line = input(prompt).strip()
+    while (1==1):
 
-        if line == "q":
-            break
+        line = input(mainPrompt).strip()
 
         try:
             cmd, word1, word2 = line.split(" ")
@@ -46,28 +44,70 @@ def main():
                 game = Game(wordChainDict, solution)
                 while (not game.isSolved()):
                     print(game.showGame())
-                    word = input("\n >>> ").strip()
+                    nWordsPlayed = game.solutionInProgress.numSteps()
+                    if (nWordsPlayed == 0):
+                        lastWordPlayed = game.solutionInProgress.getWordList()[0]
+                    else: 
+                        lastWordPlayed = game.solutionInProgress.getWordList()[nWordsPlayed]
+                    nextWordInSolution = game.solution.getWordList()[nWordsPlayed+1]
+                    nextWordAsDisplayed = game.showUnguessedWord(nextWordInSolution, lastWordPlayed)
 
-                    if word == '-quit' or word == '-quitall':
+                    print ("From ", lastWordPlayed, " to ", nextWordInSolution, " displays as: ", nextWordAsDisplayed)
+
+                    instructions = "enter one letter: "
+                    action = "replace"
+                    display = ""
+                    for i in range(0,len(lastWordPlayed)):
+                        if (nextWordAsDisplayed[i] == '*'):
+                            display += lastWordPlayed[i]
+                        else:
+                            display += "!"
+
+                    if nextWordAsDisplayed[0] == '1':
+                        # this is for removing a letter at position n
+                        instructions = "remove which position: "
+                        display = nextWordDisplayedAs
+                        action = "remove"
+                    elif len(lastWordPlayed) < len(nextWordInSolution):
+                        # this is for specifying where to add a letter and which letter
+                        instructions = "give i,c to add c at position i: "
+                        #instead of showing '****' as the display for adding a char to 'had' we use the prompt
+                        #  0h1a2d3
+                        display = ""
+                        for i in range (0, len(lastWordPlayed)):
+                            display += str(i)
+                            display += lastWordPlayed[i]
+                        display += str(len(lastWordPlayed))
+                        action = "insert"
+                    prompt = "{} {}".format(display, instructions)
+                    command = input(prompt).strip()
+
+                    if command == '-quit' or command == '-quitall':
                         break
-                    if word == '-dump':
+                    if command == '-dump':
                         print("SOLUTION: {}".format(game.solution.getWordList()))
                         continue
-                    if word == '-dumpall':
+                    if command == '-dumpall':
                         print("SOLUTION: {}".format(game.solution.getWordList()))
                         print("PROGRESS: {}".format(game.solutionInProgress.getWordList()))
                         continue
 
-                    playResult = game.playWord(word)
+                    if (action == 'replace'):
+                        # command is just one char to replace the '!' in display
+                        char = command
+                        index = nextWordAsDisplayed.find('!')
+                        playResult = game.playReplaceChar(index, char)
+                    elif (action == 'remove'):
+                        # command is just one int from 0 .. nChars
+                        playResult = game.playRemoveChar(command)
+                    elif (action == 'insert'):
+                        # command is i,c
+                        index = int(command[0])
+                        char = command[2]
+                        playResult = game.playInsertChar(index, char)
                     print(playResult)
-
-                if word == "-quit":
-                    print("BYE QUITTER!\n")
-                elif word == "-quitall":
-                    print("BYE QUITTER!\n")
-                    break
-                else:
-                    print("YOU WIN!!!!\n")
+                # end of game loop must be a win? not really
+                print("YOU WIN!!!!\n")
 
 if __name__ == '__main__':
     main()

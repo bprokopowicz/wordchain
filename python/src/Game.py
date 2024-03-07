@@ -25,6 +25,24 @@ class Game(GenericBaseClass):
         return (self.solutionInProgress.isSolved() or
                 self.solutionInProgress.getLastWord() == self.solution.getPenultimateWord())
 
+    def playReplaceChar(self, index, c):
+        # replace char at index in last word with 'c' 
+        inWord = self.solutionInProgress.getLastWord()
+        newWord = f"{inWord[:index]}{c}{inWord[index+1:]}"
+        return self.playWord(newWord)
+
+    def playRemoveChar(self, index): 
+        #index is given as one of [0 .. len)
+        inWord = self.solutionInProgress.getLastWord()
+        newWord = f"{inWord[:index-1]}{inWord[index+1:]}"
+        return self.playWord(newWord)
+        
+    def playInsertChar(self, index, c):
+        # insert char at index in last word with 'c' 
+        inWord = self.solutionInProgress.getLastWord()
+        newWord = f"{inWord[:index]}{c}{inWord[index:]}"
+        return self.playWord(newWord)
+
     def playWord(self, word):
         if not self.wordChainDict.isWord(word):
             return Game.NOT_A_WORD
@@ -59,27 +77,29 @@ class Game(GenericBaseClass):
         for i in range(0, len(solutionWords)):
             stepStr = "{:5s}".format("[{}]".format(i))
             if (i <= self.solutionInProgress.numSteps()):
-                resultStr += "{}{}".format(stepStr, self.showPlayedWord(playedWords[i]))
+                resultStr += "{}{}\n".format(stepStr, playedWords[i])
             else:
-                resultStr += "{}{}".format(stepStr, self.showUnguessedWord(solutionWords[i], solutionWords[i-1]))
+                resultStr += "{}{}\n".format(stepStr, self.showUnguessedWord(solutionWords[i], solutionWords[i-1]))
         return resultStr
-
-    def showPlayedWord(self, word):
-        return "{}\n".format(word)
 
     def showSolution(self):
         return str(self.solution.getWordList())
 
+
     def showUnguessedWord(self, word, previousWord):
+        unguessedWord = ""
         if len(word) == len(previousWord):
-            unguessedWord = ""
             for position, letter in enumerate(word):
                 if word[position] == previousWord[position]:
                     unguessedWord += "*"
                 else:
                     unguessedWord += "!"
+        elif len(word) < len(previousWord):
+            # remove a letter numbered 1..len(previousWord)
+            unguessedWord = "123456789abcde"[0:len(previousWord)]
         else:
-            unguessedWord = "*"*len(word)
-
-        return unguessedWord + "\n"
+            # add a letter where: 
+            unguessedWord = "*****************"[0:len(word)]
+                
+        return unguessedWord 
 
