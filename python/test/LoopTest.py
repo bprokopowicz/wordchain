@@ -16,6 +16,8 @@ def main():
     while (1==1):
 
         line = input(mainPrompt).strip()
+        if line == 'q':
+            break
 
         try:
             cmd, word1, word2 = line.split(" ")
@@ -50,34 +52,22 @@ def main():
                     else: 
                         lastWordPlayed = game.solutionInProgress.getWordList()[nWordsPlayed]
                     nextWordInSolution = game.solution.getWordList()[nWordsPlayed+1]
-                    nextWordAsDisplayed = game.showUnguessedWord(nextWordInSolution, lastWordPlayed)
+                    nextWordHint = game.showWordHint(nextWordInSolution, lastWordPlayed)
 
-                    print ("From ", lastWordPlayed, " to ", nextWordInSolution, " displays as: ", nextWordAsDisplayed)
+                    # for changing one letter (default case, override for insert/remove below
 
                     instructions = "enter one letter: "
                     action = "replace"
-                    display = ""
-                    for i in range(0,len(lastWordPlayed)):
-                        if (nextWordAsDisplayed[i] == '*'):
-                            display += lastWordPlayed[i]
-                        else:
-                            display += "!"
+                    display = nextWordHint
 
-                    if nextWordAsDisplayed[0] == '1':
+                    if nextWordHint[0] == '1':
                         # this is for removing a letter at position n
                         instructions = "remove which position: "
-                        display = nextWordDisplayedAs
                         action = "remove"
+                        display = "{}\n{}".format(lastWordPlayed,nextWordHint)
                     elif len(lastWordPlayed) < len(nextWordInSolution):
                         # this is for specifying where to add a letter and which letter
                         instructions = "give i,c to add c at position i: "
-                        #instead of showing '****' as the display for adding a char to 'had' we use the prompt
-                        #  0h1a2d3
-                        display = ""
-                        for i in range (0, len(lastWordPlayed)):
-                            display += str(i)
-                            display += lastWordPlayed[i]
-                        display += str(len(lastWordPlayed))
                         action = "insert"
                     prompt = "{} {}".format(display, instructions)
                     command = input(prompt).strip()
@@ -93,13 +83,13 @@ def main():
                         continue
 
                     if (action == 'replace'):
-                        # command is just one char to replace the '!' in display
+                        # command is just one char to replace the '!' in hint
                         char = command
-                        index = nextWordAsDisplayed.find('!')
+                        index = nextWordHint.find('!')
                         playResult = game.playReplaceChar(index, char)
                     elif (action == 'remove'):
                         # command is just one int from 0 .. nChars
-                        playResult = game.playRemoveChar(command)
+                        playResult = game.playRemoveChar(int(command)-1)
                     elif (action == 'insert'):
                         # command is i,c
                         index = int(command[0])

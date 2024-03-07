@@ -34,7 +34,7 @@ class Game(GenericBaseClass):
     def playRemoveChar(self, index): 
         #index is given as one of [0 .. len)
         inWord = self.solutionInProgress.getLastWord()
-        newWord = f"{inWord[:index-1]}{inWord[index+1:]}"
+        newWord = f"{inWord[:index]}{inWord[index+1:]}"
         return self.playWord(newWord)
         
     def playInsertChar(self, index, c):
@@ -79,27 +79,41 @@ class Game(GenericBaseClass):
             if (i <= self.solutionInProgress.numSteps()):
                 resultStr += "{}{}\n".format(stepStr, playedWords[i])
             else:
-                resultStr += "{}{}\n".format(stepStr, self.showUnguessedWord(solutionWords[i], solutionWords[i-1]))
+                resultStr += "{}{}\n".format(stepStr, self.showUnplayedWord(solutionWords[i], solutionWords[i-1]))
         return resultStr
 
     def showSolution(self):
         return str(self.solution.getWordList())
 
 
-    def showUnguessedWord(self, word, previousWord):
-        unguessedWord = ""
+    # words not yet played should just use ***** and '!' to indicate shape of changes
+    def showUnplayedWord(self, word, previousWord):
+        unplayedWord = ""
         if len(word) == len(previousWord):
             for position, letter in enumerate(word):
                 if word[position] == previousWord[position]:
-                    unguessedWord += "*"
+                   unplayedWord += "*"
                 else:
-                    unguessedWord += "!"
+                    unplayedWord += "!"
+        else:
+            # add or remove a letter yielding n chars
+            unplayedWord = "*****************"[0:len(word)]
+                
+        return unplayedWord 
+
+    def showWordHint(self, word, previousWord):
+        hint = ""
+        if len(word) == len(previousWord):
+            hint = self.showUnplayedWord(word, previousWord)
         elif len(word) < len(previousWord):
             # remove a letter numbered 1..len(previousWord)
-            unguessedWord = "123456789abcde"[0:len(previousWord)]
+            hint =  "123456789abcde"[0:len(previousWord)]
         else:
-            # add a letter where: 
-            unguessedWord = "*****************"[0:len(word)]
-                
-        return unguessedWord 
+            # add a letter somewhere in previousi, including before and after: 
+            for i in range (0, len(previousWord)):
+                hint += str(i)
+                hint += previousWord[i]
+            hint += str(len(previousWord))
+
+        return hint
 
