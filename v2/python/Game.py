@@ -8,12 +8,12 @@ class Game:
     NOT_A_WORD = 'not a word'
     OK = 'OK'
 
-    def __init__(self, wordChainDict, start, end):
-        self.wordChainDict = wordChainDict
+    def __init__(self, dictionary, start, end):
+        self.dictionary = dictionary
         self.start = start
         self.end = end
         self.partialSolution = PartialSolution(start, end)
-        self.fullSolutionGivenProgress = Solver.solve(self.wordChainDict, self.partialSolution)
+        self.fullSolutionGivenProgress = Solver.solve(self.dictionary, self.partialSolution)
 
     def isValid(self):
         return self.fullSolutionGivenProgress.success()
@@ -27,7 +27,6 @@ class Game:
     def replace(self, index, ch): 
         oldWord = self.partialSolution.getLastWord()
         newWord = f"{oldWord[:index]}{ch}{oldWord[index+1:]}"
-        print (f"replace char at {index} in {oldWord} with {ch} gives {newWord}")
         return self.addWordIfExists(newWord)
 
     def remove(self, index):
@@ -42,9 +41,9 @@ class Game:
 
     # in the actual game, only valid inputs will be given because the user must select one of the given inputs.
     def addWordIfExists(self, word):
-        if self.wordChainDict.isWord(word):
+        if self.dictionary.isWord(word):
             self.partialSolution.addWord(word)
-            self.fullSolutionGivenProgress = Solver.solve(self.wordChainDict, self.partialSolution)
+            self.fullSolutionGivenProgress = Solver.solve(self.dictionary, self.partialSolution)
             return self.OK
         else:
             return f"{self.NOT_A_WORD} {word}"
@@ -63,22 +62,24 @@ class Game:
             unplayedWord = self.UNKNOWN_CHAR*len(word)
         return unplayedWord
 
-    # TODO: this should probably return the allowed answers, not just the hint.
     def nextWordHint(self):
         previousWord = self.partialSolution.getLastWord()
         word = self.fullSolutionGivenProgress.getNthWord(self.partialSolution.numWords())
         hint = ""
         if len(word) == len(previousWord):
             hint = self.showUnplayedWord(word, previousWord)
+            hint += " give replacement letter: "
         elif len(word) < len(previousWord):
             # remove a letter numbered 1..len(previousWord)
             hint =  "123456789abcde"[0:len(previousWord)]
+            hint += " give one location to delete: "
         else:
             # add a letter somewhere in previousi, including before and after:
             for i in range (0, len(previousWord)):
                 hint += str(i) 
                 hint += previousWord[i]
             hint += str(len(previousWord))
+            hint += " give  ic to insert 'c' at position i: "
         
         return hint
     
@@ -94,4 +95,5 @@ class Game:
                 display.append(self.showUnplayedWord(word, previousWord))
             previousWord=word
 
+        display.append(self.end)
         return "\n".join(display)

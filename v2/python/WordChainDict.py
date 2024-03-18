@@ -61,7 +61,6 @@ class WordChainDict():
             if potentialWord != word and self.isWord(potentialWord):
                 removers.add(potentialWord)
 
-
         return removers
 
     def findReplacementWords(self, word):
@@ -86,6 +85,9 @@ class WordChainDict():
 
     def getSize(self):
         return len(self.wordSet)
+
+    def getWordSet(self):
+        return self.wordSet
 
     def isWord(self, word):
         return word.lower() in self.wordSet

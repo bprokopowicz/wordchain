@@ -1,38 +1,87 @@
 import copy
 import heapq
 import sys
+from collections import deque
 
 class Solver():
     # solve our puzzle fromWord to targetWord, with a partial solution already given.  The 
     # partial solution may be just the starting word and the end word.
+    # When solving, do not repeat a word in the solution.  It is OK to repeat a word in the 
+    # starting solution (backing up from a dead-end).
+
+    INFINITY=1000
+
     # static method
     def solve(dictionary, startingSolution):
         
         workingSolutions = []
+        wordsAlreadySearched = set()
         heapq.heappush(workingSolutions, startingSolution)
 
         while len(workingSolutions) != 0:
             solution = heapq.heappop(workingSolutions)
-            #print(f"first working solution: {solution}")
 
             if solution.isSolved():
                 return solution
 
             lastWord = solution.getLastWord()
-            nextWords = dictionary.findNextWords(lastWord)
-            nextWords -= solution.getWordSet()
+            nextWords = set(dictionary.findNextWords(lastWord)) - wordsAlreadySearched
 
             # Without sorting nextWords, we did not consistently find the same solution.
             for word in sorted(nextWords):
                 newWorkingSolution = solution.copy().addWord(word)
                 heapq.heappush(workingSolutions, newWorkingSolution)
                 #print(f"adding working solution: {newWorkingSolution}")
-
-            if len(workingSolutions) % 1000 == 0:
-                print(f"#working solutions: {len(workingSolutions)}")
+                wordsAlreadySearched.add(word)
+                numWordsSearched = len(wordsAlreadySearched)
+                if (numWordsSearched % 1000 == 0):
+                    print(f"#words searched: {numWordsSearched}")
 
         return solution.addError("No solution") 
             
+    def isDesired(puzzle, lowWordLen, highWordLen, minWords, maxWords):
+        if len(puzzle) < minWords:
+            return 0;
+        if len(puzzle) > maxWords:
+            return 0;
+        if (len(min(puzzle, key=len)) > lowWordLen):
+            return 0;
+        if (len(max(puzzle, key=len)) < highWordLen):
+            return 0;
+        return 1;
+
+    # find puzzles using a starting word that have solutions meeting criteria 
+    # for shortest word, longest word, and number of words.
+
+    # idea - find solutions by looking at the first step and then apply the
+    # adjusted criteria recursively.  E.g minSteps -> minSteps - 1 after a step
+    # lowWordLen can be set to infinity if it is accomplished on a step
+    # highWordLen can go to zero.  But if you need to reach low or high word counts,
+    # favor looking at reduce/add a character next words before same length words.
+    # returns a list of solutions, each as a word-lists.  NO, FOR NOW JUST PRINT THEM
+    #
+    def find(dictionary, startWord, lowWordLen, highWordLen, minWords, maxWords):
+
+        # search forever until a suitable puzzle is found
+        desiredPuzzles = list()
+        wordsAlreadySearched = set()
+        listOfPossiblePuzzles = deque()
+        listOfPossiblePuzzles.append([startWord])
+        while len(listOfPossiblePuzzles) > 0:
+            puzzle = listOfPossiblePuzzles.popleft()
+            if (Solver.isDesired(puzzle, lowWordLen, highWordLen, minWords, maxWords)):
+                desiredPuzzles.append(puzzle)
+            else:
+                if (len(puzzle) < maxWords):
+                    nextWords = dictionary.findNextWords(puzzle[-1])
+                    for nextWord in nextWords:
+                        if (not nextWord in wordsAlreadySearched):
+                            wordsAlreadySearched.add(nextWord)
+                            newPuzzle = copy.copy(puzzle)
+                            newPuzzle.append(nextWord)
+                            listOfPossiblePuzzles.append(newPuzzle)
+        return desiredPuzzles
+        
 class PartialSolution():
 
     def __init__(self, fromWord, targetWord, distance=100):
@@ -104,8 +153,11 @@ class PartialSolution():
     def getNthWord(self, n):
         return self.wordsSoFar[n]
 
-    def getWordSet(self):
-        return set(self.wordsSoFar)
+    def shortestWordLen(self):
+        return len(min(self.wordsSoFar, key=len))
+
+    def longestWordLen(self):
+        return len(max(self.wordsSoFar, key=len))
 
     def getWordList(self):
         return copy.copy(self.wordsSoFar)
