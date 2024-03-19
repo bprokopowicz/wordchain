@@ -26,18 +26,21 @@ class WordChainDict():
     def __str__(self):
         return str(list(self.wordSet)[0:20])
 
+    def copy(self):
+        return WordChainDict(list(self.wordSet))
+
     def findAdderWords(self, word):
         """
         Find all valid words that add one letter to word.
         """
-        adders = set()
+        adders = list()
 
         for position in range(len(word)+1):
             for letter in self.Letters:
                 potentialWord = word[0:position] + letter + word[position:]
 
                 if potentialWord != word and self.isWord(potentialWord):
-                    adders.add(potentialWord)
+                    adders.append(potentialWord)
 
         return adders
 
@@ -46,20 +49,23 @@ class WordChainDict():
         removers     = self.findRemoverWords(word)
         replacements = self.findReplacementWords(word)
 
-        nextWords = replacements | adders | removers
-        return nextWords
+        nextWords = replacements + adders + removers
+        # the result needs to be de-duped, as there is more than one way to reach the same next word.
+        # for example deleting 3rd or 4th letter in cell.
+        
+        return list(set(nextWords))
 
     def findRemoverWords(self, word):
         """
         Find all valid words with one letter removed from word.
         """
-        removers = set()
+        removers = list()
 
         for position, letter in enumerate(word):
             potentialWord = word[0:position] + word[position+1:]
 
             if potentialWord != word and self.isWord(potentialWord):
-                removers.add(potentialWord)
+                removers.append(potentialWord)
 
         return removers
 
@@ -68,7 +74,7 @@ class WordChainDict():
         Find all valid words that are replacements of one letter in word
         with any other letter.
         """
-        replacements = set()
+        replacements = list()
         for position in range(len(word)):
             for letter in self.Letters:
                 if position == 0:
@@ -79,9 +85,14 @@ class WordChainDict():
                     potentialWord = word[:-1] + letter
 
                 if potentialWord != word and self.isWord(potentialWord):
-                    replacements.add(potentialWord)
+                    replacements.append(potentialWord)
             
         return replacements
+
+    def remove(self, word):
+        if (not word in self.wordSet):
+            print (f"Error trying to remove {word} from dictionary")
+        self.wordSet.remove(word)
 
     def getSize(self):
         return len(self.wordSet)

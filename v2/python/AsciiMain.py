@@ -80,7 +80,7 @@ def solve():
     solution = Solver.solve(dictionary, partialSolution)
     endTime = time.time_ns()
     if (solution.isSolved()):
-        print (solution.display())
+        print (f"{solution}\n")
     else:
         print (solution.getError())
     print (f"{(endTime - startTime) / 1000000000.0} seconds")
@@ -89,13 +89,13 @@ def find():
     firstWord = input("give first word: ").strip()
     lowWordLen = int(input("must have word as short as: ").strip())
     highWordLen = int(input("must have word as long as: ").strip())
-    minWords = int(input("Must require >n words inclusive: ").strip())
-    maxWords = int(input("Must require <n words inclusive: ").strip())
+    minWords = int(input("Must require at least n words: ").strip())
+    maxWords = int(input("Must require at most n words: ").strip())
     dictionary = WordChainDict()
-    results = Solver.find(dictionary, firstWord, lowWordLen, highWordLen, minWords, maxWords)
-    print ("I found these solutions:\n")
-    for solution in results:
-        print (",".join(solution))
+    puzzles = Solver.find(dictionary, firstWord, lowWordLen, highWordLen, minWords, maxWords)
+    print ("I found these puzzles:\n")
+    for puzzle in puzzles:
+        print (puzzle)
 
 if __name__ == '__main__':
     main()

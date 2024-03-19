@@ -20,3 +20,6 @@ always a solution, which in the worst case is deleting that letter and replaying
 NEED TO ALLOW REPLAYING A WORD.  Another complication: If they add the new letter space in a place where no word
 is possible.  Maybe only show the carets where a word is possible.  Or, to be friendlier, only put carets if you
 can add a letter there and still be on the best path.
+
+python V2 
+    need to update the python tests for v2
