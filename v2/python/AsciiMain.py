@@ -75,9 +75,8 @@ def solve():
     start = words[0]
     end = words[1]
     dictionary = WordChainDict()
-    partialSolution=PartialSolution(start, end)
     startTime = time.time_ns()
-    solution = Solver.solve(dictionary, partialSolution)
+    solution = Solver.solve(dictionary, start, end)
     endTime = time.time_ns()
     if (solution.isSolved()):
         print (f"{solution}\n")
