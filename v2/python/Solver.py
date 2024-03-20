@@ -8,14 +8,17 @@ class Solver():
     # When solving, do not repeat a word in the growing solution.  It IS OK to repeat a word in the 
     # starting solution (backing up from a dead-end).
 
-    # static method
-    def solve(dictionary, startingSolution):
+    # static methods solve (dict,a,b) and resolve(dict,solutionSoFar)
 
+    def solve(dictionary, fromWord, toWord):
+        startingSolution = PartialSolution(fromWord, toWord)
+        return Solver.resolve(dictionary, startingSolution)
+
+    def resolve(dictionary, startingSolution):
         # make a local copy because we remove words from it while searching
         dictionary = dictionary.copy()
         workingSolutions = deque()
         wordsAlreadySearched = set()
-        #heapq.heappush(workingSolutions, startingSolution)
         workingSolutions.append(startingSolution)
         numWordsSearched = 0
 

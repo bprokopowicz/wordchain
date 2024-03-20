@@ -13,7 +13,7 @@ class Game:
         self.start = start
         self.end = end
         self.partialSolution = PartialSolution(start, end)
-        self.fullSolutionGivenProgress = Solver.solve(self.dictionary, self.partialSolution)
+        self.fullSolutionGivenProgress = Solver.solve(self.dictionary, start, end)
 
     def isValid(self):
         return self.fullSolutionGivenProgress.success()
@@ -23,6 +23,12 @@ class Game:
 
     def isSolved(self):
         return self.partialSolution.isSolved()
+
+    def getFullSolution(self):
+        return self.fullSolutionGivenProgress
+
+    def getPartialSolution(self):
+        return self.partialSolution
 
     def replace(self, index, ch): 
         oldWord = self.partialSolution.getLastWord()
@@ -43,10 +49,10 @@ class Game:
     def addWordIfExists(self, word):
         if self.dictionary.isWord(word):
             self.partialSolution.addWord(word)
-            self.fullSolutionGivenProgress = Solver.solve(self.dictionary, self.partialSolution)
+            self.fullSolutionGivenProgress = Solver.resolve(self.dictionary, self.partialSolution)
             return self.OK
         else:
-            return f"{self.NOT_A_WORD} {word}"
+            return self.NOT_A_WORD
 
     # words not yet played should just use ***** and '?' to indicate shape of changes
     def showUnplayedWord(self, word, previousWord):
