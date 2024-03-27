@@ -91,7 +91,7 @@ def find():
     minWords = int(input("Must require at least n words: ").strip())
     maxWords = int(input("Must require at most n words: ").strip())
     dictionary = WordChainDict()
-    puzzles = Solver.find(dictionary, firstWord, lowWordLen, highWordLen, minWords, maxWords)
+    puzzles = Solver.findPuzzles(dictionary, firstWord, lowWordLen, highWordLen, minWords, maxWords)
     print ("I found these puzzles:\n")
     for puzzle in puzzles:
         print (puzzle)
