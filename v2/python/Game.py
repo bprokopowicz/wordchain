@@ -8,6 +8,12 @@ class Game:
     NOT_A_WORD = 'not a word'
     OK = 'OK'
 
+    # next-step play types
+    UNKNOWN = 0
+    REPLACE = 1
+    REDUCE = 2
+    INCREASE = 3
+
     def __init__(self, dictionary, start, end):
         self.dictionary = dictionary
         self.start = start
@@ -68,17 +74,22 @@ class Game:
             unplayedWord = self.UNKNOWN_CHAR*len(word)
         return unplayedWord
 
+    # returns an ascii hint for the next word, and what type of play is expected:
+    # REPLACE, REDUCE, or INCREASE
     def nextWordHint(self):
         previousWord = self.partialSolution.getLastWord()
         word = self.fullSolutionGivenProgress.getNthWord(self.partialSolution.numWords())
         hint = ""
+        playType = self.UNKNOWN
         if len(word) == len(previousWord):
             hint = self.showUnplayedWord(word, previousWord)
             hint += " give replacement letter: "
+            playType = self.REPLACE
         elif len(word) < len(previousWord):
             # remove a letter numbered 1..len(previousWord)
             hint =  "123456789abcde"[0:len(previousWord)]
             hint += " give one location to delete: "
+            playType = self.REDUCE
         else:
             # add a letter somewhere in previousi, including before and after:
             for i in range (0, len(previousWord)):
@@ -86,8 +97,9 @@ class Game:
                 hint += previousWord[i]
             hint += str(len(previousWord))
             hint += " give  ic to insert 'c' at position i: "
+            playType = self.INCREASE
         
-        return hint
+        return hint, playType
     
 
     def asciiDisplay(self):
