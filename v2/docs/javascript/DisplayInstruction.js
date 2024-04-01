@@ -1,7 +1,5 @@
 class DisplayInstruction {
     constructor(word, wordLength, displayType, changePosition, wasCorrect, endOfGame) {
-        super();
-
         this.word = word;
         this.wordLength = wordLength;
         this.displayType = displayType;

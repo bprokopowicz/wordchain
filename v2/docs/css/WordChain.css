@@ -21,14 +21,18 @@
     /* Light */
     --colorblind-good-light:            #5f99e4;    /* blue */
     --colorblind-bad-light:             #ebaf42;    /* orange */
-    --played-word-same-bg-light:        #85daac;    /* green */
-    --played-word-longer-bg-light:      #ea9797;    /* red */
+    --played-word-good-bg-light:        #85daac;    /* green */
+    --played-word-bad-bg-light:         #ea9797;    /* red */
+    --target-word-bg-light:             #99ddff;    /* pale blue */
+    --action-bg-light:                  #ffff99;    /* yellow */
 
     /* Dark */
     --colorblind-good-dark:             #2b558c;    /* blue */
     --colorblind-bad-dark:              #d58b04;    /* orange */
-    --played-word-same-bg-dark:         #076707;    /* green */
-    --played-word-longer-bg-dark:       #ac0706;    /* red */
+    --played-word-good-bg-dark:         #076707;    /* green */
+    --played-word-bad-bg-dark:          #ac0706;    /* red */
+    --target-word-bg-dark:              #006699;    /* medium blue */
+    --action-bg-dark:                   #ffff00;    /* yellow */
 }
 
 :root,
@@ -62,9 +66,21 @@
 
     --unplayed-word-tile-bg:    var(--primary-bg);
 
+    /* ===== Cells and Letters ===== */
+
+    --cell-border:              var(--primary-fg);;
+
     /* These properties are affected by changes in the Colorblind Mode setting */
+    /* TODO: Change to var ...-bg and set in AppDisplay */
+    --played-word-good-bg:      var(--played-word-good-bg-light);
+    --played-word-bad-bg:       var(--played-word-good-bg-light);
+    --target-word-bg:           var(--target-word-bg-light);
+    --action-bg:                var(--action-bg-light);
+
+    /* These properties are affected by changes in the Colorblind Mode setting
     --played-word-same-bg:      var(--played-word-same-bg-light);
     --played-word-longer-bg:    var(--played-word-longer-bg-light);
+    */
 
     /* Keyboard */
     --key-bg:                   var(--letter-key-inactive-bg);
@@ -485,6 +501,108 @@ table {
 .hidden-letter {
     visibility: hidden;
 }
+
+/*
+** Cell td classes.
+===============================================
+*/
+.td-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle {
+    border: solid;
+    border-color: black;
+    border-radius: 50%; /* Makes the div a circle */
+    /*color: black;*/ /* Text color */
+    /*margin-bottom: 10px;*/ /* Adds space between circles */
+}
+
+.letter-cell {
+    width: 30px;
+    height: 30px;
+    border-width: .15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.letter-cell-good {
+    background: var(--played-word-good-bg);
+}
+
+.letter-cell-bad {
+    background: var(--played-word-bad-bg);
+}
+
+.letter-cell-change {
+    border-width: .3rem;
+}
+
+.letter-cell-active {
+}
+
+.letter-cell-future {
+}
+
+.letter-cell-played {
+    opacity: .4;
+}
+
+.letter-cell-target {
+    background: var(--target-word-bg);
+}
+
+.letter {
+    font-weight: bold;
+}
+
+button.action-button {
+    border: none;
+    color: black; /* text color */
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-outer-cell {
+    width: 30px;    /* Must have same width as .letter-cell */
+    height: 15px;
+    border: solid;
+    border-width: .15rem;
+    border-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-cell {
+    width: 15px;
+    height: 15px;
+    border: solid;
+    border-width: .15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--action-bg);
+}
+
+.action-cell-expansion {
+}
+
+.action-cell-reduction {
+}
+
+.action {
+    font-weight: bold;
+}
+
+/*
+===============================================
+*/
 
 /*
 ** Common styling for "auxiliary screens" (Help, Settings, Stats)

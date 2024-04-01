@@ -2,18 +2,16 @@ import { ElementUtilities } from './ElementUtilities.js';
 
 class Cell {
     constructor() {
-        super();
-
         this.cellContainer = null;
         this.cellContents = null;
     }
 
-    addClass(className) {
-        ElementUtilities.addClass(this.cellContainer, className);
+    addClass(classNameOrList) {
+        ElementUtilities.addClass(this.cellContainer, classNameOrList);
     }
 
-    addContentsClass(className) {
-        ElementUtilities.addClass(this.cellContents, className);
+    addContentsClass(classNameOrList) {
+        ElementUtilities.addClass(this.cellContents, classNameOrList);
     }
 
     getElement() {
@@ -24,38 +22,49 @@ class Cell {
 // ActionCell Classes
 
 class ActionCell extends Cell {
-    constructor(symbol, callback) {
+    constructor(symbol, callback, reduction) {
         super();
         this.symbol = symbol;
 
-        this.cellContainer = ElementUtilities.createElement("div");
-        this.cellContents = ElementUtilities.addElementTo("button", this.cellContainer, {}, this.symbol);
-        ElementUtilities.setButtonCallback(this.cellContents, callback);
+        let addButtonTo;
+        if (reduction) {
+            this.cellContainer = ElementUtilities.createElement("div", {class: 'circle action-outer-cell'});
+            this.cellInnerContainer = ElementUtilities.addElementTo("div", this.cellContainer);
+            addButtonTo = this.cellInnerContainer;
 
-        this.addClass("ACTION");
-        this.addContentsClass("SYMBOL");
+        } else {
+            this.cellContainer = ElementUtilities.createElement("div");
+            addButtonTo = this.cellContainer;
+        }
+
+        ElementUtilities.addClass(addButtonTo, 'circle action-cell');
+
+        this.cellContents = ElementUtilities.addElementTo("button", addButtonTo, {class: 'action-button'}, this.symbol);
+        ElementUtilities.setButtonCallback(this.cellContents, callback);
+        this.addContentsClass("action");
     }
 }
 
 class ExpansionCell extends ActionCell {
     constructor(expansionPosition, hidden, callback) {
-        super("+", callback);
+        super("+", callback, false);
+
         if (hidden) {
             this.cellContainer.style.visibility = "hidden";
         } else {
             // Add to the button element so we can get it when the event comes.
             this.cellContents.setAttribute("expansionPosition", expansionPosition);
-            this.addClass("EXPANSION");
+            this.addClass("action-cell-expansion");
         }
     }
 }
 
 class ReductionCell extends ActionCell {
     constructor(reductionPosition, callback) {
-        super("-", callback);
+        super("-", callback, true);
         // Add to the button element so we can get it when the event comes.
         this.cellContents.setAttribute("reductionPosition", reductionPosition);
-        this.addClass("REDUCTION");
+        this.addClass("action-cell-reduction");
     }
 }
 
@@ -69,14 +78,23 @@ class LetterCell extends Cell {
         this.cellContainer = ElementUtilities.createElement("div");
         this.cellContents = ElementUtilities.addElementTo("div", this.cellContainer, {}, this.letter);
 
-        this.addContentsClass("LETTER");
+        this.addClass(["circle", "letter-cell"]);
+        this.addContentsClass("letter");
     }
 
-    addCorrectnessClass(correct) {
-        if (correct) {
-            this.addClass("CORRECT");
+    addCorrectnessClass(correct, targetWord=false) {
+        if (targetWord) {
+            if (correct) {
+                this.addClass("letter-cell-good");
+            } else {
+                this.addClass("letter-cell-target");
+            }
         } else {
-            this.addClass("INCORRECT");
+            if (correct) {
+                this.addClass("letter-cell-good");
+            } else {
+                this.addClass("letter-cell-bad");
+            }
         }
     }
 }
@@ -85,11 +103,11 @@ class ActiveLetterCell extends LetterCell {
     constructor(letter, letterPosition, wasCorrect, changePosition, blankLetterOnChange=false) {
         super(letter);
 
-        this.addClass("ACTIVE");
+        this.addClass("letter-cell-active");
         this.addCorrectnessClass(wasCorrect);
 
         if (letterPosition === changePosition) {
-            this.addClass("CHANGE");
+            this.addClass("letter-cell-change");
             if (blankLetterOnChange) {
                 ElementUtilities.setElementText(this.cellContents, " ");
             }
@@ -101,20 +119,20 @@ class PlayedLetterCell extends LetterCell {
     constructor(letter, wasCorrect) {
         super(letter);
 
-        this.addClass("PLAYED");
+        this.addClass("letter-cell-played");
         this.addCorrectnessClass(wasCorrect);
     }
 }
 
 class FutureLetterCell extends LetterCell {
     constructor(letter, letterPosition, changePosition) {
-        super("X");
+        super("");
 
-        this.addClass("FUTURE");
+        this.addClass("letter-cell-future");
 
         if (letterPosition === changePosition)
         {
-            this.addClass("CHANGE");
+            this.addClass("letter-cell-change");
         }
     }
 }
@@ -122,7 +140,8 @@ class FutureLetterCell extends LetterCell {
 class TargetLetterCell extends LetterCell {
     constructor(letter, wasSuccessful) {
         super(letter);
-        this.addCorrectnessClass(wasSuccessful);
+        // Pass true to indicate this is a TargetLetterCell.
+        this.addCorrectnessClass(wasSuccessful, true);
     }
 }
 

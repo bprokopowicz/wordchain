@@ -45,7 +45,6 @@ const Games = {
 class Game {
 
     constructor(game) {
-        super();
         this.setGame(game);
     }
 

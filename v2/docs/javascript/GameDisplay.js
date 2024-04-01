@@ -141,7 +141,7 @@ class GameDisplay extends BaseLogger {
     }
 
     addTd() {
-        return ElementUtilities.addElementTo("td", this.rowElement, {class: ""});
+        return ElementUtilities.addElementTo("td", this.rowElement);
     }
 
     displayCommon(displayInstruction, cellCreator, hideExpansionCells=true) {

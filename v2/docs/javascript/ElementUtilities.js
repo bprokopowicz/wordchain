@@ -50,10 +50,27 @@ class ElementUtilities {
         }
     }
 
-    static addClass(element, className) {
-        let elementClass = element.getAttribute('class');
+    static addClass(element, classNameOrList) {
 
-        elementClass += ` ${className}`;
+        let elementClass = element.getAttribute('class'),
+            className,
+            classes;
+
+        if (typeof classNameOrList === 'string') {
+            classes = [classNameOrList];
+        } else {
+            classes = classNameOrList;
+        }
+
+        for (className of classes)
+        {
+            if (elementClass === null) {
+                elementClass = className;
+            } else {
+                elementClass += ` ${className}`;
+            }
+        }
+
         element.setAttribute('class', elementClass);
     }
 
