@@ -43,7 +43,7 @@ class WordChainDict extends BaseLogger {
                 let potentialWord = word.substr(0, wordIndex) + letter + word.substr(wordIndex);
                 this.logDebug(`>>>>> potential: ${potentialWord}`, "adderDetail");
 
-                if (potentialWord !== word && this.isWord(potentialWord)) {
+                if (this.isWord(potentialWord)) {
                     this.logDebug(`>>>>> adding adder: ${potentialWord}`, "adderDetail");
                     adders.add(potentialWord);
                 }
@@ -76,7 +76,7 @@ class WordChainDict extends BaseLogger {
         for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
             let potentialWord = word.substr(0, wordIndex) + word.substr(wordIndex+1);
             this.logDebug(`>>>>> potential: ${potentialWord}`, "removerDetail");
-            if (potentialWord !== word && this.isWord(potentialWord)) {
+            if (this.isWord(potentialWord)) {
                 this.logDebug(`>>>>> adding remover: ${potentialWord}`, "removerDetail");
                 removers.add(potentialWord);
             }
@@ -142,6 +142,11 @@ class WordChainDict extends BaseLogger {
         }
 
         return this.wordSet.has(theWord);
+    }
+
+    removeWord(word) {
+        let theWord = word.toLowerCase();
+        this.wordSet.remove(theWord);
     }
 };
 
