@@ -1,4 +1,5 @@
 import { DisplayInstruction } from './DisplayInstruction.js';
+import { Solver, Solution } form './Solver.js';
 
 // word:           empty string for future
 // wordLength:     word.length OR solutionWord.length in the case of future
@@ -13,19 +14,22 @@ import { DisplayInstruction } from './DisplayInstruction.js';
     //    new DisplayInstruction("PEAR",   4,          "target",    0,              true,       false),
 
 class Game {
-
     
     constructor(dict, startWord, endWord) {
         this.dict = dict;
         this.startWord = startWord;
         this.endWord = endWord;
         this.moveIndex = 0;
-        // solve the puzzle
+        // solve the puzzle.  The solution may not be successful
+        this.solution = Solver.solve(dict, startWord, endWord);
+        // a list of DisplayInstructions for the game so far.  
     }
 
 
+    // a stateful iterator over all the display instructions for this Game as played so far.
+    // It includes one instruction for each word.  
     getNextDisplayInstruction() {
-        console.log(`getNextDisplayInstruction(): moveIndex: ${this.moveIndex}, instructionIndex: ${this.instructionIndex}`);
+        console.log(`getNextDisplayInstruction(): moveIndex: instructionIndex: ${this.instructionIndex}`);
         if (this.moveIndex >= this.game.length) {
             return null;
         }

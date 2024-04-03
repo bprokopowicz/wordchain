@@ -18,18 +18,21 @@ const LastMoveReplacer = [
         new DisplayInstruction("HEAR",   "future",    1,              true,       false),
         new DisplayInstruction("PEAR",   "target",    0,              true,       false),
     ],
+    // after user pressed '+' between H and A
     [
         new DisplayInstruction("HARD",   "played",    0,              true,       false),
         new DisplayInstruction("H ARD",  "addchange", 2,              true,       false),
         new DisplayInstruction("HEAR",   "future",    1,              true,       false),
         new DisplayInstruction("PEAR",   "target",    0,              true,       false),
     ],
+    // after user selected 'E'
     [
         new DisplayInstruction("HARD",   "played",    0,              true,       false),
         new DisplayInstruction("HEARD",  "delete",    0,              true,       false),
         new DisplayInstruction("HEAR",   "future",    1,              true,       false),
         new DisplayInstruction("PEAR",   "target",    0,              true,       false),
     ],
+    // after deletes letter 5 'D'
     [
         new DisplayInstruction("HARD",   "played",    0,              true,       false),
         new DisplayInstruction("HEARD",  "played",    0,              true,       false),
