@@ -123,6 +123,9 @@ class PartialSolution():
         self.wordsSoFar.append(newWord)
         return self
 
+    def removeLastWord(self):
+        self.wordsSoFar.pop()
+
     def copy(self):
         newCopy = PartialSolution(self.wordsSoFar[0], self.targetWord)
         newCopy.wordsSoFar = self.getWordList()

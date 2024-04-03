@@ -35,7 +35,8 @@ class GameTest(TestBase):
         origStep2 = game.getFullSolution().getNthWord(2)
 
         # Bade is not in original solution.
-        playResult = game.insert(3,"e")
+        playResult = game.insertSpace(3)
+        playResult = game.replace(3,"e")
         curStep1 = game.getFullSolution().getNthWord(1)
         curStep2 = game.getFullSolution().getNthWord(2)
 
@@ -47,8 +48,10 @@ class GameTest(TestBase):
         game = Game(self.smallDict, "bad", "scad")
         playResult = game.replace(0, "c")
         self.assertEqual(playResult, Game.OK, "playing 'cad'")
-        playResult = game.insert(0,"s")
-        self.assertEqual(playResult, Game.OK, "playing 'scad'")
+        playResult = game.insertSpace(0)
+        self.assertEqual(playResult, Game.OK, "adding space in front of 'cad'")
+        playResult = game.replace(0,"s")
+        self.assertEqual(playResult, Game.OK, "replacing space with  's'")
         self.assertTrue(game.isSolved())
 
     def test_fullGame2(self):

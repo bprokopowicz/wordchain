@@ -54,9 +54,6 @@ def play():
         print(game.asciiDisplay())
         hintAndPlayType = game.nextWordHint()
         hint = hintAndPlayType[0]
-        //TODO - change the game play to be 'per-click' instead of per 'move'.  The only difference
-        //is that an insert becomes two steps: insert +3, then change @3
-        //but this changes the Game a lo.t
         playType = hintAndPlayType[1]
         play = input(f"{hint}: ").strip()
         # play is either a letter (replace) number (remove) or i,c insert c at i
@@ -67,10 +64,9 @@ def play():
             replaceCharAt = hint.find(Game.REPLACE_CHAR)
             res = game.replace(replaceCharAt, char)
         elif (playType == Game.INCREASE):
-            #player gives ic
+            #player gives i
             insertCharAt = int(play[0])
-            char = play[1]
-            res = game.insert(insertCharAt, char)
+            res = game.insertSpace(insertCharAt)
         else:
             res = "error; game is confused about next play"
             return
