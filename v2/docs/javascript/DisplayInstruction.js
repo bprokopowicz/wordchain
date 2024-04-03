@@ -29,7 +29,7 @@ class DisplayInstruction {
         if (this.endOfGame) {
             returnStr += "<p>=== END OF GAME!";
         }
-       
+
         return returnStr;
     }
 }

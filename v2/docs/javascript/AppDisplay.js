@@ -54,6 +54,10 @@ function pickerChangeCallback(event) {
     AppDisplay.currentGameDisplay.pickerChangeCallback(event);
 }
 
+function pickerBlurCallback(event) {
+    AppDisplay.currentGameDisplay.pickerBlurCallback(event);
+}
+
 function pickerFocusCallback(event) {
     AppDisplay.currentGameDisplay.pickerFocusCallback(event);
 }
@@ -328,6 +332,7 @@ class AppDisplay extends BaseLogger {
         // just turn around and call the corresponding handler on the current game.
         this.callbacks = {
             pickerChangeCallback:  pickerChangeCallback,
+            pickerBlurCallback:    pickerBlurCallback,
             pickerFocusCallback:   pickerFocusCallback,
             additionClickCallback: additionClickCallback,
             deletionClickCallback: deletionClickCallback,

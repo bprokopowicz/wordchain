@@ -25,6 +25,8 @@
     --played-word-bad-bg-light:         #ea9797;    /* red */
     --target-word-bg-light:             #99ddff;    /* pale blue */
     --user-input-bg-light:              #bababa;    /* medium gray */
+    --picker-enabled-bg-light:          #bababa;    /* medium gray */
+    --picker-disabled-bg-light:         LightGray;
 
     /* Dark */
     --colorblind-good-dark:             #2b558c;    /* blue */
@@ -33,6 +35,8 @@
     --played-word-bad-bg-dark:          #ac0706;    /* red */
     --target-word-bg-dark:              #006699;    /* medium blue */
     --user-input-bg-dark:               #bababa;    /* medium gray */
+    --picker-enabled-bg-dark:           #bababa;    /* medium gray */
+    --picker-disabled-bg-dark:          LightGray;
 }
 
 :root,
@@ -65,6 +69,12 @@
     --start-target-letter-fg:   var(--secondary-fg);;
 
     --unplayed-word-tile-bg:    var(--primary-bg);
+
+    /* ===== Picker ===== */
+
+    /* TODO: Change to var ...-bg and set in AppDisplay */
+    --picker-enabled-bg:        var(--picker-enabled-bg-light);
+    --picker-disabled-bg:       var(--picker-disabled-bg-light);
 
     /* ===== Cells and Letters ===== */
 
@@ -503,7 +513,29 @@ table {
 }
 
 /*
-** Cell td classes.
+** Picker classe.
+*/
+
+.picker-label-enabled {
+    color: var(--primary-fg);
+}
+
+.picker-label-disabled {
+    color: LightGray;
+}
+
+.picker-select-enabled {
+    /*background: var(--picker-enabled-bg);*/
+}
+
+.picker-select-disabled {
+    /*background: var(--picker-disabled-bg);*/
+}
+
+/*
+
+/*
+** Cell classes.
 ===============================================
 */
 .td-cell {

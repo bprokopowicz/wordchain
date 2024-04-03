@@ -1,4 +1,5 @@
 import { DisplayInstruction } from './DisplayInstruction.js';
+import { Game } from './Game.js';
 
 // word:           string is ignored for future; only length of it is used
 // displayType:    add, addChange, delete, change, future, played, target
@@ -10,6 +11,9 @@ import { DisplayInstruction } from './DisplayInstruction.js';
 // - Each "outer" list represents a move (one or two "panels" in the mock-up spreadsheet).
 // - Each "inner" list is the sequence of DisplayInstruction objects to show for the move.
 //    that AppDisplay would expect to receive from Game.
+// 
+// add, addChange, delete, change are used for the active word.
+// There should be exactly ONE of these in any sequence of moves ("inner" list) except the final one.
 const LastMoveReplacer = [
     //                         word,     displayType, changePosition, wasCorrect, endOfGame
     [
@@ -105,9 +109,11 @@ const Games = {
     }
 };
 
-class Game {
+class PseudoGame extends Game {
 
     constructor(startWord, targetWord) {
+        super(startWord, targetWord);
+
         this.game = Games[startWord][targetWord];
         this.moveIndex = 0;
         this.instructionIndex = 0;
@@ -133,16 +139,19 @@ class Game {
     // addPosition is 0 to word.length
     playAdd(addPosition) {
         console.log("playAdd(): addPosition:", addPosition);
+        this.pseudoMove();
     }
 
     // deletePosition is 1 to word.length
     playDelete(deletePosition) {
         console.log("playDelete(): deletePosition:", deletePosition);
+        this.pseudoMove();
     }
 
     // letterPosition is 1 to word.length
     playLetter(letterPosition, letter) {
         console.log("playLetter(): letterPosition:", letterPosition, ", letter:", letter);
+        this.pseudoMove();
     }
 
     pseudoMove() {
@@ -156,4 +165,4 @@ class Game {
     }
 }
 
-export { Game };
+export { PseudoGame };

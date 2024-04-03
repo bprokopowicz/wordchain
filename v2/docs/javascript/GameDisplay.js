@@ -1,5 +1,5 @@
 import { BaseLogger } from './BaseLogger.js';
-import { Game } from './PseudoGame.js';
+import { PseudoGame } from './PseudoGame.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
 
@@ -12,6 +12,7 @@ class GameDisplay extends BaseLogger {
     ** CLASS VARIABLES
     ** ===============
     */
+    PICKER_UNSELECTED = "  ";
 
     /*
     ** ============
@@ -43,17 +44,16 @@ class GameDisplay extends BaseLogger {
 
         this.letterPickerContainer = ElementUtilities.addElementTo("div", this.pickerDiv);
 
-        ElementUtilities.addElementTo(
-            "label", this.letterPickerContainer,
-            {class: ""},
-            "Pick a letter: ")
+        this.letterPickerLabel = ElementUtilities.addElementTo(
+            "label", this.letterPickerContainer, {}, "Pick a letter: ")
 
         // Initial size will be the default of 1 (so it looks like a button),
         // and when the user focuses on it, the size will change to present a
         // scrolling window to select a latter.
-        this.letterPicker = ElementUtilities.addElementTo(
-            "select", this.letterPickerContainer,
-            {class: ""});
+        this.letterPicker = ElementUtilities.addElementTo("select", this.letterPickerContainer);
+
+        ElementUtilities.addElementTo( "option", this.letterPicker,
+            {value: GameDisplay.PICKER_UNSELECTED}, GameDisplay.PICKER_UNSELECTED)
 
         var codeLetterA = "A".charCodeAt(0),
             codeLetterZ = "Z".charCodeAt(0),
@@ -61,51 +61,72 @@ class GameDisplay extends BaseLogger {
 
         for (let letterCode = codeLetterA; letterCode <= codeLetterZ; letterCode++) {
             letter = String.fromCharCode(letterCode);
-
-            ElementUtilities.addElementTo(
-                "option", this.letterPicker,
-                {value: letter, class: ""},
-                letter)
+            ElementUtilities.addElementTo("option", this.letterPicker, {value: letter}, letter)
         }
 
         this.letterPicker.addEventListener("change", this.callbacks.pickerChangeCallback);
-        this.letterPicker.addEventListener("focus", this.callbacks.pickerFocusCallback);
+        this.letterPicker.addEventListener("focus",  this.callbacks.pickerFocusCallback);
+        this.letterPicker.addEventListener("blur",   this.callbacks.pickerBlurCallback);
+    }
+
+    disablePicker() {
+        console.log("disablePicker() this.pickerEnabled:", this.pickerEnabled);
+        this.letterPickerLabel.setAttribute("class", "picker-label-disabled");
+        this.letterPicker.setAttribute("class", "picker-select-disabled");
+        this.letterPicker.setAttribute("disabled", "disabled");
+    }
+
+    enablePicker() {
+        console.log("enablePicker() this.pickerEnabled:", this.pickerEnabled);
+        this.letterPickerLabel.setAttribute("class", "picker-label-enabled");
+        this.letterPicker.setAttribute("class", "picker-select-enabled");
+        this.letterPicker.removeAttribute("disabled");
     }
 
     pickerChangeCallback(event) {
         //console.log("pickerChangeCallback(): event: ", event);
+        if (this.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
+            // TODO: Show a toast saying to pick a letter?
+            return;
+        }
 
         // Change the size of the picker back to 1 when a letter has been picked.
         this.letterPicker.setAttribute("size", 1);
 
-        this.pseudoMove();
         let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition'));
         this.game.playLetter(letterPosition, this.letterPicker.value);
+        this.letterPicker.value = GameDisplay.PICKER_UNSELECTED;
+
+        this.showMove();
     }
 
     pickerFocusCallback(event) {
         // Change the size of the picker so that multiple words are
         // shown with scrolling to select.
         this.letterPicker.setAttribute("size", 10);
+        console.log("pickerFocusCallback");
+    }
+
+    pickerBlurCallback(event) {
+        // Change the size of the picker so that it is no longer
+        // showing 10 elements when the user moves the mouse away.
+        this.letterPicker.setAttribute("size", 1);
+        console.log("pickerBlurCallback");
     }
 
     /* ----- Game ----- */
 
     constructGame() {
-        //this.game = new Game("hard", "pear");
-        this.game = new Game("fate", "sop");
+        this.game = new PseudoGame("hard", "pear");
+        //this.game = new PseudoGame("fate", "sop");
         this.showMove();
     }
 
-    pseudoMove() {
-        this.game.pseudoMove();
-
-        if (! this.game.over()) {
-            this.showMove();
-        }
-    }
-
     showMove() {
+        if (this.game.over()) {
+            return;
+        }
+        
         const container = ElementUtilities.addElementTo("div", this.gameDiv, {class: "setting-text"}),
               tableElement = ElementUtilities.addElementTo("table", container, {class: "setting-text"});
 
@@ -113,6 +134,7 @@ class GameDisplay extends BaseLogger {
 
         var displayInstruction;
         while (displayInstruction = this.game.getNextDisplayInstruction()) {
+            console.log("displayInstruction:", displayInstruction);
 
             if (displayInstruction.displayType === "add") {
                 this.displayAdd(displayInstruction);
@@ -136,9 +158,16 @@ class GameDisplay extends BaseLogger {
 
             this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
         }
+
         // Delete old move and add new one.
         ElementUtilities.deleteChildren(this.gameDiv);
         ElementUtilities.addElementTo(container, this.gameDiv);
+
+        if (this.pickerEnabled) {
+            this.enablePicker();
+        } else {
+            this.disablePicker();
+        }
     }
 
     addTd() {
@@ -183,11 +212,13 @@ class GameDisplay extends BaseLogger {
         }
 
         // Don't hide addition cells.
+        this.pickerEnabled = false;
         this.displayCommon(displayInstruction, getCell, false);
     }
 
     displayAddChange(displayInstruction) {
         let me = this;
+
 
         function getCell(letter, letterPosition) {
             // Give last arg true to indicate the letter should be blanked.
@@ -195,6 +226,7 @@ class GameDisplay extends BaseLogger {
                 displayInstruction.wasCorrect, displayInstruction.changePosition, true);
         }
 
+        this.pickerEnabled = true;
         this.displayCommon(displayInstruction, getCell);
     }
 
@@ -206,6 +238,7 @@ class GameDisplay extends BaseLogger {
                 displayInstruction.wasCorrect, displayInstruction.changePosition);
         }
 
+        this.pickerEnabled = true;
         this.displayCommon(displayInstruction, getCell);
     }
 
@@ -225,6 +258,7 @@ class GameDisplay extends BaseLogger {
             return new DeletionCell(letterPosition, me.callbacks.deletionClickCallback);
         }
 
+        this.pickerEnabled = false;
         this.displayCommon(displayInstruction, getDeletionCell);
     }
 
@@ -247,12 +281,16 @@ class GameDisplay extends BaseLogger {
     displayTarget(displayInstruction) {
         var showSuccessful = false;
 
-        if (displayInstruction.endOfGame && this.game.winner()) {
-            showSuccessful = true;
-        }
-
         function getCell(letter, __letterPosition) {
             return new TargetLetterCell(letter, showSuccessful);
+        }
+
+        if (displayInstruction.endOfGame) {
+            this.pickerEnabled = false;
+
+            if (this.game.winner()) {
+                showSuccessful = true;
+            }
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -260,16 +298,18 @@ class GameDisplay extends BaseLogger {
 
     additionClickCallback(event) {
         //console.log("additionClickCallback(): event: ", event);
-        this.pseudoMove();
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
         this.game.playAdd(additionPosition);
+
+        this.showMove();
     }
 
     deletionClickCallback(event) {
         //console.log("deletionClickCallback(): event: ", event);
-        this.pseudoMove();
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
         this.game.playDelete(deletionPosition);
+
+        this.showMove();
     }
 }
 

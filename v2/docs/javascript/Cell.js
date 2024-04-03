@@ -62,6 +62,7 @@ class AdditionCell extends ActionCell {
 class DeletionCell extends ActionCell {
     constructor(deletionPosition, callback) {
         super("-", callback, true);
+
         // Add to the button element so we can get it when the event comes.
         this.cellContents.setAttribute("deletionPosition", deletionPosition);
         this.addClass("action-cell-deletion");
@@ -73,6 +74,7 @@ class DeletionCell extends ActionCell {
 class LetterCell extends Cell {
     constructor(letter) {
         super();
+
         this.letter = letter;
 
         this.cellContainer = ElementUtilities.createElement("div");
@@ -108,6 +110,7 @@ class ActiveLetterCell extends LetterCell {
 
         if (letterPosition === changePosition) {
             this.addClass("letter-cell-change");
+
             // Add to the picker element so we can get it when the event comes.
             letterPicker.setAttribute('letterPosition', letterPosition);
             if (blankLetterOnChange) {

@@ -11,6 +11,7 @@ import { DisplayInstruction } from './DisplayInstruction.js';
 class Game {
 
     constructor(startWord, targetWord) {
+        console.log("constructor(): startWord:", startWord, ", targetWord:", targetWord);
     }
 
     // Return DisplayInstruction.
