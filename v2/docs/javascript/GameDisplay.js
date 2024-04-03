@@ -3,7 +3,7 @@ import { Game } from './PseudoGame.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
 
-import { ExpansionCell, ReductionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell } from './Cell.js';
+import { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell } from './Cell.js';
 
 
 class GameDisplay extends BaseLogger {
@@ -29,7 +29,6 @@ class GameDisplay extends BaseLogger {
 
         this.createPicker();
         this.constructGame();
-
     }
 
     /*
@@ -74,16 +73,14 @@ class GameDisplay extends BaseLogger {
     }
 
     pickerChangeCallback(event) {
-        //console.log("pickerChangeCallback(): letter: ", this.letterPicker.value);
+        //console.log("pickerChangeCallback(): event: ", event);
 
         // Change the size of the picker back to 1 when a letter has been picked.
         this.letterPicker.setAttribute("size", 1);
 
-        const isValidWord = this.game.pseudoMove();
-
-        if (! this.game.over()) {
-            this.showMove();
-        }
+        this.pseudoMove();
+        let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition'));
+        this.game.playLetter(letterPosition, this.letterPicker.value);
     }
 
     pickerFocusCallback(event) {
@@ -92,16 +89,20 @@ class GameDisplay extends BaseLogger {
         this.letterPicker.setAttribute("size", 10);
     }
 
-
-    /*
-    ** ========================================
-    ** NEW GAME .........................
-    ** ========================================
-    */
+    /* ----- Game ----- */
 
     constructGame() {
-        this.game = new Game("lastMoveReplacer");
+        //this.game = new Game("hard", "pear");
+        this.game = new Game("fate", "sop");
         this.showMove();
+    }
+
+    pseudoMove() {
+        this.game.pseudoMove();
+
+        if (! this.game.over()) {
+            this.showMove();
+        }
     }
 
     showMove() {
@@ -112,7 +113,7 @@ class GameDisplay extends BaseLogger {
 
         var displayInstruction;
         while (displayInstruction = this.game.getNextDisplayInstruction()) {
-            
+
             if (displayInstruction.displayType === "add") {
                 this.displayAdd(displayInstruction);
             } else if (displayInstruction.displayType === "addchange") {
@@ -144,9 +145,9 @@ class GameDisplay extends BaseLogger {
         return ElementUtilities.addElementTo("td", this.rowElement);
     }
 
-    displayCommon(displayInstruction, cellCreator, hideExpansionCells=true) {
-        console.log("displayCommon(): displayInstruction: ", displayInstruction);
-        var expansionPosition = 0,
+    displayCommon(displayInstruction, cellCreator, hideAdditionCells=true) {
+        //console.log("displayCommon(): displayInstruction: ", displayInstruction);
+        var additionPosition = 0,
             cell = null,
             tdElement = null,
             wordLength = displayInstruction.wordLength,
@@ -155,46 +156,54 @@ class GameDisplay extends BaseLogger {
             wasCorrect = displayInstruction.wasCorrect;
 
         tdElement = this.addTd();
-        cell = new ExpansionCell(expansionPosition, hideExpansionCells, this.callbacks.expansionClickCallback);
+        cell = new AdditionCell(additionPosition, hideAdditionCells, this.callbacks.additionClickCallback);
 
         ElementUtilities.addElementTo(cell.getElement(), tdElement);
-        expansionPosition++;
+        additionPosition++;
 
         for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
             tdElement = this.addTd();
             cell = cellCreator(letters[letterIndex], letterIndex + 1);
             ElementUtilities.addElementTo(cell.getElement(), tdElement);
-            cell = new ExpansionCell(expansionPosition, hideExpansionCells, this.callbacks.expansionClickCallback);
+            cell = new AdditionCell(additionPosition, hideAdditionCells, this.callbacks.additionClickCallback);
 
             tdElement = this.addTd();
 
             ElementUtilities.addElementTo(cell.getElement(), tdElement);
-            expansionPosition++;
+            additionPosition++;
         }
     }
 
     displayAdd(displayInstruction) {
+        let me = this;
+
         function getCell(letter, letterPosition) {
-            return new ActiveLetterCell(letter, letterPosition, displayInstruction.wasCorrect, displayInstruction.changePosition);
+            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
+                displayInstruction.wasCorrect, displayInstruction.changePosition);
         }
 
-        // Don't hide expansion cells.
+        // Don't hide addition cells.
         this.displayCommon(displayInstruction, getCell, false);
     }
 
     displayAddChange(displayInstruction) {
+        let me = this;
+
         function getCell(letter, letterPosition) {
             // Give last arg true to indicate the letter should be blanked.
-            return new ActiveLetterCell(letter, letterPosition, displayInstruction.wasCorrect,
-                displayInstruction.changePosition, true);
+            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
+                displayInstruction.wasCorrect, displayInstruction.changePosition, true);
         }
 
         this.displayCommon(displayInstruction, getCell);
     }
 
     displayChange(displayInstruction) {
+        let me = this;
+
         function getCell(letter, letterPosition) {
-            return new ActiveLetterCell(letter, letterPosition, displayInstruction.wasCorrect, displayInstruction.changePosition);
+            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
+                displayInstruction.wasCorrect, displayInstruction.changePosition);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -204,18 +213,19 @@ class GameDisplay extends BaseLogger {
         const me = this;
 
         function getActiveLetterCell(letter, letterPosition) {
-            return new ActiveLetterCell(letter, letterPosition, displayInstruction.wasCorrect, displayInstruction.changePosition);
+            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
+                displayInstruction.wasCorrect, displayInstruction.changePosition);
         }
 
         this.displayCommon(displayInstruction, getActiveLetterCell);
 
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
 
-        function getReductionCell(letter, letterPosition) {
-            return new ReductionCell(letterPosition, me.callbacks.reductionClickCallback);
+        function getDeletionCell(letter, letterPosition) {
+            return new DeletionCell(letterPosition, me.callbacks.deletionClickCallback);
         }
 
-        this.displayCommon(displayInstruction, getReductionCell);
+        this.displayCommon(displayInstruction, getDeletionCell);
     }
 
     displayFuture(displayInstruction) {
@@ -248,12 +258,18 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell);
     }
 
-    expansionClickCallback(event) {
-        console.log("expansionClickCallback(): event: ", event);
+    additionClickCallback(event) {
+        //console.log("additionClickCallback(): event: ", event);
+        this.pseudoMove();
+        let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
+        this.game.playAdd(additionPosition);
     }
 
-    reductionClickCallback(event) {
-        console.log("reductionClickCallback(): event: ", event);
+    deletionClickCallback(event) {
+        //console.log("deletionClickCallback(): event: ", event);
+        this.pseudoMove();
+        let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
+        this.game.playDelete(deletionPosition);
     }
 }
 

@@ -58,12 +58,12 @@ function pickerFocusCallback(event) {
     AppDisplay.currentGameDisplay.pickerFocusCallback(event);
 }
 
-function expansionClickCallback(event) {
-    AppDisplay.currentGameDisplay.expansionClickCallback(event);
+function additionClickCallback(event) {
+    AppDisplay.currentGameDisplay.additionClickCallback(event);
 }
 
-function reductionClickCallback(event) {
-    AppDisplay.currentGameDisplay.reductionClickCallback(event);
+function deletionClickCallback(event) {
+    AppDisplay.currentGameDisplay.deletionClickCallback(event);
 }
 
 /* ----- GAME CONTROL CALLBACKS ----- */
@@ -327,10 +327,10 @@ class AppDisplay extends BaseLogger {
         // Callbacks that GameDisplay will pass as event handlers; they will simply
         // just turn around and call the corresponding handler on the current game.
         this.callbacks = {
-            pickerChangeCallback:   pickerChangeCallback,
-            pickerFocusCallback:    pickerFocusCallback,
-            expansionClickCallback: expansionClickCallback,
-            reductionClickCallback: reductionClickCallback,
+            pickerChangeCallback:  pickerChangeCallback,
+            pickerFocusCallback:   pickerFocusCallback,
+            additionClickCallback: additionClickCallback,
+            deletionClickCallback: deletionClickCallback,
         };
 
         // This will create the GameDisplay and its game and get it going.

@@ -22,12 +22,12 @@ class Cell {
 // ActionCell Classes
 
 class ActionCell extends Cell {
-    constructor(symbol, callback, reduction) {
+    constructor(symbol, callback, deletion) {
         super();
         this.symbol = symbol;
 
         let addButtonTo;
-        if (reduction) {
+        if (deletion) {
             this.cellContainer = ElementUtilities.createElement("div", {class: 'circle action-outer-cell'});
             this.cellInnerContainer = ElementUtilities.addElementTo("div", this.cellContainer);
             addButtonTo = this.cellInnerContainer;
@@ -45,26 +45,26 @@ class ActionCell extends Cell {
     }
 }
 
-class ExpansionCell extends ActionCell {
-    constructor(expansionPosition, hidden, callback) {
+class AdditionCell extends ActionCell {
+    constructor(additionPosition, hidden, callback) {
         super("+", callback, false);
 
         if (hidden) {
             this.cellContainer.style.visibility = "hidden";
         } else {
             // Add to the button element so we can get it when the event comes.
-            this.cellContents.setAttribute("expansionPosition", expansionPosition);
-            this.addClass("action-cell-expansion");
+            this.cellContents.setAttribute("additionPosition", additionPosition);
+            this.addClass("action-cell-addition");
         }
     }
 }
 
-class ReductionCell extends ActionCell {
-    constructor(reductionPosition, callback) {
+class DeletionCell extends ActionCell {
+    constructor(deletionPosition, callback) {
         super("-", callback, true);
         // Add to the button element so we can get it when the event comes.
-        this.cellContents.setAttribute("reductionPosition", reductionPosition);
-        this.addClass("action-cell-reduction");
+        this.cellContents.setAttribute("deletionPosition", deletionPosition);
+        this.addClass("action-cell-deletion");
     }
 }
 
@@ -100,7 +100,7 @@ class LetterCell extends Cell {
 }
 
 class ActiveLetterCell extends LetterCell {
-    constructor(letter, letterPosition, wasCorrect, changePosition, blankLetterOnChange=false) {
+    constructor(letter, letterPosition, letterPicker, wasCorrect, changePosition, blankLetterOnChange=false) {
         super(letter);
 
         this.addClass("letter-cell-active");
@@ -108,6 +108,8 @@ class ActiveLetterCell extends LetterCell {
 
         if (letterPosition === changePosition) {
             this.addClass("letter-cell-change");
+            // Add to the picker element so we can get it when the event comes.
+            letterPicker.setAttribute('letterPosition', letterPosition);
             if (blankLetterOnChange) {
                 ElementUtilities.setElementText(this.cellContents, " ");
             }
@@ -146,4 +148,4 @@ class TargetLetterCell extends LetterCell {
 }
 
 
-export { ExpansionCell, ReductionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell };
+export { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell };

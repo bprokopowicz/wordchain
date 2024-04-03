@@ -24,7 +24,7 @@
     --played-word-good-bg-light:        #85daac;    /* green */
     --played-word-bad-bg-light:         #ea9797;    /* red */
     --target-word-bg-light:             #99ddff;    /* pale blue */
-    --action-bg-light:                  #ffff99;    /* yellow */
+    --user-input-bg-light:              #bababa;    /* medium gray */
 
     /* Dark */
     --colorblind-good-dark:             #2b558c;    /* blue */
@@ -32,7 +32,7 @@
     --played-word-good-bg-dark:         #076707;    /* green */
     --played-word-bad-bg-dark:          #ac0706;    /* red */
     --target-word-bg-dark:              #006699;    /* medium blue */
-    --action-bg-dark:                   #ffff00;    /* yellow */
+    --user-input-bg-dark:               #bababa;    /* medium gray */
 }
 
 :root,
@@ -73,9 +73,9 @@
     /* These properties are affected by changes in the Colorblind Mode setting */
     /* TODO: Change to var ...-bg and set in AppDisplay */
     --played-word-good-bg:      var(--played-word-good-bg-light);
-    --played-word-bad-bg:       var(--played-word-good-bg-light);
+    --played-word-bad-bg:       var(--played-word-bad-bg-light);
     --target-word-bg:           var(--target-word-bg-light);
-    --action-bg:                var(--action-bg-light);
+    --user-input-bg:            var(--user-input-bg-light);
 
     /* These properties are affected by changes in the Colorblind Mode setting
     --played-word-same-bg:      var(--played-word-same-bg-light);
@@ -587,13 +587,13 @@ button.action-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--action-bg);
+    background: var(--user-input-bg);
 }
 
-.action-cell-expansion {
+.action-cell-addition {
 }
 
-.action-cell-reduction {
+.action-cell-deletion {
 }
 
 .action {

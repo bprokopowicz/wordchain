@@ -23,7 +23,7 @@ class ElementUtilities {
 
     static createElement(elementType, attributes=null, innerHTML=null) {
         const svgElements = ["svg", "path"];
-        
+
         let element;
         if (svgElements.includes(elementType)) {
             element = document.createElementNS("http://www.w3.org/2000/svg", elementType);
