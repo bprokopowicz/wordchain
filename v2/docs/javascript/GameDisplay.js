@@ -1,8 +1,10 @@
 import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
-import { ElementUtilities } from './ElementUtilities.js';
+//import { Game } from './Game.js';
 import { PseudoGame } from './PseudoGame.js';
-//import * as Const from './Const.js';
+import { ElementUtilities } from './ElementUtilities.js';
+import { WordChainDict } from './WordChainDict.js';
+import * as Const from './Const.js';
 
 import { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell } from './Cell.js';
 
@@ -128,8 +130,8 @@ class GameDisplay extends BaseLogger {
     /* ----- Game ----- */
 
     constructGame() {
-        this.game = new PseudoGame("hard", "pear");
-        //this.game = new PseudoGame("fate", "sop");
+        this.game = new PseudoGame(this.dict, "hard", "pear");
+        //this.game = new Game(this.dict, "hard", "pear");
         this.showMove();
     }
 
@@ -341,6 +343,7 @@ class GameDisplay extends BaseLogger {
     /*
     constructGameFromCookieWords(name, words) {
         // Make a copy of the array of words because we will modify it.
+
         words = [...words];
 
         // The cookie words are the start word, the words played so far, and

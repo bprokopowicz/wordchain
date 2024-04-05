@@ -25,12 +25,10 @@ class Solver():
         # make a local copy because we remove words from it while searching
         dictionary = dictionary.copy()
         workingSolutions = deque()
-        wordsAlreadySearched = set()
         workingSolutions.append(startingSolution)
         numWordsSearched = 0
 
         while len(workingSolutions) != 0:
-            #solution = heapq.heappop(workingSolutions)
             solution = workingSolutions.popleft()
 
             if solution.isSolved():

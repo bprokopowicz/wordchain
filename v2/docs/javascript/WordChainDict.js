@@ -3,7 +3,7 @@ import { BaseLogger } from './BaseLogger.js';
 class WordChainDict extends BaseLogger {
     constructor(wordList=[]) {
         super();
-        this.wordSet = null;
+        this.wordSet = new Set();
 
         // If we were given a word list, just convert that to a set.
         if (wordList.length !== 0) {
@@ -11,8 +11,9 @@ class WordChainDict extends BaseLogger {
 
         // Otherwise, fetch the word list from the interwebs.
         } else {
-            const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
-            //const url = "/docs/resources/dict/WordFreqDict";
+            //const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
+            const url = "http://localhost:8000/docs/resources/WordFreqDict";
+            //const url = "https://github.com/bprokopowicz/wordchain/blob/master/v2/docs/resources/WordFreqDict";
 
             (async() => {
                 const response = await fetch(url);
@@ -24,6 +25,7 @@ class WordChainDict extends BaseLogger {
                 this.wordSet = new Set(wordList);
             })();
         }
+        this.logDebug(`Downloaded dictionary has ${this.getSize()} words.`, "dictionary");
     }
 
     // Find the words that result from adding one letter

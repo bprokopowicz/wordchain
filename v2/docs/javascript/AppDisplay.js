@@ -55,7 +55,7 @@ class AppDisplay extends BaseLogger {
     constructor() {
         super();
 
-        this.dict = new WordChainDict(globalWordList);
+        this.dict = new WordChainDict();
 
         /*
         // Flags from stats screen

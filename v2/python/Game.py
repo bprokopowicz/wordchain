@@ -63,6 +63,7 @@ class Game:
         # progress stays as it is.
         self.partialSolution.addWord(newWordWithHole)
         return self.OK
+
     # in the actual game, only valid inputs will be given because the user must select one of the given inputs.
     def addWordIfExists(self, word):
         if self.dictionary.isWord(word):

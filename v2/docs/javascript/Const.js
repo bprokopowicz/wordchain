@@ -10,12 +10,22 @@ export const DEAD_END     = "No solution";
 export const DUPLICATE    = "Already played";
 export const NOT_A_WORD   = "Not in word list";
 export const TOO_SHORT    = "Too short";
+export const BAD_OPERATION = 'bad operation';
+
+// consts for DisplayInstructions
+export const ADD_SPACE = "add";
+export const ADD_CHANGE = "addChange";
+export const CHANGE = "change";
+export const DELETE = "delete";
+export const FUTURE = "future";
+export const PLAYED = "played";
+export const TARGET = "target";
 
 // Special characters used in Game.showGame() return string;
 // a few other classes use these.
-export const NO_CHANGE = "*";
-export const CHANGE    = "!";
-export const EXTRA     = "+";
+export const NO_CHANGE_CHAR = "*";
+export const CHANGE_CHAR    = "!";
+export const INSERT_CHAR    = "+";
 
 export const MIN_WORD_LENGTH = 3;
 export const MAX_WORD_LENGTH = 6;

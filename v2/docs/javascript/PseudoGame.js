@@ -111,11 +111,10 @@ const Games = {
 
 class PseudoGame extends Game {
 
-    // TODO: Need to pass dictionary also.
-    constructor(startWord, targetWord) {
-        super(startWord, targetWord);
-
+    constructor(dictionary, startWord, targetWord) {
+        super(dictionary, startWord, targetWord);
         this.game = Games[startWord][targetWord];
+        this.dictionary = dictionary;
         this.moveIndex = 0;
         this.instructionIndex = 0;
     }
