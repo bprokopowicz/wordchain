@@ -2,7 +2,9 @@ import { BaseLogger } from './BaseLogger.js';
 import { WordChainDict } from './WordChainDict.js';
 import { GameDisplay } from './GameDisplay.js';
 import { HelpDisplay } from './HelpDisplay.js';
+import { SettingsDisplay } from './SettingsDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
+import { Cookie } from './Cookie.js';
 import * as Const from './Const.js';
 
 
@@ -57,19 +59,14 @@ class AppDisplay extends BaseLogger {
 
         this.dict = new WordChainDict();
 
-        /*
-        // Flags from stats screen
+        // Flags from Settings screen
         this.darkTheme      = Cookie.getBoolean("DarkTheme");
         this.colorblindMode = Cookie.getBoolean("ColorblindMode");
-        this.hardMode       = Cookie.getBoolean("HardMode");
-        this.typeSavingMode = Cookie.getBoolean("TypeSavingMode");
 
+        /*
         // This keeps track of whether the user clicked the Show Solution button
         // for the daily game.
         this.dailySolutionShown = Cookie.getBoolean("DailySolutionShown");
-
-        // Now set the colors based on darkTheme and colorblindMode.
-        this.setColors();
 
         // This keeps track of the most recently played daily game number.
         this.dailyGameNumber = Cookie.getInt("DailyGameNumber");
@@ -113,7 +110,6 @@ class AppDisplay extends BaseLogger {
 
         // Objects that hold AuxiliaryDisplay derived class objects for the Help, Settings, Stats screens.
         this.helpDisplay = null;
-
         this.settingsDiv = null;
         this.statsDiv    = null;
 
@@ -123,6 +119,8 @@ class AppDisplay extends BaseLogger {
         // Now, create all the screens. This will create all the divs listed above.
         this.createScreens();
 
+        // Now set the colors based on darkTheme and colorblindMode.
+        this.setColors();
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
@@ -144,7 +142,7 @@ class AppDisplay extends BaseLogger {
     createScreens() {
         this.rootDiv = ElementUtilities.addElementTo("div", document.body, {id: "root-div"});
 
-        this.auxiliaryDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "auxiliary-div"});
+        this.auxiliaryDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "auxiliary-div", class: "auxiliary-div"});
         this.createHeaderDiv();
         this.createToastDiv();
 
@@ -175,13 +173,11 @@ class AppDisplay extends BaseLogger {
             this.pickerDiv,
         ];
 
-        console.log("primaryDivs:", this.primaryDivs);
-
         // Now create objects for each of the auxiliary screens.
         // Probably don't need to save these, but we will anyway!
         this.helpDisplay     = new HelpDisplay(this.auxiliaryButtonDiv, Const.HELP_PATH, this.auxiliaryDiv, this.primaryDivs);
+        this.settingsDisplay = new SettingsDisplay(this.auxiliaryButtonDiv, Const.SETTINGS_PATH, this.auxiliaryDiv, this.primaryDivs, this);
         //this.statsDisplay    = new StatsDisplay(this.auxiliaryButtonDiv, Const.STATS_PATH, this.auxiliaryDiv, this.primaryDivs);
-        //this.settingsDisplay = new SettingsDisplay(this.auxiliaryButtonDiv, Const.STATS_PATH, this.auxiliaryDiv, this.primaryDivs);
     }
 
     createHeaderDiv() {
@@ -232,110 +228,6 @@ class AppDisplay extends BaseLogger {
         this.pickerDiv.style.display = "flex";
     }
 
-    /* ----- Settings ----- */
-
-    // Add a setting to settings-div's content div.
-    addSetting(title, settingClass, description="") {
-        // Create a div for one setting.
-        const settingDiv = ElementUtilities.addElementTo("div", this.settingsContentDiv, {class: settingClass});
-
-        // Create a div for just the text to be displayed.
-        const textDiv = ElementUtilities.addElementTo("div", settingDiv, {class: "setting-text"});
-        ElementUtilities.addElementTo("div", textDiv, {class: "setting-title"}, title);
-        ElementUtilities.addElementTo("div", textDiv, {class: "setting-description"}, description);
-
-        // Create and return a div to hold the interactive part.
-        return ElementUtilities.addElementTo("div", settingDiv, {});
-    }
-
-    // Add a setting whose input is a checkbox.
-    addCheckboxSetting(title, id, value) {
-        // setting-simple class styles the contents of the setting (title/description,
-        // checkbox input) horizontally.
-        const interactiveDiv = this.addSetting(title, "setting-simple");
-
-        const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
-            {type: "checkbox", id: id, class: "setting-checkbox"});
-        checkbox.addEventListener("change", checkboxCallback);
-        checkbox.checked = value;
-    }
-
-    // Add a setting whose "input" is clicking a link.
-    addLinkSetting(title, linkText, linkHref, description) {
-        // setting-simple class styles the contents of the setting (title/description, link)
-        // horizontally.
-        const interactiveDiv = this.addSetting(title, "setting-simple", description);
-        ElementUtilities.addElementTo("a", interactiveDiv, {href: linkHref, target: "_blank"}, linkText);
-    }
-
-    // Add a setting whose input is a (mutually exclusive) set of radio buttons.
-    addRadioSetting(title, radioInfoList, radioName, description, callbackFunction) {
-        // setting-complex class styles the contents of the setting (title/description, radio inputs
-        // and their labels) vertically, i.e. title/description on one line, then each input on
-        // a subsequent line.
-        const interactiveDiv = this.addSetting(title, "setting-complex", description);
-
-        // To get nice formatting, especially on smaller devices where the description will wrap,
-        // create a table.
-        const table = ElementUtilities.addElementTo("table", interactiveDiv, {class: "radio-container"});
-
-        // radioInfoList is a list of objects containing properties: id, description, and checked.
-        for (let radioInfo of radioInfoList) {
-            // One row for each option.
-            const tableRow = ElementUtilities.addElementTo("tr", table, {});
-
-            // Column 1: the radio input. Set its checked attribute according to the info,
-            // and add an event listener to handle changes to it. We'll use the same listener
-            // for all the radio inputs.
-            const tdCol1 = ElementUtilities.addElementTo("td", tableRow, {});
-            const radio = ElementUtilities.addElementTo("input", tdCol1,
-                {value: radioInfo.value, name: radioName, class: "setting-radio", type: "radio"});
-            radio.checked = radioInfo.checked;
-            radio.addEventListener("change", callbackFunction);
-
-            // Column 2: the description of the radio item.
-            const tdCol2 = ElementUtilities.addElementTo("td", tableRow, {});
-            ElementUtilities.addElementTo("label", tdCol2, {class: "radio-label"}, radioInfo.desc);
-        }
-    }
-
-    createSettingsDiv() {
-
-        let settingsContainerDiv;
-        [this.settingsDiv, settingsContainerDiv] = this.createAuxiliaryDiv("settings-div");
-
-        // Add a div for the content, which will be centered (because of the styling of aux-container-div).
-        // within settingsContainerDiv as a block (because of settings-content-div styling).
-        this.settingsContentDiv = ElementUtilities.addElementTo("div", settingsContainerDiv, {id: "settings-content-div",});
-        ElementUtilities.addElementTo("h1", this.settingsContentDiv, {align: "center"}, "SETTINGS");
-
-        // All the settings will be added to settings-content-div.
-        this.addCheckboxSetting("Dark Theme",      "dark",       this.darkTheme);
-        this.addCheckboxSetting("Colorblind Mode", "colorblind", this.colorblindMode);
-
-        const radioInfo = [{
-                value:   "Normal",
-                desc:    "<b>Normal:</b> Letter-change steps are indicated with a thick outline",
-                checked: !(this.hardMode || this.typeSavingMode),
-            }, {
-                value:   "Type-Saving",
-                desc:    "<b>Type-Saving:</b> Saves typing by filling in known letters",
-                checked: this.typeSavingMode,
-            }, {
-                value:   "Hard",
-                desc:    "<b>Hard:</b> No automatically filled letters or thick outline",
-                checked: this.hardMode,
-            }
-        ]
-        const gamePlayModeDescription = "Which way do you want to play?"
-        this.addRadioSetting("Game Play Mode", radioInfo, "game-play-mode", gamePlayModeDescription, radioCallback);
-
-        const feedbackDescription = "Dictionary suggestions? Gripes? Things you love? Feature ideas?";
-        const faqDescription = "Everything you want to know and then some!";
-        this.addLinkSetting("Feedback",   "Email", Const.EMAIL_HREF, feedbackDescription);
-        this.addLinkSetting("Questions?", "FAQ",   Const.FAQ_HREF, faqDescription);
-    }
-
     /* ----- Stats ----- */
 
     createStatsDiv() {
@@ -368,55 +260,10 @@ class AppDisplay extends BaseLogger {
     }
 
     /*
-    ** ========================================
-    ** BUTTON, CHECKBOX, AND KEYBOARD CALLBACKS
-    ** ========================================
+    ** =========
+    ** CALLBACKS
+    ** =========
     */
-
-    // Callback for Settings checkbox changes.
-    checkboxCallback(event) {
-        // The id attribute in the event's srcElement property tells us which setting whas changed.
-        const checkboxId = event.srcElement.getAttribute("id");
-
-        // The checked attribute in the event's srcElement property tells us whether the
-        // checkbox was checked or unchecked. Set the boolean corresponding to the
-        // checkbox's id according to that.
-        if (checkboxId === "dark") {
-            this.darkTheme = event.srcElement.checked ? true : false;
-            Cookie.save("DarkTheme", this.darkTheme);
-            this.setColors();
-
-        } else if (checkboxId === "colorblind") {
-            this.colorblindMode = event.srcElement.checked ? true : false;
-            Cookie.save("ColorblindMode", this.colorblindMode);
-            this.setColors();
-
-        }
-    }
-
-    // Callback for Settings radio button changes.
-    radioCallback(event) {
-        const selection = event.srcElement.value;
-        if (selection == "Hard") {
-            this.hardMode = true;
-            this.typeSavingMode = false;
-        } else if (selection === "Type-Saving") {
-            this.typeSavingMode = true;
-            this.hardMode = false;
-        } else {
-            this.typeSavingMode = false;
-            this.hardMode = false;
-        }
-
-        // Save both cookies.
-        Cookie.save("HardMode", this.hardMode);
-        Cookie.save("TypeSavingMode", this.typeSavingMode);
-
-        // Hard and Type-Saving modes are implemented in the game tile display,
-        // so tell it what our modes are now.
-        this.gameTileDisplay.setHardMode(this.hardMode);
-        this.gameTileDisplay.setTypeSavingMode(this.typeSavingMode);
-    }
 
     // Callback for the Share button on the Stats screen.
     shareCallback() {
@@ -461,6 +308,14 @@ class AppDisplay extends BaseLogger {
     // Return the given CSS property value.
     static getCssProperty(property) {
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
+    }
+
+    isDarkTheme() {
+        return this.darkTheme;
+    }
+
+    isColorblindMode() {
+        return this.colorblindMode;
     }
 
     // Increment the given stat, update the stats cookie, and update the stats display content.
@@ -556,6 +411,9 @@ class AppDisplay extends BaseLogger {
 
     // Set color properties according to the Dark Theme and Colorblind Mode settings.
     setColors() {
+        //console.log("setColors(): this.darkTheme:", this.darkTheme);
+        //console.log("setColors(): this.colorblindMode:", this.colorblindMode);
+
         // Change the document class name to switch the colors in general.
         if (this.darkTheme) {
             document.documentElement.className = "dark-mode";
@@ -578,23 +436,22 @@ class AppDisplay extends BaseLogger {
                 colorblindGood = AppDisplay.getCssProperty("colorblind-good-light");
                 colorblindBad  = AppDisplay.getCssProperty("colorblind-bad-light");
             }
-            AppDisplay.setCssProperty("played-word-same-bg",   colorblindGood);
-            AppDisplay.setCssProperty("played-word-longer-bg", colorblindBad);
-            AppDisplay.setCssProperty("invalid-word-letter-fg", colorblindBad);
+            AppDisplay.setCssProperty("played-word-good-bg",     colorblindGood);
+            AppDisplay.setCssProperty("played-word-bad-bg",     colorblindBad);
 
         } else {
             // Colorblind Mode is not checked: restore the affected properties based on whether
             // Dark Mode is set.
             if (this.darkTheme) {
-                AppDisplay.setCssProperty("played-word-same-bg",    AppDisplay.getCssProperty("played-word-same-bg-dark"));
-                AppDisplay.setCssProperty("played-word-longer-bg",  AppDisplay.getCssProperty("played-word-longer-bg-dark"));
-                AppDisplay.setCssProperty("invalid-word-letter-fg", AppDisplay.getCssProperty("invalid-word-letter-fg-dark"));
+                AppDisplay.setCssProperty("played-word-good-bg",    AppDisplay.getCssProperty("played-word-good-bg-dark"));
+                AppDisplay.setCssProperty("played-word-bad-bg",     AppDisplay.getCssProperty("played-word-bad-bg-dark"));
             } else {
-                AppDisplay.setCssProperty("played-word-same-bg",    AppDisplay.getCssProperty("played-word-same-bg-light"));
-                AppDisplay.setCssProperty("played-word-longer-bg",  AppDisplay.getCssProperty("played-word-longer-bg-light"));
-                AppDisplay.setCssProperty("invalid-word-letter-fg", AppDisplay.getCssProperty("invalid-word-letter-fg-light"));
+                AppDisplay.setCssProperty("played-word-good-bg",    AppDisplay.getCssProperty("played-word-good-bg-light"));
+                AppDisplay.setCssProperty("played-word-bad-bg",     AppDisplay.getCssProperty("played-word-bad-bg-light"));
             }
         }
+
+        AppDisplay.currentGameDisplay && AppDisplay.currentGameDisplay.showMove();
     }
 
     // Show a "toast" pop-up (typically an error message).

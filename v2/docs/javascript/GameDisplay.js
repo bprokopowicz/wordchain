@@ -130,6 +130,7 @@ class GameDisplay extends BaseLogger {
     /* ----- Game ----- */
 
     constructGame() {
+        //this.game = new PseudoGame(this.dict, "fate", "sop");
         this.game = new PseudoGame(this.dict, "hard", "pear");
         //this.game = new Game(this.dict, "hard", "pear");
         this.showMove();
@@ -147,7 +148,7 @@ class GameDisplay extends BaseLogger {
 
         var displayInstruction;
         while (displayInstruction = this.game.getNextDisplayInstruction()) {
-            console.log("displayInstruction:", displayInstruction);
+            //console.log("displayInstruction:", displayInstruction);
 
             if (displayInstruction.displayType === "add") {
                 this.displayAdd(displayInstruction);

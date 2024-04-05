@@ -128,6 +128,7 @@ class PseudoGame extends Game {
         if (this.instructionIndex < this.game[this.moveIndex].length) {
             return this.game[this.moveIndex][this.instructionIndex++];
         } else {
+            this.instructionIndex = 0;
             return null;
         }
     }

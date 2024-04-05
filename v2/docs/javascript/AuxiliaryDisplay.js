@@ -11,12 +11,13 @@ class AuxiliaryDisplay {
         this.displayButton.callbackAccessor = this;
 
         // This div is the one we style as none or flex to hide/show the div (always none at first).
-        // It will be centered in its parent div because of how root-div is styled.
-        this.auxiliaryContainer = ElementUtilities.addElementTo("div", parentContainer, {class: "auxiliary-div"});
+        // It will be centered in its parent div because of how it is styled.
+        this.auxiliaryContainer = ElementUtilities.addElementTo("div", parentContainer, {class: "auxiliary-container-div"});
         this.auxiliaryContainer.style.display = "none";
+        this.isOpen = false;
 
-        // This div will be centered within its parent div (because of how auxiliary-div is styled).
-        this.contentContainer = ElementUtilities.addElementTo("div", this.auxiliaryContainer, {class: "auxiliary-container-div"});
+        // This div will be centered within its parent div (because of how auxiliary-container-div is styled).
+        this.contentContainer = ElementUtilities.addElementTo("div", this.auxiliaryContainer, {class: "auxiliary-content-div"});
 
         // This div will be centered in its parent div because of how auxiliary-container-div is
         // styled, but its content (the button) will be right-justified in this div because of the
@@ -35,27 +36,24 @@ class AuxiliaryDisplay {
         // Create the button itself.
         const button = ElementUtilities.addElementTo("button", buttonContainer, {class: buttonClass});
 
-        /*
-        // Save 'this' in the button element so that we can access it in the callback
-        // (via event.srcElement.callbackAccessor).
-        button.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(button, buttonCallback);
-        */
-    
         // Now, the create the svg element.
         // TODO: Should make the width controllable.
         const svg = ElementUtilities.addElementTo("svg", button,
             {viewBox: "0 0 24 24", style: "width: 24; height: 24;", stroke: "None",});
         
-        svg.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(svg, buttonCallback);
-
         // Finally, add the path, whose "d" attribute is passed to us
         // using the big, ugly class constants.
         const path = ElementUtilities.addElementTo("path", svg, {d: svgPath});
 
-        path.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(path, buttonCallback);
+        // Save 'this' in the button, svg, and path elements so that we can access this
+        // object in the callbacks (via event.srcElement.callbackAccessor). The event may
+        // occur on any of these elements, so we need to add the callback to all of them.
+        // This causes some unfortunate complexities in the callbacks ...
+        for (let element of [button, svg, path]) {
+            console.log("add callback to:", element);
+            element.callbackAccessor = this;
+            ElementUtilities.setButtonCallback(element, buttonCallback);
+        }
 
         return button;
     }   
@@ -103,8 +101,11 @@ class AuxiliaryDisplay {
             }
             */
 
-            // Now set the attribute, which will show the div.
+            // Now set the style attribute to what we'd saved, which will show the div.
+            // And remove the data-save-style attribute because we don't need it anymore
+            // and it screws things up when accessing the screen multiple times in a row.
             div.setAttribute("style", containerStyle);
+            div.removeAttribute("data-save-style");
         }
     }
 
@@ -117,6 +118,19 @@ class AuxiliaryDisplay {
         // When the button was created with createSvgButton() we saved 'this'
         // as callbackAccessor on the button; use it to access other instance data.
         const callbackAccessor = event.srcElement.callbackAccessor;
+        //console.log("closeAuxiliaryCallback(): callbackAccessor.isOpen:", callbackAccessor.isOpen, ", event:", event);
+
+        // By necessity, we have attached this callback to multiple elements that
+        // comprise the close button. Any combination of them may generate an event,
+        // but we only want to respond to it on the first one. If the display is NOT
+        // open it means this is not the first call for the user's click, so we just
+        // return now.
+        if (! callbackAccessor.isOpen) {
+            return;
+        }
+
+        // Now set the flag to prevent another call from doing anything.
+        callbackAccessor.isOpen = false;
 
         // Hide the auxiliary screen.
         callbackAccessor.auxiliaryContainer.style.display = "none";
@@ -127,10 +141,22 @@ class AuxiliaryDisplay {
                 
     // Callback for opening an Auxiliary screen.
     openAuxiliaryCallback(event) {
-        console.log("openAuxiliaryCallback():", event);
         // When the button was created with createSvgButton() we saved 'this'
         // as callbackAccessor on the button; use it to access other instance data.
         const callbackAccessor = event.srcElement.callbackAccessor;
+        //console.log("openAuxiliaryCallback(): callbackAccessor.isOpen:", callbackAccessor.isOpen, ", event:", event);
+
+        // By necessity, we have attached this callback to multiple elements that
+        // comprise the button that opens this display. Any combination of them may
+        // generate an event, but we only want to respond to it on the first one.
+        // If the display is ALREADY open it means this is not the first call for
+        // the user's click, so we just return now.
+        if (callbackAccessor.isOpen) {
+            return;
+        }
+
+        // Now set the flag to prevent another call from doing anything.
+        callbackAccessor.isOpen = true;
         
         // Hide the containers that are currently showing and save information
         // so we can restore them.

@@ -435,16 +435,10 @@ button.action-button {
 ** Common styling for "auxiliary screens" (Help, Settings, Stats)
 */
 
-.close-button-div {
-    width: 100%;
+.auxiliary-div {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-.close-button {
-    background: transparent;
-    border-width: 0;
+    align-items: center;
+    justify-content: center;
 }
 
 .auxiliary-container-div {
@@ -479,6 +473,18 @@ button.action-button {
     font-size: 1rem;
 }
 
+.close-button-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.close-button {
+    background: transparent;
+    border-width: 0;
+}
+
 /*
 ** Help screen
 */
@@ -490,7 +496,7 @@ button.action-button {
 ** Settings screen
 */
 
-#settings-content-div {
+.settings-content-div {
     display: block;
 }
 
@@ -739,6 +745,6 @@ input.setting-radio {
     }
 
     .auxiliary-content-div {
-        width: 60%;
+        width: 40%;
     }
 }
