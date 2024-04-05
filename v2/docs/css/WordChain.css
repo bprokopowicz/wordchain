@@ -252,7 +252,7 @@ svg {
     align-items: center;
 }
 
-#right-button-div {
+#auxiliary-button-div {
     width: 30%;
     display: flex;
     justify-content: flex-end;
@@ -280,7 +280,7 @@ svg {
     color: var(--primary-fg);
 }
 
-.header-aux-button {
+.aux-button {
     background: var(--header-button-bg);
     border-radius: 50%;
     border-width: 0;
@@ -447,14 +447,14 @@ button.action-button {
     border-width: 0;
 }
 
-.auxiliary-div {
+.auxiliary-container-div {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
 }
 
-.auxiliary-container-div {
+.auxiliary-content-div {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
@@ -463,19 +463,19 @@ button.action-button {
     margin: 1.5rem;
 }
 
-.auxiliary-container-div h1 {
+.auxiliary-content-div h1 {
     font-size: 1.5rem;
     font-weight: bold;
 }
-.auxiliary-container-div h2 {
+.auxiliary-content-div h2 {
     font-size: 1.25rem;
     font-weight: bold;
 }
-.auxiliary-container-div h3 {
+.auxiliary-content-div h3 {
     font-size: 1rem;
     font-weight: bold;
 }
-.auxiliary-container-div p {
+.auxiliary-content-div p {
     font-size: 1rem;
 }
 
@@ -483,7 +483,7 @@ button.action-button {
 ** Help screen
 */
 
-#help-content-div {
+.help-content-div {
 }
 
 /*
@@ -704,7 +704,7 @@ input.setting-radio {
         font-size: 2rem;
     }
 
-    .header-aux-button {
+    .aux-button {
         padding: .35rem;
         margin: .5rem;
     }
@@ -738,7 +738,7 @@ input.setting-radio {
         padding: .2rem;
     }
 
-    .auxiliary-container-div {
+    .auxiliary-content-div {
         width: 60%;
     }
 }

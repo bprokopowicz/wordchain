@@ -1,12 +1,8 @@
-//import { TileDisplay, GameTileDisplay, PracticeTileDisplay } from './TileDisplay.js';
 import { BaseLogger } from './BaseLogger.js';
 import { WordChainDict } from './WordChainDict.js';
-//import { Solver } from './Solver.js';
-//import { Game } from './Game.js';
 import { GameDisplay } from './GameDisplay.js';
+import { HelpDisplay } from './HelpDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
-//import { Cookie } from './Cookie.js';
-//import { DailyGameGenerator } from './DailyGameGenerator.js';
 import * as Const from './Const.js';
 
 
@@ -16,7 +12,6 @@ import * as Const from './Const.js';
 **
 ** Before Sharing with Initial Friends
 ** - Review help message
-** - Change practice game max back to 3
 ** - 30 days of daily games
 ** - Execute test plan on iPhone/iPad (Safari) and desk/laptop (Chrome)
 **
@@ -29,85 +24,6 @@ import * as Const from './Const.js';
 ** - Cookies: make secure?
 ** - Logo/favicon.ict
 */
-
-/*
-** Forwarding functions
-**
-** When "this.pickerChangeCallback" is passed, for example, as the listener on calls
-** within the AppDisplay class to addEventListener(), Chrome appears to call it (but refers
-** to it as HTMLButtonElement.pickerChangeCallback, which doesn't exist!) and "this"
-** within the method is of type HTMLButtonElement, so the call within to "this.someOtherMethod()"
-** resolves to HTMLButtonElement.someOtherMethod, which is is not a function. This kind of makes
-** sense (except for why it  was able to call the AppDisplay.pickerChangeCallback()
-** method at all!).
-**
-** At that point I introduced the singleton idea. I thought that passing
-** AppDisplay.singleton().pickerChangeCallback as the listener would work, but this
-** also resulted in "HTMLButtonElement.someOtherMethod() is not a function." Sigh. I really don't
-** understand why that is not working. But we carry on; introducing the "forwarding function"
-** did the trick.
-*/
-
-/* ----- GAME CONTROL CALLBACKS ----- */
-
-function dailyCallback(event) {
-    AppDisplay.singleton().dailyCallback(event);
-}
-
-function clearLettersCallback(event) {
-    AppDisplay.singleton().clearLettersCallback(event);
-}
-
-function newGameCallback(event) {
-    AppDisplay.singleton().newGameCallback(event);
-}
-
-function practiceCallback(event) {
-    AppDisplay.singleton().practiceCallback(event);
-}
-
-function showSolutionCallback(event) {
-    AppDisplay.singleton().showSolutionCallback(event);
-}
-
-function startGameCallback(event) {
-    AppDisplay.singleton().startGameCallback(event);
-}
-
-/* ----- AUXILIARY CALLBACKS ----- */
-
-// General
-
-function closeAuxiliaryCallback(event) {
-    AppDisplay.singleton().closeAuxiliaryCallback(event);
-}
-
-function openAuxiliaryCallback(event) {
-    AppDisplay.singleton().openAuxiliaryCallback(event);
-}
-
-// Settings
-
-function checkboxCallback(event) {
-    AppDisplay.singleton().checkboxCallback(event);
-}
-
-function radioCallback(event) {
-    AppDisplay.singleton().radioCallback(event);
-}
-
-// Help
-
-function helpCloseCallback(event) {
-    AppDisplay.singleton().helpCloseCallback(event);
-}
-
-// Share
-
-function shareCallback(event) {
-    AppDisplay.singleton().shareCallback(event);
-}
-
 
 // Synchronously wait for the word list to download.
 const globalWordList = await fetch(Const.DICT_URL)
@@ -128,37 +44,7 @@ class AppDisplay extends BaseLogger {
     */
 
     static singletonObject = null;
-    
     static currentGameDisplay = null;
-
-    // Emoji code strings for share string
-    static RED_SQUARE     = "\u{1F7E5}";     // Extra steps in graphic
-    static GREEN_SQUARE   = "\u{1F7E9}";     // No extra steps in graphic
-    static ORANGE_SQUARE  = "\u{1F7E7}";     // Extra steps in graphic -- colorblind
-    static BLUE_SQUARE    = "\u{1F7E6}";     // No extra steps in graphic -- colorblind
-    static STAR           = "\u{2B50}";      // No extra steps in first share line
-    static CONFOUNDED     = "\u{1F616}";     // Too many extra steps in first share line
-    static FIRE           = "\u{1F525}";     // Hard mode in first share line
-    static ROCKET         = "\u{1F680}";     // Unused
-    static FIREWORKS      = "\u{1F386}";     // Unused
-    static TROPHY         = "\u{1F3C6}";     // Unused
-    static LINK           = "\u{1F517}";     // Unused
-    static CHAINS         = "\u{26D3}";      // Unused
-    static NUMBERS        = [                // Used in first share line
-        AppDisplay.STAR,                // 0
-        "\u{0031}\u{FE0F}\u{20E3}",     // 1
-        "\u{0032}\u{FE0F}\u{20E3}",
-        "\u{0033}\u{FE0F}\u{20E3}",
-        "\u{0034}\u{FE0F}\u{20E3}",
-        "\u{0035}\u{FE0F}\u{20E3}",
-        "\u{0036}\u{FE0F}\u{20E3}",
-        "\u{0037}\u{FE0F}\u{20E3}",
-        "\u{0038}\u{FE0F}\u{20E3}",
-        "\u{0031}\u{FE0F}\u{20E3}",
-        "\u{0039}\u{FE0F}\u{20E3}",     // 9
-    ]
-
-    static MaxGamesIntervalMs = 24 * 60 *60 * 1000; // one day in ms
 
     /*
     ** ============
@@ -172,17 +58,6 @@ class AppDisplay extends BaseLogger {
         this.dict = new WordChainDict(globalWordList);
 
         /*
-        this.dailyGame    = null;
-        this.practiceGame = null;
-
-        // this.game will be set to whichever Game (daily or practice) is
-        // currently being played.
-        this.game = null;
-
-        // Objects for the tile displays.
-        this.gameTileDisplay     = null;
-        this.practiceTileDisplay = null;
-
         // Flags from stats screen
         this.darkTheme      = Cookie.getBoolean("DarkTheme");
         this.colorblindMode = Cookie.getBoolean("ColorblindMode");
@@ -199,21 +74,8 @@ class AppDisplay extends BaseLogger {
         // This keeps track of the most recently played daily game number.
         this.dailyGameNumber = Cookie.getInt("DailyGameNumber");
 
-        // Debug-only cookie that can be manually added to the time period.
-        this.debugPracticeGameIntervalMin = Cookie.getInt("DebugPracticeGameIntervalMin");
-
-        // Are we debugging limiting practice games?
-        if (this.debugPracticeGameIntervalMin) {
-            AppDisplay.MaxGamesIntervalMs = debugPracticeGameIntervalMin * 60 * 1000;
-        }
-
         // The starting word, played words, and target words of each game.
         this.dailyGameWords    = Cookie.getJsonOrElse("DailyGame", []);
-        this.practiceGameWords = Cookie.getJsonOrElse("PracticeGame", []);
-
-        // These timestamps are used to ensure the user doesn't play more than
-        // the maximum number of timestamps per day.
-        this.practiceGameTimestamps = Cookie.getJsonOrElse("PracticeGameTimestamps", []);
 
         // Construct initial stats to be used if we don't have a cookie for daily stats.
         let initialStats = {
@@ -238,19 +100,20 @@ class AppDisplay extends BaseLogger {
         // The mother of all divs.
         this.rootDiv = null;
 
-        // Divs that appear during game setup and play; header/lower are children of root-div.
+        // Holds all the auxiliary screens (Help, Settings, Stats) and MUST be the
+        // first child of rootDiv so that when shown the screens will be at the 
+        // top of the viewport.
+        this.auxiliaryDiv = null;
+
+        // Divs that appear during game play; header/lower are children of root-div.
         this.headerDiv        = null;
         this.lowerDiv         = null; // Contains the following divs
-        //this.practiceEntryDiv = null;
         this.gameDiv          = null;
-        //this.keyboardDiv      = null;
         this.pickerDiv        = null;
 
-        // Buttons in the keyboard div; used to add event listeners to them.
-        //this.keyboardButtons = [];
+        // Objects that hold AuxiliaryDisplay derived class objects for the Help, Settings, Stats screens.
+        this.helpDisplay = null;
 
-        // Divs that hold auxiliary screens (Help, Settings, Stats); all children of root-div.
-        this.helpDiv     = null;
         this.settingsDiv = null;
         this.statsDiv    = null;
 
@@ -260,15 +123,6 @@ class AppDisplay extends BaseLogger {
         // Now, create all the screens. This will create all the divs listed above.
         this.createScreens();
 
-        // This is the set of divs that need to be hidden when an auxiliary screen is
-        // shown, and shown when an auxiliary screen is closed.
-        this.primaryDivs = [
-            this.headerDiv,
-            //this.practiceEntryDiv,
-            this.gameDiv,
-            //this.keyboardDiv,
-            this.pickerDiv,
-        ];
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
@@ -289,21 +143,20 @@ class AppDisplay extends BaseLogger {
     // This is the entry point for creating the screens and displaying the game.
     createScreens() {
         this.rootDiv = ElementUtilities.addElementTo("div", document.body, {id: "root-div"});
-        this.createHeaderDiv();
 
-        // These all "live" under root-div, and are initially not shown.
-        // The first three are "auxiliary screens"
-        this.createHelpDiv();
-        this.createSettingsDiv();
-        this.createStatsDiv();
+        this.auxiliaryDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "auxiliary-div"});
+        this.createHeaderDiv();
         this.createToastDiv();
 
         // The lower-div contains the divs for game setup and game play.
         // TODO: If we ultimately support a separate practice game we will need to 
         // have multple gameDiv, pickerDiv, pickerInnerDiv.
         this.lowerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "lower-div"});
-        this.gameDiv = this.createGameDiv(this.lowerDiv);
-        [this.pickerDiv, this.pickerInnerDiv] = this.createPickerDiv(this.lowerDiv);
+
+        this.createGameDiv(this.lowerDiv);
+        this.createPickerDiv(this.lowerDiv);
+
+        this.createAuxiliaryScreens();
 
         // This will create the GameDisplay and its game and get it going.
         // Pass pickerInnerDiv because that's where we want GameDisplay to
@@ -312,6 +165,24 @@ class AppDisplay extends BaseLogger {
     }
 
     /* ----- Header ----- */
+
+    createAuxiliaryScreens() {
+        // This is the set of divs that need to be hidden when an auxiliary screen is
+        // shown, and shown when an auxiliary screen is closed.
+        this.primaryDivs = [
+            this.headerDiv,
+            this.gameDiv,
+            this.pickerDiv,
+        ];
+
+        console.log("primaryDivs:", this.primaryDivs);
+
+        // Now create objects for each of the auxiliary screens.
+        // Probably don't need to save these, but we will anyway!
+        this.helpDisplay     = new HelpDisplay(this.auxiliaryButtonDiv, Const.HELP_PATH, this.auxiliaryDiv, this.primaryDivs);
+        //this.statsDisplay    = new StatsDisplay(this.auxiliaryButtonDiv, Const.STATS_PATH, this.auxiliaryDiv, this.primaryDivs);
+        //this.settingsDisplay = new SettingsDisplay(this.auxiliaryButtonDiv, Const.STATS_PATH, this.auxiliaryDiv, this.primaryDivs);
+    }
 
     createHeaderDiv() {
         // This div is the one we style as none or flex to hide/show the div.
@@ -322,50 +193,22 @@ class AppDisplay extends BaseLogger {
         // and right-button-div where we want them.
         const leftButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "left-button-div"});
 
-        // title-div holds the title as well as the Daily/Practice buttons.
         // TODO: Add a logo icon.
         const titleDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "title-div"});
 
         ElementUtilities.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
 
-        /*
-        this.dailyGameButton = ElementUtilities.addElementTo(
-            "button",
-            leftButtonDiv,
-            {class: "wordchain-button header-game-button active-button"},
-            "Daily");
-        ElementUtilities.setButtonCallback(this.dailyGameButton, dailyCallback);
-
-        this.practiceGameButton = ElementUtilities.addElementTo(
-            "button",
-            leftButtonDiv,
-            {class: "wordchain-button header-game-button not-active"},
-            "Practice");
-        ElementUtilities.setButtonCallback(this.practiceGameButton, practiceCallback);
-        */
-
-        // right-button-div holds the buttons for getting to the auxiliary screens.
-        const rightButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "right-button-div"});
-
-        const buttonClass = "header-aux-button"
-        this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, Const.HELP_PATH, "help-div");
-        this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, Const.STATS_PATH, "stats-div");
-        this.createSvgButton(rightButtonDiv, buttonClass, openAuxiliaryCallback, Const.SETTINGS_PATH, "settings-div");
+        // auxiliary-button-div holds the buttons for getting to the auxiliary screens.
+        this.auxiliaryButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "auxiliary-button-div"});
     }
 
-    /* ----- GAME SETUP AND PLAY SCREENS ----- */
-
-    /* ----- Daily/Practice Game ----- */
+    /* ----- Game ----- */
 
     createGameDiv(lowerDiv) {
         // This div is the one we style as none or flex to hide/show the div.
-        const gameDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "game-div"}, null);
-        gameDiv.style.display = "flex";
-
-        return gameDiv;
+        this.gameDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "game-div"}, null);
+        this.gameDiv.style.display = "flex";
     }
-
-    /* ----- Picker ----- */
 
     createPickerDiv(lowerDiv) {
         // We always want the picker to appear on a "line" by itself, not
@@ -377,55 +220,16 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.addElementTo("div", lowerDiv, {class: "break"});
 
         // This div is the one we style as none or flex to hide/show the div.
-        const pickerDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "picker-div"}, null),
-              // picker-div always ends up with extra space at the top. The only way I was able
-              // to get rid of it is to create picker-inner-div, which has no extra space, and
-              // then in the JavaScript code set the height of picker-div to match that of
-              // picker-inner-div.
-              pickerInnerDiv = ElementUtilities.addElementTo("div", pickerDiv, {id: "picker-inner-div"}, null);
+        this.pickerDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "picker-div"}, null),
 
-        pickerDiv.style.display = "flex";
+        // picker-div always ends up with extra space at the top. The only way I was able
+        // to get rid of it is to create picker-inner-div, which has no extra space, and
+        // then in the JavaScript code set the height of picker-div to match that of
+        // picker-inner-div.
+        this.pickerInnerDiv = ElementUtilities.addElementTo("div", this.pickerDiv, {id: "picker-inner-div"}, null);
 
-        return [pickerDiv, pickerInnerDiv];
-    }
-
-    /* ----- AUXILIARY SCREENS ----- */
-
-    /* ----- Help ----- */
-
-    createHelpDiv() {
-        let helpContainerDiv;
-        [this.helpDiv, helpContainerDiv] = this.createAuxiliaryDiv("help-div");
-
-        const helpHTML = `
-        <h1 align=center>HOW TO PLAY</h1>
-        <h2>
-        Change words one step at a time to get from the starting word
-        to the target word in as few steps as possible.
-        </h2>
-        <p>
-        A step consists of adding, deleting, or changing one letter.
-        <p>
-        WordChain shows letter boxes for the shortest solution.
-        When playing in Normal Mode, the boxes around letters that should be changed are thicker.
-        Hard Mode eliminates these hints, and Type-Saver Mode fills in the other letters for you.
-        </p>
-        <p>
-        An extra letter is shown with a gray outline if a longer word would be a valid move,
-        in case you want to chose a longer word (and a different solution path) next.
-        </p>
-        <p>
-        If you play a word that increases the number of steps from the start to the target word,
-        the background of its letters will be red; otherwise they will be green
-        (or orange/blue in Colorblind Mode).
-        </p>
-        <h3>
-        Every day there will be a new daily WordChain game, and you can play up to ${Const.PRACTICE_GAMES_PER_DAY}
-        practice games per day. Have fun!
-        </h3>
-        `
-        // Add to the container div that was created above.
-        ElementUtilities.addElementTo("div", helpContainerDiv, {id: "help-content-div",}, helpHTML);
+        // Show the picker initially by default.
+        this.pickerDiv.style.display = "flex";
     }
 
     /* ----- Settings ----- */
@@ -590,88 +394,6 @@ class AppDisplay extends BaseLogger {
         }
     }
 
-    // Callback for the Clear Letters button in the practice game setup screen.
-    clearLettersCallback() {
-        const startWord  = this.practiceTileDisplay.getStartWord();
-        const targetWord = this.practiceTileDisplay.getTargetWord();
-
-        // If the target word is already empty, reset the start word;
-        // otherwise reset the target word.
-        if (targetWord[0] === Const.PLACEHOLDER) {
-            this.practiceTileDisplay.resetWords(Const.RESET_START);
-        } else {
-            this.practiceTileDisplay.resetWords(Const.RESET_TARGET);
-        }
-        this.updatePracticeDisplay();
-    }
-
-    // Callback for closing an Auxiliary screen.
-    closeAuxiliaryCallback(event) {
-        // When the button was created with createSvgButton() we set the attribute
-        // "data-related-div" on each element that comprises the button. Its value
-        // is the ID of the div that needs to be closed which we
-        // do by setting its display to "none".
-        const sourceElementId = event.srcElement.getAttribute("data-related-div");
-        const sourceElement = ElementUtilities.getElement(sourceElementId);
-
-        if (sourceElementId === "stats-div") {
-            this.stopCountdownClock();
-        }
-
-        sourceElement.style.display = "none";
-
-        // Now restore the divs that we saved when the auxiliary screen was opened.
-        this.restoreHiddenDivs();
-    }
-
-    // Callback for the Daily header button.
-    dailyCallback() {
-        // Make Daily button active, and Practice inactive.
-        ElementUtilities.editClass(/not-active/, "active-button", this.dailyGameButton);
-        ElementUtilities.editClass(/active-button/, "not-active", this.practiceGameButton);
-
-        // Don't display the New Game button.
-        this.newGameButton.style.display = "none";
-
-        this.updateGameDisplay(this.dailyGame);
-    }
-
-    // Callback for the New Game button that appears when playing a practice
-    // game, along side the Show Solution button.
-    newGameCallback() {
-        // Set practiceGame to null so practiceCallback() knows to get new start/target words.
-        this.practiceGame = null;
-
-        // Reset the start/end words so the display will be blank again.
-        this.practiceTileDisplay.resetWords();
-
-        // Clear out the cookie for the words played for the current practice game.
-        Cookie.save(this.game.getName(), "");
-
-        // The rest is the same as clicking the Practice header button.
-        this.practiceCallback();
-    }
-
-    // Callback for opening an Auxiliary screen.
-    openAuxiliaryCallback(event) {
-        // Hide the divs that are currently showing and save information
-        // so we can restore them.
-        this.hideShownDivs(event);
-
-        // When the button was created with createSvgButton() we set the attribute
-        // "data-related-div" on each element that comprises the button. Its value
-        // is the ID of the div that needs to be opened, or displayed, which we
-        // do by setting its display to "flex".
-        const sourceElementId = event.srcElement.getAttribute("data-related-div");
-        const sourceElement = ElementUtilities.getElement(sourceElementId);
-
-        if (sourceElementId === "stats-div") {
-            this.updateStatsContent();
-            this.startCountdownClock();
-        }
-        sourceElement.style.display = "flex";
-    }
-
     // Callback for Settings radio button changes.
     radioCallback(event) {
         const selection = event.srcElement.value;
@@ -712,11 +434,10 @@ class AppDisplay extends BaseLogger {
         }
     }
 
-    // Callback for the Show Solution button that appears for both daily and practice games.
-    // (And also back-up daily games.)
+    // Callback for the Show Solution button.
     showSolutionCallback() {
         // Note when the daily game has ended; only the daily game contributes
-        // to stats, so we don't need to keep track of whether practice or
+        // to stats, so we won't need to keep track of whether (future) practice or
         // back-up daily games have been ended.
         if (this.game.getName() === "DailyGame") {
             this.dailySolutionShown = true;
@@ -731,270 +452,15 @@ class AppDisplay extends BaseLogger {
         this.updateGameDisplay();
     }
 
-    // Callback for the Start Game button in the practice game setup screen.
-    startGameCallback() {
-        const now = (new Date()).getTime();
-
-        // Make sure the user hasn't used up their practice games for the day.
-        if (this.practiceGameTimestamps.length >= Const.PRACTICE_GAMES_PER_DAY) {
-            let popped = false;
-
-            // See whether any games have aged out. The list is a queue, with the
-            // first item being the oldest.
-            while (this.practiceGameTimestamps.length != 0) {
-                const timeSinceLastGame = now - this.practiceGameTimestamps[0];
-                if (timeSinceLastGame > AppDisplay.MaxGamesIntervalMs) {
-                    // This one has aged out; pop it and note that we popped one,
-                    // i.e. that the user can play a game.
-                    this.practiceGameTimestamps.shift();
-                    popped = true;
-                } else {
-                    // This hasn't aged out, and anything on the list is newer,
-                    // so we're done.
-                    break;
-                }
-            }
-
-            // If we didn't pop anything, all games are too new.
-            if (! popped) {
-                this.showToast(`Only ${Const.PRACTICE_GAMES_PER_DAY} games allowed per day`);
-                return;
-            }
-        }
-
-        // Save the timestamp of this game in the instance and cookies.
-        this.practiceGameTimestamps.push(now);
-        Cookie.save("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
-
-        // Get the user's words from the tiles.
-        const startWord  = this.practiceTileDisplay.getStartWord();
-        const targetWord = this.practiceTileDisplay.getTargetWord();
-
-        // Validate that the user's start/target words have actually been entered
-        // and are in the dictionary.
-        let result = this.checkWord(startWord, "Start");
-        if (result !== null) {
-            this.showToast(result);
-            return;
-        }
-        result = this.checkWord(targetWord, "Target");
-        if (result !== null) {
-            this.showToast(result);
-            return;
-        }
-
-        // Don't create a game if the words are the same.
-        if (startWord === targetWord) {
-            this.showToast("Words are the same");
-            return
-        }
-
-        // Don't let them use the same words as the daily game.
-        if ((startWord == this.dailyStartWord && targetWord == this.dailyTargetWord) ||
-            (startWord == this.dailyTargetWord && targetWord == this.dailyStartWord)) {
-            this.showToast("Cannot use the daily game words; nice try, though");
-            return
-        }
-
-        // Don't create a game if there is no path to a solution with the selected words.
-        const solution = Solver.fastSolve(this.dict, startWord, targetWord);
-        if (!solution.success()) {
-            this.showToast(Const.DEAD_END);
-            return;
-        }
-
-        // Just for fun, a little snark.
-        if (solution.numSteps() === 1) {
-            this.showToast("Solved; a bit of a hollow victory, though");
-        }
-
-        this.newGameButton.style.display = "block";
-        this.practiceGame = new Game("PracticeGame", this.dict, solution, this.typeSavingMode);
-        this.updateGameDisplay(this.practiceGame);
-    }
-
     /*
     ** ===============
     ** UTILITY METHODS
     ** ===============
     */
 
-    // Check whether a start/target word has been entered and is valid.
-    checkWord(word, descriptor) {
-        word = word.trim().toLowerCase();
-        if (word.length === 0 || word[0] === Const.PLACEHOLDER) {
-            return `${descriptor} word has not been entered`;
-        }
-
-        // We should never get here (because PracticeTileDisplay.getStart/TargetWord()
-        // return an empty string if the word is not in the dictionary, so we'd hit the
-        // check above), but just in case ...
-        if (!this.dict.isWord(word)) {
-            return `${descriptor} word '${word}' is not in the word list`;
-        }
-
-        return null;
-    }
-
-    // Create and display today's daily game.
-    constructDailyGame() {
-
-        // Get today's daily game descriptor; we'll use it to determine whether it is time
-        // to create a new game.
-        const todaysDailyGameDescriptor = DailyGameGenerator.generate();
-
-        if (! todaysDailyGameDescriptor.isValidGame()) {
-            // No daily game? Something went awry; use the backup.
-            this.showToast("Unable to create daily game;<br>here is a fun back-up");
-            this.dailyGame = this.backupDailyGame;
-        } else {
-            if (todaysDailyGameDescriptor.isNewGame()) {
-                this.dailyGameNumber = todaysDailyGameDescriptor.getNumber();
-                this.dailySolutionShown = false;
-
-                // Update stats relating to a new daily game.
-                this.incrementStat("gamesPlayed");
-                if (this.hardMode) {
-                    this.incrementStat("gamesPlayedHardMode");
-                }
-
-                // Create a solution from today's daily game start/target words.
-                // No need to check solution for success -- daily games will be
-                // pre-verified to have a solution.
-                const solution = Solver.fastSolve(
-                    this.dict, todaysDailyGameDescriptor.getStart(), todaysDailyGameDescriptor.getTarget());
-                this.dailyGame = new Game("DailyGame", this.dict, solution, this.typeSavingMode);
-            } else {
-                // Existing daily game; reconstruct it from the cookie (which we've recovered
-                // and saved as this.dailyGameWords).
-                this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
-            }
-        }
-
-        // Save the start/target words so we can prevent the user from creating
-        // a practice game using these words.
-        this.dailyStartWord = this.dailyGame.getStart();
-        this.dailyTargetWord = this.dailyGame.getTarget();
-
-        // Now use the daily game to construct the tile display.
-        this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv, this);
-
-        // Hard and Type-Saving modes are implemented in the game tile display,
-        // so tell it what our modes are.
-        this.gameTileDisplay.setHardMode(this.hardMode);
-        this.gameTileDisplay.setTypeSavingMode(this.typeSavingMode);
-
-        // Now, pretend the user clicked the Daily button, because we need
-        // to do exactly the same thing.
-        this.dailyCallback();
-    }
-
-    constructGameFromCookieWords(name, words) {
-        // Make a copy of the array of words because we will modify it.
-        words = [...words];
-
-        // The cookie words are the start word, the words played so far, and
-        // the target word. Pick off the start and target words and create a solution.
-        const startWord = words.shift();
-        const targetWord = words.pop();
-        const solution = Solver.fastSolve(this.dict, startWord, targetWord);
-
-        // Use the solution to create a new game.
-        let game = new Game(name, this.dict, solution, this.typeSavingMode);
-
-        // The words remaining in the list are the words that the user played;
-        // play the game with them. No need to check the result because we only
-        // save in-progress games with good words to the cookies.
-        for (let word of words) {
-            game.playWord(word);
-        }
-
-        if (name === "DailyGame" && game.isSolved() && !this.dailySolutionShown) {
-            // Save the share graphic, but not stats; stats were already saved when the game completed.
-            this.saveGameInfo(game, false);
-        }
-
-        return game
-    }
-
-    constructPracticeGame() {
-        if (this.practiceGameWords.length > 0) {
-            this.practiceGame = this.constructGameFromCookieWords("PracticeGame", this.practiceGameWords);
-        }
-    }
-
-    // This is a common method for creating the elements that are part of all Auxiliary screens.
-    createAuxiliaryDiv(divId) {
-        // This div is the one we style as none or flex to hide/show the div (always none at first).
-        // It will be centered in its parent div because of how root-div is styled.
-        const outerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: divId, class: "auxiliary-div"});
-        outerDiv.style.display = "none";
-
-        // This div will be centered within its parent div (because of how auxiliary-div is styled).
-        const containerDiv = ElementUtilities.addElementTo("div", outerDiv, {class: "auxiliary-container-div"});
-
-        // This div will be centered in its parent div because of how auxiliary-container-div is
-        // styled, but its content (the button) will be right-justified in this div because of the
-        // styling of close-button-div.
-        const buttonDiv = ElementUtilities.addElementTo("div", containerDiv, {class: "close-button-div",});
-        this.createSvgButton(buttonDiv, "close-button", closeAuxiliaryCallback, Const.CLOSE_PATH, divId);
-
-        // Add a break so that the content appears below the close button.
-        ElementUtilities.addElementTo("div", containerDiv, {class: "break"});
-
-        return [outerDiv, containerDiv];
-    }
-
-    // This is a common method for creating a button that has an SVG image
-    // (as opposed to just text).
-    createSvgButton(buttonContainer, buttonClass, buttonCallback, svgPath, relatedDiv="") {
-        // First, create the button element itself and add a callback for it.
-        // On this and the elements created below we add an attribute "data-related-div"
-        // which, when given, is the ID of the div that this button relates to.
-        // This allows us to have common callbacks for opening and closing auxiliary
-        // screens, for example.
-        const button = ElementUtilities.addElementTo("button", buttonContainer,
-            {class: buttonClass, "data-related-div": relatedDiv});
-        ElementUtilities.setButtonCallback(button, buttonCallback);
-
-        // Now, the create the svg element.
-        // TODO: Should make the width controllable.
-        const svg = ElementUtilities.addElementTo("svg", button,
-            {viewBox: "0 0 24 24", style: "width: 24; height: 24;", stroke: "None", "data-related-div": relatedDiv});
-
-        // Finally, add the path, whose "d" attribute is passed to us
-        // using the big, ugly class constants.
-        const path = ElementUtilities.addElementTo("path", svg, {d: svgPath, "data-related-div": relatedDiv});
-    }
-
     // Return the given CSS property value.
     static getCssProperty(property) {
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
-    }
-
-    // Hide shown divs while showing an auxiliary screen (Help, Settings, Stats).
-    // Keep track of what divs were showing so they can be restored.
-    hideShownDivs() {
-        // To be saved for restoreHiddenDivs() to use.
-        this.activeDivs = [];
-
-        // Go through all the primary divs that were added to the list
-        // during display creation.
-        for (let div of this.primaryDivs) {
-            const divStyle = div.getAttribute("style");
-            // If the "style" attribute does NOT have "none" in it,
-            // then it is showing; save it.
-            if (! divStyle.includes("none")) {
-                this.activeDivs.push(div);
-
-                // Set the attribute "data-save-style" on the div, which will be
-                // used to restore the div.
-                div.setAttribute("data-save-style", divStyle);
-
-                // And hide it.
-                div.setAttribute("style", "display: none;");
-            }
-        }
     }
 
     // Increment the given stat, update the stats cookie, and update the stats display content.
@@ -1002,31 +468,6 @@ class AppDisplay extends BaseLogger {
         this.dailyStats[whichStat] += 1;
         Cookie.saveJson("DailyStats", this.dailyStats);
         this.updateStatsContent();
-    }
-
-    // Return true if we are playing a game (i.e. if practice-entry-div,
-    // used for game setup, is hidden).
-    playingGame() {
-        return ElementUtilities.isHidden(this.practiceEntryDiv)
-    }
-
-    // Restore divs hidden with hideShownDivs().
-    restoreHiddenDivs() {
-        for (let div of this.activeDivs) {
-            // Get the attribute that we saved so we know what style
-            // to put on the div.
-            const divStyle = div.getAttribute("data-save-style");
-
-            // If restoring game-div, update the colors affected  by settings
-            // and update the game display to make those changes take effect.
-            if (div.getAttribute("id") == "game-div") {
-                this.setColors();
-                this.updateGameDisplay();
-            }
-
-            // Now set the attribute, which will show the div.
-            div.setAttribute("style", divStyle);
-        }
     }
 
     // Save a share graphic and (optionally) update statistics for thie specified game.
@@ -1186,73 +627,6 @@ class AppDisplay extends BaseLogger {
     // This is called when the user Xes out of Stats screen.
     stopCountdownClock() {
         clearInterval(this.clockIntervalTimer);
-    }
-
-    // Update the daily/practice game screen (game-div).
-    updateGameDisplay(currentGame=null) {
-        // If currentGame is given, it means we are changing the game between
-        // daily and practice games, so we update instance variables accordingly.
-        if (currentGame !== null) {
-            this.game = currentGame;
-            this.gameTileDisplay.setGame(currentGame);
-        }
-
-        // Delete the children in both "tile/word divs" because the same IDs
-        // are used for tile/letter elements across these two divs.
-        // Element IDs MUST be unique or else undefined behavior occurs -- we use
-        // the ID to find the element, and if there are two elements with the
-        // same ID it is undefined which one will be acted upon.
-        // New tiles will be created in showSteps().
-        ElementUtilities.deleteChildren(this.practiceWordsDiv);
-        ElementUtilities.deleteChildren(this.gameWordsDiv);
-
-        // Show current state of the game in all its glory.
-        this.gameTileDisplay.showSteps();
-
-        // Determine whether to show the keyboard based on whether
-        // the game has been solved.
-        if (this.game.isSolved()) {
-            this.keyboardDiv.style.display = "none";
-            this.showSolutionButton.style.display = "none";
-        } else {
-            this.keyboardDiv.style.display = "flex";
-            this.showSolutionButton.style.display = "block";
-        }
-
-        // Show solution div and hide practice div.
-        this.gameDiv.style.display = "flex";
-        this.practiceEntryDiv.style.display = "none";
-
-        // Get height of keyboard-inner-div and use it to set height of keyboard-div.
-        // This takes care of a really irritating problem with Safari on iOS, in which
-        // keyboard-div is sized with extra space at the top that occludes the game
-        // buttons unnecessarily (i.e. when there is plenty of room for them except
-        // for the extra size of keyboard-div).
-        const innerDivHeight = this.keyboardInnerDiv.offsetHeight;
-        this.keyboardDiv.style.height = `${innerDivHeight}px`
-
-        // Decide whether to show Share button. We only show it if: daily game has been
-        // solved *and* the Show Solution button wasn't used.
-        if (this.game.getName() === "DailyGame" && this.game.isSolved() && !this.dailySolutionShown) {
-            this.shareButton.style.display = "block";
-        } else {
-            this.shareButton.style.display = "none";
-        }
-
-        // Decide whether to show New Game button; only for practice games.
-        if (this.game.getName() === "PracticeGame") {
-            this.newGameButton.style.display = "block";
-        } else {
-            this.newGameButton.style.display = "none";
-        }
-
-        if (this.gameTileDisplay.getNumFilledWords() <= 2) {
-            // Scroll to top of page to show beginning of game.
-            window.scrollTo(0, 0);
-        } else {
-            // Scroll to the bottom of the page so we show where the play occurs.
-            window.scrollTo(0, document.body.scrollHeight);
-        }
     }
 
     // Update the statistics and distribution graph.

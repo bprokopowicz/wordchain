@@ -64,10 +64,10 @@ class GameDisplay extends BaseLogger {
             letter = String.fromCharCode(letterCode);
             ElementUtilities.addElementTo("option", this.letterPicker, {value: letter}, letter)
         }
-
-        // Save this object in the letterPicker element so that we can access
-        // it (via event.srcElement.me) in the callback.
-        this.letterPicker.me = this;
+ 
+        // Save 'this' in the letterPicker element so that we can access
+        // it (via event.srcElement.callbackAccessor) in the callback.
+        this.letterPicker.callbackAccessor = this;
         this.letterPicker.addEventListener("change", this.pickerChangeCallback);
         this.letterPicker.addEventListener("focus",  this.pickerFocusCallback);
         this.letterPicker.addEventListener("blur",   this.pickerBlurCallback);
@@ -89,7 +89,7 @@ class GameDisplay extends BaseLogger {
 
     pickerChangeCallback(event) {
         //console.log("pickerChangeCallback(): event: ", event);
-        var me = event.srcElement.me;
+        var me = event.srcElement.callbackAccessor;
 
         if (me.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
             // TODO: Show a toast saying to pick a letter?
@@ -108,7 +108,7 @@ class GameDisplay extends BaseLogger {
     }
 
     pickerFocusCallback(event) {
-        var me = event.srcElement.me;
+        var me = event.srcElement.callbackAccessor;
 
         // Change the size of the picker so that multiple words are
         // shown with scrolling to select.
@@ -117,7 +117,7 @@ class GameDisplay extends BaseLogger {
     }
 
     pickerBlurCallback(event) {
-        var me = event.srcElement.me;
+        var me = event.srcElement.callbackAccessor;
 
         // Change the size of the picker so that it is no longer
         // showing 10 elements when the user moves the mouse away.
@@ -195,9 +195,9 @@ class GameDisplay extends BaseLogger {
             letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
             wasCorrect = displayInstruction.wasCorrect;
 
-        // Pass "this" to AdditionCell constructor here and in the loop, so that it can
-        // be saved as "me" in the button so that the callback can get back to this object
-        // (via event.srcElement.me).
+        // Pass 'this' to AdditionCell constructor here and in the loop, so that it can
+        // be saved as "callbackAccessor" in the button so that the callback can get
+        // back to this object (via event.srcElement.callbackAccessor).
         tdElement = this.addTd();
         cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
 
@@ -271,9 +271,9 @@ class GameDisplay extends BaseLogger {
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
 
         function getDeletionCell(letter, letterPosition) {
-            // Pass 'me' to DeletionCell constructor so that it can be saved as "me"
+            // Pass 'me' to DeletionCell constructor so that it can be saved as "callbackAccessor"
             // in the button so that the callback can get back to this object
-            // (via event.srcElement.me).
+            // (via event.srcElement.callbackAccessor).
             return new DeletionCell(letterPosition, me, me.deletionClickCallback);
         }
 
@@ -317,7 +317,7 @@ class GameDisplay extends BaseLogger {
     }
 
     additionClickCallback(event) {
-        var me = event.srcElement.me;
+        var me = event.srcElement.callbackAccessor;
 
         console.log("additionClickCallback(): event: ", event);
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
@@ -327,7 +327,7 @@ class GameDisplay extends BaseLogger {
     }
 
     deletionClickCallback(event) {
-        var me = event.srcElement.me;
+        var me = event.srcElement.callbackAccessor;
 
         console.log("deletionClickCallback(): event: ", event);
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
