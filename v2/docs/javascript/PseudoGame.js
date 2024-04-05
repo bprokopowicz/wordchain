@@ -111,6 +111,7 @@ const Games = {
 
 class PseudoGame extends Game {
 
+    // TODO: Need to pass dictionary also.
     constructor(startWord, targetWord) {
         super(startWord, targetWord);
 
@@ -140,18 +141,21 @@ class PseudoGame extends Game {
     playAdd(addPosition) {
         console.log("playAdd(): addPosition:", addPosition);
         this.pseudoMove();
+        return true;
     }
 
     // deletePosition is 1 to word.length
     playDelete(deletePosition) {
         console.log("playDelete(): deletePosition:", deletePosition);
         this.pseudoMove();
+        return true;
     }
 
     // letterPosition is 1 to word.length
     playLetter(letterPosition, letter) {
         console.log("playLetter(): letterPosition:", letterPosition, ", letter:", letter);
         this.pseudoMove();
+        return true;
     }
 
     pseudoMove() {

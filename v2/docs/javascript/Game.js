@@ -25,16 +25,22 @@ class Game {
     }
 
     // addPosition is 0 to word.length
+    // returns true if no error
+    // returns null on error (e.g. unexpected position)
     playAdd(addPosition) {
         console.log("playAdd(): addPosition:", addPosition);
     }
 
     // deletePosition is 1 to word.length
+    // returns true if resulting word is in dictionary; false otherwise
+    // returns null on other error (e.g. unexpected position)
     playDelete(deletePosition) {
         console.log("playDelete(): deletePosition:", deletePosition);
     }
 
     // letterPosition is 1 to word.length
+    // returns true if resulting word is in dictionary; false otherwise
+    // returns null on other error (e.g. unexpected position)
     playLetter(letterPosition, letter) {
         console.log("playLetter(): letterPosition:", letterPosition, ", letter:", letter);
     }

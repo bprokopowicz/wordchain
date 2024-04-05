@@ -1,7 +1,8 @@
 import { BaseLogger } from './BaseLogger.js';
-import { PseudoGame } from './PseudoGame.js';
+import { Cookie } from './Cookie.js';
 import { ElementUtilities } from './ElementUtilities.js';
-import * as Const from './Const.js';
+import { PseudoGame } from './PseudoGame.js';
+//import * as Const from './Const.js';
 
 import { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell } from './Cell.js';
 
@@ -20,13 +21,13 @@ class GameDisplay extends BaseLogger {
     ** ============
     */
 
-    constructor(gameDiv, pickerDiv, callbacks) {
+    constructor(gameDiv, pickerDiv, dict) {
 
         super();
 
-        this.gameDiv = gameDiv;
+        this.gameDiv   = gameDiv;
         this.pickerDiv = pickerDiv;
-        this.callbacks = callbacks;
+        this.dict      = dict;
 
         this.createPicker();
         this.constructGame();
@@ -64,9 +65,12 @@ class GameDisplay extends BaseLogger {
             ElementUtilities.addElementTo("option", this.letterPicker, {value: letter}, letter)
         }
 
-        this.letterPicker.addEventListener("change", this.callbacks.pickerChangeCallback);
-        this.letterPicker.addEventListener("focus",  this.callbacks.pickerFocusCallback);
-        this.letterPicker.addEventListener("blur",   this.callbacks.pickerBlurCallback);
+        // Save this object in the letterPicker element so that we can access
+        // it (via event.srcElement.me) in the callback.
+        this.letterPicker.me = this;
+        this.letterPicker.addEventListener("change", this.pickerChangeCallback);
+        this.letterPicker.addEventListener("focus",  this.pickerFocusCallback);
+        this.letterPicker.addEventListener("blur",   this.pickerBlurCallback);
     }
 
     disablePicker() {
@@ -85,32 +89,39 @@ class GameDisplay extends BaseLogger {
 
     pickerChangeCallback(event) {
         //console.log("pickerChangeCallback(): event: ", event);
-        if (this.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
+        var me = event.srcElement.me;
+
+        if (me.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
             // TODO: Show a toast saying to pick a letter?
             return;
         }
 
+
         // Change the size of the picker back to 1 when a letter has been picked.
-        this.letterPicker.setAttribute("size", 1);
+        me.letterPicker.setAttribute("size", 1);
 
         let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition'));
-        this.game.playLetter(letterPosition, this.letterPicker.value);
-        this.letterPicker.value = GameDisplay.PICKER_UNSELECTED;
+        me.game.playLetter(letterPosition, me.letterPicker.value);
+        me.letterPicker.value = GameDisplay.PICKER_UNSELECTED;
 
-        this.showMove();
+        me.showMove();
     }
 
     pickerFocusCallback(event) {
+        var me = event.srcElement.me;
+
         // Change the size of the picker so that multiple words are
         // shown with scrolling to select.
-        this.letterPicker.setAttribute("size", 10);
+        me.letterPicker.setAttribute("size", 10);
         console.log("pickerFocusCallback");
     }
 
     pickerBlurCallback(event) {
+        var me = event.srcElement.me;
+
         // Change the size of the picker so that it is no longer
         // showing 10 elements when the user moves the mouse away.
-        this.letterPicker.setAttribute("size", 1);
+        me.letterPicker.setAttribute("size", 1);
         console.log("pickerBlurCallback");
     }
 
@@ -184,8 +195,11 @@ class GameDisplay extends BaseLogger {
             letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
             wasCorrect = displayInstruction.wasCorrect;
 
+        // Pass "this" to AdditionCell constructor here and in the loop, so that it can
+        // be saved as "me" in the button so that the callback can get back to this object
+        // (via event.srcElement.me).
         tdElement = this.addTd();
-        cell = new AdditionCell(additionPosition, hideAdditionCells, this.callbacks.additionClickCallback);
+        cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
 
         ElementUtilities.addElementTo(cell.getElement(), tdElement);
         additionPosition++;
@@ -194,7 +208,7 @@ class GameDisplay extends BaseLogger {
             tdElement = this.addTd();
             cell = cellCreator(letters[letterIndex], letterIndex + 1);
             ElementUtilities.addElementTo(cell.getElement(), tdElement);
-            cell = new AdditionCell(additionPosition, hideAdditionCells, this.callbacks.additionClickCallback);
+            cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
 
             tdElement = this.addTd();
 
@@ -245,6 +259,7 @@ class GameDisplay extends BaseLogger {
     displayDelete(displayInstruction, tableElement) {
         const me = this;
 
+        // First, display the letter cells.
         function getActiveLetterCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
                 displayInstruction.wasCorrect, displayInstruction.changePosition);
@@ -252,12 +267,17 @@ class GameDisplay extends BaseLogger {
 
         this.displayCommon(displayInstruction, getActiveLetterCell);
 
+        // Now we add an extra <tr> element for the deletion cell row.
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
 
         function getDeletionCell(letter, letterPosition) {
-            return new DeletionCell(letterPosition, me.callbacks.deletionClickCallback);
+            // Pass 'me' to DeletionCell constructor so that it can be saved as "me"
+            // in the button so that the callback can get back to this object
+            // (via event.srcElement.me).
+            return new DeletionCell(letterPosition, me, me.deletionClickCallback);
         }
 
+        // Display the picker (because it is not used during deletion) and then display.
         this.pickerEnabled = false;
         this.displayCommon(displayInstruction, getDeletionCell);
     }
@@ -297,20 +317,56 @@ class GameDisplay extends BaseLogger {
     }
 
     additionClickCallback(event) {
-        //console.log("additionClickCallback(): event: ", event);
-        let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
-        this.game.playAdd(additionPosition);
+        var me = event.srcElement.me;
 
-        this.showMove();
+        console.log("additionClickCallback(): event: ", event);
+        let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
+        me.game.playAdd(additionPosition);
+
+        me.showMove();
     }
 
     deletionClickCallback(event) {
-        //console.log("deletionClickCallback(): event: ", event);
-        let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
-        this.game.playDelete(deletionPosition);
+        var me = event.srcElement.me;
 
-        this.showMove();
+        console.log("deletionClickCallback(): event: ", event);
+        let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
+        me.game.playDelete(deletionPosition);
+
+        me.showMove();
     }
+
+    /* ----- Cookie Interactions ----- */
+
+    /*
+    constructGameFromCookieWords(name, words) {
+        // Make a copy of the array of words because we will modify it.
+        words = [...words];
+
+        // The cookie words are the start word, the words played so far, and
+        // the target word. Pick off the start and target words and create a solution.
+        const startWord = words.shift();
+        const targetWord = words.pop();
+        const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+
+        // Use the solution to create a new game.
+        let game = new Game(name, this.dict, solution, this.typeSavingMode);
+
+        // The words remaining in the list are the words that the user played;
+        // play the game with them. No need to check the result because we only
+        // save in-progress games with good words to the cookies.
+        for (let word of words) {
+            game.playWord(word);
+        }    
+
+        if (name === "DailyGame" && game.isSolved() && !this.dailySolutionShown) {
+            // Save the share graphic, but not stats; stats were already saved when the game completed.
+            this.saveGameInfo(game, false);
+        }    
+
+        return game 
+    }    
+    */
 }
 
 export { GameDisplay };

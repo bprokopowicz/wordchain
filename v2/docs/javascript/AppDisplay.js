@@ -1,6 +1,6 @@
 //import { TileDisplay, GameTileDisplay, PracticeTileDisplay } from './TileDisplay.js';
 import { BaseLogger } from './BaseLogger.js';
-//import { WordChainDict } from './WordChainDict.js';
+import { WordChainDict } from './WordChainDict.js';
 //import { Solver } from './Solver.js';
 //import { Game } from './Game.js';
 import { GameDisplay } from './GameDisplay.js';
@@ -33,42 +33,20 @@ import * as Const from './Const.js';
 /*
 ** Forwarding functions
 **
-** When "this.startGameCallback" is passed, for example, as the listener on calls
+** When "this.pickerChangeCallback" is passed, for example, as the listener on calls
 ** within the AppDisplay class to addEventListener(), Chrome appears to call it (but refers
-** to it as HTMLButtonElement.startGameCallback, which doesn't exist!) and "this"
-** within the method is of type HTMLButtonElement, so the call within to "this.checkWord()"
-** resolves to HTMLButtonElement.checkword, which is is not a function. This kind of makes
-** sense (except for why it  was able to call the AppDisplay.startGameCallback()
+** to it as HTMLButtonElement.pickerChangeCallback, which doesn't exist!) and "this"
+** within the method is of type HTMLButtonElement, so the call within to "this.someOtherMethod()"
+** resolves to HTMLButtonElement.someOtherMethod, which is is not a function. This kind of makes
+** sense (except for why it  was able to call the AppDisplay.pickerChangeCallback()
 ** method at all!).
 **
 ** At that point I introduced the singleton idea. I thought that passing
-** AppDisplay.singleton().startGameCallback as the listener would work, but this
-** also resulted in "HTMLButtonElement.checkWord() is not a function." Sigh. I really don't
+** AppDisplay.singleton().pickerChangeCallback as the listener would work, but this
+** also resulted in "HTMLButtonElement.someOtherMethod() is not a function." Sigh. I really don't
 ** understand why that is not working. But we carry on; introducing the "forwarding function"
 ** did the trick.
 */
-
-/* ----- GAME DISPLAY CALLBACKS ----- */
-
-function pickerChangeCallback(event) {
-    AppDisplay.currentGameDisplay.pickerChangeCallback(event);
-}
-
-function pickerBlurCallback(event) {
-    AppDisplay.currentGameDisplay.pickerBlurCallback(event);
-}
-
-function pickerFocusCallback(event) {
-    AppDisplay.currentGameDisplay.pickerFocusCallback(event);
-}
-
-function additionClickCallback(event) {
-    AppDisplay.currentGameDisplay.additionClickCallback(event);
-}
-
-function deletionClickCallback(event) {
-    AppDisplay.currentGameDisplay.deletionClickCallback(event);
-}
 
 /* ----- GAME CONTROL CALLBACKS ----- */
 
@@ -191,9 +169,9 @@ class AppDisplay extends BaseLogger {
     constructor() {
         super();
 
-        /*
         this.dict = new WordChainDict(globalWordList);
 
+        /*
         this.dailyGame    = null;
         this.practiceGame = null;
 
@@ -291,7 +269,6 @@ class AppDisplay extends BaseLogger {
             //this.keyboardDiv,
             this.pickerDiv,
         ];
-
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
@@ -328,20 +305,10 @@ class AppDisplay extends BaseLogger {
         this.gameDiv = this.createGameDiv(this.lowerDiv);
         [this.pickerDiv, this.pickerInnerDiv] = this.createPickerDiv(this.lowerDiv);
 
-        // Callbacks that GameDisplay will pass as event handlers; they will simply
-        // just turn around and call the corresponding handler on the current game.
-        this.callbacks = {
-            pickerChangeCallback:  pickerChangeCallback,
-            pickerBlurCallback:    pickerBlurCallback,
-            pickerFocusCallback:   pickerFocusCallback,
-            additionClickCallback: additionClickCallback,
-            deletionClickCallback: deletionClickCallback,
-        };
-
         // This will create the GameDisplay and its game and get it going.
         // Pass pickerInnerDiv because that's where we want GameDisplay to
         // add the picker.
-        AppDisplay.currentGameDisplay = new GameDisplay(this.gameDiv, this.pickerInnerDiv, this.callbacks);
+        AppDisplay.currentGameDisplay = new GameDisplay(this.gameDiv, this.pickerInnerDiv, this.dict);
     }
 
     /* ----- Header ----- */

@@ -41,43 +41,32 @@
 
 :root,
 :root.light-mode {
-    /* Colors used to define other properties */
+    /* ===== Colors used to define other properties ===== */
     --primary-fg:               Black;
     --secondary-fg:             White;
 
     --primary-bg:               White;
     --secondary-bg:             Black;
 
+    /* TODO: Some of these may not be needed. */
     --start-target-active-bg:   SlateGray;
     --letter-key-inactive-bg:   LightGray;
     --header-button-input-bg:   #97b2d5;
 
-    /* Header */
+    /* ===== Header ===== */
+    /* TODO: Some of these may not be needed. */
     --header-button-bg:         var(--letter-key-inactive-bg);
     --active-button-bg:         var(--start-target-active-bg);
     --inactive-button-bg:       var(--letter-key-inactive-bg);
     --header-bg:                var(--header-button-input-bg);
-
     --game-button-bg:           var(--header-button-input-bg);
 
-    /* Tiles and Letters */
-    --input-tile-bg:            var(--header-button-input-bg);
-    --tile-border:              var(--primary-fg);;
-    --tile-border-grayed:       LightGray;
-
-    --start-target-tile-bg:     var(--start-target-active-bg);
-    --start-target-letter-fg:   var(--secondary-fg);;
-
-    --unplayed-word-tile-bg:    var(--primary-bg);
-
     /* ===== Picker ===== */
-
     /* TODO: Change to var ...-bg and set in AppDisplay */
     --picker-enabled-bg:        var(--picker-enabled-bg-light);
     --picker-disabled-bg:       var(--picker-disabled-bg-light);
 
     /* ===== Cells and Letters ===== */
-
     --cell-border:              var(--primary-fg);;
 
     /* These properties are affected by changes in the Colorblind Mode setting */
@@ -92,28 +81,25 @@
     --played-word-longer-bg:    var(--played-word-longer-bg-light);
     */
 
-    /* Keyboard */
-    --key-bg:                   var(--letter-key-inactive-bg);
-    --wide-key-bg:              var(--header-button-input-bg);
-
+    /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
     --toast-fg:                 var(--secondary-fg);
 
-    /* Settings */
+    /* ===== Settings ===== */
     --setting-separator:        LightGray;
     --setting-description-fg:   Gray;
 
-    /* Links */
+    /* ===== Links ===== */
     --link-fg:                  Blue;
     --visited-link-fg:          Purple;
 
-    /* Stats */
+    /* ===== Stats ===== */
     --stats-bar-bg:             Gray;
     --stats-bar-fg:             White;
 }
 
 :root.dark-mode {
-    /* Colors used to define other properties */
+    /* ===== Colors used to define other properties ===== */
     --primary-fg:               White;
     --secondary-fg:             Black;
 
@@ -124,44 +110,30 @@
     --game-button-input-bg:     #0f56b1;
     --letter-key-inactive-bg:   #49515a;
 
-    /* Header */
+    /* ===== Header ===== */
     --header-button-bg:         var(--letter-key-inactive-bg);
     --active-button-bg:         var(--start-target-active-bg);
     --inactive-button-bg:       var(--letter-key-inactive-bg);
     --header-bg:                Black;
-
     --game-button-bg:           var(--game-button-input-bg);
-
-    /* Tiles and Letters */
-    --input-tile-bg:            var(--game-button-input-bg);
-    --tile-border:              var(--primary-fg);;
-    --tile-border-grayed:       LightGray;
-
-    --start-target-tile-bg:     var(--start-target-active-bg);
-    --start-target-letter-fg:   var(--secondary-fg);;
-
-    --unplayed-word-tile-bg:    var(--primary-bg);
 
     /* These properties are affected by changes in the Colorblind Mode setting */
     --played-word-same-bg:      var(--played-word-same-bg-dark);
     --played-word-longer-bg:    var(--played-word-longer-bg-dark);
 
-    /* Keyboard */
-    --key-bg:                   var(--letter-key-inactive-bg);
-    --wide-key-bg:              var(--game-button-input-bg);
-
+    /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
     --toast-fg:                 var(--secondary-fg);
 
-    /* Settings */
+    /* ===== Settings ===== */
     --setting-separator:        Gray;
     --setting-description-fg:   Gray;
 
-    /* Links */
+    /* ===== Links ===== */
     --link-fg:                  #5b6ef0;    /* light blue */
     --visited-link-fg:          #9b5bf0;    /* light purple */
 
-    /* Stats */
+    /* ===== Stats ===== */
     --stats-bar-bg:             Gray;
     --stats-bar-fg:             White;
 }
@@ -207,7 +179,7 @@ svg {
 }
 
 /*
-** Common styling for "primary screens" (Solution and Practice Setup Screens (including their common header))
+** Common styling for game screens.
 */
 
 .wordchain-button {
@@ -228,14 +200,17 @@ svg {
     background: var(--game-button-bg);;
 }
 
-/* Shell around the solution/keyboard/practice divs */
+/*
+** Shell around the content below the WordChain banner.
+*/
+
 #lower-div {
     display: flex;
     /*
     ** For some reason, if we have "flex-direction: column;" here (and remove "flex-wrap: wrap;"),
     ** it messes up the scrolling of games that no longer fit on the screen -- scrolling up as
-    ** far as possible cuts off the top row(s) of tiles. If we have both settings, that messes up the
-    ** display and the keyboard is to the right of the game tiles, even with the "break div".
+    ** far as possible cuts off the top row(s) of cells. If we have both settings, that messes up the
+    ** display and the picker is to the right of the game cells, even with the "break div".
     ** So we shouldn't change these settings because the scrolling works just right now!
     */
     flex-wrap: wrap;
@@ -248,68 +223,8 @@ svg {
     flex-basis: 0px;
 }
 
-/* Keyboard Display (for Daily and Practice games) */
-#keyboard-div {
-    background: var(--primary-bg);
-    position: sticky;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: .5rem;
-}
-
-#keyboard-inner-div {
-    flex-direction: column;
-    justify-content: flex-end;
-}
-
-.keyboard-row {
-    display: flex;
-    margin-top: 0;
-    margin-right: auto;
-    margin-left: auto;
-    margin-bottom: .4rem;
-    /* https://stackoverflow.com/questions/46167604/ios-html-disable-double-tap-to-zoom */
-    touch-action: manipulation;
-}
-
-.keyboard-key {
-    font-size: 1rem;
-    font-family: inherit;
-    font-weight: bold;
-    border: 0;
-    padding: 0;
-    margin-top: 0;
-    margin-right: .3rem;
-    margin-bottom: 0;
-    margin-left: 0;
-    width: 1.9rem;
-    height: 2.4rem;
-    border-radius: .2rem;
-    cursor: pointer;
-    user-select: none;
-    background-color: var(--key-bg);
-    color: var(--primary-fg);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-transform: uppercase;
-}
-
-.keyboard-spacer {
-    width: 0.95rem;
-    visibility: hidden;
-}
-
-.keyboard-wide-key {
-    width: 3rem;
-    background: var(--wide-key-bg);
-    color: var(--primary-fg);
-}
-
 /*
-** Header (common for Practice Setup and Solution screens)
+** Header (the WordChain banner)
 */
 
 #header-div {
@@ -374,34 +289,7 @@ svg {
 }
 
 /*
-** Practice Game Setup Screen
-*/
-
-#practice-entry-div {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-#practice-words-div {
-    display: flex;
-    justify-content: center;
-    margin-top: .25rem;
-}
-
-#practice-buttons-div {
-    display: flex;
-    justify-content: center;
-}
-
-.help-info {
-    color: var(--primary-fg);
-    text-align: center;
-    margin-bottom: .25rem;
-}
-
-/*
-** Solution Screen (for Daily and Practice games)
+** Overall game display
 */
 
 #game-div {
@@ -424,96 +312,8 @@ table {
     border-spacing: .4rem;
 }
 
-/* Tile td classes */
-
-.tile {
-    width: 2rem;
-    height: 2rem;
-    font-weight: bold;
-    font-size: 1.5rem;
-    text-align: center;
-    vertical-align: middle;
-    color: var(--primary-fg);
-    border-style: solid;
-    border-color: var(--tile-border);
-    background: var(--primary-bg);
-}
-
-.tile-label {
-    width: 8rem;
-    height: 3rem;
-    font-weight: bold;
-    font-size: 1rem;
-    text-align: center;
-    vertical-align: middle;
-    color: var(--primary-fg);
-    border-style: none;
-}
-
-.tile-grayed {
-    border-color: var(--tile-border-grayed);
-}
-
-.tile-hidden {
-    border-color: var(--primary-bg);
-}
-
-.tile-not-grayed {
-    border-color: var(--tile-border);
-}
-
-.start-target-tile {
-    background: var(--start-target-tile-bg);
-}
-
-.letter-change {
-    border-width: .3rem;
-    padding: 0;
-}
-
-.no-change {
-    border-width: .15rem;
-    padding: .15rem;
-}
-
-.input-tile {
-    background: var(--input-tile-bg);
-}
-
-.not-input-tile {
-    background: var(--primary-bg);
-}
-
-.solution-longer {
-    background: var(--played-word-longer-bg);
-    color: var(--primary-fg);
-}
-
-.solution-same-length {
-    background: var(--played-word-same-bg);
-    color: var(--primary-fg);
-}
-
-/* Letter div classes */
-
-.label-word {
-    color: var(--primary-fg);
-}
-
-.start-target-letter {
-    color: var(--start-target-letter-fg);
-}
-
-.shown-letter {
-    visibility: visible;
-}
-
-.hidden-letter {
-    visibility: hidden;
-}
-
 /*
-** Picker classe.
+** Picker
 */
 
 .picker-label-enabled {
@@ -535,8 +335,7 @@ table {
 /*
 
 /*
-** Cell classes.
-===============================================
+** Cells
 */
 .td-cell {
     display: flex;
@@ -633,10 +432,6 @@ button.action-button {
 }
 
 /*
-===============================================
-*/
-
-/*
 ** Common styling for "auxiliary screens" (Help, Settings, Stats)
 */
 
@@ -687,6 +482,7 @@ button.action-button {
 /*
 ** Help screen
 */
+
 #help-content-div {
 }
 
@@ -772,12 +568,6 @@ input.setting-radio {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-}
-
-.stats-tile {
-    width: .5rem;
-    height: .5rem;
-    border-style: none;
 }
 
 /* This holds the group of stats at the top */
@@ -925,24 +715,7 @@ input.setting-radio {
         margin: .5rem;
     }
 
-    .tile {
-        width: 3rem;
-        height: 3rem;
-        font-size: 2rem;
-    }
-
-    .keyboard-key {
-        font-size: 2rem;
-        width: 2.5rem;
-        height: 3.4rem;
-        margin-right: .5rem;
-    }
-    .keyboard-spacer {
-        width: 1.3rem;
-    }
-    .keyboard-wide-key {
-        width: 4.2rem;
-    }
+    /* TODO: May need to add cell classes here */
 }
 
 /*
@@ -967,35 +740,5 @@ input.setting-radio {
 
     .auxiliary-container-div {
         width: 60%;
-    }
-
-    #keyboard-div {
-        /*
-        ** Extend keyboard right/left to take up the whole viewport so that if the user's standard
-        ** size (i.e. 1rem) is so large that game-div is wider than the keyboard, the entire
-        ** game-div is obscured  when scrolling, i.e. no bits of game tiles around the edges
-        ** of the keyboard.
-        **
-        ** NOTE: If we have these changes for phone or tablet, it causes a horizontal scroll bar,
-        ** which makes the whole screen seem to jiggle. In those environments, the problem this
-        ** is solving doesn't exist.
-        */
-        padding-right: 50vw;
-        padding-left: 50vw;
-        /* But just a bit of padding on the top and bottom. */
-        padding-top: .5rem;
-        padding-bottom: .5rem;
-    }
-    .keyboard-key {
-        font-size: 2rem;
-        width: 3rem;
-        height: 4rem;
-        margin-right: .5rem;
-    }
-    .keyboard-spacer {
-        width: 1.5rem;
-    }
-    .keyboard-wide-key {
-        width: 5rem;
     }
 }
