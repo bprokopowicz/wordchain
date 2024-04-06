@@ -5,91 +5,87 @@
 */
 
 /*
+** ===============
 ** Global Settings
+** ===============
 */
 
+
+/*
+** These colors are defined for :root to enable implementation of both
+** dark and colorblind mode. We define properties for "good" and "bad"
+** indications for both light and dark themes. We also define both
+** dark and light variants for the colors used for any properties
+** that are affected by dark and light mode. All of these colors will
+** be used in the javascript code to effect theme and colorblind changes.
+*/
 :root {
+
     /*
-    ** These colors are defined for :root to enable implementation of both
-    ** dark and colorblind mode. We define properties for "good" and "bad"
-    ** indications for both light and dark themes. We also define both
-    ** dark and light variants for the colors used for any properties
-    ** that are affected by dark and light mode. All of these colors will
-    ** be used in the javascript code to effect theme and colorblind changes.
+    ** Light Mode Colors
     */
 
-    /* Light */
+    /* ===== Cells ===== */
     --colorblind-good-light:            #5f99e4;    /* blue */
     --colorblind-bad-light:             #ebaf42;    /* orange */
-    --played-word-good-bg-light:        #85daac;    /* green */
-    --played-word-bad-bg-light:         #ea9797;    /* red */
-    --target-word-bg-light:             #99ddff;    /* pale blue */
-    --user-input-bg-light:              #bababa;    /* medium gray */
-    --picker-enabled-bg-light:          #bababa;    /* medium gray */
-    --picker-disabled-bg-light:         LightGray;
+    /* TODO: better colors for good/bad  */
+    --non-colorblind-good-bg-light:     #85daac;    /* green */
+    --non-colorblind-bad-bg-light:      #ea9797;    /* red */
 
-    /* Dark */
+    /*
+    ** Dark Mode Colors
+    */
+
+    /* ===== Cells ===== */
     --colorblind-good-dark:             #2b558c;    /* blue */
     --colorblind-bad-dark:              #d58b04;    /* orange */
-    --played-word-good-bg-dark:         #076707;    /* green */
-    --played-word-bad-bg-dark:          #ac0706;    /* red */
-    --target-word-bg-dark:              #006699;    /* medium blue */
-    --user-input-bg-dark:               #bababa;    /* medium gray */
-    --picker-enabled-bg-dark:           #bababa;    /* medium gray */
-    --picker-disabled-bg-dark:          LightGray;
+    /* TODO: better colors for good/bad  */
+    --non-colorblind-good-bg-dark:      #076707;    /* green */
+    --non-colorblind-bad-bg-dark:       #ac0706;    /* red */
 }
 
+/*
+** Light/dark settings that are NOT affected by colorblind mode are enabled by
+** setting adding light-mode or dark-mode to the document element class.
+*/
 :root,
 :root.light-mode {
     /* ===== Colors used to define other properties ===== */
     --primary-fg:               Black;
+    --primary-fg-disabled:      LightGray;
     --secondary-fg:             White;
 
     --primary-bg:               White;
     --secondary-bg:             Black;
 
-    /* TODO: Some of these may not be needed. */
-    --start-target-active-bg:   SlateGray;
-    --letter-key-inactive-bg:   LightGray;
-    --header-button-input-bg:   #97b2d5;
-
     /* ===== Header ===== */
-    /* TODO: Some of these may not be needed. */
-    --header-button-bg:         var(--letter-key-inactive-bg);
-    --active-button-bg:         var(--start-target-active-bg);
-    --inactive-button-bg:       var(--letter-key-inactive-bg);
-    --header-bg:                var(--header-button-input-bg);
-    --game-button-bg:           var(--header-button-input-bg);
+    --header-button-bg:         LightGray;
+    --header-bg:                #97b2d5;
 
-    /* ===== Picker ===== */
-    /* TODO: Change to var ...-bg and set in AppDisplay */
-    --picker-enabled-bg:        var(--picker-enabled-bg-light);
-    --picker-disabled-bg:       var(--picker-disabled-bg-light);
+    /* Currently not used in v2 */
+    --active-button-bg:         SlateGray;
+    --inactive-button-bg:       LightGray;
+
+    /* ===== Add/Delete Buttons and Picker ===== */
+    --user-input-bg:            #bababa;    /* medium gray */
+    --picker-enabled-bg:        var(--user-input-bg);
+    --picker-disabled-bg:       LightGray;
 
     /* ===== Cells and Letters ===== */
-    --cell-border:              var(--primary-fg);;
+    --cell-border:              var(--primary-fg);
+    --target-word-bg:           #d09ade;    /* pale purple */
 
     /* These properties are affected by changes in the Colorblind Mode setting */
-    /* TODO: Change to var ...-bg and set in AppDisplay */
-    --played-word-good-bg:      var(--played-word-good-bg-light);
-    --played-word-bad-bg:       var(--played-word-bad-bg-light);
-    --target-word-bg:           var(--target-word-bg-light);
-    --user-input-bg:            var(--user-input-bg-light);
-
-    /* These properties are affected by changes in the Colorblind Mode setting
-    --played-word-same-bg:      var(--played-word-same-bg-light);
-    --played-word-longer-bg:    var(--played-word-longer-bg-light);
-    */
+    --non-colorblind-good-bg:      var(--non-colorblind-good-bg-light);
+    --non-colorblind-bad-bg:       var(--non-colorblind-bad-bg-light);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
     --toast-fg:                 var(--secondary-fg);
 
-    /* ===== Settings ===== */
+    /* ===== Settings/Links ===== */
     --setting-separator:        LightGray;
     --setting-description-fg:   Gray;
-
-    /* ===== Links ===== */
     --link-fg:                  Blue;
     --visited-link-fg:          Purple;
 
@@ -101,35 +97,40 @@
 :root.dark-mode {
     /* ===== Colors used to define other properties ===== */
     --primary-fg:               White;
+    --primary-fg-disabled:      #555555;    /* Very dark gray */
     --secondary-fg:             Black;
 
     --primary-bg:               #1d1d1f;
     --secondary-bg:             White;
 
-    --start-target-active-bg:   #858b90;
-    --game-button-input-bg:     #0f56b1;
-    --letter-key-inactive-bg:   #49515a;
-
     /* ===== Header ===== */
-    --header-button-bg:         var(--letter-key-inactive-bg);
-    --active-button-bg:         var(--start-target-active-bg);
-    --inactive-button-bg:       var(--letter-key-inactive-bg);
+    --header-button-bg:         #49515a;
     --header-bg:                Black;
-    --game-button-bg:           var(--game-button-input-bg);
+
+    /* Currently not used in v2 */
+    --active-button-bg:         #858b90;
+    --inactive-button-bg:       #49515a;
+
+    /* ===== Add/Delete Buttons and Picker ===== */
+    --user-input-bg:            #bababa;    /* medium gray */
+    --picker-enabled-bg:        var(--user-input-bg);
+    --picker-disabled-bg:       LightGray;
+
+    /* ===== Cells and Letters ===== */
+    --cell-border:              var(--primary-fg);
+    --target-word-bg:           #b319ff;    /* medium purple */
 
     /* These properties are affected by changes in the Colorblind Mode setting */
-    --played-word-same-bg:      var(--played-word-same-bg-dark);
-    --played-word-longer-bg:    var(--played-word-longer-bg-dark);
+    --non-colorblind-good-bg:      var(--non-colorblind-good-bg-dark);
+    --non-colorblind-bad-bg:       var(--non-colorblind-bad-bg-dark);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
     --toast-fg:                 var(--secondary-fg);
 
-    /* ===== Settings ===== */
+    /* ===== Settings/Links ===== */
     --setting-separator:        Gray;
     --setting-description-fg:   Gray;
-
-    /* ===== Links ===== */
     --link-fg:                  #5b6ef0;    /* light blue */
     --visited-link-fg:          #9b5bf0;    /* light purple */
 
@@ -138,10 +139,22 @@
     --stats-bar-fg:             White;
 }
 
+/*
+** IMPORTANT!!!
+** No color names or color numbers should be used below this point!
+** Only use references to properties defined above.
+*/
+
+/*
+** Same font for everyone.
+*/
 * {
     font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 }
 
+/*
+** Settings for the outermost HTML elements.
+*/
 html, body {
     /* vh means "viewport height" -- this says to make the body take 100% of the viewport height. */
     height: 100vh;
@@ -150,23 +163,8 @@ html, body {
 }
 
 hr {
-    /* Need to set this for when it is within a display: flex else it doesn't show up. */
+    /* Need to set this for when it is within a "display: flex" else it doesn't show up. */
     width: 100%;
-}
-
-#root-div {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background: var(--primary-bg);
-    height: 100%;
-    width: 100%;
-}
-
-svg {
-    display: block;
-    margin: auto;
-    fill: var(--primary-fg);
 }
 
 /*
@@ -179,25 +177,35 @@ svg {
 }
 
 /*
-** Common styling for game screens.
+** The top-level application div.
+*/
+#root-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--primary-bg);
+    height: 100%;
+    width: 100%;
+}
+
+/*
+** ===========
+** Game screen
+** ===========
 */
 
 .wordchain-button {
-    font-size: .8rem;
+    font-size: .5rem;
     padding: .3rem;
     border-width: 0;
     border-radius: .5rem;
     margin: .1rem;
     color: var(--primary-fg);
+    color: var(--primary-fg);
 }
 
 .wordchain-button:focus {
     outline: none;
-}
-
-.game-button {
-    font-weight: bold;
-    background: var(--game-button-bg);;
 }
 
 /*
@@ -219,12 +227,22 @@ svg {
     /* This height, plus header-div height must be 100% */
     height: 93%;
 }
+
+/* TODO: Figure out wtf this nth-of-type business is all about! */
 #lower-div div:nth-of-type(4) {
     flex-basis: 0px;
 }
 
+#game-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
 /*
+** -----------------------------
 ** Header (the WordChain banner)
+** -----------------------------
 */
 
 #header-div {
@@ -233,16 +251,21 @@ svg {
     /* This height, plus lower-div height must be 100% */
     height: 7%;
     display: flex;
-    background: var(--header-bg);;
+    background: var(--header-bg);
     padding: .25rem;
     margin-bottom: 1rem;
 }
 
-#left-button-div {
+#game-button-div {
     width: 30%;
     display: flex;
     justify-content: flex-start;
     align-items: center;
+}
+
+.game-button {
+    font-weight: bold;
+    background: var(--header-button-bg);
 }
 
 #title-div {
@@ -252,32 +275,17 @@ svg {
     align-items: center;
 }
 
-#auxiliary-button-div {
-    width: 30%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-
 .title {
     font-size: 1.3rem;
     font-weight: bold;
     color: var(--primary-fg);
 }
 
-.header-game-button {
-    font-weight: bold;
-    background: var(--header-button-bg);
-}
-
-.active-button {
-    background: var(--active-button-bg);
-    color: var(--secondary-fg);
-}
-
-.not-active {
-    background: var(--inactive-button-bg);
-    color: var(--primary-fg);
+#auxiliary-button-div {
+    width: 30%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }
 
 .aux-button {
@@ -288,55 +296,34 @@ svg {
     margin: .2rem;
 }
 
+svg {
+    display: block;
+    margin: auto;
+    fill: var(--primary-fg);
+}
+
+/* Currently not used in v2 */
+.active-button {
+    background: var(--active-button-bg);
+    color: var(--secondary-fg);
+}
+
+/* Currently not used in v2 */
+.not-active {
+    background: var(--inactive-button-bg);
+    color: var(--primary-fg);
+}
+
 /*
-** Overall game display
+** -------------------
+** Cell Grid and Cells
+** -------------------
 */
-
-#game-div {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-#game-words-div {
-    display: flex;
-    justify-content: center;
-}
-
-#game-buttons-div {
-    display: flex;
-    justify-content: center;
-}
 
 table {
     border-spacing: .4rem;
 }
 
-/*
-** Picker
-*/
-
-.picker-label-enabled {
-    color: var(--primary-fg);
-}
-
-.picker-label-disabled {
-    color: LightGray;
-}
-
-.picker-select-enabled {
-    /*background: var(--picker-enabled-bg);*/
-}
-
-.picker-select-disabled {
-    /*background: var(--picker-disabled-bg);*/
-}
-
-/*
-
-/*
-** Cells
-*/
 .td-cell {
     display: flex;
     align-items: center;
@@ -345,10 +332,8 @@ table {
 
 .circle {
     border: solid;
-    border-color: black;
-    border-radius: 50%; /* Makes the div a circle */
-    /*color: black;*/ /* Text color */
-    /*margin-bottom: 10px;*/ /* Adds space between circles */
+    border-color: var(--cell-border);
+    border-radius: 50%;   /* Makes the div a circle */
 }
 
 .letter-cell {
@@ -392,7 +377,7 @@ table {
 
 button.action-button {
     border: none;
-    color: black; /* text color */
+    color: var(--primary-fg); /* text color */
     background: transparent;
     display: flex;
     align-items: center;
@@ -432,7 +417,31 @@ button.action-button {
 }
 
 /*
-** Common styling for "auxiliary screens" (Help, Settings, Stats)
+** ------
+** Picker
+** ------
+*/
+
+.picker-label-enabled {
+    color: var(--primary-fg);
+}
+
+.picker-label-disabled {
+    color: var(--primary-fg-disabled);
+}
+
+.picker-select-enabled {
+    background: var(--picker-enabled-bg);
+}
+
+.picker-select-disabled {
+    background: var(--picker-disabled-bg);
+}
+
+/*
+** =========================================
+** Auxiliary Screens (Help, Settings, Stats)
+** =========================================
 */
 
 .auxiliary-div {
@@ -486,14 +495,18 @@ button.action-button {
 }
 
 /*
-** Help screen
+** ----
+** Help
+** ----
 */
 
 .help-content-div {
 }
 
 /*
-** Settings screen
+** --------
+** Settings
+** --------
 */
 
 .settings-content-div {
@@ -566,10 +579,12 @@ input.setting-radio {
 }
 
 /*
-** Stats screen
+** -----
+** Stats
+** -----
 */
 
-#stats-content-div {
+.stats-content-div {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -577,7 +592,7 @@ input.setting-radio {
 }
 
 /* This holds the group of stats at the top */
-#stats-container-div {
+.stats-container-div {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -638,9 +653,10 @@ input.setting-radio {
     padding: .5rem;
 }
 
-
 /*
+** =============
 ** Toast Pop-ups
+** =============
 */
 
 .pop-up {

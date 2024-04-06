@@ -69,8 +69,8 @@ class SettingsDisplay extends AuxiliaryDisplay {
         const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
             {type: "checkbox", id: id, class: "setting-checkbox"});
 
-        // Save 'this' in the checkbox element so that we can access it in the callback
-        // (via event.srcElement.callbackAccessor).
+        // Save the appDisplay in the checkbox element so that we can access its
+        // methods in the callback via event.srcElement.callbackAccessor).
         checkbox.callbackAccessor = this.appDisplay;
         checkbox.addEventListener("change", this.checkboxCallback);
         checkbox.checked = value;
@@ -109,8 +109,8 @@ class SettingsDisplay extends AuxiliaryDisplay {
                 {value: radioInfo.value, name: radioName, class: "setting-radio", type: "radio"});
             radio.checked = radioInfo.checked;
 
-            // Save 'this' in the radio element so that we can access it in the callback
-            // (via event.srcElement.callbackAccessor).
+            // Save the appDisplay in the radio element so that we can access its methods
+            // in the callback (via event.srcElement.callbackAccessor).
             radio.callbackAccessor = this.appDisplay;
             radio.addEventListener("change", callbackFunction);
 

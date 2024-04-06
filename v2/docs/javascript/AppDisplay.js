@@ -155,6 +155,7 @@ class AppDisplay extends BaseLogger {
         this.createPickerDiv(this.lowerDiv);
 
         this.createAuxiliaryScreens();
+        this.createGameButtons();
 
         // This will create the GameDisplay and its game and get it going.
         // Pass pickerInnerDiv because that's where we want GameDisplay to
@@ -180,18 +181,40 @@ class AppDisplay extends BaseLogger {
         //this.statsDisplay    = new StatsDisplay(this.auxiliaryButtonDiv, Const.STATS_PATH, this.auxiliaryDiv, this.primaryDivs);
     }
 
+    createGameButtons() {
+        // Add button to generate a share graphic.
+        this.shareButton = ElementUtilities.addElementTo(
+            "button", this.gameButtonDiv,
+            {id: "share", class: "wordchain-button game-button"},
+            "Share");
+
+        // Save 'this' in the shareButton element so that we can access
+        // it (via event.srcElement.callbackAccessor) in the callback.
+        this.shareButton.callbackAccessor = this;
+        ElementUtilities.setButtonCallback(this.shareButton, this.shareCallback);
+
+        // Button to show the solution.
+        this.showSolutionButton = ElementUtilities.addElementTo(
+            "button", this.gameButtonDiv,
+            {id: "show-solution", class: "wordchain-button game-button"},
+            "Show Solution");
+
+        // Save 'this' in the showSolutionButton element so that we can access
+        // it (via event.srcElement.callbackAccessor) in the callback.
+        this.showSolutionButton.callbackAccessor = this;
+        ElementUtilities.setButtonCallback(this.showSolutionButton, this.showSolutionCallback);
+    }
+
     createHeaderDiv() {
         // This div is the one we style as none or flex to hide/show the div.
         this.headerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "header-div"});
         this.headerDiv.style.display = "flex";
 
-        // left-button-div is a placeholder for now. It allows styling that puts title-div
-        // and right-button-div where we want them.
-        const leftButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "left-button-div"});
+        // game-button-div holds buttons related to game play.
+        this.gameButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "game-button-div"});
 
         // TODO: Add a logo icon.
         const titleDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "title-div"});
-
         ElementUtilities.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
 
         // auxiliary-button-div holds the buttons for getting to the auxiliary screens.
@@ -228,31 +251,6 @@ class AppDisplay extends BaseLogger {
         this.pickerDiv.style.display = "flex";
     }
 
-    /* ----- Stats ----- */
-
-    createStatsDiv() {
-        let statsContainerDiv;
-        [this.statsDiv, statsContainerDiv] = this.createAuxiliaryDiv("stats-div");
-
-        // Add a div for the content, which will be centered (because of the styling of aux-container-div).
-        // within settingsContainerDiv as a block (because of stats-content-div styling).
-        const contentDiv = ElementUtilities.addElementTo("div", statsContainerDiv, {id: "stats-content-div",});
-
-        ElementUtilities.addElementTo("h1", contentDiv, {}, "DAILY GAME STATISTICS");
-        this.statsContainer = ElementUtilities.addElementTo("div", contentDiv, {id: "stats-container-div"});
-
-        ElementUtilities.addElementTo("hr", contentDiv, {});
-
-        ElementUtilities.addElementTo("h1", contentDiv, {}, "EXTRA STEPS COUNTS");
-        this.statsDistribution = ElementUtilities.addElementTo("div", contentDiv, {id: "distribution-div"});
-
-        ElementUtilities.addElementTo("hr", contentDiv, {});
-
-        ElementUtilities.addElementTo("h1", contentDiv, {}, "NEXT DAILY GAME IN");
-        const countdown = ElementUtilities.addElementTo("div", contentDiv, {id: "countdown-div"});
-        this.countdownClock = ElementUtilities.addElementTo("div", countdown, {id: "countdown-clock"});
-    }
-
     /* ----- Toast Notifications ----- */
 
     createToastDiv() {
@@ -266,37 +264,54 @@ class AppDisplay extends BaseLogger {
     */
 
     // Callback for the Share button on the Stats screen.
-    shareCallback() {
+    shareCallback(event) {
+        console.log("Not reimplemented!");
+        return;
+
+        // When the button was created we saved 'this' as callbackAccessor in the button
+        // element; use it to access other instance data.
+        const callbackAccessor = event.srcElement.callbackAccessor;
+
+        // Are we in an environment that has a "share" button, like a smart phone?
         if (navigator.share) {
+            // Yes -- use the button to share the shareString.
             navigator.share({
-                text: this.shareString,
+                text: callbackAccessor.shareString,
             })
             .catch((error) => {
-                this.showToast("Failed to share")
+                callbackAccessor.showToast("Failed to share")
                 console.log("Failed to share: ", error);
             });
         } else {
-            this.showToast("Copied to clipboard")
-            navigator.clipboard.writeText(this.shareString);
+            // No -- just save the shareString to the clipboard (probably on a laptop/desktop).
+            callbackAccessor.showToast("Copied to clipboard")
+            navigator.clipboard.writeText(callbackAccessor.shareString);
         }
     }
 
     // Callback for the Show Solution button.
-    showSolutionCallback() {
+    showSolutionCallback(event) {
+        console.log("Not reimplemented!");
+        return;
+
+        // When the button was created we saved 'this' as callbackAccessor in the button
+        // element; use it to access other instance data.
+        const callbackAccessor = event.srcElement.callbackAccessor;
+
         // Note when the daily game has ended; only the daily game contributes
         // to stats, so we won't need to keep track of whether (future) practice or
         // back-up daily games have been ended.
-        if (this.game.getName() === "DailyGame") {
-            this.dailySolutionShown = true;
-            Cookie.save("DailySolutionShown", this.dailySolutionShown);
-            this.incrementStat("gamesShown");
+        if (callbackAccessor.game.getName() === "DailyGame") {
+            callbackAccessor.dailySolutionShown = true;
+            Cookie.save("DailySolutionShown", callbackAccessor.dailySolutionShown);
+            callbackAccessor.incrementStat("gamesShown");
         }
 
         // This call to endGame will play the (remaining) words of the
         // revealed solution, just like a real game; this sets thing up
         // for the call to updateGameDisplay().
-        this.gameTileDisplay.endGame();
-        this.updateGameDisplay();
+        callbackAccessor.gameTileDisplay.endGame();
+        callbackAccessor.updateGameDisplay();
     }
 
     /*
@@ -421,9 +436,13 @@ class AppDisplay extends BaseLogger {
             document.documentElement.className = "light-mode";
         }
 
-        // The properties with "dark" and "light" in the name are globallydefined in the
-        // CSS file, and the "properties affected by Colorblind Mode" are set in that file
-        // using those global properties.
+        // The "properties affected by Colorblind Mode" are:
+        //
+        // played-word-good-bg
+        // played-word-bad-bg
+        // 
+        // These need to be set according to whether the user has selected colorblind mode
+        // as well as whether the user has selected light or dark mode.
         if (this.colorblindMode) {
             // Colorblind Mode is checked: set good/bad colorblind variables based on whether
             // Dark Mode is set, and set the properties affected by Colorblind Mode
@@ -436,21 +455,22 @@ class AppDisplay extends BaseLogger {
                 colorblindGood = AppDisplay.getCssProperty("colorblind-good-light");
                 colorblindBad  = AppDisplay.getCssProperty("colorblind-bad-light");
             }
-            AppDisplay.setCssProperty("played-word-good-bg",     colorblindGood);
-            AppDisplay.setCssProperty("played-word-bad-bg",     colorblindBad);
+            AppDisplay.setCssProperty("played-word-good-bg", colorblindGood);
+            AppDisplay.setCssProperty("played-word-bad-bg",  colorblindBad);
 
         } else {
             // Colorblind Mode is not checked: restore the affected properties based on whether
             // Dark Mode is set.
             if (this.darkTheme) {
-                AppDisplay.setCssProperty("played-word-good-bg",    AppDisplay.getCssProperty("played-word-good-bg-dark"));
-                AppDisplay.setCssProperty("played-word-bad-bg",     AppDisplay.getCssProperty("played-word-bad-bg-dark"));
+                AppDisplay.setCssProperty("played-word-good-bg",  AppDisplay.getCssProperty("non-colorblind-good-bg-dark"));
+                AppDisplay.setCssProperty("played-word-bad-bg",   AppDisplay.getCssProperty("non-colorblind-bad-bg-dark"));
             } else {
-                AppDisplay.setCssProperty("played-word-good-bg",    AppDisplay.getCssProperty("played-word-good-bg-light"));
-                AppDisplay.setCssProperty("played-word-bad-bg",     AppDisplay.getCssProperty("played-word-bad-bg-light"));
+                AppDisplay.setCssProperty("played-word-good-bg",  AppDisplay.getCssProperty("non-colorblind-good-bg-light"));
+                AppDisplay.setCssProperty("played-word-bad-bg",   AppDisplay.getCssProperty("non-colorblind-bad-bg-light"));
             }
         }
 
+        // Re-show the moves to make the color changes take effect.
         AppDisplay.currentGameDisplay && AppDisplay.currentGameDisplay.showMove();
     }
 
@@ -461,96 +481,6 @@ class AppDisplay extends BaseLogger {
         setTimeout(() => {
             ElementUtilities.editClass(/show/, "hide", this.toastDiv);
         }, 3000);
-    }
-
-    // This is called when the user opens the Stats screen to display a
-    // countdown clock until the next daily game is available.
-    startCountdownClock() {
-        function msToDuration(ms) {
-            return new Date(ms).toISOString().substr(11, 8);
-        }
-
-        // Set the initial clock display.
-        let msUntilNextGame = DailyGameGenerator.getMsUntilNextGame();
-        this.countdownClock.textContent = msToDuration(msUntilNextGame);
-
-        // Set a timer to change the clock and display every second.
-        this.clockIntervalTimer = setInterval(() => {
-            msUntilNextGame -= 1000;
-            this.countdownClock.textContent = msToDuration(msUntilNextGame);
-        }, 1000);
-    }
-
-    // This is called when the user Xes out of Stats screen.
-    stopCountdownClock() {
-        clearInterval(this.clockIntervalTimer);
-    }
-
-    // Update the statistics and distribution graph.
-    updateStatsContent() {
-        // Clear out the containers that we're about to add to.
-        ElementUtilities.deleteChildren(this.statsContainer);
-        ElementUtilities.deleteChildren(this.statsDistribution);
-
-        let oneStat;
-
-        // Local function to add a stat.
-        function addStat(value, label, parentDiv) {
-            oneStat = ElementUtilities.addElementTo("div", parentDiv, {class: "one-stat"});
-            ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-value"}, value);
-            ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-label"}, label);
-        }
-
-        // Calculate percentage stats.
-        const completionPercent = ((this.dailyStats.gamesCompleted / this.dailyStats.gamesPlayed) * 100).toFixed(1);
-        const hardModePercent   = ((this.dailyStats.gamesPlayedHardMode / this.dailyStats.gamesPlayed) * 100).toFixed(1);
-
-        // Add the stats.
-        addStat(this.dailyStats.gamesPlayed, "Played", this.statsContainer);
-        addStat(completionPercent, "Completion %", this.statsContainer);
-        addStat(hardModePercent, "Hard Mode %", this.statsContainer);
-        addStat(this.dailyStats.gamesShown, "Shown", this.statsContainer);
-
-        // Determine the maximum value among all the "extra step values".
-        let maxValue = 0;
-        for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
-            if (this.dailyStats[extraSteps] > maxValue) {
-                maxValue = this.dailyStats[extraSteps];
-            }
-        }
-        if (this.dailyStats.tooManyExtraSteps > maxValue) {
-            maxValue = this.dailyStats.tooManyExtraSteps;
-        }
-
-        // Local function to add a bar.
-        function addBar(barValue, barLabel, parentDiv) {
-
-            // Calculate the width of the bar as a percentage of the maximum value determined above.
-            // If width calculates to 0, set it to 5 so there's a bar to contain the value.
-            let width = Math.round((barValue / maxValue) * 100);
-            if (width === 0) {
-                width = 10;
-            }
-
-            // Add a div for this bar.
-            const oneBar = ElementUtilities.addElementTo("div", parentDiv, {class: "one-bar"});
-
-            // Add a div for the "label" -- the emoji for the this bar -- and the bar itself.
-            ElementUtilities.addElementTo("div", oneBar, {class: "one-bar-label"}, barLabel);
-            const bar = ElementUtilities.addElementTo("div", oneBar, {class: "one-bar-bar", style: `width: ${width}%;`});
-
-            // Add a div to the bar for its value.
-            ElementUtilities.addElementTo("div", bar, {class: "one-bar-value"}, barValue);
-        }
-
-        // Add a bar for each of the "regular" values; the emojis for these are in AppDisplay.NUMBERS.
-        for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
-            const barValue = this.dailyStats[extraSteps];
-            addBar(barValue, AppDisplay.NUMBERS[extraSteps], this.statsDistribution);
-        }
-
-        // Add a bar for too many extra steps.
-        addBar(this.dailyStats.tooManyExtraSteps, Const.CONFOUNDED, this.statsDistribution);
     }
 }
 

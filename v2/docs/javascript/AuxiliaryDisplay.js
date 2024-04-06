@@ -50,7 +50,6 @@ class AuxiliaryDisplay {
         // occur on any of these elements, so we need to add the callback to all of them.
         // This causes some unfortunate complexities in the callbacks ...
         for (let element of [button, svg, path]) {
-            console.log("add callback to:", element);
             element.callbackAccessor = this;
             ElementUtilities.setButtonCallback(element, buttonCallback);
         }
