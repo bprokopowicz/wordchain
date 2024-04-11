@@ -28,9 +28,11 @@ import * as Const from './Const.js';
 */
 
 // Synchronously wait for the word list to download.
+/*
 const globalWordList = await fetch(Const.DICT_URL)
   .then(resp => resp.text())
   .then(text => text.split("\n"));
+  */
 
 /*
 ** ==========================
@@ -57,7 +59,9 @@ class AppDisplay extends BaseLogger {
     constructor() {
         super();
 
-        this.dict = new WordChainDict();
+        //this.dict = new WordChainDict();
+        let testWordList = ['hard', 'heard', 'hear', 'hoard', 'hoar', 'pour', 'pear', 'ear', 'head', 'herd', 'heed', 'peed', 'peer'];
+        this.dict = new WordChainDict(testWordList);
 
         // Flags from Settings screen
         this.darkTheme      = Cookie.getBoolean("DarkTheme");

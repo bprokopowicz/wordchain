@@ -130,12 +130,11 @@ class Game:
     def asciiDisplay(self):
         display = []
         for i in range(self.fullSolutionGivenProgress.numWords()):
+            word = self.fullSolutionGivenProgress.getNthWord(i)
             if i < self.partialSolution.numWords():
-                word = self.partialSolution.getNthWord(i)
                 display.append(word)
             else:
                 # this word should be shown as an unplayed shape, not the actual letters
-                word = self.fullSolutionGivenProgress.getNthWord(i)
                 display.append(self.showUnplayedWord(word, previousWord))
             previousWord=word
 

@@ -1,7 +1,7 @@
 import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
-//import { Game } from './Game.js';
-import { PseudoGame } from './PseudoGame.js';
+import { Game } from './Game.js';
+//import { PseudoGame } from './PseudoGame.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { WordChainDict } from './WordChainDict.js';
 import * as Const from './Const.js';
@@ -131,8 +131,8 @@ class GameDisplay extends BaseLogger {
 
     constructGame() {
         //this.game = new PseudoGame(this.dict, "fate", "sop");
-        this.game = new PseudoGame(this.dict, "hard", "pear");
-        //this.game = new Game(this.dict, "hard", "pear");
+        //this.game = new PseudoGame(this.dict, "hard", "pear");
+        this.game = new Game(this.dict, "hard", "ear");
         this.showMove();
     }
 
@@ -150,21 +150,21 @@ class GameDisplay extends BaseLogger {
         while (displayInstruction = this.game.getNextDisplayInstruction()) {
             //console.log("displayInstruction:", displayInstruction);
 
-            if (displayInstruction.displayType === "add") {
+            if (displayInstruction.displayType === Const.ADD_SPACE) {
                 this.displayAdd(displayInstruction);
-            } else if (displayInstruction.displayType === "addchange") {
+            } else if (displayInstruction.displayType === Const.ADD_CHANGE) {
                 this.displayAddChange(displayInstruction);
-            } else if (displayInstruction.displayType === "change") {
+            } else if (displayInstruction.displayType === Const.CHANGE) {
                 this.displayChange(displayInstruction);
-            } else if (displayInstruction.displayType === "delete") {
+            } else if (displayInstruction.displayType === Const.DELETE) {
                 // This method adds another row, so unlike the others,
                 // it needs access to the table element.
                 this.displayDelete(displayInstruction, tableElement);
-            } else if (displayInstruction.displayType === "future") {
+            } else if (displayInstruction.displayType === Const.FUTURE) {
                 this.displayFuture(displayInstruction);
-            } else if (displayInstruction.displayType === "played") {
+            } else if (displayInstruction.displayType === Const.PLAYED) {
                 this.displayPlayed(displayInstruction);
-            } else if (displayInstruction.displayType === "target") {
+            } else if (displayInstruction.displayType === Const.TARGET) {
                 this.displayTarget(displayInstruction);
             } else {
                 console.error("Unexpected displayType: ", displayInstruction.displayType);

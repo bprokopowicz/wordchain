@@ -10,7 +10,8 @@ export const DEAD_END     = "No solution";
 export const DUPLICATE    = "Already played";
 export const NOT_A_WORD   = "Not in word list";
 export const TOO_SHORT    = "Too short";
-export const BAD_OPERATION = 'bad operation';
+export const BAD_OPERATION = "bad operation";
+export const BAD_LETTER_POSITION = "bad letter position";
 
 // consts for DisplayInstructions
 export const ADD_SPACE = "add";

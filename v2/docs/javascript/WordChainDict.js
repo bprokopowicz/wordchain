@@ -3,38 +3,47 @@ import { BaseLogger } from './BaseLogger.js';
 class WordChainDict extends BaseLogger {
     constructor(wordList=[]) {
         super();
-        this.wordSet = new Set();
 
-        // If we were given a word list, just convert that to a set.
-        if (wordList.length !== 0) {
-            this.wordSet = new Set(wordList);
+        if (wordList.length == 0) {
 
-        // Otherwise, fetch the word list from the interwebs.
-        } else {
+            // fetch the word list from the interwebs.
+            // TODO put this URL into Const
             //const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
             const url = "http://localhost:8000/docs/resources/WordFreqDict";
-            //const url = "https://github.com/bprokopowicz/wordchain/blob/master/v2/docs/resources/WordFreqDict";
+            this.logDebug(`Downloading dictionary from ${url}`, "dictionary");
 
+            wordList = ["can", "not", "read", "words"];
             (async() => {
+                console.log("In async");
                 const response = await fetch(url);
                 const wordFileText = await response.text();
+                console.log(`finished await response.  Read ${wordFileText.length} chars.`);
                 wordList = wordFileText.split("\n");
-
-                // Without pop() we get an empty string in the set.
-                wordList.pop();
-                this.wordSet = new Set(wordList);
+                console.log(`Read ${wordList.length} words.`);
             })();
+            // Without pop() we get an empty string in the set.
+            wordList.pop();
         }
-        this.logDebug(`Downloaded dictionary has ${this.getSize()} words.`, "dictionary");
+        this.wordSet = new Set(wordList.map((x)=>x.toUpperCase()));
+        this.logDebug(`Dictionary has ${this.getSize()} words.`, "dictionary");
+        this.logDebug(`they are: ${this.getWordList()}.`, "dictionary");
+    }
+
+    // duplicate a dictionary.  Useful before destructively searching a dictionary to avoid repeats.
+
+    copy() {
+        let newDict = new WordChainDict(this.getWordList());  // a non-empty placeholder to avoid fetching the whole dictionary
+        this.logDebug(`dictionary copy has ${newDict.getSize()} words.`, "dictionary");
+        return newDict;
     }
 
     // Find the words that result from adding one letter
     // anywhere in word.
     findAdderWords(word) {
         let adders = new Set();
-        let alphabet = "abcdefghijklmnopqrstuvwxyz"
+        let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-        // Test isWord() when we add each letter a-z in each position of the word.
+        // Test isWord() when we add each letter A-Z in each position of the word.
         // Note: must go until wordIndex <= word.length (not the typical <
         // for a loop through a sequence) so that we also add letters to
         // the end of the word to find adders.
@@ -91,15 +100,15 @@ class WordChainDict extends BaseLogger {
     // Find the words that result from replacing one letter anywhere in word.
     findReplacementWords(word) {
         let replacements = new Set();
-        let alphabet = "abcdefghijklmnopqrstuvwxyz"
+        let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-        // Test isWord() when we replace each letter a-z for each letter of the word.
+        // Test isWord() when we replace each letter A-Z for each letter of the word.
         for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
             for (let letterIndex = 0; letterIndex < 26; letterIndex++) {
                 let letter = alphabet.substr(letterIndex, 1);
 
                 // Construct the potential word, replacing the current letter in word
-                // with the current letter from a-z.
+                // with the current letter from A-Z.
                 let potentialWord = '';
                 if (wordIndex === 0) {
                     potentialWord = letter + word.substr(1)
@@ -126,8 +135,8 @@ class WordChainDict extends BaseLogger {
         return this.wordSet.size;
     }
 
-    getWords() {
-        return this.wordSet;
+    getWordList() {
+        return Array.from(this.wordSet);
     }
 
     isLoaded() {
@@ -138,7 +147,7 @@ class WordChainDict extends BaseLogger {
     // Give a default of empty string so word is not undefined,
     // because  you can't get the length of undefined.
     isWord(word="") {
-        let theWord = word.toLowerCase();
+        let theWord = word.toUpperCase();
         if (theWord.length === 0) {
             throw new Error("WordChainDict.isWord(): Word cannot have length 0");
         }
@@ -147,8 +156,7 @@ class WordChainDict extends BaseLogger {
     }
 
     removeWord(word) {
-        let theWord = word.toLowerCase();
-        this.wordSet.remove(theWord);
+        this.wordSet.delete(word.toUpperCase());
     }
 };
 

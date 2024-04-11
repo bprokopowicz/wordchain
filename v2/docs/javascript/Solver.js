@@ -24,9 +24,10 @@ class Solver extends BaseLogger {
 
         // Create a queue for our working solutions and push this starting working solution on the queue.
         let workingSolutions = [];
-        workingSolutions.push(startingWorkingSolution);
+        workingSolutions.push(startingSolution);
 
-        let workingDict = dictionary.copy;
+        // use a temp dictionary which can be depleted as it is searched
+        let workingDict = dictionary.copy();
         let solution = null;
         let longestSolution = 0;
         let loopCount = 0;
@@ -41,9 +42,9 @@ class Solver extends BaseLogger {
             if (solution.numSteps() > longestSolution) {
                 longestSolution = solution.numSteps();
                 //this.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "perf");
-                //this.logDebug(`loopCount: ${loopCount}: search size: ${workingSolutions.getSize()}`, "perf");
+                //this.logDebug(`loopCount: ${loopCount}: search size: ${workingSolutions.length}`, "perf");
                 console.log(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`);
-                console.log(`loopCount: ${loopCount}: search size: ${workingSolutions.getSize()}`);
+                console.log(`loopCount: ${loopCount}: search size: ${workingSolutions.length}`);
             }
 
             // Find all possible "next words" from the last word in the solution so far.
@@ -52,12 +53,13 @@ class Solver extends BaseLogger {
 
             // NOTE: Without sorting nextWords, we do not consistently find the same solution.
             for (let word of nextWords.sort()) {
-                workingDict.remove(word);
+                workingDict.removeWord(word);
                 let newWorkingSolution = solution.copy().addWord(word);
-                console.log(`   adding ${newWorkingSolution.toStr()}`);
+                console.log(`   checking ${newWorkingSolution.toStr()}`);
                 if (newWorkingSolution.isSolved()) {
                     return newWorkingSolution;
                 }
+                console.log(`   adding ${newWorkingSolution.toStr()}`);
                 workingSolutions.push(newWorkingSolution);
             }
 
@@ -72,7 +74,7 @@ class Solver extends BaseLogger {
                     solution.addError("No solution within a reasonable time");
                     return solution;
                 }
-                console.log(`loopCount: ${loopCount}: size: ${workingSolutions.getSize()}`)
+                console.log(`loopCount: ${loopCount}: size: ${workingSolutions.length}`)
             }
 
             console.log("-----");
@@ -118,23 +120,30 @@ class Solution extends BaseLogger {
         return this.errorMessage;
     }
 
+    getNthWord(n) {
+        return this.wordList[n];
+    }
+
     getFirstWord() {
-        return this.wordList[0];
+        return this.getNthWord(0);
     }
 
     getLastWord() {
-        return this.wordList[this.wordList.length - 1];
+        return this.getNthWord(this.wordList.length - 1);
     }
-
+    
+    removeLastWord() {
+        this.wordList.pop();
+    }
     getPenultimateWord() {
         if (this.wordList.length < 2) {
             throw new Error(`Solution.getPenultimateWord(): wordList length (${this.wordList.length}) cannot be < 2`)
         }
-        return this.wordList[this.wordList.length - 2];
+        return this.getNthWord(this.wordList.length - 2);
     }
 
     getStart() {
-        return this.wordList[0];
+        return this.getNthWord(0);
     }
 
     getTarget() {
@@ -153,6 +162,9 @@ class Solution extends BaseLogger {
     isSolved() {
         return this.success() && (this.target === this.getLastWord());
     }
+
+    // the number of "steps" taken in this solution.  The first word is a given and doesn't
+    // count as a step.
 
     numSteps() {
         return this.wordList.length - 1;
