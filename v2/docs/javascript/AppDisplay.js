@@ -59,9 +59,9 @@ class AppDisplay extends BaseLogger {
     constructor() {
         super();
 
-        //this.dict = new WordChainDict();
+        this.dict = new WordChainDict();
         let testWordList = ['hard', 'heard', 'hear', 'hoard', 'hoar', 'pour', 'pear', 'ear', 'head', 'herd', 'heed', 'peed', 'peer'];
-        this.dict = new WordChainDict(testWordList);
+        //this.dict = new WordChainDict(testWordList);
 
         // Flags from Settings screen
         this.darkTheme      = Cookie.getBoolean("DarkTheme");

@@ -1,32 +1,23 @@
 import { BaseLogger } from './BaseLogger.js';
 
+// load a remote dictionary word list.  Pop the last entry which is always be an empty string following the last new-line..
+const globalWordList = await fetch("http://localhost:8000/docs/resources/WordFreqDict")
+    .then(resp => resp.text())
+    .then(text => text.split("\n"))
+    .then(words => words.map((x)=>x.toUpperCase()))
+    .then(words => words.slice(0,-1));
+
 class WordChainDict extends BaseLogger {
     constructor(wordList=[]) {
         super();
 
         if (wordList.length == 0) {
-
-            // fetch the word list from the interwebs.
-            // TODO put this URL into Const
-            //const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
-            const url = "http://localhost:8000/docs/resources/WordFreqDict";
-            this.logDebug(`Downloading dictionary from ${url}`, "dictionary");
-
-            wordList = ["can", "not", "read", "words"];
-            (async() => {
-                console.log("In async");
-                const response = await fetch(url);
-                const wordFileText = await response.text();
-                console.log(`finished await response.  Read ${wordFileText.length} chars.`);
-                wordList = wordFileText.split("\n");
-                console.log(`Read ${wordList.length} words.`);
-            })();
-            // Without pop() we get an empty string in the set.
-            wordList.pop();
+            this.wordSet = new Set(globalWordList);
+        } else {
+            this.wordSet = new Set(wordList.map((x)=>x.toUpperCase()));
         }
-        this.wordSet = new Set(wordList.map((x)=>x.toUpperCase()));
+
         this.logDebug(`Dictionary has ${this.getSize()} words.`, "dictionary");
-        this.logDebug(`they are: ${this.getWordList()}.`, "dictionary");
     }
 
     // duplicate a dictionary.  Useful before destructively searching a dictionary to avoid repeats.
