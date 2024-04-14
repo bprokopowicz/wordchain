@@ -10,17 +10,21 @@ export const DEAD_END     = "No solution";
 export const DUPLICATE    = "Already played";
 export const NOT_A_WORD   = "Not in word list";
 export const TOO_SHORT    = "Too short";
-export const BAD_OPERATION = "bad operation";
+export const GAME_OVER    = "Solved!";
+// NOTE: Not returned from Game.play*(); returned when no letter in picker.
+export const PICK_LETTER  = "Pick a letter";
+
+// Returns from Game class that indicate a bug in its input from GameDisplay.
+export const BAD_OPERATION       = "bad operation";
 export const BAD_LETTER_POSITION = "bad letter position";
 
 // consts for DisplayInstructions
-export const ADD_SPACE = "add";
-export const ADD_CHANGE = "addChange";
-export const CHANGE = "change";
-export const DELETE = "delete";
-export const FUTURE = "future";
-export const PLAYED = "played";
-export const TARGET = "target";
+export const ADD       = "add";
+export const CHANGE    = "change";
+export const DELETE    = "delete";
+export const FUTURE    = "future";
+export const PLAYED    = "played";
+export const TARGET    = "target";
 
 // Special characters used in Game.showGame() return string;
 // a few other classes use these.
@@ -57,7 +61,7 @@ export const ORANGE_SQUARE  = "\u{1F7E7}";     // Extra steps in graphic -- colo
 export const BLUE_SQUARE    = "\u{1F7E6}";     // No extra steps in graphic -- colorblind
 export const STAR           = "\u{2B50}";      // No extra steps in first share line
 export const CONFOUNDED     = "\u{1F616}";     // Too many extra steps in first share line
-export const FIRE           = "\u{1F525}";     // Hard mode in first share line
+export const FIRE           = "\u{1F525}";     // CURRENTLY NOT USED: Hard mode in first share line
 export const ROCKET         = "\u{1F680}";     // Unused
 export const FIREWORKS      = "\u{1F386}";     // Unused
 export const TROPHY         = "\u{1F3C6}";     // Unused
@@ -77,7 +81,7 @@ export const NUMBERS        = [                // Used in first share line
     "\u{0039}\u{FE0F}\u{20E3}",     // 9 
 ];    
 
-export const TOO_MANY_EXTRA_STEPS = 6;  // Shouldnt be > 9; relates to NUMBERS array above
+export const TOO_MANY_EXTRA_STEPS = 5;  // Shouldnt be > 9; relates to NUMBERS array above
 
 // SVG (Scalable Vector Graphics) paths for keyboard keys, copy/pasted from
 // various corners of the interwebs.

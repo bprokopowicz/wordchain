@@ -1,8 +1,9 @@
 import { BaseLogger } from './BaseLogger.js';
 import { WordChainDict } from './WordChainDict.js';
-import { GameDisplay } from './GameDisplay.js';
+import { DailyGameDisplay } from './DailyGameDisplay.js';
 import { HelpDisplay } from './HelpDisplay.js';
 import { SettingsDisplay } from './SettingsDisplay.js';
+import { StatsDisplay } from './StatsDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { Cookie } from './Cookie.js';
 import * as Const from './Const.js';
@@ -23,7 +24,7 @@ import * as Const from './Const.js';
 ** - Where to host?
 ** - How to manage daily game words long-term?
 ** - Testing on various browsers/devices
-** - Cookies: make secure?
+** - Cookies: make secure? Save in back-end DB?
 ** - Logo/favicon.ict
 */
 
@@ -41,20 +42,13 @@ const globalWordList = await fetch(Const.DICT_URL)
 */
 
 class AppDisplay extends BaseLogger {
-    /*
-    ** ===============
-    ** CLASS VARIABLES
-    ** ===============
-    */
+
+    /* ----- Class Constants ----- */
 
     static singletonObject = null;
     static currentGameDisplay = null;
 
-    /*
-    ** ============
-    ** CONSTRUCTION
-    ** ============
-    */
+    /* ----- Construction ----- */
 
     constructor() {
         super();
@@ -66,37 +60,6 @@ class AppDisplay extends BaseLogger {
         // Flags from Settings screen
         this.darkTheme      = Cookie.getBoolean("DarkTheme");
         this.colorblindMode = Cookie.getBoolean("ColorblindMode");
-
-        /*
-        // This keeps track of whether the user clicked the Show Solution button
-        // for the daily game.
-        this.dailySolutionShown = Cookie.getBoolean("DailySolutionShown");
-
-        // This keeps track of the most recently played daily game number.
-        this.dailyGameNumber = Cookie.getInt("DailyGameNumber");
-
-        // The starting word, played words, and target words of each game.
-        this.dailyGameWords    = Cookie.getJsonOrElse("DailyGame", []);
-
-        // Construct initial stats to be used if we don't have a cookie for daily stats.
-        let initialStats = {
-            gamesPlayed:         0,
-            gamesPlayedHardMode: 0,
-            gamesCompleted:      0,
-            gamesShown:          0,
-            tooManyExtraSteps:   0,
-        }
-        for (let extraSteps = 0; extraSteps <= Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
-            initialStats[extraSteps] = 0;
-        }
-
-        // If we have a cookie for daily stats parse it; otherwise set it to initial values. 
-        this.dailyStats = Cookie.getJsonOrElse("DailyStats", initialStats);
-
-        // Create a backup daily game, in case we cannot get one.
-        const solution = Solver.fastSolve(this.dict, "daily", "broken");
-        this.backupDailyGame = new Game("BackupDailyGame", this.dict, solution, this.typeSavingMode);
-        */
 
         // The mother of all divs.
         this.rootDiv = null;
@@ -136,12 +99,6 @@ class AppDisplay extends BaseLogger {
         return AppDisplay.singletonObject;
     }
 
-    /*
-    ** ================================
-    ** METHODS TO CONSTRUCT THE DISPLAY
-    ** ================================
-    */
-
     // This is the entry point for creating the screens and displaying the game.
     createScreens() {
         this.rootDiv = ElementUtilities.addElementTo("div", document.body, {id: "root-div"});
@@ -164,7 +121,9 @@ class AppDisplay extends BaseLogger {
         // This will create the GameDisplay and its game and get it going.
         // Pass pickerInnerDiv because that's where we want GameDisplay to
         // add the picker.
-        AppDisplay.currentGameDisplay = new GameDisplay(this.gameDiv, this.pickerInnerDiv, this.dict);
+
+        this.dailyGame = new DailyGameDisplay(this, this.gameDiv, this.pickerInnerDiv, this.dict, "ear", "hard");
+        AppDisplay.currentGameDisplay = this.dailyGame;
     }
 
     /* ----- Header ----- */
@@ -182,31 +141,20 @@ class AppDisplay extends BaseLogger {
         // Probably don't need to save these, but we will anyway!
         this.helpDisplay     = new HelpDisplay(this.auxiliaryButtonDiv, Const.HELP_PATH, this.auxiliaryDiv, this.primaryDivs);
         this.settingsDisplay = new SettingsDisplay(this.auxiliaryButtonDiv, Const.SETTINGS_PATH, this.auxiliaryDiv, this.primaryDivs, this);
-        //this.statsDisplay    = new StatsDisplay(this.auxiliaryButtonDiv, Const.STATS_PATH, this.auxiliaryDiv, this.primaryDivs);
+        this.statsDisplay    = new StatsDisplay(this.auxiliaryButtonDiv, Const.STATS_PATH, this.auxiliaryDiv, this.primaryDivs, this);
     }
 
     createGameButtons() {
-        // Add button to generate a share graphic.
-        this.shareButton = ElementUtilities.addElementTo(
-            "button", this.gameButtonDiv,
-            {id: "share", class: "wordchain-button game-button"},
-            "Share");
-
-        // Save 'this' in the shareButton element so that we can access
-        // it (via event.srcElement.callbackAccessor) in the callback.
-        this.shareButton.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(this.shareButton, this.shareCallback);
-
         // Button to show the solution.
-        this.showSolutionButton = ElementUtilities.addElementTo(
+        this.solutionButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
             {id: "show-solution", class: "wordchain-button game-button"},
-            "Show Solution");
+            "Solution");
 
-        // Save 'this' in the showSolutionButton element so that we can access
+        // Save 'this' in the solutionButton element so that we can access
         // it (via event.srcElement.callbackAccessor) in the callback.
-        this.showSolutionButton.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(this.showSolutionButton, this.showSolutionCallback);
+        this.solutionButton.callbackAccessor = this;
+        ElementUtilities.setButtonCallback(this.solutionButton, this.solutionCallback);
     }
 
     createHeaderDiv() {
@@ -261,14 +209,10 @@ class AppDisplay extends BaseLogger {
         this.toastDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "toast-div", class: "pop-up hide"});
     }
 
-    /*
-    ** =========
-    ** CALLBACKS
-    ** =========
-    */
+    /* ----- Callbacks ----- */
 
-    // Callback for the Share button on the Stats screen.
-    shareCallback(event) {
+    // Callback for the Solution button.
+    solutionCallback(event) {
         console.log("Not reimplemented!");
         return;
 
@@ -276,32 +220,8 @@ class AppDisplay extends BaseLogger {
         // element; use it to access other instance data.
         const callbackAccessor = event.srcElement.callbackAccessor;
 
-        // Are we in an environment that has a "share" button, like a smart phone?
-        if (navigator.share) {
-            // Yes -- use the button to share the shareString.
-            navigator.share({
-                text: callbackAccessor.shareString,
-            })
-            .catch((error) => {
-                callbackAccessor.showToast("Failed to share")
-                console.log("Failed to share: ", error);
-            });
-        } else {
-            // No -- just save the shareString to the clipboard (probably on a laptop/desktop).
-            callbackAccessor.showToast("Copied to clipboard")
-            navigator.clipboard.writeText(callbackAccessor.shareString);
-        }
-    }
-
-    // Callback for the Show Solution button.
-    showSolutionCallback(event) {
-        console.log("Not reimplemented!");
-        return;
-
-        // When the button was created we saved 'this' as callbackAccessor in the button
-        // element; use it to access other instance data.
-        const callbackAccessor = event.srcElement.callbackAccessor;
-
+/*
+REDO
         // Note when the daily game has ended; only the daily game contributes
         // to stats, so we won't need to keep track of whether (future) practice or
         // back-up daily games have been ended.
@@ -316,116 +236,27 @@ class AppDisplay extends BaseLogger {
         // for the call to updateGameDisplay().
         callbackAccessor.gameTileDisplay.endGame();
         callbackAccessor.updateGameDisplay();
+*/
     }
 
-    /*
-    ** ===============
-    ** UTILITY METHODS
-    ** ===============
-    */
+    /* ----- Utilities ----- */
 
     // Return the given CSS property value.
     static getCssProperty(property) {
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
     }
 
-    isDarkTheme() {
-        return this.darkTheme;
+    // Return an object with information about the daily game status.
+    getDailyGameInfo() {
+        return this.dailyGame.getGameInfo();
     }
 
     isColorblindMode() {
         return this.colorblindMode;
     }
 
-    // Increment the given stat, update the stats cookie, and update the stats display content.
-    incrementStat(whichStat) {
-        this.dailyStats[whichStat] += 1;
-        Cookie.saveJson("DailyStats", this.dailyStats);
-        this.updateStatsContent();
-    }
-
-    // Save a share graphic and (optionally) update statistics for thie specified game.
-    // Note that the share graphic is not HTML, but rather just a string, containing
-    // some Unicode characters to construct the graphic. The user will not be able
-    // to share unless the game is complete, so here we'll use the known solution.
-    saveGameInfo(game, updateStats) {
-        // Get the game's solution, and number of words.
-        // the known solution includes the start word, but not the target word;
-        // the number of steps is the length of the list.
-        const userSolution = game.getKnownSolution();
-        const userSolutionSteps = userSolution.numSteps();
-        const userWords = userSolution.getWords();
-
-        // The words from the solution include the start and target words;
-        userWords.shift();
-        userWords.pop();
-
-        // The count history is a list of how many steps were required to  solve the
-        // game at the very beginning ("the best solution") and then for each step
-        // thereafter. Pop off the first number in the history and save that as the
-        // minimum solution length.
-        const countHistory = game.getCountHistory();
-        const minimumSolutionSteps = countHistory.shift();
-
-        if (updateStats) {
-            this.incrementStat("gamesCompleted");
-        }
-
-        let shareString = `WordChain #${this.dailyGameNumber} `;
-
-        // Determine what emoji to use to show the user's "score".
-        const extraSteps = userSolutionSteps - minimumSolutionSteps;
-        if (extraSteps >= Const.TOO_MANY_EXTRA_STEPS) {
-            // Too many extra steps.
-            shareString += Const.CONFOUNDED;
-            if (updateStats) {
-                this.incrementStat("tooManyExtraSteps");
-            }
-        } else {
-            // Show the emoji in NUMBERS corresponding to how many extra steps.
-            // A bit of a misnomer, but the value for 0 is a star.
-            shareString += Const.NUMBERS[extraSteps];
-            if (updateStats) {
-                this.incrementStat(extraSteps);
-            }
-        }
-
-        // Add special indicator if user played in hard mode, and a couple of newlines.
-        const hardModeIndicator = this.hardMode ? Const.FIRE : "";
-        shareString += ` ${hardModeIndicator}\n\n`;
-
-        // Now, construct the graphic showing the lengths of the user's
-        // played words, colored red or green to indicate whether that word
-        // did or did not increase the solution length.
-        let previousCount = minimumSolutionSteps;
-        for (let word of userWords) {
-            // Shift off the next count, which corresponds to the word that the user played.
-            let nextCount = countHistory.shift();
-
-            // Determine which color square to display for this word.
-            let emoji;
-            if (nextCount <= previousCount) {
-                // Word didn't increase the count; pick color indicating "good".
-                emoji = this.colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
-            } else {
-                // Word increased the count; pick color indicating "bad".
-                emoji = this.colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
-            }
-
-            // Now repeat that emoji for the length of the word and add a newline,
-            // creating a row that looks like the row of tiles in the game.
-            shareString += emoji.repeat(word.length) + "\n";
-
-            // Set up for the next iteration.
-            previousCount = nextCount;
-        }
-
-        this.shareString = shareString;
-    }
-
-    // Set the given CSS property to the specified value.
-    static setCssProperty(property, value) {
-        document.documentElement.style.setProperty(`--${property}`, value);
+    isDarkTheme() {
+        return this.darkTheme;
     }
 
     // Set color properties according to the Dark Theme and Colorblind Mode settings.
@@ -459,23 +290,28 @@ class AppDisplay extends BaseLogger {
                 colorblindGood = AppDisplay.getCssProperty("colorblind-good-light");
                 colorblindBad  = AppDisplay.getCssProperty("colorblind-bad-light");
             }
-            AppDisplay.setCssProperty("played-word-good-bg", colorblindGood);
-            AppDisplay.setCssProperty("played-word-bad-bg",  colorblindBad);
+            this.setCssProperty("played-word-good-bg", colorblindGood);
+            this.setCssProperty("played-word-bad-bg",  colorblindBad);
 
         } else {
             // Colorblind Mode is not checked: restore the affected properties based on whether
             // Dark Mode is set.
             if (this.darkTheme) {
-                AppDisplay.setCssProperty("played-word-good-bg",  AppDisplay.getCssProperty("non-colorblind-good-bg-dark"));
-                AppDisplay.setCssProperty("played-word-bad-bg",   AppDisplay.getCssProperty("non-colorblind-bad-bg-dark"));
+                this.setCssProperty("played-word-good-bg",  AppDisplay.getCssProperty("non-colorblind-good-bg-dark"));
+                this.setCssProperty("played-word-bad-bg",   AppDisplay.getCssProperty("non-colorblind-bad-bg-dark"));
             } else {
-                AppDisplay.setCssProperty("played-word-good-bg",  AppDisplay.getCssProperty("non-colorblind-good-bg-light"));
-                AppDisplay.setCssProperty("played-word-bad-bg",   AppDisplay.getCssProperty("non-colorblind-bad-bg-light"));
+                this.setCssProperty("played-word-good-bg",  AppDisplay.getCssProperty("non-colorblind-good-bg-light"));
+                this.setCssProperty("played-word-bad-bg",   AppDisplay.getCssProperty("non-colorblind-bad-bg-light"));
             }
         }
 
         // Re-show the moves to make the color changes take effect.
         AppDisplay.currentGameDisplay && AppDisplay.currentGameDisplay.showMove();
+    }
+
+    // Set the given CSS property to the specified value.
+    setCssProperty(property, value) {
+        document.documentElement.style.setProperty(`--${property}`, value);
     }
 
     // Show a "toast" pop-up (typically an error message).

@@ -1,142 +1,14 @@
 import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
 import { ElementUtilities } from './ElementUtilities.js';
-import { GameDisplay } from './GameDisplayCell.js';
+import { GameDisplay } from './GameDisplay.js';
 import { PseudoGame } from './PseudoGame.js';
-//import * as Const from './Const.js';
+import * as Const from './Const.js';
 
 class DailyGameDisplay extends GameDisplay {
-    /*
-    ** ===============
-    ** CLASS VARIABLES
-    ** ===============
-    */
 
-    /*
-    ** ============
-    ** CONSTRUCTION
-    ** ============
-    */
+    /* ----- Class Variables */
 
-    constructor(gameDiv, pickerDiv, callbacks, dict) {
-
-        super();
-
-    }
-
-    /*
-    ** ================================
-    ** METHODS TO CONSTRUCT THE DISPLAY
-    ** ================================
-    */
-
-    constructGame() {
-        this.game = new PseudoGame("hard", "pear");
-        //this.game = new PseudoGame("fate", "sop");
-        this.showMove();
-    }
-
-    // Create and display today's daily game.
-    constructDailyGame() {
-
-        // Get today's daily game descriptor; we'll use it to determine whether it is time
-        // to create a new game.
-        const todaysDailyGameDescriptor = DailyGameGenerator.generate();
-
-        if (! todaysDailyGameDescriptor.isValidGame()) {
-            // No daily game? Something went awry; use the backup.
-            this.showToast("Unable to create daily game;<br>here is a fun back-up");
-            this.dailyGame = this.backupDailyGame;
-        } else {
-            if (todaysDailyGameDescriptor.isNewGame()) {
-                this.dailyGameNumber = todaysDailyGameDescriptor.getNumber();
-                this.dailySolutionShown = false;
-
-                // Update stats relating to a new daily game.
-                this.incrementStat("gamesPlayed");
-                if (this.hardMode) {
-                    this.incrementStat("gamesPlayedHardMode");
-                }
-
-                // Create a solution from today's daily game start/target words.
-                // No need to check solution for success -- daily games will be
-                // pre-verified to have a solution.
-                const solution = Solver.fastSolve(
-                    this.dict, todaysDailyGameDescriptor.getStart(), todaysDailyGameDescriptor.getTarget());
-                this.dailyGame = new Game("DailyGame", this.dict, solution, this.typeSavingMode);
-            } else {
-                // Existing daily game; reconstruct it from the cookie (which we've recovered
-                // and saved as this.dailyGameWords).
-                this.dailyGame = this.constructGameFromCookieWords("DailyGame", this.dailyGameWords);
-            }
-        }
-
-        // Save the start/target words so we can prevent the user from creating
-        // a practice game using these words.
-        this.dailyStartWord = this.dailyGame.getStart();
-        this.dailyTargetWord = this.dailyGame.getTarget();
-
-        // Now use the daily game to construct the tile display.
-        this.gameTileDisplay = new GameTileDisplay(this.dailyGame, this.dict, this.gameWordsDiv, this);
-
-        // Hard and Type-Saving modes are implemented in the game tile display,
-        // so tell it what our modes are.
-        this.gameTileDisplay.setHardMode(this.hardMode);
-        this.gameTileDisplay.setTypeSavingMode(this.typeSavingMode);
-
-        // Now, pretend the user clicked the Daily button, because we need
-        // to do exactly the same thing.
-        this.dailyCallback();
-    }
-
-    pickerChangeCallback(event) {
-        /*
-        //console.log("pickerChangeCallback(): event: ", event);
-        if (this.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
-            // TODO: Show a toast saying to pick a letter?
-            return;
-        }
-
-        // Change the size of the picker back to 1 when a letter has been picked.
-        this.letterPicker.setAttribute("size", 1);
-
-        let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition')),
-            isValidWord = this.game.playLetter(letterPosition, this.letterPicker.value);
-
-        this.letterPicker.value = GameDisplay.PICKER_UNSELECTED;
-
-        this.showMove();
-        */
-        super.pickerChangeCallback(event);
-    }
-
-    additionClickCallback(event) {
-        /*
-        //console.log("additionClickCallback(): event: ", event);
-        let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
-        this.game.playAdd(additionPosition);
-
-        this.showMove();
-        */
-        super.additionClickCallback(event);
-    }
-
-    deletionClickCallback(event) {
-        /*
-        //console.log("deletionClickCallback(): event: ", event);
-        let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
-            isValidWord = this.game.playDelete(deletionPosition);
-
-        this.showMove();
-        */
-        super.deletionClickCallback(event);
-    }
-}
-
-// ============================ FOLD THIS INTO DailyGameDisplay
-
-class DailyGameGenerator {
-    // TODO: Update!
     static BaseDate = new Date("2023-10-01T00:00:00.000+00:00");
     static BaseTimestamp = null;
     static DateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
@@ -184,20 +56,60 @@ class DailyGameGenerator {
         }
     }
 
-    static calculateGameNum() {
-        const nowTimestamp = (new Date()).getTime();
-        const msElapsed = nowTimestamp - DailyGameGenerator.BaseTimestamp;
-        return Math.floor(msElapsed / DailyGameGenerator.DateIncrementMs) + 1;
+    /* ----- Construction ----- */
+
+    constructor(appDisplay, gameDiv, pickerDiv, dict) {
+        super(appDisplay, gameDiv, pickerDiv, dict);
+
+        // This keeps track of whether the user clicked the Show Solution button
+        // for the daily game.
+        this.dailySolutionShown = Cookie.getBoolean("DailySolutionShown");
+
+        // This keeps track of the most recently played daily game number.
+        this.dailyGameNumber = Cookie.getInt("DailyGameNumber");
+
+        // Construct initial stats to be used if we don't have a cookie for daily stats.
+        let initialStats = {
+            gamesPlayed:         0,
+            gamesCompleted:      0,
+            gamesShown:          0,
+            tooManyExtraSteps:   0,
+        }
+
+        // Now create a stat for each allowed number of extra steps, and initialize
+        // their values to 0. The stat properties for these is 0..TOO_MANY_EXTRA_STEPS. 
+        for (let extraSteps = 0; extraSteps <= Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
+            initialStats[extraSteps] = 0;
+        }
+
+        // If we have a cookie for daily stats parse it; otherwise set it to initial values.
+        this.dailyStats = Cookie.getJsonOrElse("DailyStats", initialStats);
+
+        // Now, save the stats again in case this is the very first game and we never
+        // had stats before. In all other cases this is redundant, but oh well!
+        Cookie.saveJson("DailyStats", this.dailyStats);
+
+        /*
+        // Create a backup daily game words, in case we cannot get one.
+        this.backupStartWord  = "daily";
+        this.backupTargetWord = "broken";
+        
+        // Get today's daily game; this will set this.startWord and
+        // this.targetWord so that we can call the base class constructGame()
+        // and display the game.
+        this.setDailyGameData();
+        */
+
+        this.startWord = "ear";     // TEMPORARY
+        this.targetWord = "hard";   // TEMPORARY
+        this.validGame = true;      // TEMPORARY
+        this.incrementStat("gamesPlayed"); // TEMPORARY
+        this.constructGame(this.startWord, this.targetWord);
     }
 
-    static getMsUntilNextGame() {
-        const nextGameNum = DailyGameGenerator.calculateGameNum() + 1;
-        const nextGameTimestamp = DailyGameGenerator.BaseTimestamp + (nextGameNum * DailyGameGenerator.DateIncrementMs)
-        return nextGameTimestamp - (new Date()).getTime();
-    }
+    /* ----- Determination of Daily Game Information ----- */
 
-    // Generate a DailyGameDescriptor
-    static generate() {
+    setDailyGameData() {
         // Get the DailyGameNumber cookie; this can be manually deleted
         // to restart the daily game number determination.
         const currentDailyGameNumber = Cookie.getInt("DailyGameNumber");
@@ -209,78 +121,122 @@ class DailyGameGenerator {
         // Are we debugging daily games?
         if (debugIncrement) {
             // Yes, we're debugging, so override the standard one day increment.
-            DailyGameGenerator.DateIncrementMs = debugIncrement * 60 * 1000;
+            DailyGameDisplay.DateIncrementMs = debugIncrement * 60 * 1000;
 
             // Is this a "fresh start"?
             if (!currentDailyGameNumber) {
                 // Yes! Set the base timestamp to now and save it in a debug-only cookie.
-                DailyGameGenerator.BaseTimestamp = (new Date()).getTime();
-                Cookie.saveInt("DebugBaseTimestamp", DailyGameGenerator.BaseTimestamp);
+                DailyGameDisplay.BaseTimestamp = (new Date()).getTime();
+                Cookie.saveInt("DebugBaseTimestamp", DailyGameDisplay.BaseTimestamp);
             } else {
                 // No, but we're debugging, so get get the timestamp from the cookie.
-                DailyGameGenerator.BaseTimestamp = Cookie.getInt("DebugBaseTimestamp");
+                DailyGameDisplay.BaseTimestamp = Cookie.getInt("DebugBaseTimestamp");
             }
         } else {
             // Not debugging daily games; set the base timestamp based
             // on our static base date -- the date at which we set the clock
             // for the very first daily game.
-            DailyGameGenerator.BaseTimestamp = DailyGameGenerator.BaseDate.getTime();
+            DailyGameDisplay.BaseTimestamp = DailyGameDisplay.BaseDate.getTime();
         }
 
-
         // Now, determine the game number and get the game data from the GameWords object.
-        let gameData = null;
-        let validGame = false;
-        const gameNumber = DailyGameGenerator.calculateGameNum();
-        if (gameNumber in DailyGameGenerator.GameWords) {
-            gameData = DailyGameGenerator.GameWords[gameNumber];
-            validGame = true;
+        this.validGame = false;
+
+        this.gameNumber = DailyGameDisplay.getGameNumber();
+        if (this.gameNumber in DailyGameDisplay.GameWords) {
+
+            this.startWord = DailyGameDisplay.GameWords[this.gameNumber].start;
+            this.targettWord = DailyGameDisplay.GameWords[this.gameNumber].target;
+            this.validGame = true;
+        } else {
+            // No daily game? Something went awry; use the backup.
+            this.startWord  = this.backupStartWord;
+            this.targetWord = this.backupTargetWord;
+            this.appDisplay.showToast("Unable to create daily game;<br>here is a fun back-up");
+
+            // Return now; don't consider this a new game.
+            return;
         }
 
         // If we didn't recover a daily game number from the cookies or
         // the number we recovered isn't the game number we just calculated,
         // this is a new daily game,
-        let newGame = false;
-        if ((! currentDailyGameNumber) || (currentDailyGameNumber != gameNumber)) {
+        if ((! currentDailyGameNumber) || (currentDailyGameNumber != this.gameNumber)) {
             // New daily game!
-            Cookie.save("DailyGameNumber", gameNumber);
+            Cookie.saveInt("DailyGameNumber", this.gameNumber);
+
+            this.dailySolutionShown = false;
             Cookie.save("DailySolutionShown", false);
-            newGame = true;
+
+            // Update stats relating to a new daily game.
+            this.incrementStat("gamesPlayed");
         }
-        
-        return new DailyGameDescriptor(gameNumber, gameData, validGame, newGame);
-    }
-}
-
-// This class holds the daily game number and associated data based on the current
-// time and the "base date" which is the beginning of time for WordChain.
-class DailyGameDescriptor {
-
-    constructor(gameNumber, gameData, validGame, newGame) {
-        this.gameNumber = gameNumber;
-        this.gameData = gameData;
-        this.validGame = validGame;
-        this.newGame = newGame;
     }
 
-    getNumber() {
-        return this.gameNumber;
+    static getGameNumber() {
+        const nowTimestamp = (new Date()).getTime();
+        const msElapsed = nowTimestamp - DailyGameDisplay.BaseTimestamp;
+        return Math.floor(msElapsed / DailyGameDisplay.DateIncrementMs) + 1;
     }
 
-    getStart() {
-        return this.gameData.start;
+    static getMsUntilNextGame() {
+        const nextGameNum = DailyGameDisplay.getGameNumber() + 1;
+        const nextGameTimestamp = DailyGameDisplay.BaseTimestamp + (nextGameNum * DailyGameDisplay.DateIncrementMs)
+        return nextGameTimestamp - (new Date()).getTime();
     }
 
-    getTarget() {
-        return this.gameData.target;
+    /* ----- Callbacks ----- */
+
+    additionClickCallback(event) {
+        let me = event.srcElement.callbackAccessor;
+        me.updateGameStats(super.additionClickCallback(event));
     }
 
-    isNewGame() {
-        return this.newGame;
+    deletionClickCallback(event) {
+        let me = event.srcElement.callbackAccessor;
+        me.updateGameStats(super.deletionClickCallback(event));
     }
 
-    isValidGame() {
-        return this.validGame;
+
+    pickerChangeCallback(event) {
+        let me = event.srcElement.callbackAccessor;
+        me.updateGameStats(super.pickerChangeCallback(event));
+    }
+
+    updateGameStats(gameResult) {
+        if (gameResult === Const.OK && this.game.over()) {
+            this.incrementStat("gamesCompleted");
+
+            // This returns an object that includes an 'extraSteps' property when the
+            // game is over (which we've determined is the case here). We use extraSteps
+            // to determine which stat to increment.
+            let dailyGameInfo = this.game.getGameInfo();
+            console.log("updateGameStats(): dailyGameInfo:", dailyGameInfo);
+
+            if (dailyGameInfo.extraSteps >= Const.TOO_MANY_EXTRA_STEPS) {
+                this.incrementStat("tooManyExtraSteps");
+            } else {
+                this.incrementStat(dailyGameInfo.extraSteps);
+            }
+        }
+    }
+
+    /* ----- Utilities ----- */
+
+    getGameInfo() {
+        let gameInfo = this.game.getGameInfo();
+        gameInfo.dailyGameNumber = this.dailyGameNumber;
+
+        return gameInfo;
+    }
+
+    // Increment the given stat, update the stats cookie, and update the stats display content.
+    incrementStat(whichStat) {
+        // Only update stats if this is a valid daily game.
+        if (this.validGame) {
+            this.dailyStats[whichStat] += 1;
+            Cookie.saveJson("DailyStats", this.dailyStats);
+        }
     }
 }
 

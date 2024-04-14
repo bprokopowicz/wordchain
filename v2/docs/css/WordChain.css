@@ -500,7 +500,7 @@ button.action-button {
 ** ----
 */
 
-.help-content-div {
+.help-content-container {
 }
 
 /*
@@ -509,7 +509,7 @@ button.action-button {
 ** --------
 */
 
-.settings-content-div {
+.settings-content-container {
     display: block;
 }
 
@@ -584,11 +584,14 @@ input.setting-radio {
 ** -----
 */
 
-.stats-content-div {
+.stats-content-container {
     display: flex;
+}
+
+.stats-content-div {
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 }
 
 /* This holds the group of stats at the top */
@@ -614,7 +617,7 @@ input.setting-radio {
 }
 
 /* This holds the distribution graph */
-#distribution-div {
+.distribution-div {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -646,11 +649,25 @@ input.setting-radio {
     margin-right: .5rem;
 }
 
-#countdown-clock {
+/* This holds the countdown clock */
+.countdown-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.countdown-clock {
     background: var(--primary-bg);
     color: var(--primary-fg);
     font-size: 4rem;
     padding: .5rem;
+}
+
+/* This holds the buttons */
+.stats-button-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /*

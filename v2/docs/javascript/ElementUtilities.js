@@ -2,6 +2,30 @@
 // checking, setting aspects of HTML elements.
 class ElementUtilities {
 
+    static addClass(element, classNameOrList) {
+
+        let elementClass = element.getAttribute('class'),
+            className,
+            classes;
+
+        if (typeof classNameOrList === 'string') {
+            classes = [classNameOrList];
+        } else {
+            classes = classNameOrList;
+        }
+
+        for (className of classes)
+        {
+            if (elementClass === null) {
+                elementClass = className;
+            } else {
+                elementClass += ` ${className}`;
+            }
+        }
+
+        element.setAttribute('class', elementClass);
+    }
+
     static addElement(elementType, attributes=null, innerHTML=null) {
         return ElementUtilities.addElementTo(elementType, document.body, attributes, innerHTML);
     }
@@ -50,28 +74,17 @@ class ElementUtilities {
         }
     }
 
-    static addClass(element, classNameOrList) {
+    static editClass(fromPattern, toString, elements) {
 
-        let elementClass = element.getAttribute('class'),
-            className,
-            classes;
-
-        if (typeof classNameOrList === 'string') {
-            classes = [classNameOrList];
-        } else {
-            classes = classNameOrList;
+        if (! (elements instanceof Array)) {
+            elements = [elements];
         }
 
-        for (className of classes)
-        {
-            if (elementClass === null) {
-                elementClass = className;
-            } else {
-                elementClass += ` ${className}`;
-            }
+        for (let element of elements) {
+            let elementClass = element.getAttribute('class');
+            elementClass = elementClass.replace(fromPattern, toString);
+            element.setAttribute('class', elementClass);
         }
-
-        element.setAttribute('class', elementClass);
     }
 
     // Not currently used.

@@ -6,8 +6,8 @@ import { BaseLogger } from './BaseLogger.js';
 //
 class Solver extends BaseLogger {
 
-   static solve(dictionary, fromWord, toWord, debug=0) {
-        let startingSolution = new Solution([fromWord], toWord);
+   static solve(dictionary, fromWord, toWord) {
+        let startingSolution = Solution.emptySolution(fromWord, toWord);
         if (! dictionary.isWord(fromWord)){
             startingSolution.addError(fromWord + " is not a word.");
         }
@@ -17,10 +17,10 @@ class Solver extends BaseLogger {
         if (startingSolution.getError()){
             return startingSolution;
         }
-        return Solver.resolve(dictionary, startingSolution, debug);
+        return Solver.resolve(dictionary, startingSolution);
     }
 
-    static resolve(dictionary, startingSolution, debug=0) {
+    static resolve(dictionary, startingSolution) {
 
         // Create a queue for our working solutions and push this starting working solution on the queue.
         let workingSolutions = [];
@@ -55,7 +55,7 @@ class Solver extends BaseLogger {
             for (let word of nextWords.sort()) {
                 workingDict.removeWord(word);
                 let newWorkingSolution = solution.copy().addWord(word);
-                console.log(`   checking ${newWorkingSolution.toStr()}`);
+                //console.log(`   checking ${newWorkingSolution.toStr()}`);
                 if (newWorkingSolution.isSolved()) {
                     return newWorkingSolution;
                 }
@@ -85,13 +85,28 @@ class Solver extends BaseLogger {
     }
 }
 
-class Solution extends BaseLogger {
-    constructor(wordList, target) {
-        super();
+class PlayedWord {
+    constructor(word, penalty) {
+        this.word = word;
+        this.penalty = penalty;
+    }
 
-        this.wordList = [...wordList];
+    toString() {
+        return `${this.word}:${this.penalty}`;
+    }
+}
+
+class Solution extends BaseLogger {
+    constructor(playedWords, target) {
+        super();
+        this.playedWords = [...playedWords];
         this.target   = target;
         this.errorMessage = "";
+    }
+
+    static emptySolution(start, target) {
+        let playedWord = new PlayedWord(start, 0);
+        return new Solution([playedWord], target);
     }
 
     addError(errorMessage) {
@@ -99,21 +114,15 @@ class Solution extends BaseLogger {
         return this;
     }
 
-    addWord(newWord) {
-        this.wordList.push(newWord)
+    addWord(newWord, penalty=0) {
+        this.playedWords.push(new PlayedWord(newWord, penalty));
         return this;
     }
 
-    // TODO: assert restOfSolution is the rest.
-    // restOfSolution is itself a Solution
-    //append(restOfSolution) {
-    //    this.wordList = this.wordList.concat(restOfSolution.wordList);
-    //    return this;
-    //}
 
     copy() {
-        let wordListCopy = [...this.wordList];
-        return new Solution(wordListCopy, this.target);
+        let playedListCopy = [...this.playedWords];
+        return new Solution(playedListCopy, this.target);
     }
 
     getError() {
@@ -121,25 +130,26 @@ class Solution extends BaseLogger {
     }
 
     getNthWord(n) {
-        return this.wordList[n];
+        return this.playedWords[n].word;
     }
 
-    getFirstWord() {
-        return this.getNthWord(0);
+    getNthPenalty(n) {
+        return this.playedWords[n].penalty;
     }
 
     getLastWord() {
-        return this.getNthWord(this.wordList.length - 1);
+        return this.getNthWord(this.playedWords.length - 1);
     }
     
     removeLastWord() {
-        this.wordList.pop();
+        this.playedWords.pop();
     }
+
     getPenultimateWord() {
-        if (this.wordList.length < 2) {
-            throw new Error(`Solution.getPenultimateWord(): wordList length (${this.wordList.length}) cannot be < 2`)
+        if (this.playedWords.length < 2) {
+            throw new Error(`Solution.getPenultimateWord(): playedWords length (${this.playedWords.length}) cannot be < 2`)
         }
-        return this.getNthWord(this.wordList.length - 2);
+        return this.getNthWord(this.playedWords.length - 2);
     }
 
     getStart() {
@@ -150,15 +160,6 @@ class Solution extends BaseLogger {
         return this.target;
     }
 
-    // Used only in tests.
-    getWordByStep(step) {
-        return this.wordList[step];
-    }
-
-    getWords() {
-        return [...this.wordList];
-    }
-
     isSolved() {
         return this.success() && (this.target === this.getLastWord());
     }
@@ -167,7 +168,7 @@ class Solution extends BaseLogger {
     // count as a step.
 
     numSteps() {
-        return this.wordList.length - 1;
+        return this.playedWords.length - 1;
     }
 
     success() {
@@ -185,8 +186,8 @@ class Solution extends BaseLogger {
             return this.errorMessage;
         } else {
             const separator = html ? "<p>" : " ";
-            const words = this.wordList.join(", ");
-            return `${words}${separator}[${this.wordList.length - 1} steps to ${this.target}]${separator}`;
+            const words = this.playedWords.join(", ");
+            return `${words}${separator}[${this.numSteps()} steps toward ${this.target}]${separator}`;
         }
     }
 }

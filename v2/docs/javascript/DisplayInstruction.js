@@ -1,11 +1,10 @@
 class DisplayInstruction {
-    constructor(word, displayType, changePosition, wasCorrect, endOfGame) {
+    constructor(word, displayType, changePosition, wasCorrect) {
         this.word = word;
         this.wordLength = word.length;
         this.displayType = displayType;
         this.changePosition = changePosition;
         this.wasCorrect = wasCorrect;
-        this.endOfGame = endOfGame;
     }
 
     toStr() {

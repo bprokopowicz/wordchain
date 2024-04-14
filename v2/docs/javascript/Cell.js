@@ -103,7 +103,7 @@ class LetterCell extends Cell {
 }
 
 class ActiveLetterCell extends LetterCell {
-    constructor(letter, letterPosition, letterPicker, wasCorrect, changePosition, blankLetterOnChange=false) {
+    constructor(letter, letterPosition, letterPicker, wasCorrect, changePosition) {
         super(letter);
 
         this.addClass("letter-cell-active");
@@ -114,9 +114,6 @@ class ActiveLetterCell extends LetterCell {
 
             // Add to the picker element so we can get it when the event comes.
             letterPicker.setAttribute('letterPosition', letterPosition);
-            if (blankLetterOnChange) {
-                ElementUtilities.setElementText(this.cellContents, " ");
-            }
         }
     }
 }

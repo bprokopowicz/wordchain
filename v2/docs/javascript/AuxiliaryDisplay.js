@@ -3,6 +3,8 @@ import * as Const from './Const.js';
 
 class AuxiliaryDisplay {
 
+    /* ----- Construction ----- */
+
     constructor(buttonContainer, buttonSvgPath, parentContainer, saveRestoreContainers) {
         this.saveRestoreContainers = saveRestoreContainers;
 
@@ -57,6 +59,83 @@ class AuxiliaryDisplay {
         return button;
     }   
 
+    /* ----- Callbacks ----- */
+
+    // Callback for closing an Auxiliary screen.
+    closeAuxiliaryCallback(event) {
+        // When the button was created with createSvgButton() we saved 'this'
+        // as callbackAccessor on the button; use it to access other instance data.
+        const callbackAccessor = event.srcElement.callbackAccessor;
+        //console.log("closeAuxiliaryCallback(): callbackAccessor.isOpen:", callbackAccessor.isOpen, ", event:", event);
+
+        // By necessity, we have attached this callback to multiple elements that
+        // comprise the close button. Any combination of them may generate an event,
+        // but we only want to respond to it on the first one. If the display is NOT
+        // open it means this is not the first call for the user's click, so we just
+        // return now.
+        if (! callbackAccessor.isOpen) {
+            return;
+        }
+
+        // If the derived class defined a function to do additional things on closure,
+        // call the function.
+        if (callbackAccessor.additionalCloseActions) {
+            callbackAccessor.additionalCloseActions();
+        }
+
+        // Now set the flag to prevent another call from doing anything.
+        callbackAccessor.isOpen = false;
+
+        // Hide the auxiliary screen.
+        callbackAccessor.auxiliaryContainer.style.display = "none";
+        
+        // Now restore the containers that we saved when the auxiliary screen was opened.
+        callbackAccessor.restoreHiddenContainers();
+    }           
+                
+    // Callback for opening an Auxiliary screen.
+    openAuxiliaryCallback(event) {
+        // When the button was created with createSvgButton() we saved 'this'
+        // as callbackAccessor on the button; use it to access other instance data.
+        const callbackAccessor = event.srcElement.callbackAccessor;
+        //console.log("openAuxiliaryCallback(): callbackAccessor.isOpen:", callbackAccessor.isOpen, ", event:", event);
+
+        // By necessity, we have attached this callback to multiple elements that
+        // comprise the button that opens this display. Any combination of them may
+        // generate an event, but we only want to respond to it on the first one.
+        // If the display is ALREADY open it means this is not the first call for
+        // the user's click, so we just return now.
+        if (callbackAccessor.isOpen) {
+            return;
+        }
+
+        // If the derived class defined a function to do additional things on open,
+        // call the function.
+        if (callbackAccessor.additionalOpenActions) {
+            callbackAccessor.additionalOpenActions();
+        }
+
+        // Now set the flag to prevent another call from doing anything.
+        callbackAccessor.isOpen = true;
+        
+        // Hide the containers that are currently showing and save information
+        // so we can restore them.
+        callbackAccessor.hideShownContainers();
+        
+        /*
+        ========== Still need to deal with this? How? This is not the right place!
+        ========== Maybe an additional function passed to ctor to call? openScreenAction()
+        if (sourceElementId === "stats-div") {
+            this.updateStatsContent();
+            this.startCountdownClock();
+        }
+        */
+
+        callbackAccessor.auxiliaryContainer.style.display = "flex";
+    }
+
+    /* ----- Utilities ----- */
+
     // Hide shown containers` while showing an auxiliary screen.
     // Keep track of what containers were showing so they can be restored.
     hideShownContainers() {
@@ -108,70 +187,6 @@ class AuxiliaryDisplay {
         }
     }
 
-    /*
-    ** ----- Callbacks -----
-    */
-
-    // Callback for closing an Auxiliary screen.
-    closeAuxiliaryCallback(event) {
-        // When the button was created with createSvgButton() we saved 'this'
-        // as callbackAccessor on the button; use it to access other instance data.
-        const callbackAccessor = event.srcElement.callbackAccessor;
-        //console.log("closeAuxiliaryCallback(): callbackAccessor.isOpen:", callbackAccessor.isOpen, ", event:", event);
-
-        // By necessity, we have attached this callback to multiple elements that
-        // comprise the close button. Any combination of them may generate an event,
-        // but we only want to respond to it on the first one. If the display is NOT
-        // open it means this is not the first call for the user's click, so we just
-        // return now.
-        if (! callbackAccessor.isOpen) {
-            return;
-        }
-
-        // Now set the flag to prevent another call from doing anything.
-        callbackAccessor.isOpen = false;
-
-        // Hide the auxiliary screen.
-        callbackAccessor.auxiliaryContainer.style.display = "none";
-        
-        // Now restore the containers that we saved when the auxiliary screen was opened.
-        callbackAccessor.restoreHiddenContainers();
-    }           
-                
-    // Callback for opening an Auxiliary screen.
-    openAuxiliaryCallback(event) {
-        // When the button was created with createSvgButton() we saved 'this'
-        // as callbackAccessor on the button; use it to access other instance data.
-        const callbackAccessor = event.srcElement.callbackAccessor;
-        //console.log("openAuxiliaryCallback(): callbackAccessor.isOpen:", callbackAccessor.isOpen, ", event:", event);
-
-        // By necessity, we have attached this callback to multiple elements that
-        // comprise the button that opens this display. Any combination of them may
-        // generate an event, but we only want to respond to it on the first one.
-        // If the display is ALREADY open it means this is not the first call for
-        // the user's click, so we just return now.
-        if (callbackAccessor.isOpen) {
-            return;
-        }
-
-        // Now set the flag to prevent another call from doing anything.
-        callbackAccessor.isOpen = true;
-        
-        // Hide the containers that are currently showing and save information
-        // so we can restore them.
-        callbackAccessor.hideShownContainers();
-        
-        /*
-        ========== Still need to deal with this? How? This is not the right place!
-        ========== Maybe an additional function passed to ctor to call? openScreenAction()
-        if (sourceElementId === "stats-div") {
-            this.updateStatsContent();
-            this.startCountdownClock();
-        }
-        */
-
-        callbackAccessor.auxiliaryContainer.style.display = "flex";
-    }
 }
 
 export { AuxiliaryDisplay };

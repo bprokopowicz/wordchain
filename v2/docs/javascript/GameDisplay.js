@@ -10,36 +10,27 @@ import { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedL
 
 
 class GameDisplay extends BaseLogger {
-    /*
-    ** ===============
-    ** CLASS VARIABLES
-    ** ===============
-    */
+
+    /* ----- Class Variables ----- */
+
     PICKER_UNSELECTED = "  ";
 
-    /*
-    ** ============
-    ** CONSTRUCTION
-    ** ============
-    */
+    /* ----- Construction ----- */
 
-    constructor(gameDiv, pickerDiv, dict) {
+    constructor(appDisplay, gameDiv, pickerDiv, dict) {
 
         super();
+
+        this.appDisplay = appDisplay;
 
         this.gameDiv   = gameDiv;
         this.pickerDiv = pickerDiv;
         this.dict      = dict;
 
         this.createPicker();
-        this.constructGame();
-    }
 
-    /*
-    ** ================================
-    ** METHODS TO CONSTRUCT THE DISPLAY
-    ** ================================
-    */
+        // Derived class constructor must call constructGame().
+    }
 
     /* ----- Picker ----- */
 
@@ -76,68 +67,36 @@ class GameDisplay extends BaseLogger {
     }
 
     disablePicker() {
-        console.log("disablePicker() this.pickerEnabled:", this.pickerEnabled);
+        //console.log("disablePicker() this.pickerEnabled:", this.pickerEnabled);
         this.letterPickerLabel.setAttribute("class", "picker-label-disabled");
         this.letterPicker.setAttribute("class", "picker-select-disabled");
         this.letterPicker.setAttribute("disabled", "disabled");
     }
 
     enablePicker() {
-        console.log("enablePicker() this.pickerEnabled:", this.pickerEnabled);
+        //console.log("enablePicker() this.pickerEnabled:", this.pickerEnabled);
         this.letterPickerLabel.setAttribute("class", "picker-label-enabled");
         this.letterPicker.setAttribute("class", "picker-select-enabled");
         this.letterPicker.removeAttribute("disabled");
     }
 
-    pickerChangeCallback(event) {
-        //console.log("pickerChangeCallback(): event: ", event);
-        var me = event.srcElement.callbackAccessor;
-
-        if (me.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
-            // TODO: Show a toast saying to pick a letter?
-            return;
-        }
-
-
-        // Change the size of the picker back to 1 when a letter has been picked.
-        me.letterPicker.setAttribute("size", 1);
-
-        let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition'));
-        me.game.playLetter(letterPosition, me.letterPicker.value);
-        me.letterPicker.value = GameDisplay.PICKER_UNSELECTED;
-
-        me.showMove();
-    }
-
-    pickerFocusCallback(event) {
-        var me = event.srcElement.callbackAccessor;
-
-        // Change the size of the picker so that multiple words are
-        // shown with scrolling to select.
-        me.letterPicker.setAttribute("size", 10);
-        console.log("pickerFocusCallback");
-    }
-
-    pickerBlurCallback(event) {
-        var me = event.srcElement.callbackAccessor;
-
-        // Change the size of the picker so that it is no longer
-        // showing 10 elements when the user moves the mouse away.
-        me.letterPicker.setAttribute("size", 1);
-        console.log("pickerBlurCallback");
-    }
-
     /* ----- Game ----- */
 
-    constructGame() {
-        //this.game = new PseudoGame(this.dict, "fate", "sop");
-        //this.game = new PseudoGame(this.dict, "hard", "pear");
-        this.game = new Game(this.dict, "hard", "ear");
+    // Called from derived class!
+    constructGame(start, target) {
+        //this.game = new PseudoGame(this.dict, start, target);
+        this.game = new Game(this.dict, start, target);
         this.showMove();
+    }
+
+    getGame() {
+        return this.game;
     }
 
     showMove() {
         if (this.game.over()) {
+            this.appDisplay.showToast(Const.GAME_OVER);
+            this.disablePicker();
             return;
         }
         
@@ -148,12 +107,10 @@ class GameDisplay extends BaseLogger {
 
         var displayInstruction;
         while (displayInstruction = this.game.getNextDisplayInstruction()) {
-            //console.log("displayInstruction:", displayInstruction);
+            console.log("displayInstruction:", displayInstruction);
 
-            if (displayInstruction.displayType === Const.ADD_SPACE) {
+            if (displayInstruction.displayType === Const.ADD) {
                 this.displayAdd(displayInstruction);
-            } else if (displayInstruction.displayType === Const.ADD_CHANGE) {
-                this.displayAddChange(displayInstruction);
             } else if (displayInstruction.displayType === Const.CHANGE) {
                 this.displayChange(displayInstruction);
             } else if (displayInstruction.displayType === Const.DELETE) {
@@ -233,20 +190,6 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell, false);
     }
 
-    displayAddChange(displayInstruction) {
-        let me = this;
-
-
-        function getCell(letter, letterPosition) {
-            // Give last arg true to indicate the letter should be blanked.
-            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.wasCorrect, displayInstruction.changePosition, true);
-        }
-
-        this.pickerEnabled = true;
-        this.displayCommon(displayInstruction, getCell);
-    }
-
     displayChange(displayInstruction) {
         let me = this;
 
@@ -308,7 +251,8 @@ class GameDisplay extends BaseLogger {
             return new TargetLetterCell(letter, showSuccessful);
         }
 
-        if (displayInstruction.endOfGame) {
+        //if (displayInstruction.endOfGame) {
+        if (this.game.over()) {
             this.pickerEnabled = false;
 
             if (this.game.winner()) {
@@ -319,58 +263,86 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell);
     }
 
+    /* ----- Callbacks ----- */
+
     additionClickCallback(event) {
         var me = event.srcElement.callbackAccessor;
 
         console.log("additionClickCallback(): event: ", event);
-        let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
-        me.game.playAdd(additionPosition);
+        let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
+            gameResult = me.game.playAdd(additionPosition);
+
+        if (gameResult !== Const.OK) {
+            me.appDisplay.showToast(gameResult);
+        }
 
         me.showMove();
+
+        return gameResult;
     }
 
     deletionClickCallback(event) {
         var me = event.srcElement.callbackAccessor;
 
         console.log("deletionClickCallback(): event: ", event);
-        let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
-        me.game.playDelete(deletionPosition);
+        let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
+            gameResult = me.game.playDelete(deletionPosition);
+
+        if (gameResult !== Const.OK) {
+            me.appDisplay.showToast(gameResult);
+        }
 
         me.showMove();
+
+        return gameResult;
     }
 
-    /* ----- Cookie Interactions ----- */
+    pickerBlurCallback(event) {
+        var me = event.srcElement.callbackAccessor;
 
-    /*
-    constructGameFromCookieWords(name, words) {
-        // Make a copy of the array of words because we will modify it.
+        // Change the size of the picker so that it is no longer
+        // showing 10 elements when the user moves the mouse away.
+        me.letterPicker.setAttribute("size", 1);
+        console.log("pickerBlurCallback");
+    }
 
-        words = [...words];
+    pickerChangeCallback(event) {
+        //console.log("pickerChangeCallback(): event: ", event);
+        var me = event.srcElement.callbackAccessor;
 
-        // The cookie words are the start word, the words played so far, and
-        // the target word. Pick off the start and target words and create a solution.
-        const startWord = words.shift();
-        const targetWord = words.pop();
-        const solution = Solver.fastSolve(this.dict, startWord, targetWord);
+        if (me.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
+            me.appDisplay.showToast("Pick a letter");
+            // TODO: Show a toast saying to pick a letter?
+            return Const.PICK_LETTER;
+        }
 
-        // Use the solution to create a new game.
-        let game = new Game(name, this.dict, solution, this.typeSavingMode);
 
-        // The words remaining in the list are the words that the user played;
-        // play the game with them. No need to check the result because we only
-        // save in-progress games with good words to the cookies.
-        for (let word of words) {
-            game.playWord(word);
-        }    
+        // Change the size of the picker back to 1 when a letter has been picked.
+        me.letterPicker.setAttribute("size", 1);
 
-        if (name === "DailyGame" && game.isSolved() && !this.dailySolutionShown) {
-            // Save the share graphic, but not stats; stats were already saved when the game completed.
-            this.saveGameInfo(game, false);
-        }    
+        let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition')),
+            gameResult = me.game.playLetter(letterPosition, me.letterPicker.value);
+        console.log("gameResult:", gameResult);
 
-        return game 
-    }    
-    */
+        if (gameResult !== Const.OK) {
+            me.appDisplay.showToast(gameResult);
+        }
+
+        me.letterPicker.value = GameDisplay.PICKER_UNSELECTED;
+
+        me.showMove();
+
+        return gameResult;
+    }
+
+    pickerFocusCallback(event) {
+        var me = event.srcElement.callbackAccessor;
+
+        // Change the size of the picker so that multiple words are
+        // shown with scrolling to select.
+        me.letterPicker.setAttribute("size", 10);
+        //console.log("pickerFocusCallback");
+    }
 }
 
 export { GameDisplay };

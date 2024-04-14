@@ -12,7 +12,7 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // to settings changes.
         this.appDisplay = appDisplay;
 
-        ElementUtilities.addClass(this.contentContainer, 'settings-content-div');
+        ElementUtilities.addClass(this.contentContainer, 'settings-content-container');
 
         ElementUtilities.addElementTo("h1", this.contentContainer, {align: "center"}, "SETTINGS");
 
