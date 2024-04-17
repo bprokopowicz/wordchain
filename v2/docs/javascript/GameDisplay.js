@@ -82,99 +82,15 @@ class GameDisplay extends BaseLogger {
 
     /* ----- Game ----- */
 
+    addTd() {
+        return ElementUtilities.addElementTo("td", this.rowElement, {class: 'td-cell'});
+    }
+
     // Called from derived class!
     constructGame(start, target) {
         //this.game = new PseudoGame(this.dict, start, target);
         this.game = new Game(this.dict, start, target);
         this.showMove();
-    }
-
-    getGame() {
-        return this.game;
-    }
-
-    showMove() {
-        if (this.game.over()) {
-            this.appDisplay.showToast(Const.GAME_OVER);
-            this.disablePicker();
-            return;
-        }
-        
-        const container = ElementUtilities.addElementTo("div", this.gameDiv, {class: "setting-text"}),
-              tableElement = ElementUtilities.addElementTo("table", container, {class: "setting-text"});
-
-        this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
-
-        var displayInstruction;
-        while (displayInstruction = this.game.getNextDisplayInstruction()) {
-            console.log("displayInstruction:", displayInstruction);
-
-            if (displayInstruction.displayType === Const.ADD) {
-                this.displayAdd(displayInstruction);
-            } else if (displayInstruction.displayType === Const.CHANGE) {
-                this.displayChange(displayInstruction);
-            } else if (displayInstruction.displayType === Const.DELETE) {
-                // This method adds another row, so unlike the others,
-                // it needs access to the table element.
-                this.displayDelete(displayInstruction, tableElement);
-            } else if (displayInstruction.displayType === Const.FUTURE) {
-                this.displayFuture(displayInstruction);
-            } else if (displayInstruction.displayType === Const.PLAYED) {
-                this.displayPlayed(displayInstruction);
-            } else if (displayInstruction.displayType === Const.TARGET) {
-                this.displayTarget(displayInstruction);
-            } else {
-                console.error("Unexpected displayType: ", displayInstruction.displayType);
-            }
-
-            this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
-        }
-
-        // Delete old move and add new one.
-        ElementUtilities.deleteChildren(this.gameDiv);
-        ElementUtilities.addElementTo(container, this.gameDiv);
-
-        if (this.pickerEnabled) {
-            this.enablePicker();
-        } else {
-            this.disablePicker();
-        }
-    }
-
-    addTd() {
-        return ElementUtilities.addElementTo("td", this.rowElement);
-    }
-
-    displayCommon(displayInstruction, cellCreator, hideAdditionCells=true) {
-        //console.log("displayCommon(): displayInstruction: ", displayInstruction);
-        var additionPosition = 0,
-            cell = null,
-            tdElement = null,
-            wordLength = displayInstruction.wordLength,
-            word = displayInstruction.word,
-            letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
-            wasCorrect = displayInstruction.wasCorrect;
-
-        // Pass 'this' to AdditionCell constructor here and in the loop, so that it can
-        // be saved as "callbackAccessor" in the button so that the callback can get
-        // back to this object (via event.srcElement.callbackAccessor).
-        tdElement = this.addTd();
-        cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
-
-        ElementUtilities.addElementTo(cell.getElement(), tdElement);
-        additionPosition++;
-
-        for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
-            tdElement = this.addTd();
-            cell = cellCreator(letters[letterIndex], letterIndex + 1);
-            ElementUtilities.addElementTo(cell.getElement(), tdElement);
-            cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
-
-            tdElement = this.addTd();
-
-            ElementUtilities.addElementTo(cell.getElement(), tdElement);
-            additionPosition++;
-        }
     }
 
     displayAdd(displayInstruction) {
@@ -185,8 +101,8 @@ class GameDisplay extends BaseLogger {
                 displayInstruction.wasCorrect, displayInstruction.changePosition);
         }
 
-        // Don't hide addition cells.
         this.pickerEnabled = false;
+        // Pass false for hideAdditionCells.
         this.displayCommon(displayInstruction, getCell, false);
     }
 
@@ -223,7 +139,7 @@ class GameDisplay extends BaseLogger {
             return new DeletionCell(letterPosition, me, me.deletionClickCallback);
         }
 
-        // Display the picker (because it is not used during deletion) and then display.
+        // Disable the picker (because it is not used during deletion) and then display.
         this.pickerEnabled = false;
         this.displayCommon(displayInstruction, getDeletionCell);
     }
@@ -245,17 +161,17 @@ class GameDisplay extends BaseLogger {
     }
 
     displayTarget(displayInstruction) {
-        var showSuccessful = false;
+        var showSuccessful = false,
+            gameOver = false;
 
         function getCell(letter, __letterPosition) {
-            return new TargetLetterCell(letter, showSuccessful);
+            return new TargetLetterCell(letter, showSuccessful, gameOver);
         }
 
-        //if (displayInstruction.endOfGame) {
-        if (this.game.over()) {
-            this.pickerEnabled = false;
+        if (this.game.isOver()) {
+            gameOver = true;
 
-            if (this.game.winner()) {
+            if (this.game.isWinner()) {
                 showSuccessful = true;
             }
         }
@@ -263,12 +179,67 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell);
     }
 
+    getGame() {
+        return this.game;
+    }
+
+    showMove() {
+        const container = ElementUtilities.addElementTo("div", this.gameDiv, {class: "setting-text"}),
+              tableElement = ElementUtilities.addElementTo("table", container, {class: "setting-text"});
+
+        this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
+
+        var displayInstruction;
+        while (displayInstruction = this.game.getNextDisplayInstruction()) {
+            //console.log("displayInstruction:", displayInstruction);
+
+            if (displayInstruction.displayType === Const.ADD) {
+                this.displayAdd(displayInstruction);
+            } else if (displayInstruction.displayType === Const.CHANGE) {
+                this.displayChange(displayInstruction);
+            } else if (displayInstruction.displayType === Const.DELETE) {
+                // This method adds another row, so unlike the others,
+                // it needs access to the table element.
+                this.displayDelete(displayInstruction, tableElement);
+            } else if (displayInstruction.displayType === Const.FUTURE) {
+                this.displayFuture(displayInstruction);
+            } else if (displayInstruction.displayType === Const.PLAYED) {
+                this.displayPlayed(displayInstruction);
+            } else if (displayInstruction.displayType === Const.TARGET) {
+                this.displayTarget(displayInstruction);
+            } else {
+                console.error("Unexpected displayType: ", displayInstruction.displayType);
+            }
+
+            this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
+        }
+
+        // Delete old move and add new one.
+        ElementUtilities.deleteChildren(this.gameDiv);
+        ElementUtilities.addElementTo(container, this.gameDiv);
+
+        if (this.pickerEnabled) {
+            this.enablePicker();
+        } else {
+            this.disablePicker();
+        }
+
+        if (this.game.isOver()) {
+            if (this.game.isWinner()) {
+                this.appDisplay.showToast(Const.GAME_WON);
+            } else {
+                this.appDisplay.showToast(Const.GAME_LOST);
+            }
+            this.disablePicker();
+        }
+    }
+
     /* ----- Callbacks ----- */
 
     additionClickCallback(event) {
         var me = event.srcElement.callbackAccessor;
 
-        console.log("additionClickCallback(): event: ", event);
+        //console.log("additionClickCallback(): event: ", event);
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
             gameResult = me.game.playAdd(additionPosition);
 
@@ -284,7 +255,7 @@ class GameDisplay extends BaseLogger {
     deletionClickCallback(event) {
         var me = event.srcElement.callbackAccessor;
 
-        console.log("deletionClickCallback(): event: ", event);
+        //console.log("deletionClickCallback(): event: ", event);
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
             gameResult = me.game.playDelete(deletionPosition);
 
@@ -303,7 +274,7 @@ class GameDisplay extends BaseLogger {
         // Change the size of the picker so that it is no longer
         // showing 10 elements when the user moves the mouse away.
         me.letterPicker.setAttribute("size", 1);
-        console.log("pickerBlurCallback");
+        //console.log("pickerBlurCallback");
     }
 
     pickerChangeCallback(event) {
@@ -322,7 +293,6 @@ class GameDisplay extends BaseLogger {
 
         let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition')),
             gameResult = me.game.playLetter(letterPosition, me.letterPicker.value);
-        console.log("gameResult:", gameResult);
 
         if (gameResult !== Const.OK) {
             me.appDisplay.showToast(gameResult);
@@ -342,6 +312,40 @@ class GameDisplay extends BaseLogger {
         // shown with scrolling to select.
         me.letterPicker.setAttribute("size", 10);
         //console.log("pickerFocusCallback");
+    }
+
+    /* ----- Utilities ----- */
+
+    displayCommon(displayInstruction, cellCreator, hideAdditionCells=true) {
+        //console.log("displayCommon(): displayInstruction: ", displayInstruction);
+        var additionPosition = 0,
+            cell = null,
+            tdElement = null,
+            wordLength = displayInstruction.wordLength,
+            word = displayInstruction.word,
+            letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
+            wasCorrect = displayInstruction.wasCorrect;
+
+        // Pass 'this' to AdditionCell constructor here and in the loop, so that it can
+        // be saved as "callbackAccessor" in the button so that the callback can get
+        // back to this object (via event.srcElement.callbackAccessor).
+        tdElement = this.addTd();
+        cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+
+        ElementUtilities.addElementTo(cell.getElement(), tdElement);
+        additionPosition++;
+
+        for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
+            tdElement = this.addTd();
+            cell = cellCreator(letters[letterIndex], letterIndex + 1);
+            ElementUtilities.addElementTo(cell.getElement(), tdElement);
+            cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+
+            tdElement = this.addTd();
+
+            ElementUtilities.addElementTo(cell.getElement(), tdElement);
+            additionPosition++;
+        }
     }
 }
 

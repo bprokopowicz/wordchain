@@ -1,5 +1,5 @@
 import { DisplayInstruction } from './DisplayInstruction.js';
-import { Solver, Solution} from './Solver.js';
+import { Solver, Solution, PlayedWord} from './Solver.js';
 import { WordChainDict } from './WordChainDict.js';
 import * as Const from './Const.js'
 
@@ -74,6 +74,7 @@ class Game {
     // the game can be displayed just the same as if a user finished with all
     // correct moves.
     finishGame() {
+        this.partialSolution = this.fullSolutionGivenProgress.copy();
     }
 
     /*
@@ -92,14 +93,9 @@ class Game {
     */
     getGameInfo() {
         return {
-            over: this.over(),
-            extraSteps: 1,
-            gameSummary: [
-                {wordLength: 3, wasCorrect: true}, 
-                {wordLength: 4, wasCorrect: true}, 
-                {wordLength: 3, wasCorrect: false}, 
-                {wordLength: 3, wasCorrect: true}, 
-            ]
+            over: this.isOver(),
+            extraSteps: this.partialSolution.totalPenalty(),
+            gameSummary: this.partialSolution.getPlayedWords().map((playedWord)=>new Object({wordLength: playedWord.word.length, wasCorrect: playedWord.penalty==0})),
         }
     }
 
@@ -127,6 +123,8 @@ class Game {
         if (this.wordToDisplayIndex < lastWordPlayedIndex) {
             // just display the whole word as it has already been played.  
             displayInstruction = new DisplayInstruction(wordBeingDisplayed, Const.PLAYED, 0, correct, penalty);
+        } else if (this.wordToDisplayIndex == highestIndex) {
+            displayInstruction = new DisplayInstruction(this.fullSolutionGivenProgress.getTarget(), Const.TARGET, 0, correct, penalty);
         } else if (this.wordToDisplayIndex == lastWordPlayedIndex) {
             // we are displaying the last played word, which includes instructions on how to get to the next word:
             let nextWord = this.fullSolutionGivenProgress.getNthWord(lastWordPlayedIndex + 1);
@@ -136,8 +134,6 @@ class Game {
                 nextWord = this.fullSolutionGivenProgress.getNthWord(lastWordPlayedIndex);
             }
             displayInstruction = this.displayInstructionForPlayingFromWordToWord(wordBeingDisplayed, nextWord, penalty);
-        } else if (this.wordToDisplayIndex == highestIndex) {
-            displayInstruction = new DisplayInstruction(this.fullSolutionGivenProgress.getTarget(), Const.TARGET, 0, correct, penalty);
         } else {
             // we are displaying some word later than the currently active word, but not the taget.
             displayInstruction = new DisplayInstruction(wordBeingDisplayed, Const.FUTURE, 0, correct, penalty);
@@ -173,8 +169,9 @@ class Game {
         }
     }
     // Return true if game is over; false otherwise.
-    over() {
-        return this.partialSolution.isSolved();
+    isOver() {
+        //TODO - const or calculation for max number of extra steps allowed.
+        return this.partialSolution.isSolved() || this.partialSolution.totalPenalty() >= Const.TOO_MANY_EXTRA_STEPS;
     }
 
     addWordIfExists(word) {
@@ -249,8 +246,9 @@ class Game {
 
     // Return true if the game has been won; false otherwise.
     // If over() would return false this should return false.
-    winner() {
-        console.log("winner()");
+    isWinner() {
+        console.log("winner() - returning", this.partialSolution.isSolved());
+        return this.partialSolution.isSolved();
     }
 }
 

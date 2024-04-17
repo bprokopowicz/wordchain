@@ -204,7 +204,7 @@ class DailyGameDisplay extends GameDisplay {
     }
 
     updateGameStats(gameResult) {
-        if (gameResult === Const.OK && this.game.over()) {
+        if (gameResult === Const.OK && this.game.isOver()) {
             this.incrementStat("gamesCompleted");
 
             // This returns an object that includes an 'extraSteps' property when the

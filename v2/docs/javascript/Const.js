@@ -4,15 +4,13 @@ export const DICT_URL = `${URL_ROOT}/resources/dict/WordFreqDict`;
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
+// --- Returned from Game class.
 export const OK           = "ok";
-export const NOT_ONE_STEP = "Not one step";
-export const DEAD_END     = "No solution";
-export const DUPLICATE    = "Already played";
 export const NOT_A_WORD   = "Not in word list";
-export const TOO_SHORT    = "Too short";
-export const GAME_OVER    = "Solved!";
-// NOTE: Not returned from Game.play*(); returned when no letter in picker.
-export const PICK_LETTER  = "Pick a letter";
+// --- Displayed from GameDisplay class.
+export const GAME_WON     = "Solved!";
+export const GAME_LOST    = "Too many extra steps";
+export const PICK_LETTER  = "Pick a letter";             // Displayed when no letter in picker.
 
 // Returns from Game class that indicate a bug in its input from GameDisplay.
 export const BAD_OPERATION       = "bad operation";
@@ -35,19 +33,15 @@ export const INSERT_CHAR    = "+";
 export const MIN_WORD_LENGTH = 3;
 export const MAX_WORD_LENGTH = 6;
 
-export const RESET_START  = "start";
-export const RESET_TARGET = "target";
-export const RESET_BOTH   = "both";
-
 // Constants for keyboard action buttons on game play and
 // practice game word selection screens.
-export const BACKSPACE = "←"; 
-export const ENTER = "↵"; 
+//export const BACKSPACE = "←"; 
+//export const ENTER = "↵"; 
 
 // Constants for practice game word selection screen
-export const PRACTICE_GAMES_PER_DAY = 30;
-export const PLACEHOLDER = "*";
-export const PLACEHOLDER_WORD = PLACEHOLDER.repeat(MAX_WORD_LENGTH);
+export const PRACTICE_GAMES_PER_DAY = 3;
+//export const PLACEHOLDER = "*";
+//export const PLACEHOLDER_WORD = PLACEHOLDER.repeat(MAX_WORD_LENGTH);
 
 // Constants for settings screen
 export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
@@ -60,7 +54,7 @@ export const GREEN_SQUARE   = "\u{1F7E9}";     // No extra steps in graphic
 export const ORANGE_SQUARE  = "\u{1F7E7}";     // Extra steps in graphic -- colorblind
 export const BLUE_SQUARE    = "\u{1F7E6}";     // No extra steps in graphic -- colorblind
 export const STAR           = "\u{2B50}";      // No extra steps in first share line
-export const CONFOUNDED     = "\u{1F616}";     // Too many extra steps in first share line
+export const CONFOUNDED     = "\u{1F616}";     // Too many extra steps in first share line and stats graph
 export const FIRE           = "\u{1F525}";     // CURRENTLY NOT USED: Hard mode in first share line
 export const ROCKET         = "\u{1F680}";     // Unused
 export const FIREWORKS      = "\u{1F386}";     // Unused

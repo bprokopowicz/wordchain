@@ -19,7 +19,7 @@ class Cell {
     }
 }
 
-// ActionCell Classes
+/* ----- ActionCell Classes ----- */
 
 class ActionCell extends Cell {
     constructor(symbol, callbackAccessor, callback, deletion) {
@@ -70,7 +70,7 @@ class DeletionCell extends ActionCell {
     }
 }
 
-// LetterCell Classes
+/* ----- LetterCell Classes ----- */
 
 class LetterCell extends Cell {
     constructor(letter) {
@@ -85,13 +85,10 @@ class LetterCell extends Cell {
         this.addContentsClass("letter");
     }
 
-    addCorrectnessClass(correct, targetWord=false) {
-        if (targetWord) {
-            if (correct) {
-                this.addClass("letter-cell-good");
-            } else {
-                this.addClass("letter-cell-target");
-            }
+    addCorrectnessClass(correct, targetWordInProgress=false) {
+        console.log("addCorrectnessClass(): correct: ", correct, "targetWordInProgress:", targetWordInProgress);
+        if (targetWordInProgress) {
+            this.addClass("letter-cell-target");
         } else {
             if (correct) {
                 this.addClass("letter-cell-good");
@@ -141,10 +138,10 @@ class FutureLetterCell extends LetterCell {
 }
 
 class TargetLetterCell extends LetterCell {
-    constructor(letter, wasSuccessful) {
+    constructor(letter, wasSuccessful, gameOver) {
         super(letter);
-        // Pass true to indicate this is a TargetLetterCell.
-        this.addCorrectnessClass(wasSuccessful, true);
+        // Pass !gameOver for targetWordInProgress
+        this.addCorrectnessClass(wasSuccessful, !gameOver);
     }
 }
 

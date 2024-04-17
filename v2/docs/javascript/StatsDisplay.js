@@ -88,7 +88,7 @@ class StatsDisplay extends AuxiliaryDisplay {
                 })  
                 .catch((error) => {
                     callbackAccessor.appDisplay.showToast("Failed to share")
-                    console.log("Failed to share: ", error);
+                    console.error("Failed to share: ", error);
                 }); 
             } else {
                 // No -- just save the shareString to the clipboard (probably on a laptop/desktop).
@@ -179,7 +179,6 @@ class StatsDisplay extends AuxiliaryDisplay {
         // Get the daily stats from the cookies. We should always have stats because we
         // create them on constructing the daily game, so log if we don't.
         let dailyStats = Cookie.getJsonOrElse("DailyStats", null);
-        console.log("dailyStats:", dailyStats);
 
         if (dailyStats === null)
         {
@@ -254,8 +253,6 @@ class StatsDisplay extends AuxiliaryDisplay {
         // Add a bar for too many extra steps.
         addBar(dailyStats.tooManyExtraSteps, Const.CONFOUNDED, this.statsDistribution);
     }
-
-
 }
 
 export { StatsDisplay };

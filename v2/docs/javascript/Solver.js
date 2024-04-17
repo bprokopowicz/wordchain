@@ -94,6 +94,14 @@ class PlayedWord {
     toString() {
         return `${this.word}:${this.penalty}`;
     }
+
+    wordLength() {
+        return this.word.length;
+    }
+
+    wasCorrect() {
+        return this.penalty = 0;
+    }
 }
 
 class Solution extends BaseLogger {
@@ -119,6 +127,13 @@ class Solution extends BaseLogger {
         return this;
     }
 
+    totalPenalty() {
+        let penalty = 0;
+        for (let word of this.playedWords) {
+            penalty += word.penalty;
+        }
+        return penalty;
+    }
 
     copy() {
         let playedListCopy = [...this.playedWords];
@@ -171,6 +186,10 @@ class Solution extends BaseLogger {
         return this.playedWords.length - 1;
     }
 
+    getPlayedWords() {
+        return this.playedWords;
+    }
+
     success() {
         return this.errorMessage.length === 0;
     }
@@ -192,4 +211,4 @@ class Solution extends BaseLogger {
     }
 }
 
-export { Solver, Solution };
+export { Solver, Solution, PlayedWord };

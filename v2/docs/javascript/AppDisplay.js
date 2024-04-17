@@ -35,12 +35,6 @@ const globalWordList = await fetch(Const.DICT_URL)
   .then(text => text.split("\n"));
   */
 
-/*
-** ==========================
-** SINGLETON CLASS AppDisplay
-** ==========================
-*/
-
 class AppDisplay extends BaseLogger {
 
     /* ----- Class Constants ----- */
