@@ -27,7 +27,7 @@ class AuxiliaryDisplay {
         const closeButtonContainer = ElementUtilities.addElementTo("div", this.contentContainer, {class: "close-button-div",});
         this.closeButton = this.createSvgButton(closeButtonContainer, "close-button", this.closeAuxiliaryCallback, Const.CLOSE_PATH);
         this.closeButton.callbackAccessor = this;
-        
+
         // Add a break so that the content appears below the close button.
         ElementUtilities.addElementTo("div", this.contentContainer, {class: "break"});
     }
@@ -42,7 +42,7 @@ class AuxiliaryDisplay {
         // TODO: Should make the width controllable.
         const svg = ElementUtilities.addElementTo("svg", button,
             {viewBox: "0 0 24 24", style: "width: 24; height: 24;", stroke: "None",});
-        
+
         // Finally, add the path, whose "d" attribute is passed to us
         // using the big, ugly class constants.
         const path = ElementUtilities.addElementTo("path", svg, {d: svgPath});
@@ -57,7 +57,7 @@ class AuxiliaryDisplay {
         }
 
         return button;
-    }   
+    }
 
     /* ----- Callbacks ----- */
 
@@ -65,73 +65,63 @@ class AuxiliaryDisplay {
     closeAuxiliaryCallback(event) {
         // When the button was created with createSvgButton() we saved 'this'
         // as callbackAccessor on the button; use it to access other instance data.
-        const callbackAccessor = event.srcElement.callbackAccessor;
-        //console.log("closeAuxiliaryCallback(): callbackAccessor.isOpen:", callbackAccessor.isOpen, ", event:", event);
+        const me = event.srcElement.callbackAccessor;
+        //console.log("closeAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event);
 
         // By necessity, we have attached this callback to multiple elements that
         // comprise the close button. Any combination of them may generate an event,
         // but we only want to respond to it on the first one. If the display is NOT
         // open it means this is not the first call for the user's click, so we just
         // return now.
-        if (! callbackAccessor.isOpen) {
+        if (! me.isOpen) {
             return;
         }
 
         // If the derived class defined a function to do additional things on closure,
         // call the function.
-        if (callbackAccessor.additionalCloseActions) {
-            callbackAccessor.additionalCloseActions();
+        if (me.additionalCloseActions) {
+            me.additionalCloseActions();
         }
 
         // Now set the flag to prevent another call from doing anything.
-        callbackAccessor.isOpen = false;
+        me.isOpen = false;
 
         // Hide the auxiliary screen.
-        callbackAccessor.auxiliaryContainer.style.display = "none";
-        
+        me.auxiliaryContainer.style.display = "none";
+
         // Now restore the containers that we saved when the auxiliary screen was opened.
-        callbackAccessor.restoreHiddenContainers();
-    }           
-                
+        me.restoreHiddenContainers();
+    }
+
     // Callback for opening an Auxiliary screen.
     openAuxiliaryCallback(event) {
         // When the button was created with createSvgButton() we saved 'this'
         // as callbackAccessor on the button; use it to access other instance data.
-        const callbackAccessor = event.srcElement.callbackAccessor;
-        //console.log("openAuxiliaryCallback(): callbackAccessor.isOpen:", callbackAccessor.isOpen, ", event:", event);
+        const me = event.srcElement.callbackAccessor;
+        //console.log("openAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event);
 
         // By necessity, we have attached this callback to multiple elements that
         // comprise the button that opens this display. Any combination of them may
         // generate an event, but we only want to respond to it on the first one.
         // If the display is ALREADY open it means this is not the first call for
         // the user's click, so we just return now.
-        if (callbackAccessor.isOpen) {
+        if (me.isOpen) {
             return;
         }
 
         // If the derived class defined a function to do additional things on open,
         // call the function.
-        if (callbackAccessor.additionalOpenActions) {
-            callbackAccessor.additionalOpenActions();
+        if (me.additionalOpenActions) {
+            me.additionalOpenActions();
         }
 
         // Now set the flag to prevent another call from doing anything.
-        callbackAccessor.isOpen = true;
-        
-        // Hide the containers that are currently showing and save information
-        // so we can restore them.
-        callbackAccessor.hideShownContainers();
-        
-        /*
-        ========== Still need to deal with this? How? This is not the right place!
-        ========== Maybe an additional function passed to ctor to call? openScreenAction()
-        if (sourceElementId === "stats-div") {
-            this.updateStatsContent();
-            this.startCountdownClock();
-        }
-        */
+        me.isOpen = true;
 
-        callbackAccessor.auxiliaryContainer.style.display = "flex";
+        // Hide the containers that are currently showing and save information
+        // so we can restore them, and restore this one.
+        me.hideShownContainers();
+        ElementUtilities.show(me.auxiliaryContainer);
     }
 
     /* ----- Utilities ----- */
@@ -153,11 +143,9 @@ class AuxiliaryDisplay {
                 this.activeContainers.push(container);
 
                 // Set the attribute "data-save-style" on the container, which will be
-                // used to restore the container.
+                // used to restore the container. Then hide the container.
                 container.setAttribute("data-save-style", containerStyle);
-
-                // And hide it.
-                container.setAttribute("style", "display: none;");
+                ElementUtilities.hide(container);
             }
         }
     }
@@ -168,17 +156,6 @@ class AuxiliaryDisplay {
             // Get the attribute that we saved so we know what style to put on the div.
             const containerStyle = div.getAttribute("data-save-style");
 
-            /*
-            ========== Still need to deal with this? How? This is not the right place!
-            ========== Maybe an additional function passed to ctor to call? closeScreenAction()
-            // If restoring game-div, update the colors affected  by settings
-            // and update the game display to make those changes take effect.
-            if (div.getAttribute("id") == "game-div") {
-                this.setColors();
-                this.updateGameDisplay();
-            }
-            */
-
             // Now set the style attribute to what we'd saved, which will show the div.
             // And remove the data-save-style attribute because we don't need it anymore
             // and it screws things up when accessing the screen multiple times in a row.
@@ -186,7 +163,6 @@ class AuxiliaryDisplay {
             div.removeAttribute("data-save-style");
         }
     }
-
 }
 
 export { AuxiliaryDisplay };

@@ -2,12 +2,11 @@ import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { GameDisplay } from './GameDisplay.js';
-import { PseudoGame } from './PseudoGame.js';
 import * as Const from './Const.js';
 
 class DailyGameDisplay extends GameDisplay {
 
-    /* ----- Class Variables */
+    /* ----- Class Variables ----- */
 
     static BaseDate = new Date("2023-10-01T00:00:00.000+00:00");
     static BaseTimestamp = null;
@@ -77,7 +76,7 @@ class DailyGameDisplay extends GameDisplay {
         }
 
         // Now create a stat for each allowed number of extra steps, and initialize
-        // their values to 0. The stat properties for these is 0..TOO_MANY_EXTRA_STEPS. 
+        // their values to 0. The stat properties for these is 0..TOO_MANY_EXTRA_STEPS.
         for (let extraSteps = 0; extraSteps <= Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
             initialStats[extraSteps] = 0;
         }
@@ -93,7 +92,7 @@ class DailyGameDisplay extends GameDisplay {
         // Create a backup daily game words, in case we cannot get one.
         this.backupStartWord  = "daily";
         this.backupTargetWord = "broken";
-        
+
         // Get today's daily game; this will set this.startWord and
         // this.targetWord so that we can call the base class constructGame()
         // and display the game.
@@ -237,6 +236,19 @@ class DailyGameDisplay extends GameDisplay {
             this.dailyStats[whichStat] += 1;
             Cookie.saveJson("DailyStats", this.dailyStats);
         }
+    }
+
+    // Called from AppDisplay when "Solution" button is clicked.
+    showSolution() {
+        // TODO: Add an "are you sure?"
+        this.dailySolutionShown = true;
+        Cookie.save("DailySolutionShown", true);
+        this.incrementStat("gamesShown");
+        this.game.finishGame();
+
+        // Pass "true" to showMove() to indicate the user has elected to show the
+        // solution so that the happy "game won" toast is not shown.
+        this.showMove(true);
     }
 }
 

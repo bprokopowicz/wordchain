@@ -52,7 +52,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         // it (via event.srcElement.callbackAccessor) in the callback.
         this.shareButton.callbackAccessor = this;
         ElementUtilities.setButtonCallback(this.shareButton, this.shareCallback);
-    }   
+    }
 
     /*
     ** ----- Callbacks -----
@@ -69,14 +69,15 @@ class StatsDisplay extends AuxiliaryDisplay {
     additionalOpenActions() {
         this.updateStatsContent();
         this.startCountdownClock();
+        this.updateShare();
     }
 
     // Callback for the Share button.
     shareCallback(event) {
         // When the button was created we saved 'this' as callbackAccessor in the button
         // element; use it to access other instance data.
-        const callbackAccessor = event.srcElement.callbackAccessor,
-              shareString = callbackAccessor.getShareString();
+        const me = event.srcElement.callbackAccessor,
+              shareString = me.getShareString();
 
         if (shareString)
         {
@@ -85,18 +86,18 @@ class StatsDisplay extends AuxiliaryDisplay {
                 // Yes -- use the button to share the shareString.
                 navigator.share({
                     text: shareString,
-                })  
+                })
                 .catch((error) => {
-                    callbackAccessor.appDisplay.showToast("Failed to share")
+                    me.appDisplay.showToast("Failed to share")
                     console.error("Failed to share: ", error);
-                }); 
+                });
             } else {
                 // No -- just save the shareString to the clipboard (probably on a laptop/desktop).
                 navigator.clipboard.writeText(shareString);
-                callbackAccessor.appDisplay.showToast("Copied to clipboard")
-            }   
+                me.appDisplay.showToast("Copied to clipboard")
+            }
         }
-    }   
+    }
 
     /* ----- Utilities ----- */
 
@@ -105,7 +106,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     // some Unicode characters to construct the graphic.
     getShareString(game) {
         // This returns an object with 4 properties, the last 3 of which are populated only if
-        // over is true): 
+        // over is true):
         //
         //  over:            true if the game is over (user has found target word or too many steps)
         //  extraSteps:      how many more steps it took to solve than the minimum
@@ -172,6 +173,16 @@ class StatsDisplay extends AuxiliaryDisplay {
             msUntilNextGame -= 1000;
             this.countdownClock.textContent = msToDuration(msUntilNextGame);
         }, 1000);
+    }
+
+    // Hide or show the share callback based on whether the daily game solution
+    // has been shown.
+    updateShare() {
+        if (Cookie.getBoolean("DailySolutionShown")) {
+            this.shareButton.style.display = "none";
+        } else {
+            this.shareButton.style.display = "block";
+        }
     }
 
     // Update the statistics and distribution graph.

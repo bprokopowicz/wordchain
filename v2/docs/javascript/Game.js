@@ -70,6 +70,13 @@ class Game {
     The last word is TARGET
     */
 
+    // Choose a random start/target that has a solution between
+    // Const.PRACTICE_STEPS_MINIMUM and Const.PRACTICE_STEPS_MAXIMUM
+    // steps. Returns an array: [startWord, targetWord].
+    static getPracticePuzzle() {
+        return ["dog", "cat"];
+    }
+
     // Finishes the game. When getNextDisplayInstruction() is called after this,
     // the game can be displayed just the same as if a user finished with all
     // correct moves.
@@ -77,26 +84,22 @@ class Game {
         this.partialSolution = this.fullSolutionGivenProgress.copy();
     }
 
-    /*
-    Returns an object like this:
-
-        {
-            over: true if user has found target word or steps-minSteps >= Const.TOO_MANY_EXTRA_STEPS
-
-            // Only include these two if over is true.
-
-            extraSteps: how many more it took to solve than the minimum
-
-            // This will tell me how to construct the share graphic.
-            gameSummary: array of wordInfo, where wordInfo is an object with two properties: wordLength, wasCorrect
-        }
-    */
+    // Gets information about the game that enables generation of stats and share graphic.
+    // Returns an object like this:
+    //
+    //  {
+    //      over: true if user has found target word or steps-minSteps >= Const.TOO_MANY_EXTRA_STEPS
+    //
+    //      // These would only be used if over is true.
+    //      extraSteps: how many more it took to solve than the minimum
+    //      gameSummary: array of wordInfo, where wordInfo is an object with two properties: wordLength, wasCorrect
+    //  }
     getGameInfo() {
         return {
             over: this.isOver(),
             extraSteps: this.partialSolution.totalPenalty(),
             gameSummary: this.partialSolution.getPlayedWords().map((playedWord)=>new Object({wordLength: playedWord.word.length, wasCorrect: playedWord.penalty==0})),
-        }
+        };
     }
 
     getNextDisplayInstruction() {

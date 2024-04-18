@@ -1,6 +1,7 @@
 import { BaseLogger } from './BaseLogger.js';
 import { WordChainDict } from './WordChainDict.js';
 import { DailyGameDisplay } from './DailyGameDisplay.js';
+import { PracticeGameDisplay } from './PracticeGameDisplay.js';
 import { HelpDisplay } from './HelpDisplay.js';
 import { SettingsDisplay } from './SettingsDisplay.js';
 import { StatsDisplay } from './StatsDisplay.js';
@@ -12,6 +13,8 @@ import * as Const from './Const.js';
 /*
 ** TODO:
 ** Implementation
+** - Solution button -- add means to show WordChain's solution?
+** - Resolve all TOODs!
 **
 ** Before Sharing with Initial Friends
 ** - Review help message
@@ -25,22 +28,14 @@ import * as Const from './Const.js';
 ** - How to manage daily game words long-term?
 ** - Testing on various browsers/devices
 ** - Cookies: make secure? Save in back-end DB?
-** - Logo/favicon.ict
+** - Logo/favicon.ico
 */
-
-// Synchronously wait for the word list to download.
-/*
-const globalWordList = await fetch(Const.DICT_URL)
-  .then(resp => resp.text())
-  .then(text => text.split("\n"));
-  */
 
 class AppDisplay extends BaseLogger {
 
-    /* ----- Class Constants ----- */
+    /* ----- Class Variables ----- */
 
     static singletonObject = null;
-    static currentGameDisplay = null;
 
     /* ----- Construction ----- */
 
@@ -59,7 +54,7 @@ class AppDisplay extends BaseLogger {
         this.rootDiv = null;
 
         // Holds all the auxiliary screens (Help, Settings, Stats) and MUST be the
-        // first child of rootDiv so that when shown the screens will be at the 
+        // first child of rootDiv so that when shown the screens will be at the
         // top of the viewport.
         this.auxiliaryDiv = null;
 
@@ -102,7 +97,7 @@ class AppDisplay extends BaseLogger {
         this.createToastDiv();
 
         // The lower-div contains the divs for game setup and game play.
-        // TODO: If we ultimately support a separate practice game we will need to 
+        // TODO: If we ultimately support a separate practice game we will need to
         // have multple gameDiv, pickerDiv, pickerInnerDiv.
         this.lowerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "lower-div"});
 
@@ -112,12 +107,22 @@ class AppDisplay extends BaseLogger {
         this.createAuxiliaryScreens();
         this.createGameButtons();
 
-        // This will create the GameDisplay and its game and get it going.
-        // Pass pickerInnerDiv because that's where we want GameDisplay to
-        // add the picker.
+        // Create divs for the daily and practice games and pickers. When switching between games,
+        // these will be shown/hidden as appropriate.
+        this.dailyGameDiv = ElementUtilities.addElementTo("div", this.gameDiv);
+        this.practiceGameDiv = ElementUtilities.addElementTo("div", this.gameDiv);
+        this.dailyPickerDiv = ElementUtilities.addElementTo("div", this.pickerInnerDiv);
+        this.practicePickerDiv = ElementUtilities.addElementTo("div", this.pickerInnerDiv);
 
-        this.dailyGame = new DailyGameDisplay(this, this.gameDiv, this.pickerInnerDiv, this.dict, "ear", "hard");
-        AppDisplay.currentGameDisplay = this.dailyGame;
+        // To start, hide the practice game divs.
+        ElementUtilities.hide(this.practiceGameDiv);
+        ElementUtilities.hide(this.practicePickerDiv);
+
+        // Creation of DailyGameDisplay causes the start/target words to be determined
+        // based on today's date and displays the game's grid for the user to play.
+        this.dailyGame = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv, this.dict);
+        this.practiceGame = null;
+        this.currentGameDisplay = this.dailyGame;
     }
 
     /* ----- Header ----- */
@@ -149,6 +154,17 @@ class AppDisplay extends BaseLogger {
         // it (via event.srcElement.callbackAccessor) in the callback.
         this.solutionButton.callbackAccessor = this;
         ElementUtilities.setButtonCallback(this.solutionButton, this.solutionCallback);
+
+        // Button to switch between Daily and Practice games.
+        this.switchGamesButton = ElementUtilities.addElementTo(
+            "button", this.gameButtonDiv,
+            {id: "switch-games", class: "wordchain-button game-button"},
+            "Practice");
+
+        // Save 'this' in the switchGamesButton element so that we can access
+        // it (via event.srcElement.callbackAccessor) in the callback.
+        this.switchGamesButton.callbackAccessor = this;
+        ElementUtilities.setButtonCallback(this.switchGamesButton, this.switchGamesCallback);
     }
 
     createHeaderDiv() {
@@ -207,30 +223,24 @@ class AppDisplay extends BaseLogger {
 
     // Callback for the Solution button.
     solutionCallback(event) {
-        console.log("Not reimplemented!");
-        return;
-
         // When the button was created we saved 'this' as callbackAccessor in the button
         // element; use it to access other instance data.
-        const callbackAccessor = event.srcElement.callbackAccessor;
+        const me = event.srcElement.callbackAccessor;
+        me.currentGameDisplay.showSolution();
+    }
 
-/*
-REDO
-        // Note when the daily game has ended; only the daily game contributes
-        // to stats, so we won't need to keep track of whether (future) practice or
-        // back-up daily games have been ended.
-        if (callbackAccessor.game.getName() === "DailyGame") {
-            callbackAccessor.dailySolutionShown = true;
-            Cookie.save("DailySolutionShown", callbackAccessor.dailySolutionShown);
-            callbackAccessor.incrementStat("gamesShown");
+    // Callback for the Switch Games button.
+    switchGamesCallback(event) {
+        // When the button was created we saved 'this' as callbackAccessor in the button
+        // element; use it to access other instance data.
+        const me = event.srcElement.callbackAccessor,
+              buttonText = event.srcElement.innerText;
+
+        if (buttonText === "Practice") {
+            me.switchToPracticeGame();
+        } else {
+            me.switchToDailyGame();
         }
-
-        // This call to endGame will play the (remaining) words of the
-        // revealed solution, just like a real game; this sets thing up
-        // for the call to updateGameDisplay().
-        callbackAccessor.gameTileDisplay.endGame();
-        callbackAccessor.updateGameDisplay();
-*/
     }
 
     /* ----- Utilities ----- */
@@ -269,7 +279,7 @@ REDO
         //
         // played-word-good-bg
         // played-word-bad-bg
-        // 
+        //
         // These need to be set according to whether the user has selected colorblind mode
         // as well as whether the user has selected light or dark mode.
         if (this.colorblindMode) {
@@ -300,7 +310,7 @@ REDO
         }
 
         // Re-show the moves to make the color changes take effect.
-        AppDisplay.currentGameDisplay && AppDisplay.currentGameDisplay.showMove();
+        this.currentGameDisplay && this.currentGameDisplay.showMove();
     }
 
     // Set the given CSS property to the specified value.
@@ -315,6 +325,44 @@ REDO
         setTimeout(() => {
             ElementUtilities.editClass(/show/, "hide", this.toastDiv);
         }, 3000);
+    }
+
+    switchToDailyGame() {
+        // Hide practice and show daily.
+        ElementUtilities.hide(this.practiceGameDiv);
+        ElementUtilities.hide(this.practicePickerDiv);
+        ElementUtilities.show(this.dailyGameDiv);
+        ElementUtilities.show(this.dailyPickerDiv);
+
+        // Toggle the button text to Practice.
+        this.switchGamesButton.innerHTML = "Practice";
+
+        this.currentGameDisplay = this.dailyGame;
+    }
+
+    switchToPracticeGame() {
+        if (this.practiceGame === null) {
+            // Creation of PracticeGameDisplay causes the start/target words to be retrieved
+            // from Cookies or randomly selected, and displays the game's grid for the user to play.
+            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv, this.dict);
+        }
+
+        // If the game isn't valid, the user has already played the maximum number of games.
+        if (! this.practiceGame.isValid()) {
+            this.showToast(`Only ${Const.PRACTICE_GAMES_PER_DAY} games allowed per day`);
+            return;
+        }
+
+        // Hide daily and show practice.
+        ElementUtilities.hide(this.dailyGameDiv);
+        ElementUtilities.hide(this.dailyPickerDiv);
+        ElementUtilities.show(this.practiceGameDiv);
+        ElementUtilities.show(this.practicePickerDiv);
+
+        // Toggle the button text to Daily.
+        this.switchGamesButton.innerHTML = "Daily";
+
+        this.currentGameDisplay = this.practiceGame;
     }
 }
 

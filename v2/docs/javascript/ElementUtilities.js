@@ -92,6 +92,10 @@ class ElementUtilities {
         return element.style.visibility === "hidden";
     }
 
+    static hide(element) {
+        element.setAttribute("style", "display: none;");
+    }
+
     static setButtonCallback(buttonElement, callback) {
         // When button is clicked (in Chrome on MacOS) we get a PointerEvent. When you hit RETURN
         // after clicking a button **while the mouse is still in the button** the button retains
@@ -141,10 +145,14 @@ class ElementUtilities {
         //buttonElement.addEventListener("touchstart", callback);
     }
 
-
     static setElementText(element, elementText) {
         element.innerHTML = elementText;
     }
+
+    static show(element, display="flex") {
+        element.setAttribute("style", `display: ${display};`);
+    }
+
 }
 
 export { ElementUtilities };

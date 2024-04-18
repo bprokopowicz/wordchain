@@ -1,7 +1,6 @@
 import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
 import { Game } from './Game.js';
-//import { PseudoGame } from './PseudoGame.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { WordChainDict } from './WordChainDict.js';
 import * as Const from './Const.js';
@@ -13,7 +12,7 @@ class GameDisplay extends BaseLogger {
 
     /* ----- Class Variables ----- */
 
-    PICKER_UNSELECTED = "  ";
+    PICKER_UNSELECTED = " ";
 
     /* ----- Construction ----- */
 
@@ -39,7 +38,7 @@ class GameDisplay extends BaseLogger {
         this.letterPickerContainer = ElementUtilities.addElementTo("div", this.pickerDiv);
 
         this.letterPickerLabel = ElementUtilities.addElementTo(
-            "label", this.letterPickerContainer, {}, "Pick a letter: ")
+            "label", this.letterPickerContainer, {class: "picker-label"}, "Pick a letter: ")
 
         // Initial size will be the default of 1 (so it looks like a button),
         // and when the user focuses on it, the size will change to present a
@@ -47,7 +46,7 @@ class GameDisplay extends BaseLogger {
         this.letterPicker = ElementUtilities.addElementTo("select", this.letterPickerContainer);
 
         ElementUtilities.addElementTo( "option", this.letterPicker,
-            {value: GameDisplay.PICKER_UNSELECTED}, GameDisplay.PICKER_UNSELECTED)
+            {value: GameDisplay.PICKER_UNSELECTED, class: "picker-option"}, GameDisplay.PICKER_UNSELECTED)
 
         var codeLetterA = "A".charCodeAt(0),
             codeLetterZ = "Z".charCodeAt(0),
@@ -55,9 +54,9 @@ class GameDisplay extends BaseLogger {
 
         for (let letterCode = codeLetterA; letterCode <= codeLetterZ; letterCode++) {
             letter = String.fromCharCode(letterCode);
-            ElementUtilities.addElementTo("option", this.letterPicker, {value: letter}, letter)
+            ElementUtilities.addElementTo("option", this.letterPicker, {value: letter, class: "picker-option"}, letter)
         }
- 
+
         // Save 'this' in the letterPicker element so that we can access
         // it (via event.srcElement.callbackAccessor) in the callback.
         this.letterPicker.callbackAccessor = this;
@@ -68,22 +67,22 @@ class GameDisplay extends BaseLogger {
 
     disablePicker() {
         //console.log("disablePicker() this.pickerEnabled:", this.pickerEnabled);
-        this.letterPickerLabel.setAttribute("class", "picker-label-disabled");
-        this.letterPicker.setAttribute("class", "picker-select-disabled");
+        this.letterPickerLabel.setAttribute("class", "picker-label picker-label-disabled");
+        this.letterPicker.setAttribute("class", "picker-select picker-select-disabled");
         this.letterPicker.setAttribute("disabled", "disabled");
     }
 
     enablePicker() {
         //console.log("enablePicker() this.pickerEnabled:", this.pickerEnabled);
-        this.letterPickerLabel.setAttribute("class", "picker-label-enabled");
-        this.letterPicker.setAttribute("class", "picker-select-enabled");
+        this.letterPickerLabel.setAttribute("class", "picker-label picker-label-enabled");
+        this.letterPicker.setAttribute("class", "picker-select picker-select-enabled");
         this.letterPicker.removeAttribute("disabled");
     }
 
     /* ----- Game ----- */
 
     addTd() {
-        return ElementUtilities.addElementTo("td", this.rowElement, {class: 'td-cell'});
+        return ElementUtilities.addElementTo("td", this.rowElement, {class: 'td-game'});
     }
 
     // Called from derived class!
@@ -130,7 +129,7 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getActiveLetterCell);
 
         // Now we add an extra <tr> element for the deletion cell row.
-        this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
+        this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
         function getDeletionCell(letter, letterPosition) {
             // Pass 'me' to DeletionCell constructor so that it can be saved as "callbackAccessor"
@@ -183,11 +182,15 @@ class GameDisplay extends BaseLogger {
         return this.game;
     }
 
-    showMove() {
-        const container = ElementUtilities.addElementTo("div", this.gameDiv, {class: "setting-text"}),
-              tableElement = ElementUtilities.addElementTo("table", container, {class: "setting-text"});
+    showMove(userRequestedSolution=false) {
+        const container = ElementUtilities.addElementTo("div", this.gameDiv),
+              tableElement = ElementUtilities.addElementTo("table", container, {class: "table-game"});
 
-        this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
+        // Create an element that can be used to add buttons (or whatever) after the display of
+        // elements for the game.
+        this.postGameDiv = ElementUtilities.addElementTo("div", container, {class: "break post-game-div"});
+
+        this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
         var displayInstruction;
         while (displayInstruction = this.game.getNextDisplayInstruction()) {
@@ -211,7 +214,7 @@ class GameDisplay extends BaseLogger {
                 console.error("Unexpected displayType: ", displayInstruction.displayType);
             }
 
-            this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "setting-text"});
+            this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
         }
 
         // Delete old move and add new one.
@@ -225,12 +228,20 @@ class GameDisplay extends BaseLogger {
         }
 
         if (this.game.isOver()) {
-            if (this.game.isWinner()) {
-                this.appDisplay.showToast(Const.GAME_WON);
-            } else {
-                this.appDisplay.showToast(Const.GAME_LOST);
+            if (!userRequestedSolution) {
+                if (this.game.isWinner()) {
+                    this.appDisplay.showToast(Const.GAME_WON);
+                } else {
+                    this.appDisplay.showToast(Const.GAME_LOST);
+                }
             }
             this.disablePicker();
+
+            // If the derived class defined a function to do additional things when
+            // the game is over, call the function.
+            if (this.additionalGameOverActions()) {
+                this.additionalGameOverActions();
+            }
         }
     }
 
@@ -243,13 +254,7 @@ class GameDisplay extends BaseLogger {
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
             gameResult = me.game.playAdd(additionPosition);
 
-        if (gameResult !== Const.OK) {
-            me.appDisplay.showToast(gameResult);
-        }
-
-        me.showMove();
-
-        return gameResult;
+        return (me.processGameResult(gameResult));
     }
 
     deletionClickCallback(event) {
@@ -259,13 +264,7 @@ class GameDisplay extends BaseLogger {
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
             gameResult = me.game.playDelete(deletionPosition);
 
-        if (gameResult !== Const.OK) {
-            me.appDisplay.showToast(gameResult);
-        }
-
-        me.showMove();
-
-        return gameResult;
+        return (me.processGameResult(gameResult));
     }
 
     pickerBlurCallback(event) {
@@ -294,15 +293,9 @@ class GameDisplay extends BaseLogger {
         let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition')),
             gameResult = me.game.playLetter(letterPosition, me.letterPicker.value);
 
-        if (gameResult !== Const.OK) {
-            me.appDisplay.showToast(gameResult);
-        }
-
         me.letterPicker.value = GameDisplay.PICKER_UNSELECTED;
 
-        me.showMove();
-
-        return gameResult;
+        return (me.processGameResult(gameResult));
     }
 
     pickerFocusCallback(event) {
@@ -346,6 +339,19 @@ class GameDisplay extends BaseLogger {
             ElementUtilities.addElementTo(cell.getElement(), tdElement);
             additionPosition++;
         }
+    }
+
+    processGameResult(gameResult) {
+        if (gameResult === Const.BAD_OPERATION || gameResult === Const.BAD_LETTER_POSITION) {
+            console.error(gameResult);
+            this.appDisplay.showToast("Yikes! Something went wrong");
+            // TODO: Should end the game or some such ...
+        } else if (gameResult !== Const.OK) {
+            this.appDisplay.showToast(gameResult);
+        }
+
+        this.showMove();
+        return gameResult;
     }
 }
 

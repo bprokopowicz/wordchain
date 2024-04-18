@@ -28,7 +28,6 @@
     /* ===== Cells ===== */
     --colorblind-good-light:            #5f99e4;    /* blue */
     --colorblind-bad-light:             #ebaf42;    /* orange */
-    /* TODO: better colors for good/bad  */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
     --non-colorblind-bad-bg-light:      #ea9797;    /* red */
 
@@ -37,11 +36,10 @@
     */
 
     /* ===== Cells ===== */
-    --colorblind-good-dark:             #2b558c;    /* blue */
+    --colorblind-good-dark:             #2d7be1;    /* blue */
     --colorblind-bad-dark:              #d58b04;    /* orange */
-    /* TODO: better colors for good/bad  */
-    --non-colorblind-good-bg-dark:      #076707;    /* green */
-    --non-colorblind-bad-bg-dark:       #ac0706;    /* red */
+    --non-colorblind-good-bg-dark:      #28c128;    /* green */
+    --non-colorblind-bad-bg-dark:       #d33433;    /* red */
 }
 
 /*
@@ -228,11 +226,6 @@ hr {
     height: 93%;
 }
 
-/* TODO: Figure out wtf this nth-of-type business is all about! */
-#lower-div div:nth-of-type(4) {
-    flex-basis: 0px;
-}
-
 #game-div {
     display: flex;
     flex-direction: column;
@@ -320,20 +313,22 @@ svg {
 ** -------------------
 */
 
-table {
-    border-spacing: .4rem;
+.table-game {
+    border-spacing: .0rem;
 }
 
-.td-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.tr-game {
+}
+
+.td-game {
+    padding-bottom: 15px;
 }
 
 .circle {
     border: solid;
     border-color: var(--cell-border);
     border-radius: 50%;   /* Makes the div a circle */
+    padding: 0px;
 }
 
 .letter-cell {
@@ -343,6 +338,8 @@ table {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 5px;
+    margin-left: 5px;
 }
 
 .letter-cell-good {
@@ -416,11 +413,21 @@ button.action-button {
     font-weight: bold;
 }
 
+.post-game-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /*
 ** ------
 ** Picker
 ** ------
 */
+
+.picker-label {
+    font-size:1.25rem;
+}
 
 .picker-label-enabled {
     color: var(--primary-fg);
@@ -430,12 +437,23 @@ button.action-button {
     color: var(--primary-fg-disabled);
 }
 
+.picker-select {
+    font-size:1.25rem;
+    width: 3.5rem;
+    text-align: center;
+}
+
 .picker-select-enabled {
     background: var(--picker-enabled-bg);
 }
 
 .picker-select-disabled {
     background: var(--picker-disabled-bg);
+}
+
+.picker-option {
+    background: var(--primary-bg);
+    color: var(--primary-fg);
 }
 
 /*

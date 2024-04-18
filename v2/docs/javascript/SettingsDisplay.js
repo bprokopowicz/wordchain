@@ -82,7 +82,7 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // horizontally.
         const interactiveDiv = this.addSetting(title, "setting-simple", description);
         ElementUtilities.addElementTo("a", interactiveDiv, {href: linkHref, target: "_blank"}, linkText);
-    }   
+    } 
 
     /*
     // Add a setting whose input is a (mutually exclusive) set of radio buttons.
@@ -130,23 +130,23 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // When the checkbox was created we saved the AppDisplay object passed
         // to the constructor; use it to access AppDisplay methods to change the
         // corresponding settings.
-        const callbackAccessor = event.srcElement.callbackAccessor;
+        const appDisplay = event.srcElement.callbackAccessor;
 
         // The id attribute in the event's srcElement property tells us which setting whas changed.
         const checkboxId = event.srcElement.getAttribute("id");
-                
+
         // The checked attribute in the event's srcElement property tells us whether the
         // checkbox was checked or unchecked. Set the boolean corresponding to the
         // checkbox's id according to that.
         if (checkboxId === "dark") {
-            callbackAccessor.darkTheme = event.srcElement.checked ? true : false;
-            Cookie.save("DarkTheme", callbackAccessor.darkTheme);
-            callbackAccessor.setColors();
-        
+            appDisplay.darkTheme = event.srcElement.checked ? true : false;
+            Cookie.save("DarkTheme", appDisplay.darkTheme);
+            appDisplay.setColors();
+
         } else if (checkboxId === "colorblind") {
-            callbackAccessor.colorblindMode = event.srcElement.checked ? true : false;
-            Cookie.save("ColorblindMode", callbackAccessor.colorblindMode);
-            callbackAccessor.setColors();
+            appDisplay.colorblindMode = event.srcElement.checked ? true : false;
+            Cookie.save("ColorblindMode", appDisplay.colorblindMode);
+            appDisplay.setColors();
         }
     }
 
@@ -156,29 +156,29 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // When the radio was created we saved the AppDisplay object passed
         // to the constructor; use it to access AppDisplay methods to change the
         // corresponding settings.
-        const callbackAccessor = event.srcElement.callbackAccessor;
+        const appDisplay = event.srcElement.callbackAccessor;
 
         const selection = event.srcElement.value;
         if (selection == "Hard") {
-            callbackAccessor.hardMode = true;
-            callbackAccessor.typeSavingMode = false;
+            appDisplay.hardMode = true;
+            appDisplay.typeSavingMode = false;
         } else if (selection === "Type-Saving") {
-            callbackAccessor.typeSavingMode = true;
-            callbackAccessor.hardMode = false;
+            appDisplay.typeSavingMode = true;
+            appDisplay.hardMode = false;
         } else {
-            callbackAccessor.typeSavingMode = false;
-            callbackAccessor.hardMode = false;
+            appDisplay.typeSavingMode = false;
+            appDisplay.hardMode = false;
         }
 
         // Save both cookies.
-        Cookie.save("HardMode", callbackAccessor.hardMode);
-        Cookie.save("TypeSavingMode", callbackAccessor.typeSavingMode);
+        Cookie.save("HardMode", appDisplay.hardMode);
+        Cookie.save("TypeSavingMode", appDisplay.typeSavingMode);
 
         // Hard and Type-Saving modes are implemented in the game tile display,
         // so tell it what our modes are now.
         // ========= Will need to figure out what the v2 equivalent of this is.
-        callbackAccessor.gameTileDisplay.setHardMode(callbackAccessor.hardMode);
-        callbackAccessor.gameTileDisplay.setTypeSavingMode(callbackAccessor.typeSavingMode);
+        appDisplay.gameTileDisplay.setHardMode(appDisplay.hardMode);
+        appDisplay.gameTileDisplay.setTypeSavingMode(appDisplay.typeSavingMode);
     }
     */
 

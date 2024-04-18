@@ -86,7 +86,6 @@ class LetterCell extends Cell {
     }
 
     addCorrectnessClass(correct, targetWordInProgress=false) {
-        console.log("addCorrectnessClass(): correct: ", correct, "targetWordInProgress:", targetWordInProgress);
         if (targetWordInProgress) {
             this.addClass("letter-cell-target");
         } else {
