@@ -2,21 +2,32 @@
 export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
 export const DICT_URL = `${URL_ROOT}/resources/dict/WordFreqDict`;
 
+// Constants for practice game word selection screen
+export const PRACTICE_GAMES_PER_DAY = 3;
+
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
 // --- Returned from Game class.
 export const OK           = "ok";
 export const NOT_A_WORD   = "Not in word list";
-// --- Displayed from GameDisplay class.
-export const GAME_WON     = "Solved!";
-export const GAME_LOST    = "Too many extra steps";
-export const PICK_LETTER  = "Pick a letter";             // Displayed when no letter in picker.
+// --- Displayed from one of the *Display classes.
+export const GAME_WON         = "Solved!";
+export const GAME_LOST        = "Too many extra steps";
+export const PICK_LETTER      = "Pick a letter";                // Displayed when no letter in picker.
+export const PICK_NEW_LETTER  = "Pick a different letter";      // Displayed user selects the letter already in the cell to be changed.
+export const UNEXPECTED_ERROR = "Yikes! Something went wrong";
+export const TOO_MANY_GAMES   = `Only ${RACTICE_GAMES_PER_DAY} games allowed per day`;
+export const NO_DAILY         = "Unable to create daily game;<br>here is a fun back-up";
+export const DAILY_NOT_OVER   = "Daily game still in progress";
+export const SHARE_FAILED     = "Failed to share";
+export const SHARE_COPIED     = "Copied to clipboard";
+export const NO_STATS         = "Stats unavailable";
 
 // Returns from Game class that indicate a bug in its input from GameDisplay.
 export const BAD_OPERATION       = "bad operation";
 export const BAD_LETTER_POSITION = "bad letter position";
 
-// consts for DisplayInstructions
+// DisplayInstruction displayTypes.
 export const ADD       = "add";
 export const CHANGE    = "change";
 export const DELETE    = "delete";
@@ -32,16 +43,6 @@ export const INSERT_CHAR    = "+";
 
 export const MIN_WORD_LENGTH = 3;
 export const MAX_WORD_LENGTH = 6;
-
-// Constants for keyboard action buttons on game play and
-// practice game word selection screens.
-//export const BACKSPACE = "←"; 
-//export const ENTER = "↵"; 
-
-// Constants for practice game word selection screen
-export const PRACTICE_GAMES_PER_DAY = 3;
-//export const PLACEHOLDER = "*";
-//export const PLACEHOLDER_WORD = PLACEHOLDER.repeat(MAX_WORD_LENGTH);
 
 // Constants for settings screen
 export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";

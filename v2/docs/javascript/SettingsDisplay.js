@@ -1,6 +1,6 @@
 import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
-import { ElementUtilities } from './ElementUtilities.js';
 import { Cookie } from './Cookie.js';
+import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
 
 class SettingsDisplay extends AuxiliaryDisplay {

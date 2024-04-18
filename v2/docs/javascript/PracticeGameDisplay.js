@@ -1,8 +1,7 @@
-import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
 import { ElementUtilities } from './ElementUtilities.js';
-import { GameDisplay } from './GameDisplay.js';
 import { Game } from './Game.js';
+import { GameDisplay } from './GameDisplay.js';
 import * as Const from './Const.js';
 
 class PracticeGameDisplay extends GameDisplay {

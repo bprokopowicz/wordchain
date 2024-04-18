@@ -1,12 +1,12 @@
 import { BaseLogger } from './BaseLogger.js';
-import { WordChainDict } from './WordChainDict.js';
+import { Cookie } from './Cookie.js';
 import { DailyGameDisplay } from './DailyGameDisplay.js';
-import { PracticeGameDisplay } from './PracticeGameDisplay.js';
+import { ElementUtilities } from './ElementUtilities.js';
 import { HelpDisplay } from './HelpDisplay.js';
+import { PracticeGameDisplay } from './PracticeGameDisplay.js';
 import { SettingsDisplay } from './SettingsDisplay.js';
 import { StatsDisplay } from './StatsDisplay.js';
-import { ElementUtilities } from './ElementUtilities.js';
-import { Cookie } from './Cookie.js';
+import { WordChainDict } from './WordChainDict.js';
 import * as Const from './Const.js';
 
 
@@ -15,6 +15,7 @@ import * as Const from './Const.js';
 ** Implementation
 ** - Solution button -- add means to show WordChain's solution?
 ** - Resolve all TOODs!
+** - Should future cells have a changePosition (i.e. outline bolded)?
 **
 ** Before Sharing with Initial Friends
 ** - Review help message
@@ -349,7 +350,7 @@ class AppDisplay extends BaseLogger {
 
         // If the game isn't valid, the user has already played the maximum number of games.
         if (! this.practiceGame.isValid()) {
-            this.showToast(`Only ${Const.PRACTICE_GAMES_PER_DAY} games allowed per day`);
+            this.showToast(Const.TOO_MANY_GAMES);
             return;
         }
 

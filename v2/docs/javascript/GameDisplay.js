@@ -2,7 +2,6 @@ import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
 import { Game } from './Game.js';
 import { ElementUtilities } from './ElementUtilities.js';
-import { WordChainDict } from './WordChainDict.js';
 import * as Const from './Const.js';
 
 import { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell } from './Cell.js';
@@ -63,6 +62,8 @@ class GameDisplay extends BaseLogger {
         this.letterPicker.addEventListener("change", this.pickerChangeCallback);
         this.letterPicker.addEventListener("focus",  this.pickerFocusCallback);
         this.letterPicker.addEventListener("blur",   this.pickerBlurCallback);
+
+        this.currentLetter = " ";
     }
 
     disablePicker() {
@@ -113,6 +114,8 @@ class GameDisplay extends BaseLogger {
                 displayInstruction.wasCorrect, displayInstruction.changePosition);
         }
 
+        // changePosition goes 1..wordLength, so need to subtract 1.
+        this.currentLetter = displayInstruction.word[displayInstruction.changePosition - 1];
         this.pickerEnabled = true;
         this.displayCommon(displayInstruction, getCell);
     }
@@ -281,11 +284,14 @@ class GameDisplay extends BaseLogger {
         var me = event.srcElement.callbackAccessor;
 
         if (me.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
-            me.appDisplay.showToast("Pick a letter");
-            // TODO: Show a toast saying to pick a letter?
+            me.appDisplay.showToast(Const.PICK_LETTER);
             return Const.PICK_LETTER;
         }
 
+        if (me.letterPicker.value === me.currentLetter) {
+            me.appDisplay.showToast(Const.PICK_NEW_LETTER);
+            return Const.PICK_NEW_LETTER;
+        }
 
         // Change the size of the picker back to 1 when a letter has been picked.
         me.letterPicker.setAttribute("size", 1);
@@ -344,7 +350,7 @@ class GameDisplay extends BaseLogger {
     processGameResult(gameResult) {
         if (gameResult === Const.BAD_OPERATION || gameResult === Const.BAD_LETTER_POSITION) {
             console.error(gameResult);
-            this.appDisplay.showToast("Yikes! Something went wrong");
+            this.appDisplay.showToast(Const.UNEXPECTED_ERROR);
             // TODO: Should end the game or some such ...
         } else if (gameResult !== Const.OK) {
             this.appDisplay.showToast(gameResult);

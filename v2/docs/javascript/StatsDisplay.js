@@ -1,5 +1,7 @@
-import { AuxiliaryDisplay } from './AuxiliaryDisplay.js'; import { ElementUtilities } from './ElementUtilities.js'; import { DailyGameDisplay } from './DailyGameDisplay.js';
+import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
 import { Cookie } from './Cookie.js';
+import { DailyGameDisplay } from './DailyGameDisplay.js';
+import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
 
 class StatsDisplay extends AuxiliaryDisplay {
@@ -88,13 +90,13 @@ class StatsDisplay extends AuxiliaryDisplay {
                     text: shareString,
                 })
                 .catch((error) => {
-                    me.appDisplay.showToast("Failed to share")
+                    me.appDisplay.showToast(Const.SHARE_FAILED);
                     console.error("Failed to share: ", error);
                 });
             } else {
                 // No -- just save the shareString to the clipboard (probably on a laptop/desktop).
                 navigator.clipboard.writeText(shareString);
-                me.appDisplay.showToast("Copied to clipboard")
+                me.appDisplay.showToast(Const.SHARE_COPIED);
             }
         }
     }
@@ -115,7 +117,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         const gameInfo = this.appDisplay.getDailyGameInfo();
 
         if (! gameInfo.over) {
-            this.appDisplay.showToast("Daily game still in progress");
+            this.appDisplay.showToast(Const.DAILY_NOT_OVER);
             return null;
         }
 
@@ -194,7 +196,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         if (dailyStats === null)
         {
             console.error("StatsDisplay.updateStatsContent(): no daily stats!");
-            this.appDisplay.showToast("Stats unavailable");
+            this.appDisplay.showToast(Const.NO_STATS);
         }
 
         // Clear out the containers that we're about to add to.

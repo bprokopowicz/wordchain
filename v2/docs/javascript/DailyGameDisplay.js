@@ -1,4 +1,3 @@
-import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { GameDisplay } from './GameDisplay.js';
@@ -151,7 +150,7 @@ class DailyGameDisplay extends GameDisplay {
             // No daily game? Something went awry; use the backup.
             this.startWord  = this.backupStartWord;
             this.targetWord = this.backupTargetWord;
-            this.appDisplay.showToast("Unable to create daily game;<br>here is a fun back-up");
+            this.appDisplay.showToast(Const.NO_DAILY);
 
             // Return now; don't consider this a new game.
             return;
