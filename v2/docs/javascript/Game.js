@@ -74,7 +74,7 @@ class Game {
     // Const.PRACTICE_STEPS_MINIMUM and Const.PRACTICE_STEPS_MAXIMUM
     // steps. Returns an array: [startWord, targetWord].
     static getPracticePuzzle() {
-        return ["dog", "cat"];
+        return ["dog", "bite"];
     }
 
     // Finishes the game. When getNextDisplayInstruction() is called after this,

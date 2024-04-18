@@ -81,7 +81,7 @@ class PracticeGameDisplay extends GameDisplay {
     }
 
     updateTimestamps() {
-        const now = (new Date()).getTime();
+        this.updateTime = (new Date()).getTime();
 
         this.practiceGameTimestamps = Cookie.getJsonOrElse("PracticeGameTimestamps", []);
 
@@ -92,7 +92,7 @@ class PracticeGameDisplay extends GameDisplay {
             // See whether any games have aged out. The list is a queue, with the
             // first item being the oldest.
             while (this.practiceGameTimestamps.length != 0) {
-                const timeSinceLastGame = now - this.practiceGameTimestamps[0];
+                const timeSinceLastGame = this.updateTime - this.practiceGameTimestamps[0];
                 if (timeSinceLastGame > PracticeGameDisplay.MaxGamesIntervalMs) {
                     // This one has aged out; pop it and note that we popped one,
                     // i.e. that the user can play a game.
@@ -118,7 +118,7 @@ class PracticeGameDisplay extends GameDisplay {
 
     updateWords() {
         // Save the timestamp of this game in the instance and cookies.
-        this.practiceGameTimestamps.push(now);
+        this.practiceGameTimestamps.push(this.updateTime);
         Cookie.save("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
 
         // See if we have words in the cookie.
