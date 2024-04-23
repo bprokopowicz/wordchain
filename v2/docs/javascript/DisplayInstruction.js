@@ -1,3 +1,5 @@
+  import * as Const from './Const.js'
+
 // This class provides the interface between the GameDisplay and Game classes.
 // When displaying the game grid, GameDisplay requests display instructions from
 // Game in a loop until Game returns null. Game Display converts the DisplayInstruction
@@ -30,11 +32,11 @@ class DisplayInstruction {
             returnStr += ` wordLength: ${this.wordLength}`;
         }
 
-        if (this.displayType !== "future" && this.displayType !== "target") {
+        if (this.displayType !== Const.FUTURE && this.displayType !== Const.TARGET) {
             returnStr += `, wasCorrect: ${this.wasCorrect}`;
         }
 
-        if (this.displayType === "change" || this.displayType === "future") {
+        if (this.displayType === Const.CHANGE  || this.displayType === Const.FUTURE) {
             returnStr += `, changePosition: ${this.changePosition}`;
         }
 

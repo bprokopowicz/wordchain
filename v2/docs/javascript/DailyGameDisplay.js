@@ -56,8 +56,8 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Construction ----- */
 
-    constructor(appDisplay, gameDiv, pickerDiv, dict) {
-        super(appDisplay, gameDiv, pickerDiv, dict);
+    constructor(appDisplay, gameDiv, pickerDiv) {
+        super(appDisplay, gameDiv, pickerDiv);
 
         // This keeps track of whether the user clicked the Show Solution button
         // for the daily game.
@@ -98,8 +98,8 @@ class DailyGameDisplay extends GameDisplay {
         this.setDailyGameData();
         */
 
-        this.startWord = "ear";     // TEMPORARY
-        this.targetWord = "hard";   // TEMPORARY
+        this.startWord = "dog";     // TEMPORARY
+        this.targetWord = "bite";   // TEMPORARY
         this.validGame = true;      // TEMPORARY
         this.incrementStat("gamesPlayed"); // TEMPORARY
         this.constructGame(this.startWord, this.targetWord);

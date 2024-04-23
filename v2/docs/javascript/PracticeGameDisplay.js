@@ -12,8 +12,8 @@ class PracticeGameDisplay extends GameDisplay {
 
     /* ----- Construction ----- */
 
-    constructor(appDisplay, gameDiv, pickerDiv, dict) {
-        super(appDisplay, gameDiv, pickerDiv, dict);
+    constructor(appDisplay, gameDiv, pickerDiv) {
+        super(appDisplay, gameDiv, pickerDiv);
 
         // Debug-only cookie that can be manually added to the time period.
         this.debugPracticeGameIntervalMin = Cookie.getInt("DebugPracticeGameIntervalMin");

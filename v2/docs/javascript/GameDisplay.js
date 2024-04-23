@@ -15,7 +15,7 @@ class GameDisplay extends BaseLogger {
 
     /* ----- Construction ----- */
 
-    constructor(appDisplay, gameDiv, pickerDiv, dict) {
+    constructor(appDisplay, gameDiv, pickerDiv) {
 
         super();
 
@@ -23,7 +23,6 @@ class GameDisplay extends BaseLogger {
 
         this.gameDiv   = gameDiv;
         this.pickerDiv = pickerDiv;
-        this.dict      = dict;
 
         this.createPicker();
 
@@ -88,8 +87,7 @@ class GameDisplay extends BaseLogger {
 
     // Called from derived class!
     constructGame(start, target) {
-        //this.game = new PseudoGame(this.dict, start, target);
-        this.game = new Game(this.dict, start, target);
+        this.game = new Game(start, target);
         this.showMove();
     }
 

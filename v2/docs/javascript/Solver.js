@@ -38,7 +38,7 @@ class Solver extends BaseLogger {
             if (solution.isSolved()) {
                 return solution;
             }
-            console.log(`popped working solution: ${solution.toStr()}`);
+            //console.log(`popped working solution: ${solution.toStr()}`);
             if (solution.numSteps() > longestSolution) {
                 longestSolution = solution.numSteps();
                 //this.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "perf");
@@ -59,7 +59,7 @@ class Solver extends BaseLogger {
                 if (newWorkingSolution.isSolved()) {
                     return newWorkingSolution;
                 }
-                console.log(`   adding ${newWorkingSolution.toStr()}`);
+                //console.log(`   adding ${newWorkingSolution.toStr()}`);
                 workingSolutions.push(newWorkingSolution);
             }
 
@@ -113,7 +113,8 @@ class Solution extends BaseLogger {
     }
 
     static emptySolution(start, target) {
-        let playedWord = new PlayedWord(start, 0);
+        let penalty = 0;
+        let playedWord = new PlayedWord(start, penalty);
         return new Solution([playedWord], target);
     }
 

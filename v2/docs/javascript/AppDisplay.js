@@ -6,7 +6,6 @@ import { HelpDisplay } from './HelpDisplay.js';
 import { PracticeGameDisplay } from './PracticeGameDisplay.js';
 import { SettingsDisplay } from './SettingsDisplay.js';
 import { StatsDisplay } from './StatsDisplay.js';
-import { WordChainDict } from './WordChainDict.js';
 import * as Const from './Const.js';
 
 
@@ -42,10 +41,6 @@ class AppDisplay extends BaseLogger {
 
     constructor() {
         super();
-
-        this.dict = new WordChainDict();
-        let testWordList = ['hard', 'heard', 'hear', 'hoard', 'hoar', 'pour', 'pear', 'ear', 'head', 'herd', 'heed', 'peed', 'peer'];
-        //this.dict = new WordChainDict(testWordList);
 
         // Flags from Settings screen
         this.darkTheme      = Cookie.getBoolean("DarkTheme");
@@ -121,7 +116,7 @@ class AppDisplay extends BaseLogger {
 
         // Creation of DailyGameDisplay causes the start/target words to be determined
         // based on today's date and displays the game's grid for the user to play.
-        this.dailyGame = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv, this.dict);
+        this.dailyGame = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
         this.practiceGame = null;
         this.currentGameDisplay = this.dailyGame;
     }
@@ -345,7 +340,7 @@ class AppDisplay extends BaseLogger {
         if (this.practiceGame === null) {
             // Creation of PracticeGameDisplay causes the start/target words to be retrieved
             // from Cookies or randomly selected, and displays the game's grid for the user to play.
-            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv, this.dict);
+            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
         }
 
         // If the game isn't valid, the user has already played the maximum number of games.
