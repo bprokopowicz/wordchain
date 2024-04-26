@@ -50,16 +50,18 @@ class Solver():
 
         return solution.addError("No solution") 
             
-    def isDesired(puzzle, lowWordLen, highWordLen, minWords, maxWords):
+    def isDesired(puzzle, dictionary, lowWordLen, highWordLen, minWords, maxWords, minDifficulty):
         if puzzle.numWords() < minWords:
-            return 0;
+            return 0
         if puzzle.numWords() > maxWords:
-            return 0;
+            return 0
         if (puzzle.shortestWordLen() > lowWordLen):
-            return 0;
+            return 0
         if (puzzle.longestWordLen() < highWordLen):
-            return 0;
-        return 1;
+            return 0
+        if (puzzle.difficulty(dictionary) < minDifficulty):
+            return 0
+        return 1
 
     # find puzzles using a starting word that have solutions meeting criteria 
     # for shortest word, longest word, and number of words.
@@ -69,13 +71,13 @@ class Solver():
     # lowWordLen can be set to infinity if it is accomplished on a step
     # highWordLen can go to zero.  But if you need to reach low or high word counts,
     # favor looking at reduce/add a character next words before same length words.
-    # returns a list of solutions, each as a word-lists.  NO, FOR NOW JUST PRINT THEM
+    # returns a list of solutions, each as a word-lists.  
     #
-    def findPuzzles(dictionary, startWord, lowWordLen, highWordLen, minWords, maxWords):
+    def findPuzzles(dictionary, startWord, lowWordLen, highWordLen, minWords, maxWords, minDifficulty):
 
-        dictionary = dictionary.copy()
+        localDictionary = dictionary.copy()
         desiredPuzzles = list()
-        if not dictionary.isWord(startWord):
+        if not localDictionary.isWord(startWord):
             print (startWord + " is not a word.")
             return desiredPuzzles
         # search forever until all suitable puzzles are found
@@ -84,13 +86,13 @@ class Solver():
         listOfPossiblePuzzles.append(firstPuzzle)
         while len(listOfPossiblePuzzles) > 0:
             puzzle = listOfPossiblePuzzles.popleft()
-            if (Solver.isDesired(puzzle, lowWordLen, highWordLen, minWords, maxWords)):
+            if (Solver.isDesired(puzzle, dictionary, lowWordLen, highWordLen, minWords, maxWords, minDifficulty)):
                 desiredPuzzles.append(puzzle)
             #keep looking if not too long already
             if (puzzle.numWords() < maxWords):
-                nextWords = dictionary.findNextWords(puzzle.getLastWord())
+                nextWords = localDictionary.findNextWords(puzzle.getLastWord())
                 for nextWord in nextWords:
-                    dictionary.remove(nextWord)
+                    localDictionary.remove(nextWord)
                     newPuzzle = puzzle.copy()
                     newPuzzle.addWord(nextWord)
                     listOfPossiblePuzzles.append(newPuzzle)
@@ -130,7 +132,7 @@ class PartialSolution():
         return newCopy
         
     def str(self):
-        return ",".join(self.wordsSoFar);
+        return ",".join(self.wordsSoFar)
 
     def getError(self):
         return self.errorMessage
@@ -170,6 +172,22 @@ class PartialSolution():
 
     def numSteps(self):
         return self.numWords() - 1
+
+    def difficulty(self, dict):
+        #sum of options at each word in the puzzle. 
+        i = 0
+        nChoices = 0
+        while (i < self.numSteps()):
+            thisWord = self.getNthWord(i)
+            nextWord = self.getNthWord(i+1)
+            if (len(thisWord) == len(nextWord)):
+                nChoices += len(dict.findReplacementWords(thisWord))
+            elif (len(thisWord) < len(nextWord)):
+                nChoices += len(dict.findRemoverWords(thisWord))
+            else:
+                nChoices += len(dict.findAdderWords(thisWord))
+            i+=1
+        return nChoices
 
     def success(self):
         return self.errorMessage is None
