@@ -46,9 +46,23 @@ class DictTest(TestBase):
         adders = self.fullDict.findAdderWords("cat")
         self.assertEqual(len(adders), 9, "Incorrect number of adders: " + ' '.join(adders))
 
+        '''
+    mar 25, 2024 suds is not in the full dictionary
+    def test_next_suds(self):
+        nextWords = self.fullDict.findNextWords("subs")
+        self.assertTrue('suds' in nextWords, "subs should lead to suds but not found in: " + ' '.join(nextWords))
+'''
+
     def test_replacement(self):
         replacements = self.fullDict.findReplacementWords("bade")
         self.assertEqual(len(replacements), 14, "Incorrect number of replacements: " + ' '.join(replacements))
+
+        '''
+    mar 25, 2024 suds is not in the full dictionary
+    def test_replacement_suds(self):
+        replacements = self.fullDict.findReplacementWords("subs")
+        self.assertTrue('suds' in replacements, "'subs' should have replacement 'suds' but not found in: " + ' '.join(replacements))
+'''
 
     #################
     # smallDict tests

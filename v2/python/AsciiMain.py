@@ -52,22 +52,24 @@ def play():
 
     while (not game.isSolved()):
         print(game.asciiDisplay())
-        hint = game.nextWordHint()
+        hintAndPlayType = game.nextWordHint()
+        hint = hintAndPlayType[0]
+        playType = hintAndPlayType[1]
         play = input(f"{hint}: ").strip()
         # play is either a letter (replace) number (remove) or i,c insert c at i
-        if (play.isdigit()):
+        if (playType == Game.REDUCE):
             res = game.remove(int(play)-1)
-        elif (len(play) == 1):
+        elif (playType == Game.REPLACE):
             char = play
             replaceCharAt = hint.find(Game.REPLACE_CHAR)
             res = game.replace(replaceCharAt, char)
-        elif (len(play) == 2):
-            #player gives ic
+        elif (playType == Game.INCREASE):
+            #player gives i
             insertCharAt = int(play[0])
-            char = play[1]
-            res = game.insert(insertCharAt, char)
+            res = game.insertSpace(insertCharAt)
         else:
-            res = "bad input; try again"
+            res = "error; game is confused about next play"
+            return
         print (f"{res}\n")
 
 def solve():
@@ -91,8 +93,8 @@ def find():
     minWords = int(input("Must require at least n words: ").strip())
     maxWords = int(input("Must require at most n words: ").strip())
     dictionary = WordChainDict()
-    puzzles = Solver.find(dictionary, firstWord, lowWordLen, highWordLen, minWords, maxWords)
-    print ("I found these puzzles:\n")
+    puzzles = Solver.findPuzzles(dictionary, firstWord, lowWordLen, highWordLen, minWords, maxWords)
+    print ('I found these puzzles:\n')
     for puzzle in puzzles:
         print (puzzle)
 

@@ -1,0 +1,802 @@
+/*
+************************************
+** Default styling for Mobile Phones
+************************************
+*/
+
+/*
+** ===============
+** Global Settings
+** ===============
+*/
+
+
+/*
+** These colors are defined for :root to enable implementation of both
+** dark and colorblind mode. We define properties for "good" and "bad"
+** indications for both light and dark themes. We also define both
+** dark and light variants for the colors used for any properties
+** that are affected by dark and light mode. All of these colors will
+** be used in the javascript code to effect theme and colorblind changes.
+*/
+:root {
+
+    /*
+    ** Light Mode Colors
+    */
+
+    /* ===== Cells ===== */
+    --colorblind-good-light:            #5f99e4;    /* blue */
+    --colorblind-bad-light:             #ebaf42;    /* orange */
+    --non-colorblind-good-bg-light:     #85daac;    /* green */
+    --non-colorblind-bad-bg-light:      #ea9797;    /* red */
+
+    /*
+    ** Dark Mode Colors
+    */
+
+    /* ===== Cells ===== */
+    --colorblind-good-dark:             #2d7be1;    /* blue */
+    --colorblind-bad-dark:              #d58b04;    /* orange */
+    --non-colorblind-good-bg-dark:      #28c128;    /* green */
+    --non-colorblind-bad-bg-dark:       #d33433;    /* red */
+}
+
+/*
+** Light/dark settings that are NOT affected by colorblind mode are enabled by
+** setting adding light-mode or dark-mode to the document element class.
+*/
+:root,
+:root.light-mode {
+    /* ===== Colors used to define other properties ===== */
+    --primary-fg:               Black;
+    --primary-fg-disabled:      LightGray;
+    --secondary-fg:             White;
+
+    --primary-bg:               White;
+    --secondary-bg:             Black;
+
+    /* ===== Header ===== */
+    --header-button-bg:         LightGray;
+    --header-bg:                #97b2d5;
+
+    /* Currently not used in v2 */
+    --active-button-bg:         SlateGray;
+    --inactive-button-bg:       LightGray;
+
+    /* ===== Add/Delete Buttons and Picker ===== */
+    --user-input-bg:            #ffff00;    /* yellow */
+    --picker-enabled-bg:        var(--user-input-bg);
+    --picker-disabled-bg:       LightGray;
+
+    /* ===== Cells and Letters ===== */
+    --cell-border:              var(--primary-fg);
+    --target-word-bg:           #d09ade;    /* pale purple */
+
+    /* These properties are affected by changes in the Colorblind Mode setting */
+    --non-colorblind-good-bg:      var(--non-colorblind-good-bg-light);
+    --non-colorblind-bad-bg:       var(--non-colorblind-bad-bg-light);
+
+    /* ===== Toast ===== */
+    --toast-bg:                 var(--secondary-bg);
+    --toast-fg:                 var(--secondary-fg);
+
+    /* ===== Settings/Links ===== */
+    --setting-separator:        LightGray;
+    --setting-description-fg:   Gray;
+    --link-fg:                  Blue;
+    --visited-link-fg:          Purple;
+
+    /* ===== Stats ===== */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
+}
+
+:root.dark-mode {
+    /* ===== Colors used to define other properties ===== */
+    --primary-fg:               White;
+    --primary-fg-disabled:      #555555;    /* Very dark gray */
+    --secondary-fg:             Black;
+
+    --primary-bg:               #1d1d1f;
+    --secondary-bg:             White;
+
+    /* ===== Header ===== */
+    --header-button-bg:         #49515a;
+    --header-bg:                Black;
+
+    /* Currently not used in v2 */
+    --active-button-bg:         #858b90;
+    --inactive-button-bg:       #49515a;
+
+    /* ===== Add/Delete Buttons and Picker ===== */
+    --user-input-bg:            #ffff00;    /* yellow */
+    --picker-enabled-bg:        var(--user-input-bg);
+    --picker-disabled-bg:       LightGray;
+
+    /* ===== Cells and Letters ===== */
+    --cell-border:              var(--primary-fg);
+    --target-word-bg:           #b319ff;    /* medium purple */
+    --active-word-bg:           #ffff00;    /* yellow */
+
+    /* These properties are affected by changes in the Colorblind Mode setting */
+    --non-colorblind-good-bg:      var(--non-colorblind-good-bg-dark);
+    --non-colorblind-bad-bg:       var(--non-colorblind-bad-bg-dark);
+
+    /* ===== Toast ===== */
+    --toast-bg:                 var(--secondary-bg);
+    --toast-fg:                 var(--secondary-fg);
+
+    /* ===== Settings/Links ===== */
+    --setting-separator:        Gray;
+    --setting-description-fg:   Gray;
+    --link-fg:                  #5b6ef0;    /* light blue */
+    --visited-link-fg:          #9b5bf0;    /* light purple */
+
+    /* ===== Stats ===== */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
+}
+
+/*
+** IMPORTANT!!!
+** No color names or color numbers should be used below this point!
+** Only use references to properties defined above.
+*/
+
+/*
+** Same font for everyone.
+*/
+* {
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/*
+** Settings for the outermost HTML elements.
+*/
+html, body {
+    /* vh means "viewport height" -- this says to make the body take 100% of the viewport height. */
+    height: 100vh;
+    margin: 0px;
+    background: var(--primary-bg);
+}
+
+hr {
+    /* Need to set this for when it is within a "display: flex" else it doesn't show up. */
+    width: 100%;
+}
+
+/*
+** This class is used in divs with display: flex to force whatever comes
+** after the div to be on a "new line".
+** See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
+*/
+.break {
+    flex-basis: 100%;
+}
+
+/*
+** The top-level application div.
+*/
+#root-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--primary-bg);
+    height: 100%;
+    width: 100%;
+}
+
+/*
+** ===========
+** Game screen
+** ===========
+*/
+
+.wordchain-button {
+    font-size: .5rem;
+    padding: .3rem;
+    border-width: 0;
+    border-radius: .5rem;
+    margin: .1rem;
+    color: var(--primary-fg);
+    color: var(--primary-fg);
+}
+
+.wordchain-button:focus {
+    outline: none;
+}
+
+/*
+** Shell around the content below the WordChain banner.
+*/
+
+#lower-div {
+    display: flex;
+    /*
+    ** For some reason, if we have "flex-direction: column;" here (and remove "flex-wrap: wrap;"),
+    ** it messes up the scrolling of games that no longer fit on the screen -- scrolling up as
+    ** far as possible cuts off the top row(s) of cells. If we have both settings, that messes up the
+    ** display and the picker is to the right of the game cells, even with the "break div".
+    ** So we shouldn't change these settings because the scrolling works just right now!
+    */
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    /* This height, plus header-div height must be 100% */
+    height: 93%;
+}
+
+#game-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/*
+** -----------------------------
+** Header (the WordChain banner)
+** -----------------------------
+*/
+
+#header-div {
+    position: sticky;
+    top: 0;
+    /* This height, plus lower-div height must be 100% */
+    height: 7%;
+    display: flex;
+    background: var(--header-bg);
+    padding: .25rem;
+    margin-bottom: 1rem;
+}
+
+#game-button-div {
+    width: 30%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.game-button {
+    font-weight: bold;
+    background: var(--header-button-bg);
+}
+
+#title-div {
+    width: 40%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary-fg);
+}
+
+#auxiliary-button-div {
+    width: 30%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.aux-button {
+    background: var(--header-button-bg);
+    border-radius: 50%;
+    border-width: 0;
+    padding: .15rem;
+    margin: .2rem;
+}
+
+svg {
+    display: block;
+    margin: auto;
+    fill: var(--primary-fg);
+}
+
+/* Currently not used in v2 */
+.active-button {
+    background: var(--active-button-bg);
+    color: var(--secondary-fg);
+}
+
+/* Currently not used in v2 */
+.not-active {
+    background: var(--inactive-button-bg);
+    color: var(--primary-fg);
+}
+
+/*
+** -------------------
+** Cell Grid and Cells
+** -------------------
+*/
+
+.table-game {
+    border-spacing: .0rem;
+}
+
+.tr-game {
+}
+
+.td-game {
+    padding-bottom: 15px;
+}
+
+.circle {
+    border: solid;
+    border-color: var(--cell-border);
+    border-radius: 50%;   /* Makes the div a circle */
+    padding: 0px;
+}
+
+.letter-cell {
+    width: 30px;
+    height: 30px;
+    border-width: .15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+.letter-cell-good {
+    background: var(--played-word-good-bg);
+}
+
+.letter-cell-bad {
+    background: var(--played-word-bad-bg);
+}
+
+.letter-cell-change {
+    border-width: .3rem;
+}
+
+.letter-cell-active {
+    background: var(--user-input-bg);
+}
+
+.letter-cell-future {
+}
+
+.letter-cell-played {
+}
+
+.letter-cell-target {
+    background: var(--target-word-bg);
+}
+
+.letter {
+    font-weight: bold;
+}
+
+button.action-button {
+    border: none;
+    color: var(--primary-fg); /* text color */
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-outer-cell {
+    width: 30px;    /* Must have same width as .letter-cell */
+    height: 15px;
+    border: solid;
+    border-width: .15rem;
+    border-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-cell {
+    width: 15px;
+    height: 15px;
+    border: solid;
+    border-width: .15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--user-input-bg);
+}
+
+.action-cell-addition {
+}
+
+.action-cell-deletion {
+}
+
+.action {
+    font-weight: bold;
+}
+
+.post-game-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/*
+** ------
+** Picker
+** ------
+*/
+
+.picker-label {
+    font-size:1.25rem;
+}
+
+.picker-label-enabled {
+    color: var(--primary-fg);
+}
+
+.picker-label-disabled {
+    color: var(--primary-fg-disabled);
+}
+
+.picker-select {
+    font-size:1.25rem;
+    width: 3.5rem;
+    text-align: center;
+}
+
+.picker-select-enabled {
+    background: var(--picker-enabled-bg);
+}
+
+.picker-select-disabled {
+    background: var(--picker-disabled-bg);
+}
+
+.picker-option {
+    background: var(--primary-bg);
+    color: var(--primary-fg);
+}
+
+/*
+** =========================================
+** Auxiliary Screens (Help, Settings, Stats)
+** =========================================
+*/
+
+.auxiliary-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auxiliary-container-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.auxiliary-content-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    color: var(--primary-fg);
+    margin: 1.5rem;
+}
+
+.auxiliary-content-div h1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.auxiliary-content-div h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+.auxiliary-content-div h3 {
+    font-size: 1rem;
+    font-weight: bold;
+}
+.auxiliary-content-div p {
+    font-size: 1rem;
+}
+
+.close-button-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.close-button {
+    background: transparent;
+    border-width: 0;
+}
+
+/*
+** ----
+** Help
+** ----
+*/
+
+.help-content-container {
+}
+
+/*
+** --------
+** Settings
+** --------
+*/
+
+.settings-content-container {
+    display: block;
+}
+
+.setting-simple {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--setting-separator);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.setting-text {
+    padding-right: 2rem;
+}
+
+.setting-title {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.setting-description {
+    font-size: .8rem;
+    color: var(--setting-description-fg);
+}
+
+input.setting-checkbox {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+a:link {
+    color: var(--link-fg);
+}
+
+a:link {
+    color: var(--visited-link-fg);
+}
+
+.setting-complex {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--setting-separator);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+#setting-radio-tr {
+    padding-bottom: .5rem;
+}
+
+input.setting-radio {
+    width: 1rem;
+    height: 1rem;
+    margin-right: .5rem;
+}
+
+.radio-container {
+    margin-top: 1rem;
+    /* First value sets horizontal spacing; second one sets vertical. */
+    border-spacing: .4rem .2rem;
+}
+
+.radio-label {
+    font-size: 1rem;
+}
+
+/*
+** -----
+** Stats
+** -----
+*/
+
+.stats-content-container {
+    display: flex;
+}
+
+.stats-content-div {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* This holds the group of stats at the top */
+.stats-container-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.one-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: .5rem;
+}
+
+.one-stat-value {
+    font-size: 2rem;
+}
+
+.one-stat-label {
+    font-size: .75rem;
+}
+
+/* This holds the distribution graph */
+.distribution-div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.one-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 20rem;
+    margin-bottom: .5rem;
+}
+
+.one-bar-label {
+    margin-right: .5rem;
+}
+
+.one-bar-bar {
+    background: var(--stats-bar-bg);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.one-bar-value {
+    color: var(--stats-bar-fg);
+    font-weight: bold;
+    margin-right: .5rem;
+}
+
+/* This holds the countdown clock */
+.countdown-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.countdown-clock {
+    background: var(--primary-bg);
+    color: var(--primary-fg);
+    font-size: 4rem;
+    padding: .5rem;
+}
+
+/* This holds the buttons */
+.stats-button-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/*
+** =============
+** Toast Pop-ups
+** =============
+*/
+
+.pop-up {
+    visibility: hidden;
+    font-size: 1rem;
+    background: var(--toast-bg);
+    color: var(--toast-fg);
+    text-align: center;
+    border-radius: .5rem;
+    padding: .75rem;
+    min-width: 14rem;           /* Set a default minimum width */
+    margin-left: -7rem;         /* Divide value of min-width by 2 */
+    position: fixed;            /* Sit on top of the screen */
+    top: 10rem;                 /* 10rem from the top */
+    left: 50%;                  /* Center the toast */
+}
+
+#toast-div.show {
+  visibility: visible;
+  /*
+  ** Add animation: Take 0.5 seconds to fade in and out the toast.
+  ** However, delay the fade out process for 2.5 seconds.
+  */
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+#cannot-load-div.show {
+  visibility: visible;
+  animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+    from {
+        top: 0;
+        opacity: 0;
+    }
+    to {
+        top: 10rem;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeout {
+    from {
+        top: 10rem;
+        opacity: 1;
+    }
+    to {
+        top: 0;
+        opacity: 0;
+    }
+}
+
+
+/*
+*******************************
+** Override Styling for Tablets
+*******************************
+*/
+
+@media only screen and (min-width: 600px) {
+    table {
+        border-spacing: .7rem;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .aux-button {
+        padding: .35rem;
+        margin: .5rem;
+    }
+
+    .wordchain-button {
+        font-size: 1.25rem;
+        padding: .3rem;
+        margin: .5rem;
+    }
+
+    /* TODO: May need to add cell classes here */
+}
+
+/*
+**************************************
+** Override Styling for Larger Screens
+**************************************
+*/
+
+@media only screen and (min-width: 991px) {
+    table {
+        border-spacing: .9rem;
+    }
+
+    .letter-change {
+        border-width: .4rem;
+        padding: 0;
+    }
+    .no-change {
+        border-width: .2rem;
+        padding: .2rem;
+    }
+
+    .auxiliary-content-div {
+        width: 40%;
+    }
+}

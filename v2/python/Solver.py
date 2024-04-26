@@ -3,27 +3,32 @@ import sys
 from collections import deque
 
 class Solver():
-    # solve our puzzle fromWord to targetWord, with a partial solution already given.  The 
-    # partial solution may be just the starting word and the end word.
+    # solve the puzzle fromWord to targetWord
     # When solving, do not repeat a word in the growing solution.  It IS OK to repeat a word in the 
     # starting solution (backing up from a dead-end).
 
     # static methods solve (dict,a,b) and resolve(dict,solutionSoFar)
 
-    def solve(dictionary, fromWord, toWord):
+    # solve the puzzle fromWord to targetWord, with a partial solution already given.  The 
+    # partial solution may be just the starting word and the end word.
+    def solve(dictionary, fromWord, toWord, debug=0):
         startingSolution = PartialSolution(fromWord, toWord)
-        return Solver.resolve(dictionary, startingSolution)
+        if (not dictionary.isWord(fromWord)):
+            startingSolution.addError(fromWord + " is not a word.")
+        if (not dictionary.isWord(toWord)):
+            startingSolution.addError(toWord + " is not a word.")
+        if (startingSolution.getError()):
+            return startingSolution
+        return Solver.resolve(dictionary, startingSolution, debug)
 
-    def resolve(dictionary, startingSolution):
+    def resolve(dictionary, startingSolution, debug=0):
         # make a local copy because we remove words from it while searching
         dictionary = dictionary.copy()
         workingSolutions = deque()
-        wordsAlreadySearched = set()
         workingSolutions.append(startingSolution)
         numWordsSearched = 0
 
         while len(workingSolutions) != 0:
-            #solution = heapq.heappop(workingSolutions)
             solution = workingSolutions.popleft()
 
             if solution.isSolved():
@@ -36,12 +41,11 @@ class Solver():
             for word in sorted(nextWords):
                 newWorkingSolution = solution.copy().addWord(word)
                 dictionary.remove(word)
-                #heapq.heappush(workingSolutions, newWorkingSolution)
                 workingSolutions.append(newWorkingSolution)
-                #print(f"adding working solution: {newWorkingSolution}")
-                #wordsAlreadySearched.add(word)
+                if (debug):
+                    print(f"adding working solution: {newWorkingSolution}")
                 numWordsSearched += 1
-                if (numWordsSearched % 1000 == 0):
+                if (debug and (numWordsSearched % 1000 == 0)):
                     print(f"#words searched: {numWordsSearched}")
 
         return solution.addError("No solution") 
@@ -67,11 +71,14 @@ class Solver():
     # favor looking at reduce/add a character next words before same length words.
     # returns a list of solutions, each as a word-lists.  NO, FOR NOW JUST PRINT THEM
     #
-    def find(dictionary, startWord, lowWordLen, highWordLen, minWords, maxWords):
+    def findPuzzles(dictionary, startWord, lowWordLen, highWordLen, minWords, maxWords):
 
         dictionary = dictionary.copy()
-        # search forever until all suitable puzzles are found
         desiredPuzzles = list()
+        if not dictionary.isWord(startWord):
+            print (startWord + " is not a word.")
+            return desiredPuzzles
+        # search forever until all suitable puzzles are found
         firstPuzzle = PartialSolution(startWord, "dummy-end")
         listOfPossiblePuzzles = deque()
         listOfPossiblePuzzles.append(firstPuzzle)
@@ -79,8 +86,6 @@ class Solver():
             puzzle = listOfPossiblePuzzles.popleft()
             if (Solver.isDesired(puzzle, lowWordLen, highWordLen, minWords, maxWords)):
                 desiredPuzzles.append(puzzle)
-            if (puzzle.str() == "smelly,smells,sells,cells"):
-                print (f"expanding puzzle {puzzle}\n")
             #keep looking if not too long already
             if (puzzle.numWords() < maxWords):
                 nextWords = dictionary.findNextWords(puzzle.getLastWord())
@@ -106,12 +111,18 @@ class PartialSolution():
             return f"{wordList}"
     
     def addError(self, errorMessage):
-        self.errorMessage = errorMessage
+        if (self.errorMessage):
+            self.errorMessage += errorMessage
+        else:
+            self.errorMessage = errorMessage
         return self
 
     def addWord(self, newWord):
         self.wordsSoFar.append(newWord)
         return self
+
+    def removeLastWord(self):
+        self.wordsSoFar.pop()
 
     def copy(self):
         newCopy = PartialSolution(self.wordsSoFar[0], self.targetWord)
