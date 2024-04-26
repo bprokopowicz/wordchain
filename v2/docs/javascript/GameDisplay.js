@@ -89,6 +89,7 @@ class GameDisplay extends BaseLogger {
     constructGame(start, target) {
         this.game = new Game(start, target);
         this.showMove();
+        this.extraSteps = 0;
     }
 
     displayAdd(displayInstruction) {
@@ -216,6 +217,12 @@ class GameDisplay extends BaseLogger {
             }
 
             this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
+        }
+
+        const gameInfo = this.game.getGameInfo();
+        if (gameInfo.extraSteps > this.extraSteps) {
+            this.appDisplay.showToast(Const.EXTRA_STEP);
+            this.extraSteps = gameInfo.extraSteps;
         }
 
         // Delete old move and add new one.

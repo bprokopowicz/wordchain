@@ -22,6 +22,7 @@ export const DAILY_NOT_OVER   = "Daily game still in progress";
 export const SHARE_FAILED     = "Failed to share";
 export const SHARE_COPIED     = "Copied to clipboard";
 export const NO_STATS         = "Stats unavailable";
+export const EXTRA_STEP       = "D'oh! Extra step";
 
 // Returns from Game class that indicate a bug in its input from GameDisplay.
 export const BAD_OPERATION       = "bad operation";

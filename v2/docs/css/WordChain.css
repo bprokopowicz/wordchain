@@ -65,7 +65,7 @@
     --inactive-button-bg:       LightGray;
 
     /* ===== Add/Delete Buttons and Picker ===== */
-    --user-input-bg:            #bababa;    /* medium gray */
+    --user-input-bg:            #ffff00;    /* yellow */
     --picker-enabled-bg:        var(--user-input-bg);
     --picker-disabled-bg:       LightGray;
 
@@ -110,13 +110,14 @@
     --inactive-button-bg:       #49515a;
 
     /* ===== Add/Delete Buttons and Picker ===== */
-    --user-input-bg:            #bababa;    /* medium gray */
+    --user-input-bg:            #ffff00;    /* yellow */
     --picker-enabled-bg:        var(--user-input-bg);
     --picker-disabled-bg:       LightGray;
 
     /* ===== Cells and Letters ===== */
     --cell-border:              var(--primary-fg);
     --target-word-bg:           #b319ff;    /* medium purple */
+    --active-word-bg:           #ffff00;    /* yellow */
 
     /* These properties are affected by changes in the Colorblind Mode setting */
     --non-colorblind-good-bg:      var(--non-colorblind-good-bg-dark);
@@ -355,13 +356,13 @@ svg {
 }
 
 .letter-cell-active {
+    background: var(--user-input-bg);
 }
 
 .letter-cell-future {
 }
 
 .letter-cell-played {
-    opacity: .4;
 }
 
 .letter-cell-target {

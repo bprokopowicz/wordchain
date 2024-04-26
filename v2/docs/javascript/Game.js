@@ -90,9 +90,8 @@ class Game {
     //
     //  {
     //      over: true if user has found target word or steps-minSteps >= Const.TOO_MANY_EXTRA_STEPS
-    //
-    //      // These would only be used if over is true.
     //      extraSteps: how many more it took to solve than the minimum
+    //      // This would only be used if over is true.
     //      gameSummary: array of wordInfo, where wordInfo is an object with two properties: wordLength, wasCorrect
     //  }
     getGameInfo() {
@@ -182,7 +181,7 @@ class Game {
 
     instructionForLastPlayedWord() {
         // we are displaying the last played word, which is either that it is just really a PLAYED word,
-        // or CHANGE if it has hole in it.
+    // or CHANGE if it has hole in it.
         let nextWord = "JUNK";
         let lastPlayedWordIndex = this.wordToDisplayIndex;
         let lastPlayedWord = this.partialSolution.getLastWord();
