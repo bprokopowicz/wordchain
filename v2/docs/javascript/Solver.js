@@ -83,6 +83,63 @@ class Solver extends BaseLogger {
         solution.addError("No solution");
         return solution;
     }
+
+    static findPuzzles(dictionary, startWord, lowWordLen, highWordLen, minWords, maxWords,  minDifficulty) {
+
+        let localDictionary = dictionary.copy();
+        let desiredPuzzles = [];
+        if (!localDictionary.isWord(startWord)) {
+            console.log(startWord + " is not a word.");
+            return desiredPuzzles;
+        }
+        // search forever until all suitable puzzles are found
+        let firstPuzzle = Solution.emptySolution(startWord, "dummy-end");
+        let listOfPossiblePuzzles =[]; 
+        listOfPossiblePuzzles.push(firstPuzzle);
+        while (listOfPossiblePuzzles.length > 0) {
+            let puzzle = listOfPossiblePuzzles.shift();
+	    console.log(`considering puzzle ${puzzle.toStr()}`);
+            if (Solver.isDesired(puzzle, dictionary, lowWordLen, highWordLen, minWords, maxWords, minDifficulty)) {
+                console.log("found suitable puzzle");
+                desiredPuzzles.push(puzzle);
+            }
+            // keep looking if not too long already
+            if (puzzle.numWords() < maxWords) {
+                let nextWords = localDictionary.findNextWords(puzzle.getLastWord());
+                for (let nextWord of nextWords) {
+                    localDictionary.removeWord(nextWord);
+                    let newPuzzle = puzzle.copy();
+                    newPuzzle.addWord(nextWord);
+                    listOfPossiblePuzzles.push(newPuzzle);
+                }
+           }
+       }
+       return desiredPuzzles;
+    }
+
+    static isDesired(puzzle, dictionary, lowWordLen, highWordLen, minWords, maxWords, minDifficulty) {
+        if (puzzle.numWords() < minWords) {
+            console.log(`too few words ${puzzle.numWords()} vs ${minWords}`);
+            return false;
+        }
+        if (puzzle.numWords() > maxWords) {
+            console.log(`too many words ${puzzle.numWords()} vs ${maxWords}`);
+            return false;
+        }
+        if (puzzle.shortestWordLen() > lowWordLen){
+            console.log(`shortest word is too long: ${puzzle.shortestWordLen()} vs ${lowWordLen}`);
+            return false;
+        }
+        if (puzzle.longestWordLen() < highWordLen){
+            console.log(`longest word is too short: ${puzzle.longestWordLen()} vs ${highWordLen}`);
+            return false;
+        }
+        if (puzzle.difficulty(dictionary) < minDifficulty) {
+            console.log(`puzzle is too easy: ${puzzle.difficulty(dictionary)} vs ${minDifficulty}`);
+            return false;
+        }
+        return true;
+    }
 }
 
 class PlayedWord {
@@ -136,6 +193,10 @@ class Solution extends BaseLogger {
         return penalty;
     }
 
+    difficulty() {
+        return 5;
+    }
+
     copy() {
         let playedListCopy = [...this.playedWords];
         return new Solution(playedListCopy, this.target);
@@ -184,11 +245,37 @@ class Solution extends BaseLogger {
     // count as a step.
 
     numSteps() {
-        return this.playedWords.length - 1;
+        return this.numWords() - 1;
+    }
+
+    numWords() {
+        return this.playedWords.length;
     }
 
     getPlayedWords() {
         return this.playedWords;
+    }
+
+    shortestWordLen() {
+	let shortestLen = 1000;
+        for (let playedWord of this.playedWords) {
+	    let word = playedWord.word;
+            if (word.length < shortestLen) {
+                shortestLen = word.length;
+            }
+        }
+        return shortestLen;
+    }
+
+    longestWordLen() {
+	let longestLen = 0;
+        for (let playedWord of this.playedWords) {
+	    let word = playedWord.word;
+            if (word.length > longestLen) {
+                longestLen = word.length;
+            }
+        }
+        return longestLen;
     }
 
     success() {
@@ -207,7 +294,7 @@ class Solution extends BaseLogger {
         } else {
             const separator = html ? "<p>" : " ";
             const words = this.playedWords.join(", ");
-            return `${words}${separator}[${this.numSteps()} steps toward ${this.target}]${separator}`;
+            return `${words}${separator}[${this.numSteps()} steps toward ${this.target}]${separator}difficulty: ${this.difficulty()}`;
         }
     }
 }

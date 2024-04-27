@@ -3,7 +3,13 @@ export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
 export const DICT_URL = `${URL_ROOT}/resources/dict/WordFreqDict`;
 
 // Constants for practice game word selection screen
-export const PRACTICE_GAMES_PER_DAY = 3;
+export const PRACTICE_GAMES_PER_DAY = 300;
+export const PRACTICE_STEPS_MINIMUM = 5;
+export const PRACTICE_STEPS_MAXIMUM = 6;
+export const PRACTICE_DIFFICULTY_MINIMUM = 5;
+export const PRACTICE_MAX_SHORTEST_WORD = 4;
+export const PRACTICE_MIN_LONGEST_WORD = 5;
+export const PRACTICE_START_WORDS = ["FACE", "TRUST", "GRASP"];
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
