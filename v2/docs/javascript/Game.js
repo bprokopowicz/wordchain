@@ -85,18 +85,18 @@ class Game {
         let rand = Math.floor(Math.random() * max); // 0..max-1 inclusive
         let dictionary = new WordChainDict();
 
-	let startWord = Const.PRACTICE_START_WORDS[rand];
+        let startWord = Const.PRACTICE_START_WORDS[rand];
         let puzzles = Solver.findPuzzles(dictionary, startWord,
               Const.PRACTICE_MAX_SHORTEST_WORD, Const.PRACTICE_MIN_LONGEST_WORD,
               Const.PRACTICE_STEPS_MINIMUM, Const.PRACTICE_STEPS_MAXIMUM,
               Const.PRACTICE_DIFFICULTY_MINIMUM);
-		
+        
         rand = Math.floor(Math.random() * puzzles.length); 
-	console.log(`found ${puzzles.length} puzzles starting with ${startWord}.  Choosing #${rand}`);
-	let puzzle = puzzles[rand];
+        console.log(`found ${puzzles.length} puzzles starting with ${startWord}.  Choosing #${rand}`);
+        let puzzle = puzzles[rand];
         console.log("selected random puzzle: " + puzzle.toStr());
 
-	return [puzzle.getStart(), puzzle.getLastWord()];
+        return [puzzle.getStart(), puzzle.getLastWord()];
         return ["dog", "bite"];
     }
 

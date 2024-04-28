@@ -83,7 +83,7 @@ export const NUMBERS        = [                // Used in first share line
     "\u{0039}\u{FE0F}\u{20E3}",     // 9 
 ];    
 
-export const TOO_MANY_EXTRA_STEPS = 5;  // Shouldnt be > 9; relates to NUMBERS array above
+export const TOO_MANY_EXTRA_STEPS = 5;  // Shouldn't be > 9; relates to NUMBERS array above
 
 // SVG (Scalable Vector Graphics) paths for keyboard keys, copy/pasted from
 // various corners of the interwebs.
