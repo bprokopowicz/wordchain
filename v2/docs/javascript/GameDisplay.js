@@ -86,8 +86,8 @@ class GameDisplay extends BaseLogger {
     }
 
     // Called from derived class!
-    constructGame(start, target) {
-        this.game = new Game(start, target);
+    constructGame(start, target, wordsPlayedSoFar=[]) {
+        this.game = new Game(start, target, wordsPlayedSoFar);
         this.showMove();
         this.extraSteps = 0;
     }
@@ -247,7 +247,7 @@ class GameDisplay extends BaseLogger {
 
             // If the derived class defined a function to do additional things when
             // the game is over, call the function.
-            if (this.additionalGameOverActions()) {
+            if (this.additionalGameOverActions) {
                 this.additionalGameOverActions();
             }
         }

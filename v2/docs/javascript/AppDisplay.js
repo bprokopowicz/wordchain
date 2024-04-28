@@ -14,7 +14,6 @@ import * as Const from './Const.js';
 ** Implementation
 ** - Solution button -- add means to show WordChain's solution?
 ** - Resolve all TOODs!
-** - Should future cells have a changePosition (i.e. outline bolded)?
 **
 ** Before Sharing with Initial Friends
 ** - Review help message
@@ -30,6 +29,11 @@ import * as Const from './Const.js';
 ** - Cookies: make secure? Save in back-end DB?
 ** - Logo/favicon.ico
 */
+
+/*
+** See the Cookie class for a description of the cookies that this class uses.
+*/
+
 
 class AppDisplay extends BaseLogger {
 

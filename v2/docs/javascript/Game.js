@@ -13,7 +13,7 @@ import * as Const from './Const.js'
 
 class Game {
 
-    constructor(startWord, targetWord) {
+    constructor(startWord, targetWord, wordsPlayedSoFar) {
         console.log("constructor(): startWord:", startWord, ", targetWord:", targetWord);
         startWord = startWord.toUpperCase();
         targetWord = targetWord.toUpperCase();
@@ -21,6 +21,11 @@ class Game {
         this.partialSolution = Solution.emptySolution(startWord, targetWord);
         this.fullSolutionGivenProgress = Solver.solve(this.dictionary, startWord, targetWord);
         this.wordToDisplayIndex = 0;
+    }
+
+    getWordsPlayedSoFar() {
+        // return a list of words, including start word.
+        return []
     }
 
     // Return DisplayInstruction for the current 'wordToDisplayIndex'.  .

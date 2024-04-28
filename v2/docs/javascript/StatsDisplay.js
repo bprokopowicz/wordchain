@@ -4,6 +4,22 @@ import { DailyGameDisplay } from './DailyGameDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
 
+/*
+** The updateStatsContent() method in this class reads a DailyStats cookie,
+** an object with the following properties:
+**
+** gamesPlayed
+**    Integer: number of games started.
+** gamesCompleted
+**    Integer: number of games completed.
+** gamesShown
+**    Integer: number of games for which the 'Solution' button was clicked.
+** gamesFailed
+**    Integer: number of games that ended because of too many extra steps.
+** 0 .. <Const.TOO_MANY_EXTRA_STEPS - 1>
+**    Integer: Number of games that had 0, 1, ... extra steps.
+*/
+
 class StatsDisplay extends AuxiliaryDisplay {
 
     /* ----- Construction ----- */
@@ -223,17 +239,21 @@ class StatsDisplay extends AuxiliaryDisplay {
         addStat(completionPercent, "Completion %", this.statsContainer);
         addStat(dailyStats.gamesShown, "Shown", this.statsContainer);
 
-        // Determine the maximum value among all the "extra step values".
-        let maxValue = 0;
+        // Next we'll display a bar graph showing how many games there were at each "extra steps value",
+        // i.e. 0 .. <Const.TOO_MANY_EXTRA_STEPS - 1> *and* "games that ended because of too many
+        // extra steps". First, determine the maximum value among all the "extra steps values"
+        // to use to in calculating the length of the bars.
+        let maxExtraStepsValue = 0;
         for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
-            if (dailyStats[extraSteps] > maxValue) {
-                maxValue = dailyStats[extraSteps];
+            if (dailyStats[extraSteps] > maxExtraStepsValue) {
+                maxExtraStepsValue = dailyStats[extraSteps];
             }
         }
 
-        // Did the game just finish surpass the previous max?
-        if (dailyStats.tooManyExtraSteps > maxValue) {
-            maxValue = dailyStats.tooManyExtraSteps;
+        // Is the number of failed games even larger than the max so far?
+        // If so, update our max.
+        if (dailyStats.gamesFailed > maxExtraStepsValue) {
+            maxExtraStepsValue = dailyStats.gamesFailed;
         }
 
         // Local function to add a bar.
@@ -241,7 +261,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
             // Calculate the width of the bar as a percentage of the maximum value determined above.
             // If width calculates to 0, set it to 5 so there's a bar to contain the value.
-            let width = Math.round((barValue / maxValue) * 100);
+            let width = Math.round((barValue / maxExtraStepsValue) * 100);
             if (width === 0) {
                 width = 10;
             }
@@ -263,8 +283,8 @@ class StatsDisplay extends AuxiliaryDisplay {
             addBar(barValue, Const.NUMBERS[extraSteps], this.statsDistribution);
         }
 
-        // Add a bar for too many extra steps.
-        addBar(dailyStats.tooManyExtraSteps, Const.CONFOUNDED, this.statsDistribution);
+        // Add a bar for too many extra steps. The emoji for this is Const.CONFOUNDED.
+        addBar(dailyStats.gamesFailed, Const.CONFOUNDED, this.statsDistribution);
     }
 }
 

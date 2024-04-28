@@ -131,7 +131,7 @@ class FutureLetterCell extends LetterCell {
 
         if (letterPosition === changePosition)
         {
-            this.addClass("letter-cell-change");
+            this.addClass("letter-cell-future-change");
         }
     }
 }

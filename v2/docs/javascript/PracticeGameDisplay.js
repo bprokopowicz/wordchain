@@ -4,6 +4,10 @@ import { Game } from './Game.js';
 import { GameDisplay } from './GameDisplay.js';
 import * as Const from './Const.js';
 
+/*
+** See the Cookie class for a description of the cookies that this class uses.
+*/
+
 class PracticeGameDisplay extends GameDisplay {
 
     /* ----- Class Variables ----- */
@@ -16,11 +20,11 @@ class PracticeGameDisplay extends GameDisplay {
         super(appDisplay, gameDiv, pickerDiv);
 
         // Debug-only cookie that can be manually added to the time period.
-        this.debugPracticeGameIntervalMin = Cookie.getInt("DebugPracticeGameIntervalMin");
+        this.debugMinPerDay = Cookie.getInt("DebugPracticeMinPerDay");
 
         // Are we debugging limiting practice games?
-        if (this.debugPracticeGameIntervalMin) {
-            PracticeGameDisplay.MaxGamesIntervalMs = debugPracticeGameIntervalMin * 60 * 1000;
+        if (this.debugMinPerDay) {
+            PracticeGameDisplay.MaxGamesIntervalMs = debugMinPerDay * 60 * 1000;
         }
 
         // We use timestamps to ensure the user doesn't play more than the maximum
@@ -42,13 +46,39 @@ class PracticeGameDisplay extends GameDisplay {
         me.updateWords();
     }
 
+    // NOTE: No need to override additionClickCallback() an addition doesn't actually provide
+    // a word and therefore we have no need to update the PracticeGameWordsPlayed cookie;
+    // we'll pick up the new word in pickerChangeCallback().
+
+    // Override superclass callback to update PracticeGameWordsPlayed cookie.
+    deletionClickCallback(event) {
+        let me = event.srcElement.callbackAccessor,
+            gameResult = super.deletionClickCallback(event);
+
+        if (gameResult === Const.OK) {
+            this.practiceGameWordsPlayed = this.game.getWordsPlayedSoFar();
+            Cookie.saveJson("PracticeGameWordsPlayed", this.practiceGameWordsPlayed);
+        }
+    }
+
+    // Override superclass callback to update PracticeGameWordsPlayed cookie.
+    pickerChangeCallback(event) {
+        let me = event.srcElement.callbackAccessor,
+            gameResult = super.pickerChangeCallback(event);
+
+        if (gameResult === Const.OK) {
+            this.practiceGameWordsPlayed = this.game.getWordsPlayedSoFar();
+            Cookie.saveJson("PracticeGameWordsPlayed", this.practiceGameWordsPlayed);
+        }
+    }
+
     /* ----- Utilities ----- */
 
     // This will be called in GameDisplay when the game is determined to be over.
     additionalGameOverActions() {
         // Clear out the practice game words in the cookies.
-        Cookie.save("PracticeStart", "");
-        Cookie.save("PracticeTarget", "");
+        Cookie.save("PracticeGameStart", "");
+        Cookie.save("PracticeGameTarget", "");
 
         this.updateTimestamps();
 
@@ -122,18 +152,23 @@ class PracticeGameDisplay extends GameDisplay {
         Cookie.save("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
 
         // See if we have words in the cookie.
-        this.startWord  = Cookie.get("PracticeStart");
-        this.targetWord = Cookie.get("PracticeTarget");
+        this.startWord  = Cookie.get("PracticeGameStart");
+        this.targetWord = Cookie.get("PracticeGameTarget");
 
-        // If not, get new ones from the Game class and save them.
         if (!this.startWord || this.startWord.length === 0) {
+            // No words in the cookie; get new ones from the Game class and save them.
             [this.startWord, this.targetWord] = Game.getPracticePuzzle();
-            Cookie.save("PracticeStart", this.startWord);
-            Cookie.save("PracticeTarget", this.targetWord);
+            Cookie.save("PracticeGameStart", this.startWord);
+            Cookie.save("PracticeGameTarget", this.targetWord);
+            Cookie.saveJson("PracticeGameWordsPlayed", []);
+            this.practiceGameWordsPlayed = [];
+        } else {
+            // We did have start/target words; get any words already played.
+            this.practiceGameWordsPlayed = Cookie.getJsonOrElse("PracticeGameWordsPlayed", []);
         }
 
         // Now we're ready to construct (and display) the game.
-        this.constructGame(this.startWord, this.targetWord);
+        this.constructGame(this.startWord, this.targetWord, this.practiceGameWordsPlayed);
     }
 }
 

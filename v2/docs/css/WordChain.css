@@ -353,6 +353,7 @@ svg {
 
 .letter-cell-change {
     border-width: .3rem;
+    border-style: dashed;
 }
 
 .letter-cell-active {
@@ -360,6 +361,10 @@ svg {
 }
 
 .letter-cell-future {
+}
+
+.letter-cell-future-change {
+    border-width: .3rem;
 }
 
 .letter-cell-played {
