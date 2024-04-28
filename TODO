@@ -1,25 +1,7 @@
-BUGS:
-It now fails if you enter a non-word.  It is stuck there and throws an exception.
+Solution.difficulty() not implemented
 
 document how to run tests - js and python.
 
-Don't show extra tile if it is not the best path.  
+remove V1 code
 
-For "delete one letter" step, show the whole word (again, below previous word) with an 'x' in the corner of
-each letter that can be removed and create a word THAT HAS A SOLUTION PATH.   
-If they remove the correct letter - redraw with that letter gone, in green.
-If they remove the wrong letter and not a word, show 'not in word list' and leave the display the same.
-If they remove the wrong letter and it is a word, redraw in red and continue
 
-For add a letter - two ideas:
-1) show the whole word with a box for the new letter.  One key stroke to add the letter already in the right place.  
-This is easier to play.  Do this first.  If it is too easy, try idea 2.
-2) place a caret between each letter and at front and back.  Click on that to open a new box right there.  Then type
-the letter.  This has complications: the new box may be a dead end - no letter fits.  If a letter does fit, there is 
-always a solution, which in the worst case is deleting that letter and replaying a word.  Is that allowed?
-NEED TO ALLOW REPLAYING A WORD.  Another complication: If they add the new letter space in a place where no word
-is possible.  Maybe only show the carets where a word is possible.  Or, to be friendlier, only put carets if you
-can add a letter there and still be on the best path.
-
-python V2 
-    need to update the python tests for v2
