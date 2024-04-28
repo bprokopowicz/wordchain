@@ -114,7 +114,7 @@ class Game {
     getGameInfo() {
         return {
             over: this.isOver(),
-            extraSteps: this.partialSolution.totalPenalty(),
+            extraSteps: this.partialSolution.wrongSteps(),
             gameSummary: this.partialSolution.getPlayedWords().map((playedWord)=>new Object({wordLength: playedWord.word.length, wasCorrect: playedWord.penalty==0})),
         };
     }

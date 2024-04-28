@@ -98,9 +98,9 @@ class Solver extends BaseLogger {
         listOfPossiblePuzzles.push(firstPuzzle);
         while (listOfPossiblePuzzles.length > 0) {
             let puzzle = listOfPossiblePuzzles.shift();
-	    console.log(`considering puzzle ${puzzle.toStr()}`);
-            if (Solver.isDesired(puzzle, dictionary, lowWordLen, highWordLen, minWords, maxWords, minDifficulty)) {
-                console.log("found suitable puzzle");
+            puzzle.calculateDifficulty(dictionary);
+            if (Solver.isDesired(puzzle,  lowWordLen, highWordLen, minWords, maxWords, minDifficulty)) {
+	        //console.log(`found suitable  puzzle ${puzzle.toStr()}`);
                 desiredPuzzles.push(puzzle);
             }
             // keep looking if not too long already
@@ -117,25 +117,20 @@ class Solver extends BaseLogger {
        return desiredPuzzles;
     }
 
-    static isDesired(puzzle, dictionary, lowWordLen, highWordLen, minWords, maxWords, minDifficulty) {
+    static isDesired(puzzle, lowWordLen, highWordLen, minWords, maxWords, minDifficulty) {
         if (puzzle.numWords() < minWords) {
-            console.log(`too few words ${puzzle.numWords()} vs ${minWords}`);
             return false;
         }
         if (puzzle.numWords() > maxWords) {
-            console.log(`too many words ${puzzle.numWords()} vs ${maxWords}`);
             return false;
         }
         if (puzzle.shortestWordLen() > lowWordLen){
-            console.log(`shortest word is too long: ${puzzle.shortestWordLen()} vs ${lowWordLen}`);
             return false;
         }
         if (puzzle.longestWordLen() < highWordLen){
-            console.log(`longest word is too short: ${puzzle.longestWordLen()} vs ${highWordLen}`);
             return false;
         }
-        if (puzzle.difficulty(dictionary) < minDifficulty) {
-            console.log(`puzzle is too easy: ${puzzle.difficulty(dictionary)} vs ${minDifficulty}`);
+        if (puzzle.difficulty < minDifficulty) {
             return false;
         }
         return true;
@@ -167,6 +162,7 @@ class Solution extends BaseLogger {
         this.playedWords = [...playedWords];
         this.target   = target;
         this.errorMessage = "";
+	this.difficulty = -1;  // call calculateDifficulty(dictionary) to set this
     }
 
     static emptySolution(start, target) {
@@ -193,8 +189,32 @@ class Solution extends BaseLogger {
         return penalty;
     }
 
-    difficulty() {
-        return 5;
+    wrongSteps() {
+        let nWrong = 0;
+        for (let word of this.playedWords) {
+            if (word.penalty > 0) {
+               nWrong += 1;
+            }
+        }
+        return nWrong;
+    }
+
+    calculateDifficulty(dictionary) {
+        let i = 0;
+        let nChoices = 0;
+        while (i < this.numSteps()) {
+            let thisWord = this.getNthWord(i)
+            let nextWord = this.getNthWord(i+1)
+            if (thisWord.length == nextWord.length) {
+                nChoices += dictionary.findReplacementWords(thisWord).size;
+            } else if (thisWord.length < nextWord.length ){
+                nChoices += dictionary.findRemoverWords(thisWord).size;
+            } else {
+                nChoices += dictionary.findAdderWords(thisWord).size;
+            }
+            i+=1;
+        }
+        this.difficulty = nChoices;
     }
 
     copy() {
@@ -288,13 +308,13 @@ class Solution extends BaseLogger {
     }
 
     // This method is here to help with debugging.
-    toStr(html=false) {
+    toStr(toHtml=false) {
         if (this.errorMessage.length !== 0) {
             return this.errorMessage;
         } else {
-            const separator = html ? "<p>" : " ";
+            const separator = " ";
             const words = this.playedWords.join(", ");
-            return `${words}${separator}[${this.numSteps()} steps toward ${this.target}]${separator}difficulty: ${this.difficulty()}`;
+            return `${words}${separator}[${this.numSteps()} steps toward ${this.target}]${separator}difficulty: ${this.difficulty}`;
         }
     }
 }
