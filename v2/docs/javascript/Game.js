@@ -13,6 +13,7 @@ import * as Const from './Const.js'
 
 class Game {
 
+    // TODO: support wordsPlayedSoFar arg!
     constructor(startWord, targetWord, wordsPlayedSoFar) {
         console.log("constructor(): startWord:", startWord, ", targetWord:", targetWord);
         startWord = startWord.toUpperCase();
@@ -23,6 +24,7 @@ class Game {
         this.wordToDisplayIndex = 0;
     }
 
+    // TODO: return the right thing!
     getWordsPlayedSoFar() {
         // return a list of words, including start word.
         return []
