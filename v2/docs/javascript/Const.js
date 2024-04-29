@@ -3,7 +3,8 @@ export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
 export const DICT_URL = `${URL_ROOT}/resources/dict/WordFreqDict`;
 
 // Constants for practice game word selection screen
-export const PRACTICE_GAMES_PER_DAY = 300;
+export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
+export const PRACTICE_GAMES_PER_DAY = 300;     // For testing
 export const PRACTICE_STEPS_MINIMUM = 5;
 export const PRACTICE_STEPS_MAXIMUM = 7;
 export const PRACTICE_DIFFICULTY_MINIMUM = 60;
@@ -14,8 +15,8 @@ export const PRACTICE_START_WORDS = ["FACE", "TRUST", "GRASP", "TROPE", "SPACE",
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
 // --- Returned from Game class.
-export const OK           = "ok";
-export const NOT_A_WORD   = "Not in word list";
+export const OK               = "ok";
+export const NOT_A_WORD       = "Not in word list";
 // --- Displayed from one of the *Display classes.
 export const GAME_WON         = "Solved!";
 export const GAME_LOST        = "Too many extra steps";
@@ -85,12 +86,7 @@ export const NUMBERS        = [                // Used in first share line
 
 export const TOO_MANY_EXTRA_STEPS = 5;  // Shouldn't be > 9; relates to NUMBERS array above
 
-// SVG (Scalable Vector Graphics) paths for keyboard keys, copy/pasted from
-// various corners of the interwebs.
-export const BACKSPACE_PATH = "M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z";
-export const ENTER_PATH = "M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7h-2z";
-
-// SVG paths for icons.
+// SVG (Scalable Vector Graphics) paths for icons.
 export const CLOSE_PATH = "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 export const HELP_PATH = "M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z";
 export const MENU_PATH = "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z";
