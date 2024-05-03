@@ -3,7 +3,7 @@ export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
 export const DICT_URL = `${URL_ROOT}/resources/dict/WordFreqDict`;
 
 // Constants for practice game word selection screen
-export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
+//export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
 export const PRACTICE_GAMES_PER_DAY = 300;     // For testing
 export const PRACTICE_STEPS_MINIMUM = 5;
 export const PRACTICE_STEPS_MAXIMUM = 7;
@@ -19,9 +19,9 @@ export const OK               = "ok";
 export const NOT_A_WORD       = "Not in word list";
 // --- Displayed from one of the *Display classes.
 export const GAME_WON         = "Solved!";
-export const GAME_LOST        = "Too many extra steps";
+export const GAME_LOST        = "Too many wrong moves";
 export const PICK_LETTER      = "Pick a letter";                // Displayed when no letter in picker.
-export const PICK_NEW_LETTER  = "Pick a different letter";      // Displayed user selects the letter already in the cell to be changed.
+export const PICK_NEW_LETTER  = "Pick a different letter";      // Displayed when user selects the letter already in the cell to be changed.
 export const UNEXPECTED_ERROR = "Yikes! Something went wrong";
 export const TOO_MANY_GAMES   = `Only ${PRACTICE_GAMES_PER_DAY} games allowed per day`;
 export const NO_DAILY         = "Unable to create daily game;<br>here is a fun back-up";
@@ -29,7 +29,7 @@ export const DAILY_NOT_OVER   = "Daily game still in progress";
 export const SHARE_FAILED     = "Failed to share";
 export const SHARE_COPIED     = "Copied to clipboard";
 export const NO_STATS         = "Stats unavailable";
-export const EXTRA_STEP       = "D'oh! Extra step";
+export const WRONG_MOVE       = "D'oh! Wrong move";
 
 // Returns from Game class that indicate a bug in its input from GameDisplay.
 export const BAD_OPERATION       = "bad operation";
@@ -58,12 +58,12 @@ export const FAQ_HREF   = "FAQ.html";
 
 // Constants for sharing graphic and stats screen
 // Emoji code strings for share string
-export const RED_SQUARE     = "\u{1F7E5}";     // Extra steps in graphic
-export const GREEN_SQUARE   = "\u{1F7E9}";     // No extra steps in graphic
-export const ORANGE_SQUARE  = "\u{1F7E7}";     // Extra steps in graphic -- colorblind
-export const BLUE_SQUARE    = "\u{1F7E6}";     // No extra steps in graphic -- colorblind
-export const STAR           = "\u{2B50}";      // No extra steps in first share line
-export const CONFOUNDED     = "\u{1F616}";     // Too many extra steps in first share line and stats graph
+export const RED_SQUARE     = "\u{1F7E5}";     // Wrong moves in graphic
+export const GREEN_SQUARE   = "\u{1F7E9}";     // Correct moves in graphic
+export const ORANGE_SQUARE  = "\u{1F7E7}";     // Wrong moves in graphic -- colorblind
+export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves in graphic -- colorblind
+export const STAR           = "\u{2B50}";      // No wrong moves in first share line
+export const CONFOUNDED     = "\u{1F616}";     // Too many wrong movesin first share line and stats graph
 export const FIRE           = "\u{1F525}";     // CURRENTLY NOT USED: Hard mode in first share line
 export const ROCKET         = "\u{1F680}";     // Unused
 export const FIREWORKS      = "\u{1F386}";     // Unused
@@ -84,7 +84,7 @@ export const NUMBERS        = [                // Used in first share line
     "\u{0039}\u{FE0F}\u{20E3}",     // 9 
 ];    
 
-export const TOO_MANY_EXTRA_STEPS = 5;  // Shouldn't be > 9; relates to NUMBERS array above
+export const TOO_MANY_WRONG_MOVES = 5;  // Shouldn't be > 9; relates to NUMBERS array above
 
 // SVG (Scalable Vector Graphics) paths for icons.
 export const CLOSE_PATH = "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";

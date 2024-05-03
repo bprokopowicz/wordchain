@@ -13,21 +13,25 @@ import * as Const from './Const.js'
 
 class Game {
 
-    // TODO: support wordsPlayedSoFar arg!
     constructor(startWord, targetWord, wordsPlayedSoFar) {
         console.log("constructor(): startWord:", startWord, ", targetWord:", targetWord);
         startWord = startWord.toUpperCase();
         targetWord = targetWord.toUpperCase();
         this.dictionary = new WordChainDict();
-        this.partialSolution = Solution.emptySolution(startWord, targetWord);
-        this.fullSolutionGivenProgress = Solver.solve(this.dictionary, startWord, targetWord);
         this.wordToDisplayIndex = 0;
+        if (wordsPlayedSoFar.length == 0) {
+            this.partialSolution = Solution.newEmptySolution(startWord, targetWord);
+            this.fullSolutionGivenProgress = Solver.solve(this.dictionary, startWord, targetWord);
+        } else {
+            this.partialSolution = Solution.newPartialSolution(this.dictionary, wordsPlayedSoFar, targetWord);
+            this.fullSolutionGivenProgress = Solver.resolve(this.dictionary, this.partialSolution);
+            console.log("Game has re-constructed patial solution: " + this.partialSolution.toStr());
+        }
     }
 
-    // TODO: return the right thing!
     getWordsPlayedSoFar() {
         // return a list of words, including start word.
-        return []
+        return this.partialSolution.getPlayedWords().map((playedWord)=>playedWord.word);
     }
 
     // Return DisplayInstruction for the current 'wordToDisplayIndex'.  .
@@ -113,16 +117,16 @@ class Game {
     // Returns an object like this:
     //
     //  {
-    //      over: true if user has found target word or steps-minSteps >= Const.TOO_MANY_EXTRA_STEPS
-    //      extraSteps: how many more it took to solve than the minimum
+    //      over: true if user has found target word or steps-minSteps >= Const.TOO_MANY_WRONG_MOVES
+    //      wrongMoves: how many wrong moves the user played
     //      // This would only be used if over is true.
     //      gameSummary: array of wordInfo, where wordInfo is an object with two properties: wordLength, wasCorrect
     //  }
     getGameInfo() {
         return {
             over: this.isOver(),
-            extraSteps: this.partialSolution.wrongSteps(),
-            gameSummary: this.partialSolution.getPlayedWords().map((playedWord)=>new Object({wordLength: playedWord.word.length, wasCorrect: playedWord.penalty==0})),
+            wrongMoves: this.partialSolution.wrongMoves(),
+            gameSummary: this.partialSolution.getPlayedWords().map((playedWord)=>new Object({wordLength: playedWord.word.length, wasCorrect: playedWord.wasCorrect()})),
         };
     }
 
@@ -173,65 +177,62 @@ class Game {
 
     instructionForStartWord() {
         // For now, show as a played word.  Maybe later a special display for the start word.
-        let correct = true;
-        let changePosition = -1;
-        let startWord = this.partialSolution.getNthWord(0);
+        let wasCorrect = true;
+        let startWord = this.partialSolution.getStart();
         if (this.partialSolution.numSteps() == 0) {
-            let penalty = 0;
             let nextWord = this.fullSolutionGivenProgress.getNthWord(1);
-            return this.displayInstructionForPlayingFromWordToWord(startWord, nextWord, penalty);
+            return this.displayInstructionForPlayingFromWordToWord(startWord, nextWord, wasCorrect);
         } else {
-            return new DisplayInstruction(startWord, Const.PLAYED, changePosition, correct);
+            let changePosition = -1;
+            return new DisplayInstruction(startWord, Const.PLAYED, changePosition, wasCorrect);
         }
     }
 
     instructionForPlayedWord() {
-        let playedWord = this.partialSolution.getNthWord(this.wordToDisplayIndex);
-        let penalty = this.partialSolution.getNthPenalty(this.wordToDisplayIndex);
+        let playedWord = this.partialSolution.playedWords[this.wordToDisplayIndex];
         let changePosition = -1;
-        let correct = (penalty == 0);
-        return new DisplayInstruction(playedWord, Const.PLAYED, changePosition, correct);
+        return new DisplayInstruction(playedWord.word, Const.PLAYED, changePosition, playedWord.wasCorrect());
     }
 
     instructionForFutureWord() {
         // we show hints in the future words that require a single letter-change to the next word
         let futureWord = this.fullSolutionGivenProgress.getNthWord(this.wordToDisplayIndex);
         let nextFutureWord = this.fullSolutionGivenProgress.getNthWord(this.wordToDisplayIndex+1);
-        let penalty = 0;
-        let displayInstruction = this.displayInstructionForPlayingFromWordToWord(futureWord, nextFutureWord, penalty);
+        let wasCorrect = true;
+        let displayInstruction = this.displayInstructionForPlayingFromWordToWord(futureWord, nextFutureWord, wasCorrect);
         displayInstruction.displayType = Const.FUTURE;
         return displayInstruction;
     }
 
     instructionForLastPlayedWord() {
-        // we are displaying the last played word, which is either that it is just really a PLAYED word,
-    // or CHANGE if it has hole in it.
-        let nextWord = "JUNK";
+        // we are displaying the last played word, which is the active word.  We give instructions for
+        // how to go from that word to the next word in the solution.
         let lastPlayedWordIndex = this.wordToDisplayIndex;
-        let lastPlayedWord = this.partialSolution.getLastWord();
-        let penalty = this.partialSolution.getNthPenalty(lastPlayedWordIndex);
-        if (this.wordHasHole(lastPlayedWord)) {
+        let lastPlayedWord = this.partialSolution.playedWords[lastPlayedWordIndex];
+        let lastWord = lastPlayedWord.word;  // the string itself
+        let wasCorrect = lastPlayedWord.wasCorrect();
+        if (Game.wordHasHole(lastWord)) {
             // after user clicks plus somewhere, the list of played words includes the last word played with a hole
             // in it where the user clicked '+'.  This word with a hole is what we will return to the display to show.
-            // the last word in the played list is the word with a hole, and the next word is that same word without the hole.
-            nextWord = this.fullSolutionGivenProgress.getNthWord(lastPlayedWordIndex);
+            // the last word in the played list is the word with a hole
+            let indexOfHole = Game.locationOfHole(lastWord);
+            return new DisplayInstruction(lastWord, Const.CHANGE, indexOfHole+1, wasCorrect);
         } else {
-            nextWord = this.fullSolutionGivenProgress.getNthWord(lastPlayedWordIndex + 1);
+            let nextWord = this.fullSolutionGivenProgress.getNthWord(lastPlayedWordIndex + 1);
+            return this.displayInstructionForPlayingFromWordToWord(lastWord, nextWord, wasCorrect);
         }
-        return this.displayInstructionForPlayingFromWordToWord(lastPlayedWord, nextWord, penalty);
     }
 
     // this method is for displaying the actual, given target unconditionally.  
     instructionForTargetWord() {
         let targetWord = this.fullSolutionGivenProgress.getTarget();
-        let correct = true;
+        let wasCorrect = true;
         let changePosition=-1;
-        return new DisplayInstruction(targetWord, Const.TARGET, changePosition, correct);
+        return new DisplayInstruction(targetWord, Const.TARGET, changePosition, wasCorrect);
     }
 
     // how to display the last word that needs to be changed to give the next word.
-    displayInstructionForPlayingFromWordToWord(lastWordPlayed, nextWord, penalty) {
-        const correct = (penalty == 0);
+    displayInstructionForPlayingFromWordToWord(lastWordPlayed, nextWord, wasCorrect) {
         if (nextWord.length == lastWordPlayed.length) {
             // which letter changed?
             let changedCharIndex = -1;
@@ -244,12 +245,13 @@ class Game {
             if (changedCharIndex == -1) {
                 throw new Error(`${nextWord} and ${lastWordPlayed} should differ by one letter but don't`);
             }
-            return new DisplayInstruction(lastWordPlayed, Const.CHANGE, changedCharIndex+1, correct);
+            return new DisplayInstruction(lastWordPlayed, Const.CHANGE, changedCharIndex+1, wasCorrect);
         } else if (nextWord.length == lastWordPlayed.length+1) {
-            // we display '+'s to let the user add a space
-            return new DisplayInstruction(lastWordPlayed, Const.ADD, 0, correct);
+            // we display '+'s to let the user add a hole
+            return new DisplayInstruction(lastWordPlayed, Const.ADD, 0, wasCorrect);
         } else if (nextWord.length == lastWordPlayed.length-1) {
-            return new DisplayInstruction(lastWordPlayed, Const.DELETE, 0, correct);
+            // we display '-'s to let the user delete a letter 
+            return new DisplayInstruction(lastWordPlayed, Const.DELETE, 0, wasCorrect);
         } else {
             throw new Error(`${nextWord} and ${lastWordPlayed} have more than 1 letter length difference.`);
         }
@@ -257,8 +259,7 @@ class Game {
 
     // Return true if game is over; false otherwise.
     isOver() {
-        //TODO - const or calculation for max number of extra steps allowed.
-        return this.partialSolution.isSolved() || this.partialSolution.totalPenalty() >= Const.TOO_MANY_EXTRA_STEPS;
+        return this.partialSolution.isSolved() || this.partialSolution.wrongMoves() >= Const.TOO_MANY_WRONG_MOVES;
     }
 
     addWordIfExists(word) {
@@ -280,8 +281,12 @@ class Game {
 
     static HOLE() {return "?";}
 
-    wordHasHole(word) {
-        return word.indexOf(Game.HOLE()) >= 0;
+    static locationOfHole(word) {
+        return word.indexOf(Game.HOLE());
+    }
+
+    static wordHasHole(word) {
+        return Game.locationOfHole(word) >= 0;
     }
     
     // addPosition is from 0 to last word played's length
@@ -327,7 +332,7 @@ class Game {
         letterPosition -= 1;
         let oldWord = this.partialSolution.getLastWord();
         let newWord = oldWord.substring(0,letterPosition) + letter + oldWord.substring(letterPosition+1);
-        if (this.wordHasHole(oldWord)) {
+        if (Game.wordHasHole(oldWord)) {
             this.partialSolution.removeLastWord(); // it will be replaced by the same word without the hole, below.
         }
         console.log("playLetter(): new word is: ", newWord);

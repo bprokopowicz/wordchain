@@ -13,6 +13,9 @@ import * as Const from './Const.js';
 ** TODO:
 ** Implementation
 ** - Solution button -- add means to show WordChain's solution?
+** - After a game fails should the solution be shown?
+**   If so from the point of failure onward?
+**   Or by the same means to show WordChain's solution?
 ** - Resolve all TOODs!
 **
 ** Before Sharing with Initial Friends

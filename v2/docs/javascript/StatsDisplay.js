@@ -15,9 +15,9 @@ import * as Const from './Const.js';
 ** gamesShown
 **    Integer: number of games for which the 'Solution' button was clicked.
 ** gamesFailed
-**    Integer: number of games that ended because of too many extra steps.
-** 0 .. <Const.TOO_MANY_EXTRA_STEPS - 1>
-**    Integer: Number of games that had 0, 1, ... extra steps.
+**    Integer: number of games that ended because of too many wrong moves.
+** 0 .. <Const.TOO_MANY_WRONG_MOVES - 1>
+**    Integer: Number of games that had 0, 1, ... wrong moves.
 */
 
 class StatsDisplay extends AuxiliaryDisplay {
@@ -44,7 +44,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
         ElementUtilities.addElementTo("hr", contentDiv);
 
-        ElementUtilities.addElementTo("h1", contentDiv, {align: "center"}, "EXTRA STEPS COUNTS");
+        ElementUtilities.addElementTo("h1", contentDiv, {align: "center"}, "WRONG MOVES COUNTS");
         this.statsDistribution = ElementUtilities.addElementTo("div", contentDiv, {class: "distribution-div"});
 
         ElementUtilities.addElementTo("hr", contentDiv);
@@ -127,7 +127,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         // over is true):
         //
         //  over:            true if the game is over (user has found target word or too many steps)
-        //  extraSteps:      how many more steps it took to solve than the minimum
+        //  wrongMoves:      how many more steps it took to solve than the minimum
         //  gameSummary:     array of wordInfo, where wordInfo has two properties: wordLength, wasCorrect
         //  dailyGameNumber: the current game number
         const gameInfo = this.appDisplay.getDailyGameInfo();
@@ -140,13 +140,13 @@ class StatsDisplay extends AuxiliaryDisplay {
         let shareString = `WordChain #${gameInfo.dailyGameNumber} `;
 
         // Determine what emoji to use to show the user's "score".
-        if (gameInfo.extraSteps >= Const.TOO_MANY_EXTRA_STEPS) {
-            // Too many extra steps.
+        if (gameInfo.wrongMoves >= Const.TOO_MANY_WRONG_MOVES) {
+            // Too many wrong moves.
             shareString += Const.CONFOUNDED;
         } else {
-            // Show the emoji in NUMBERS corresponding to how many extra steps.
+            // Show the emoji in NUMBERS corresponding to how many wrong moves.
             // A bit of a misnomer, but the value for 0 is a star.
-            shareString += Const.NUMBERS[gameInfo.extraSteps];
+            shareString += Const.NUMBERS[gameInfo.wrongMoves];
         }
         shareString += "\n\n";
 
@@ -239,21 +239,21 @@ class StatsDisplay extends AuxiliaryDisplay {
         addStat(completionPercent, "Completion %", this.statsContainer);
         addStat(dailyStats.gamesShown, "Shown", this.statsContainer);
 
-        // Next we'll display a bar graph showing how many games there were at each "extra steps value",
-        // i.e. 0 .. <Const.TOO_MANY_EXTRA_STEPS - 1> *and* "games that ended because of too many
-        // extra steps". First, determine the maximum value among all the "extra steps values"
+        // Next we'll display a bar graph showing how many games there were at each "wrong moves value",
+        // i.e. 0 .. <Const.TOO_MANY_WRONG_MOVES - 1> *and* "games that ended because of too many
+        // wrong moves". First, determine the maximum value among all the "wrong moves values"
         // to use to in calculating the length of the bars.
-        let maxExtraStepsValue = 0;
-        for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
-            if (dailyStats[extraSteps] > maxExtraStepsValue) {
-                maxExtraStepsValue = dailyStats[extraSteps];
+        let maxWrongWordsValue = 0;
+        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
+            if (dailyStats[wrongMoves] > maxWrongWordsValue) {
+                maxWrongWordsValue = dailyStats[wrongMoves];
             }
         }
 
         // Is the number of failed games even larger than the max so far?
         // If so, update our max.
-        if (dailyStats.gamesFailed > maxExtraStepsValue) {
-            maxExtraStepsValue = dailyStats.gamesFailed;
+        if (dailyStats.gamesFailed > maxWrongWordsValue) {
+            maxWrongWordsValue = dailyStats.gamesFailed;
         }
 
         // Local function to add a bar.
@@ -261,7 +261,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
             // Calculate the width of the bar as a percentage of the maximum value determined above.
             // If width calculates to 0, set it to 5 so there's a bar to contain the value.
-            let width = Math.round((barValue / maxExtraStepsValue) * 100);
+            let width = Math.round((barValue / maxWrongWordsValue) * 100);
             if (width === 0) {
                 width = 10;
             }
@@ -278,12 +278,12 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Add a bar for each of the "regular" values; the emojis for these are in Const.NUMBERS.
-        for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
-            const barValue = dailyStats[extraSteps];
-            addBar(barValue, Const.NUMBERS[extraSteps], this.statsDistribution);
+        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
+            const barValue = dailyStats[wrongMoves];
+            addBar(barValue, Const.NUMBERS[wrongMoves], this.statsDistribution);
         }
 
-        // Add a bar for too many extra steps. The emoji for this is Const.CONFOUNDED.
+        // Add a bar for too many wrong moves. The emoji for this is Const.CONFOUNDED.
         addBar(dailyStats.gamesFailed, Const.CONFOUNDED, this.statsDistribution);
     }
 }

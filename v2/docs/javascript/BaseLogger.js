@@ -1,4 +1,3 @@
-
 class BaseLogger {
     constructor() {
     }

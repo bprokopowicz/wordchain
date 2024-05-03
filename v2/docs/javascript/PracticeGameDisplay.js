@@ -52,23 +52,33 @@ class PracticeGameDisplay extends GameDisplay {
 
     // Override superclass callback to update PracticeGameWordsPlayed cookie.
     deletionClickCallback(event) {
-        let me = event.srcElement.callbackAccessor,
-            gameResult = super.deletionClickCallback(event);
+        let me = event.srcElement.callbackAccessor;
+
+        if (me.game.isOver()) {
+            return;
+        }
+
+        let gameResult = super.deletionClickCallback(event);
 
         if (gameResult === Const.OK) {
-            this.practiceGameWordsPlayed = this.game.getWordsPlayedSoFar();
-            Cookie.saveJson("PracticeGameWordsPlayed", this.practiceGameWordsPlayed);
+            me.practiceGameWordsPlayed = me.game.getWordsPlayedSoFar();
+            Cookie.saveJson("PracticeGameWordsPlayed", me.practiceGameWordsPlayed);
         }
     }
 
     // Override superclass callback to update PracticeGameWordsPlayed cookie.
     pickerChangeCallback(event) {
-        let me = event.srcElement.callbackAccessor,
-            gameResult = super.pickerChangeCallback(event);
+        let me = event.srcElement.callbackAccessor;
+
+        if (me.game.isOver()) {
+            return;
+        }
+
+        let gameResult = super.pickerChangeCallback(event);
 
         if (gameResult === Const.OK) {
-            this.practiceGameWordsPlayed = this.game.getWordsPlayedSoFar();
-            Cookie.saveJson("PracticeGameWordsPlayed", this.practiceGameWordsPlayed);
+            me.practiceGameWordsPlayed = me.game.getWordsPlayedSoFar();
+            Cookie.saveJson("PracticeGameWordsPlayed", me.practiceGameWordsPlayed);
         }
     }
 
@@ -147,6 +157,7 @@ class PracticeGameDisplay extends GameDisplay {
     }
 
     updateWords() {
+
         // Save the timestamp of this game in the instance and cookies.
         this.practiceGameTimestamps.push(this.updateTime);
         Cookie.save("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
@@ -158,6 +169,8 @@ class PracticeGameDisplay extends GameDisplay {
         if (!this.startWord || this.startWord.length === 0) {
             // No words in the cookie; get new ones from the Game class and save them.
             [this.startWord, this.targetWord] = Game.getPracticePuzzle();
+            //this.startWord = "FATE";
+            //this.targetWord = "CAT";
             Cookie.save("PracticeGameStart", this.startWord);
             Cookie.save("PracticeGameTarget", this.targetWord);
             Cookie.saveJson("PracticeGameWordsPlayed", []);

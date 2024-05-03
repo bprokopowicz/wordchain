@@ -14,7 +14,7 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Class Variables ----- */
 
-    static BaseDate = new Date("2024-04-28T00:00:00.000+00:00");
+    static BaseDate = new Date("2024-05-02T00:00:00.000+00:00");
     static BaseTimestamp = null;
     static DateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
@@ -23,7 +23,7 @@ class DailyGameDisplay extends GameDisplay {
           2: ['flue', 'trance'],
           3: ['fish', 'grater'],
           4: ['salted', 'fish'],
-          5: ['tasty', 'owl '],
+          5: ['tasty', 'owl'],
           6: ['rum', 'runner'],
           7: ['funny', 'slur'],
           8: ['tough', 'punch'],
@@ -59,10 +59,10 @@ class DailyGameDisplay extends GameDisplay {
             gamesFailed:     0,
         }
 
-        // Now create a stat for each allowed number of extra steps, and initialize
-        // their values to 0. The stat properties for these is 0..TOO_MANY_EXTRA_STEPS.
-        for (let extraSteps = 0; extraSteps < Const.TOO_MANY_EXTRA_STEPS; extraSteps++) {
-            initialStats[extraSteps] = 0;
+        // Now create a stat for each allowed number of wrong moves, and initialize
+        // their values to 0. The stat properties for these is 0..TOO_MANY_WRONT_MOVES.
+        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONT_MOVES; wrongMoves++) {
+            initialStats[wrongMoves] = 0;
         }
 
         // If we have a cookie for daily stats parse it; otherwise set it to initial values.
@@ -71,17 +71,6 @@ class DailyGameDisplay extends GameDisplay {
         // Now, save the stats again in case this is the very first game and we never
         // had stats before. In all other cases this is redundant, but oh well!
         Cookie.saveJson("DailyStats", this.dailyStats);
-
-        /*
-        // Create a backup daily game words, in case we cannot get one.
-        this.backupStartWord  = "daily";
-        this.backupTargetWord = "broken";
-
-        // Get today's daily game; this will set this.startWord and
-        // this.targetWord so that we can call the base class constructGame()
-        // and display the game.
-        this.setDailyGameData();
-        */
 
         // Debug-only cookie that can be manually added to use a static daily game.
         const debugStaticDaily = Cookie.getBoolean("DebugStaticDaily");
@@ -121,7 +110,7 @@ class DailyGameDisplay extends GameDisplay {
         // Get the DailyGameNumber cookie; this can be manually deleted
         // to restart the daily game number determination.
         const currentDailyGameNumber = Cookie.getInt("DailyGameNumber");
-        console.log("currentDailyGameNumber:", currentDailyGameNumber);
+        this.logDebug("currentDailyGameNumber:", currentDailyGameNumber);
 
         // Debug-only cookie that can be manually added to reduce a day
         // to mere minutes.
@@ -141,7 +130,13 @@ class DailyGameDisplay extends GameDisplay {
                 console.log("Debugging! Fresh start; saved DebugBaseTimestamp; BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp));
             } else {
                 // No, but we're debugging, so get get the timestamp from the cookie.
+                // If there isn't a cookie, set it to "now".
                 DailyGameDisplay.BaseTimestamp = Cookie.getInt("DebugBaseTimestamp");
+                if (DailyGameDisplay.BaseTimestamp === null) {
+                    DailyGameDisplay.BaseTimestamp = (new Date()).getTime();
+                    Cookie.saveInt("DebugBaseTimestamp", DailyGameDisplay.BaseTimestamp);
+                    console.log("Debugging! NOT fresh start; no DebugTimestamp; setting to now");
+                }
                 console.log("Debugging! NOT fresh start; got DebugBaseTimestamp; BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp));
             }
         } else {
@@ -206,6 +201,11 @@ class DailyGameDisplay extends GameDisplay {
     // Override superclass callback to update DailyStats cookie.
     additionClickCallback(event) {
         let me = event.srcElement.callbackAccessor;
+
+        if (me.game.isOver()) {
+            return;
+        }
+
         me.updateGameStats(super.additionClickCallback(event));
 
         // NOTE: No need to save words in DailyGameWordsPlayed because an addition
@@ -215,24 +215,36 @@ class DailyGameDisplay extends GameDisplay {
 
     // Override superclass callback to update DailyStats and DailyGameWordsPlayed cookie.
     deletionClickCallback(event) {
-        let me = event.srcElement.callbackAccessor,
-            gameResult = super.deletionClickCallback(event);
+        let me = event.srcElement.callbackAccessor;
+
+        if (me.game.isOver()) {
+            return;
+        }
+
+        let gameResult = super.deletionClickCallback(event);
+
         me.updateGameStats(gameResult);
         if (gameResult === Const.OK) {
-            this.dailyGameWordsPlayed = this.game.getWordsPlayedSoFar();
-            this.saveJson("DailyGameWordsPlayed", this.dailyGameWordsPlayed);
+            me.dailyGameWordsPlayed = me.game.getWordsPlayedSoFar();
+            Cookie.saveJson("DailyGameWordsPlayed", me.dailyGameWordsPlayed);
         }
     }
 
     // Override superclass callback to update DailyStats and DailyGameWordsPlayed cookie.
     pickerChangeCallback(event) {
-        let me = event.srcElement.callbackAccessor,
-            gameResult = super.pickerChangeCallback(event);
+        let me = event.srcElement.callbackAccessor;
+
+        if (me.game.isOver()) {
+            return;
+        }
+
+        let gameResult = super.pickerChangeCallback(event);
+
         me.updateGameStats(gameResult);
 
         if (gameResult === Const.OK) {
-            this.dailyGameWordsPlayed = this.game.getWordsPlayedSoFar();
-            this.saveJson("DailyGameWordsPlayed", this.dailyGameWordsPlayed);
+            me.dailyGameWordsPlayed = me.game.getWordsPlayedSoFar();
+            Cookie.saveJson("DailyGameWordsPlayed", me.dailyGameWordsPlayed);
         }
     }
 
@@ -240,13 +252,15 @@ class DailyGameDisplay extends GameDisplay {
         if (gameResult === Const.OK && this.game.isOver()) {
             this.incrementStat("gamesCompleted");
 
-            // This returns an object that includes an 'extraSteps' property when the
-            // game is over (which we've determined is the case here). We use extraSteps
+            // This returns an object that includes a 'wrongMoves' property when the
+            // game is over (which we've determined is the case here). We use wrongMoves
             // to determine which stat to increment.
             let dailyGameInfo = this.game.getGameInfo();
-            console.log("updateGameStats(): dailyGameInfo:", dailyGameInfo);
+            console.log("updateGameStats(): dailyGameInfo.wrongMoves:", dailyGameInfo.wrongMoves);
+            console.log("updateGameStats(): TOO_MANY_WRONG_MOVES", Const.TOO_MANY_WRONG_MOVES);
 
-            if (dailyGameInfo.extraSteps >= Const.TOO_MANY_EXTRA_STEPS) {
+            if (dailyGameInfo.wrongMoves >= Const.TOO_MANY_WRONG_MOVES) {
+                console.log("updateGameStats(): Failed");
                 this.incrementStat("gamesFailed");
             }
         }

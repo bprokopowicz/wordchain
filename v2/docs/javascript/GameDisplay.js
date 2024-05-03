@@ -89,7 +89,7 @@ class GameDisplay extends BaseLogger {
     constructGame(start, target, wordsPlayedSoFar=[]) {
         this.game = new Game(start, target, wordsPlayedSoFar);
         this.showMove();
-        this.extraSteps = 0;
+        this.wrongMoves = 0;
     }
 
     displayAdd(displayInstruction) {
@@ -220,9 +220,9 @@ class GameDisplay extends BaseLogger {
         }
 
         const gameInfo = this.game.getGameInfo();
-        if (gameInfo.extraSteps > this.extraSteps) {
-            this.appDisplay.showToast(Const.EXTRA_STEP);
-            this.extraSteps = gameInfo.extraSteps;
+        if (gameInfo.wrongMoves > this.wrongMoves) {
+            this.appDisplay.showToast(Const.WRONG_MOVE);
+            this.wrongMoves = gameInfo.wrongMoves;
         }
 
         // Delete old move and add new one.
@@ -258,6 +258,10 @@ class GameDisplay extends BaseLogger {
     additionClickCallback(event) {
         var me = event.srcElement.callbackAccessor;
 
+        if (me.game.isOver()) {
+            return;
+        }
+
         //console.log("additionClickCallback(): event: ", event);
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
             gameResult = me.game.playAdd(additionPosition);
@@ -267,6 +271,10 @@ class GameDisplay extends BaseLogger {
 
     deletionClickCallback(event) {
         var me = event.srcElement.callbackAccessor;
+
+        if (me.game.isOver()) {
+            return;
+        }
 
         //console.log("deletionClickCallback(): event: ", event);
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
@@ -287,6 +295,10 @@ class GameDisplay extends BaseLogger {
     pickerChangeCallback(event) {
         //console.log("pickerChangeCallback(): event: ", event);
         var me = event.srcElement.callbackAccessor;
+
+        if (me.game.isOver()) {
+            return;
+        }
 
         if (me.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
             me.appDisplay.showToast(Const.PICK_LETTER);
