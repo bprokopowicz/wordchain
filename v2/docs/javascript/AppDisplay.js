@@ -268,9 +268,6 @@ class AppDisplay extends BaseLogger {
 
     // Set color properties according to the Dark Theme and Colorblind Mode settings.
     setColors() {
-        //console.log("setColors(): this.darkTheme:", this.darkTheme);
-        //console.log("setColors(): this.colorblindMode:", this.colorblindMode);
-
         // Change the document class name to switch the colors in general.
         if (this.darkTheme) {
             document.documentElement.className = "dark-mode";

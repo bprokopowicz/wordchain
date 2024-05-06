@@ -74,7 +74,8 @@ class DailyGameDisplay extends GameDisplay {
 
         // Debug-only cookie that can be manually added to use a static daily game.
         const debugStaticDaily = Cookie.getBoolean("DebugStaticDaily");
-        console.log("debugStaticDaily:", debugStaticDaily);
+        this.logDebug("debugStaticDaily:", debugStaticDaily, "daily");
+
         if (debugStaticDaily) {
             this.startWord = "dog";
             this.targetWord = "bite";
@@ -110,7 +111,7 @@ class DailyGameDisplay extends GameDisplay {
         // Get the DailyGameNumber cookie; this can be manually deleted
         // to restart the daily game number determination.
         const currentDailyGameNumber = Cookie.getInt("DailyGameNumber");
-        this.logDebug("currentDailyGameNumber:", currentDailyGameNumber);
+        this.logDebug("currentDailyGameNumber:", currentDailyGameNumber, "daily");
 
         // Debug-only cookie that can be manually added to reduce a day
         // to mere minutes.
@@ -120,14 +121,14 @@ class DailyGameDisplay extends GameDisplay {
         if (debugMinPerDay) {
             // Yes, we're debugging, so override the standard one day increment.
             DailyGameDisplay.DateIncrementMs = debugMinPerDay * 60 * 1000;
-            console.log("Debugging! DateIncrementMs:", DailyGameDisplay.DateIncrementMs);
+            this.logDebug("DebugDailyMinPerDay is set! DateIncrementMs:", DailyGameDisplay.DateIncrementMs, "daily");
 
             // Is this a "fresh start"?
             if (currentDailyGameNumber === null) {
                 // Yes! Set the base timestamp to now and save it in a debug-only cookie.
                 DailyGameDisplay.BaseTimestamp = (new Date()).getTime();
                 Cookie.saveInt("DebugBaseTimestamp", DailyGameDisplay.BaseTimestamp);
-                console.log("Debugging! Fresh start; saved DebugBaseTimestamp; BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp));
+                this.logDebug("DebugDailyMinPerDay is set! Fresh start; saved DebugBaseTimestamp; BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp), "daily");
             } else {
                 // No, but we're debugging, so get get the timestamp from the cookie.
                 // If there isn't a cookie, set it to "now".
@@ -135,16 +136,16 @@ class DailyGameDisplay extends GameDisplay {
                 if (DailyGameDisplay.BaseTimestamp === null) {
                     DailyGameDisplay.BaseTimestamp = (new Date()).getTime();
                     Cookie.saveInt("DebugBaseTimestamp", DailyGameDisplay.BaseTimestamp);
-                    console.log("Debugging! NOT fresh start; no DebugTimestamp; setting to now");
+                    this.logDebug("DebugDailyMinPerDay is set! NOT fresh start; no DebugTimestamp; setting to now", "daily");
                 }
-                console.log("Debugging! NOT fresh start; got DebugBaseTimestamp; BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp));
+                this.logDebug("DebugDailyMinPerDay is set! NOT fresh start; got DebugBaseTimestamp; BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp), "daily");
             }
         } else {
             // Not debugging daily games; set the base timestamp based
             // on our static base date -- the date at which we set the clock
             // for the very first daily game.
             DailyGameDisplay.BaseTimestamp = DailyGameDisplay.BaseDate.getTime();
-            console.log("NOT Debugging! BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp));
+            this.logDebug("DebugDailyMinPerDay is NOT set! BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp), "daily");
         }
 
         // Now, determine the game number and get the game data from the GameWords object.
@@ -180,7 +181,7 @@ class DailyGameDisplay extends GameDisplay {
         } else {
             // Existing daily game; recover the words played so far.
             this.dailyGameWordsPlayed = Cookie.getJsonOrElse("DailyGameWordsPlayed", []);
-            console.log("this.dailyGameWordsPlayed:", this.dailyGameWordsPlayed);
+            this.logDebug("this.dailyGameWordsPlayed:", this.dailyGameWordsPlayed, "daily");
         }
     }
 
@@ -256,11 +257,8 @@ class DailyGameDisplay extends GameDisplay {
             // game is over (which we've determined is the case here). We use wrongMoves
             // to determine which stat to increment.
             let dailyGameInfo = this.game.getGameInfo();
-            console.log("updateGameStats(): dailyGameInfo.wrongMoves:", dailyGameInfo.wrongMoves);
-            console.log("updateGameStats(): TOO_MANY_WRONG_MOVES", Const.TOO_MANY_WRONG_MOVES);
 
             if (dailyGameInfo.wrongMoves >= Const.TOO_MANY_WRONG_MOVES) {
-                console.log("updateGameStats(): Failed");
                 this.incrementStat("gamesFailed");
             }
         }

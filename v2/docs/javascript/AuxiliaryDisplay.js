@@ -1,11 +1,14 @@
+import { BaseLogger } from './BaseLogger.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
 
-class AuxiliaryDisplay {
+class AuxiliaryDisplay extends BaseLogger {
 
     /* ----- Construction ----- */
 
     constructor(buttonContainer, buttonSvgPath, parentContainer, saveRestoreContainers) {
+        super();
+
         this.saveRestoreContainers = saveRestoreContainers;
 
         // This is the button that will be clicked to display the auxiliary screen.
@@ -66,7 +69,7 @@ class AuxiliaryDisplay {
         // When the button was created with createSvgButton() we saved 'this'
         // as callbackAccessor on the button; use it to access other instance data.
         const me = event.srcElement.callbackAccessor;
-        //console.log("closeAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event);
+        this.logDebug("closeAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
         // comprise the close button. Any combination of them may generate an event,
@@ -98,7 +101,7 @@ class AuxiliaryDisplay {
         // When the button was created with createSvgButton() we saved 'this'
         // as callbackAccessor on the button; use it to access other instance data.
         const me = event.srcElement.callbackAccessor;
-        //console.log("openAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event);
+        this.logDebug("openAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
         // comprise the button that opens this display. Any combination of them may

@@ -66,14 +66,12 @@ class GameDisplay extends BaseLogger {
     }
 
     disablePicker() {
-        //console.log("disablePicker() this.pickerEnabled:", this.pickerEnabled);
         this.letterPickerLabel.setAttribute("class", "picker-label picker-label-disabled");
         this.letterPicker.setAttribute("class", "picker-select picker-select-disabled");
         this.letterPicker.setAttribute("disabled", "disabled");
     }
 
     enablePicker() {
-        //console.log("enablePicker() this.pickerEnabled:", this.pickerEnabled);
         this.letterPickerLabel.setAttribute("class", "picker-label picker-label-enabled");
         this.letterPicker.setAttribute("class", "picker-select picker-select-enabled");
         this.letterPicker.removeAttribute("disabled");
@@ -196,7 +194,7 @@ class GameDisplay extends BaseLogger {
 
         var displayInstruction;
         while (displayInstruction = this.game.getNextDisplayInstruction()) {
-            //console.log("displayInstruction:", displayInstruction);
+            this.logDebug("displayInstruction:", displayInstruction, "instruction");
 
             if (displayInstruction.displayType === Const.ADD) {
                 this.displayAdd(displayInstruction);
@@ -262,7 +260,7 @@ class GameDisplay extends BaseLogger {
             return;
         }
 
-        //console.log("additionClickCallback(): event: ", event);
+        this.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
             gameResult = me.game.playAdd(additionPosition);
 
@@ -276,7 +274,7 @@ class GameDisplay extends BaseLogger {
             return;
         }
 
-        //console.log("deletionClickCallback(): event: ", event);
+        this.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
             gameResult = me.game.playDelete(deletionPosition);
 
@@ -289,11 +287,10 @@ class GameDisplay extends BaseLogger {
         // Change the size of the picker so that it is no longer
         // showing 10 elements when the user moves the mouse away.
         me.letterPicker.setAttribute("size", 1);
-        //console.log("pickerBlurCallback");
     }
 
     pickerChangeCallback(event) {
-        //console.log("pickerChangeCallback(): event: ", event);
+        this.logDebug("pickerChangeCallback(): event:", event, "callback");
         var me = event.srcElement.callbackAccessor;
 
         if (me.game.isOver()) {
@@ -327,13 +324,11 @@ class GameDisplay extends BaseLogger {
         // Change the size of the picker so that multiple words are
         // shown with scrolling to select.
         me.letterPicker.setAttribute("size", 10);
-        //console.log("pickerFocusCallback");
     }
 
     /* ----- Utilities ----- */
 
     displayCommon(displayInstruction, cellCreator, hideAdditionCells=true) {
-        //console.log("displayCommon(): displayInstruction: ", displayInstruction);
         var additionPosition = 0,
             cell = null,
             tdElement = null,
