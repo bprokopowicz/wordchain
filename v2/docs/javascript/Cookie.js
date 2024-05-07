@@ -1,6 +1,9 @@
 /*
 ** Summary of cookies used:
 **
+**  Debug
+**     String: set to a comma-separated list of debug tags to turn on.
+**
 **  Primarily used in AppDisplay; set in SettingsDisplay
 **
 **     DarkTheme
