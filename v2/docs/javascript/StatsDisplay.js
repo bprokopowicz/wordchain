@@ -127,8 +127,8 @@ class StatsDisplay extends AuxiliaryDisplay {
         // over is true):
         //
         //  over:            true if the game is over (user has found target word or too many steps)
-        //  wrongMoves:      how many more steps it took to solve than the minimum
-        //  gameSummary:     array of wordInfo, where wordInfo has two properties: wordLength, wasCorrect
+        //  numWrongMoves:   how many more steps it took to solve than the minimum
+        //  moveSummary:     array of booleans indicating which words were correct/incorrect 
         //  dailyGameNumber: the current game number
         const gameInfo = this.appDisplay.getDailyGameInfo();
 
@@ -140,26 +140,26 @@ class StatsDisplay extends AuxiliaryDisplay {
         let shareString = `WordChain #${gameInfo.dailyGameNumber} `;
 
         // Determine what emoji to use to show the user's "score".
-        if (gameInfo.wrongMoves >= Const.TOO_MANY_WRONG_MOVES) {
+        if (gameInfo.numWrongMoves >= Const.TOO_MANY_WRONG_MOVES) {
             // Too many wrong moves.
             shareString += Const.CONFOUNDED;
         } else {
             // Show the emoji in NUMBERS corresponding to how many wrong moves.
             // A bit of a misnomer, but the value for 0 is a star.
-            shareString += Const.NUMBERS[gameInfo.wrongMoves];
+            shareString += Const.NUMBERS[gameInfo.numWrongMoves];
         }
         shareString += "\n\n";
 
         // Now, construct the graphic showing the lengths of the user's
         // played words, colored red or green to indicate whether that word
         // did or did not increase the solution length.
-        for (let wordInfo of gameInfo.gameSummary) {
+        for (let wasCorrect of gameInfo.moveSummary) {
 
             let colorblindMode = this.appDisplay.isColorblindMode(),
                 emoji;
 
             // Determine which color square to display for this word.
-            if (wordInfo.wasCorrect) {
+            if (wasCorrect) {
                 // Word didn't increase the count; pick color indicating "good".
                 emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
             } else {

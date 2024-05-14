@@ -60,8 +60,8 @@ class DailyGameDisplay extends GameDisplay {
         }
 
         // Now create a stat for each allowed number of wrong moves, and initialize
-        // their values to 0. The stat properties for these is 0..TOO_MANY_WRONT_MOVES.
-        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONT_MOVES; wrongMoves++) {
+        // their values to 0. The stat properties for these is 0..TOO_MANY_WRONG_MOVES.
+        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
             initialStats[wrongMoves] = 0;
         }
 
@@ -226,7 +226,7 @@ class DailyGameDisplay extends GameDisplay {
 
         me.updateGameStats(gameResult);
         if (gameResult === Const.OK) {
-            me.dailyGameWordsPlayed = me.game.getWordsPlayedSoFar();
+            me.dailyGameWordsPlayed = me.gameState;
             Cookie.saveJson("DailyGameWordsPlayed", me.dailyGameWordsPlayed);
         }
     }
@@ -244,7 +244,7 @@ class DailyGameDisplay extends GameDisplay {
         me.updateGameStats(gameResult);
 
         if (gameResult === Const.OK) {
-            me.dailyGameWordsPlayed = me.game.getWordsPlayedSoFar();
+            me.dailyGameWordsPlayed = me.gameState
             Cookie.saveJson("DailyGameWordsPlayed", me.dailyGameWordsPlayed);
         }
     }
@@ -253,12 +253,7 @@ class DailyGameDisplay extends GameDisplay {
         if (gameResult === Const.OK && this.game.isOver()) {
             this.incrementStat("gamesCompleted");
 
-            // This returns an object that includes a 'wrongMoves' property when the
-            // game is over (which we've determined is the case here). We use wrongMoves
-            // to determine which stat to increment.
-            let dailyGameInfo = this.game.getGameInfo();
-
-            if (dailyGameInfo.wrongMoves >= Const.TOO_MANY_WRONG_MOVES) {
+            if (this.getWrongMoveCount() >= Const.TOO_MANY_WRONG_MOVES) {
                 this.incrementStat("gamesFailed");
             }
         }
@@ -267,7 +262,16 @@ class DailyGameDisplay extends GameDisplay {
     /* ----- Utilities ----- */
 
     getGameInfo() {
-        let gameInfo = this.game.getGameInfo();
+        //  Construct an object for StatsDisplay with these properties:
+        //  over:            true if the game is over (user has found target word or too many steps)
+        //  numWrongMoves:   how many more steps it took to solve than the minimum
+        //  moveSummary:     array of booleans indicating which words were correct/incorrect
+        //  dailyGameNumber: the
+        let gameInfo = {};
+
+        gameInfo.over = this.game.isOver();
+        gameInfo.numWrongMoves = this.getWrongMoveCount();
+        gameInfo.moveSummary = this.getMoveSummary();
         gameInfo.dailyGameNumber = this.dailyGameNumber;
 
         return gameInfo;

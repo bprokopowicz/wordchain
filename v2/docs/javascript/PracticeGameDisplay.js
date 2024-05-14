@@ -61,7 +61,7 @@ class PracticeGameDisplay extends GameDisplay {
         let gameResult = super.deletionClickCallback(event);
 
         if (gameResult === Const.OK) {
-            me.practiceGameWordsPlayed = me.game.getWordsPlayedSoFar();
+            me.practiceGameWordsPlayed = me.gameState;
             Cookie.saveJson("PracticeGameWordsPlayed", me.practiceGameWordsPlayed);
         }
     }
@@ -77,7 +77,7 @@ class PracticeGameDisplay extends GameDisplay {
         let gameResult = super.pickerChangeCallback(event);
 
         if (gameResult === Const.OK) {
-            me.practiceGameWordsPlayed = me.game.getWordsPlayedSoFar();
+            me.practiceGameWordsPlayed = me.State;
             Cookie.saveJson("PracticeGameWordsPlayed", me.practiceGameWordsPlayed);
         }
     }

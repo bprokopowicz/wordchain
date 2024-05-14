@@ -4,7 +4,9 @@ import { BaseLogger } from './BaseLogger.js';
 // This class tries to find a word chain from a "from word" to a "to word",
 // which is returned as a Solution object.
 //
-class Solver extends BaseLogger {
+class Solver {
+
+   static logger = new BaseLogger();
 
    static solve(dictionary, fromWord, toWord) {
         let startingSolution = Solution.newEmptySolution(fromWord, toWord);
@@ -38,11 +40,11 @@ class Solver extends BaseLogger {
             if (solution.isSolved()) {
                 return solution;
             }
-            //console.log(`popped working solution: ${solution.toStr()}`);
+            Solver.logger.logDebug(`popped working solution: ${solution.toStr()}`, "solver-details");
             if (solution.numSteps() > longestSolution) {
                 longestSolution = solution.numSteps();
-                //this.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "perf");
-                //this.logDebug(`loopCount: ${loopCount}: search size: ${workingSolutions.length}`, "perf");
+                Solver.logger.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "solver-details");
+                Solver.logger.logDebug(`loopCount: ${loopCount}: search size: ${workingSolutions.length}`, "solver-details");
             }
 
             // Find all possible "next words" from the last word in the solution so far.
@@ -52,12 +54,14 @@ class Solver extends BaseLogger {
             // NOTE: Without sorting nextWords, we do not consistently find the same solution.
             for (let word of nextWords.sort()) {
                 workingDict.removeWord(word);
-                let newWorkingSolution = solution.copy().addWord(word);
-                //console.log(`   checking ${newWorkingSolution.toStr()}`);
+                let isCorrect = true;
+                let isPlayed = false;
+                let newWorkingSolution = solution.copy().addWord(word, isPlayed, isCorrect);
+                Solver.logger.logDebug(`   checking ${newWorkingSolution.toStr()}`, "solver-details");
                 if (newWorkingSolution.isSolved()) {
                     return newWorkingSolution;
                 }
-                //console.log(`   adding ${newWorkingSolution.toStr()}`);
+                Solver.logger.logDebug(`   adding ${newWorkingSolution.toStr()}`, "solver-details");
                 workingSolutions.push(newWorkingSolution);
             }
 
@@ -68,11 +72,11 @@ class Solver extends BaseLogger {
                 // just assume there is no solution. Kind of a kludge, but ... ain't nobody
                 // got time to wait more than 7 seconds.
                 if (Date.now() - startTime > 7000) {
-                    console.log(`Too long! loopCount: ${loopCount}`);
+                    Solver.logger.logDebug(`it's taking too long to solve ${startingSolution.toStr()}! loopCount: ${loopCount}`, "solver");
                     solution.addError("No solution within a reasonable time");
                     return solution;
                 }
-                console.log(`loopCount: ${loopCount}: size: ${workingSolutions.length}`)
+                Solver.logger.logDebug(`loopCount: ${loopCount}: size: ${workingSolutions.length}`, "solver-details");
             }
 
         }
@@ -86,7 +90,7 @@ class Solver extends BaseLogger {
         let localDictionary = dictionary.copy();
         let desiredPuzzles = [];
         if (!localDictionary.isWord(startWord)) {
-            console.log(startWord + " is not a word.");
+            Solver.logger.logDebug(startWord + " is not a word.", "solver");
             return desiredPuzzles;
         }
         // search forever until all suitable puzzles are found
@@ -97,7 +101,7 @@ class Solver extends BaseLogger {
             let puzzle = listOfPossiblePuzzles.shift();
             puzzle.calculateDifficulty(dictionary);
             if (Solver.isDesired(puzzle,  lowWordLen, highWordLen, minWords, maxWords, minDifficulty)) {
-	        //console.log(`found suitable  puzzle ${puzzle.toStr()}`);
+	            Solver.logger.logDebug(`found suitable puzzle ${puzzle.toStr()}`, "solver");
                 desiredPuzzles.push(puzzle);
             }
             // keep looking if not too long already
@@ -106,7 +110,9 @@ class Solver extends BaseLogger {
                 for (let nextWord of nextWords) {
                     localDictionary.removeWord(nextWord);
                     let newPuzzle = puzzle.copy();
-                    newPuzzle.addWord(nextWord);
+                    let isCorrect = true;
+                    let isPlayed = false;
+                    newPuzzle.addWord(nextWord, isPlayed, isCorrect);
                     listOfPossiblePuzzles.push(newPuzzle);
                 }
            }
@@ -134,68 +140,52 @@ class Solver extends BaseLogger {
     }
 }
 
-class PlayedWord {
-    constructor(word, penalty) {
+class SolutionStep {
+    constructor(word, isPlayed, isCorrect) {
         this.word = word;
-        this.penalty = penalty;
+        this.isPlayed = isPlayed;
+        this.isCorrect = isCorrect;
     }
 
     toString() {
-        return `${this.word}:${this.penalty}`;
+        return `${this.word} played:${this.isPlayed}, correct:${this.isCorrect}`;
     }
 
     wordLength() {
         return this.word.length;
     }
 
-    wasCorrect() {
-        return this.penalty == 0;
-    }
 }
 
 class Solution extends BaseLogger {
-    constructor(playedWords, target) {
+    constructor(solutionSteps, target) {
         super();
-        this.playedWords = playedWords;
-        this.target   = target;
+        this.solutionSteps = solutionSteps;
+        this.target = target;
         this.errorMessage = "";
         this.difficulty = -1;  // call calculateDifficulty(dictionary) to set this
     }
 
     static newEmptySolution(start, target) {
-        let penalty = 0;
-        let playedWord = new PlayedWord(start, penalty);
-        return new Solution([playedWord], target);
+        let isCorrect = true;
+        let isPlayed = true;
+        let solutionStep = new SolutionStep(start, isPlayed, isCorrect);
+        return new Solution([solutionStep], target);
     }
 
-    static newPartialSolution(dictionary, wordList, target) {
-        // construct a partial solution given some starting words and the target.
-        let penalty = 0;
-        let playedWords = wordList.map((word) => new PlayedWord(word, penalty));
-        let solution = new Solution(playedWords, target);
-        solution.calculatePenalties(dictionary);
-        return solution;
-    }
     addError(errorMessage) {
         this.errorMessage += errorMessage;
         return this;
     }
 
-    addWord(newWord, penalty=0) {
-        this.playedWords.push(new PlayedWord(newWord, penalty));
+    addWord(newWord, isPlayed, isCorrect) {
+        this.solutionSteps.push(new SolutionStep(newWord, isPlayed, isCorrect));
         return this;
     }
 
-    totalPenalty() {
-        let penalty = 0;
-        for (let word of this.playedWords) {
-            penalty += word.penalty;
-        }
-        return penalty;
-    }
 
     wrongMoves() {
-        return this.playedWords.filter((playedWord)=>!playedWord.wasCorrect()).length;
+        return this.solutionSteps.filter((solutionStep)=>!solutionStep.isCorrect).length;
     }
 
     calculateDifficulty(dictionary) {
@@ -217,28 +207,9 @@ class Solution extends BaseLogger {
         this.difficulty = nChoices;
     }
 
-    calculatePenalties(dictionary) {
-        // step 0 can not have a penalty
-        let recreatedSolution = Solution.newEmptySolution(this.getStart(), this.target);
-        let bestSolution = Solver.resolve(dictionary, recreatedSolution, this.target);
-        let i = 1;
-        while (i < this.numWords()) {
-            let bestSolutionLength = bestSolution.numSteps();
-            let wordPlayed = this.getNthWord(i);
-            recreatedSolution.addWord(wordPlayed);
-            bestSolution = Solver.resolve(dictionary, recreatedSolution, this.target);
-            let penalty = bestSolutionLength - bestSolution.numSteps();
-            // adjust penalty of last played word
-            recreatedSolution.removeLastWord();
-            recreatedSolution.addWord(wordPlayed, penalty);
-            i+=1;
-        }
-    }
-
-
     copy() {
-        let playedListCopy = [...this.playedWords];
-        return new Solution(playedListCopy, this.getTarget());
+        let solutionStepsCopy = [...this.solutionSteps];
+        return new Solution(solutionStepsCopy, this.getTarget());
     }
 
     getError() {
@@ -246,26 +217,30 @@ class Solution extends BaseLogger {
     }
 
     getNthWord(n) {
-        return this.playedWords[n].word;
-    }
-
-    getNthPenalty(n) {
-        return this.playedWords[n].penalty;
+        return this.solutionSteps[n].word;
     }
 
     getLastWord() {
-        return this.getNthWord(this.playedWords.length - 1);
+        return this.getNthWord(this.solutionSteps.length - 1);
     }
     
-    removeLastWord() {
-        this.playedWords.pop();
+    // use case: removing a step containing a word with a hole before replacing it with 
+    // the word without the hole.
+    removeLastStep() {
+        this.solutionSteps.pop();
+    }
+
+    // use case: when resolving from played word to target, that solution includes the played word as 
+    // its first word.  
+    removeFirstStep() {
+        this.solutionSteps.shift();
     }
 
     getPenultimateWord() {
-        if (this.playedWords.length < 2) {
-            throw new Error(`Solution.getPenultimateWord(): playedWords length (${this.playedWords.length}) cannot be < 2`)
+        if (this.solutionSteps.length < 2) {
+            throw new Error(`Solution.getPenultimateWord(): solutionSteps length (${this.solutionSteps.length}) cannot be < 2`)
         }
-        return this.getNthWord(this.playedWords.length - 2);
+        return this.getNthWord(this.solutionSteps.length - 2);
     }
 
     getStart() {
@@ -288,17 +263,17 @@ class Solution extends BaseLogger {
     }
 
     numWords() {
-        return this.playedWords.length;
+        return this.solutionSteps.length;
     }
 
-    getPlayedWords() {
-        return this.playedWords;
+    getSolutionSteps() {
+        return this.solutionSteps;
     }
 
     shortestWordLen() {
 	let shortestLen = 1000;
-        for (let playedWord of this.playedWords) {
-	    let word = playedWord.word;
+        for (let solutionStep of this.solutionSteps) {
+	        let word = solutionStep.word;
             if (word.length < shortestLen) {
                 shortestLen = word.length;
             }
@@ -308,8 +283,8 @@ class Solution extends BaseLogger {
 
     longestWordLen() {
 	let longestLen = 0;
-        for (let playedWord of this.playedWords) {
-	    let word = playedWord.word;
+        for (let solutionStep of this.solutionSteps) {
+	        let word = solutionStep.word;
             if (word.length > longestLen) {
                 longestLen = word.length;
             }
@@ -332,10 +307,10 @@ class Solution extends BaseLogger {
             return this.errorMessage;
         } else {
             const separator = " ";
-            const words = this.playedWords.join(", ");
+            const words = this.solutionSteps.join(", ");
             return `${words}${separator}[${this.numSteps()} steps toward ${this.target}]${separator}difficulty: ${this.difficulty}`;
         }
     }
 }
 
-export { Solver, Solution, PlayedWord };
+export { Solver, Solution, SolutionStep };

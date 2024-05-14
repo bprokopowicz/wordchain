@@ -26,6 +26,14 @@ class GameDisplay extends BaseLogger {
 
         this.createPicker();
 
+        // This will be (re)populated in showMove().
+        // This is an array of three-element arrays, which act like a Python tuple:
+        // the word, whether it was played, and whether it was correct(relevant
+        // only if it was played),
+        this.gameState = [];
+
+        this.logDebug("testing logDebug in GameDisplay", "test");
+
         // Derived class constructor must call constructGame().
     }
 
@@ -192,9 +200,19 @@ class GameDisplay extends BaseLogger {
 
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
-        var displayInstruction;
-        while (displayInstruction = this.game.getNextDisplayInstruction()) {
+        // We'll build up the game state from the displayInstruction objects
+        // that the game returns. The derived classes will save the state in
+        // a cookie.
+        this.gameState = [];
+
+        let displayInstructions = this.game.getDisplayInstructions();
+        for (let displayInstruction of displayInstructions) {
             this.logDebug("displayInstruction:", displayInstruction, "instruction");
+            this.gameState.push([
+                displayInstruction.word,
+                displayInstruction.displayType == Const.PLAYED,
+                displayInstruction.wasCorrect
+                ]);
 
             if (displayInstruction.displayType === Const.ADD) {
                 this.displayAdd(displayInstruction);
@@ -217,10 +235,12 @@ class GameDisplay extends BaseLogger {
             this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
         }
 
-        const gameInfo = this.game.getGameInfo();
-        if (gameInfo.wrongMoves > this.wrongMoves) {
+        // Were there more wrong words than the last time we showed a move? 
+        // If so, we need to show a toast message.
+        const wrongMoveCount = this.getWrongMoveCount()
+        if (wrongMoveCount > this.wrongMoves) {
             this.appDisplay.showToast(Const.WRONG_MOVE);
-            this.wrongMoves = gameInfo.wrongMoves;
+            this.wrongMoves = wrongMoveCount;
         }
 
         // Delete old move and add new one.
@@ -260,7 +280,7 @@ class GameDisplay extends BaseLogger {
             return;
         }
 
-        this.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
+        me.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
             gameResult = me.game.playAdd(additionPosition);
 
@@ -274,7 +294,7 @@ class GameDisplay extends BaseLogger {
             return;
         }
 
-        this.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
+        me.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
             gameResult = me.game.playDelete(deletionPosition);
 
@@ -290,8 +310,8 @@ class GameDisplay extends BaseLogger {
     }
 
     pickerChangeCallback(event) {
-        this.logDebug("pickerChangeCallback(): event:", event, "callback");
         var me = event.srcElement.callbackAccessor;
+        me.logDebug("pickerChangeCallback(): event:", event, "callback");
 
         if (me.game.isOver()) {
             return;
@@ -357,6 +377,28 @@ class GameDisplay extends BaseLogger {
             ElementUtilities.addElementTo(cell.getElement(), tdElement);
             additionPosition++;
         }
+    }
+
+    getMoveSummary() {
+        var summary = [];
+
+        for (let [__word, __wasPlayed, wasCorrect] of this.gameState) {
+            summary.push(wasCorrect);
+        }
+
+        return summary;
+    }
+
+    getWrongMoveCount() {
+        var count = 0;
+
+        for (let [__word, __wasPlayed, wasCorrect] of this.gameState) {
+            if (!wasCorrect) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     processGameResult(gameResult) {
