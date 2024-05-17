@@ -11,6 +11,7 @@ import * as Const from './Const.js';
 
 /*
 ** TODO:
+**
 ** Implementation
 ** - Solution button -- add means to show WordChain's solution?
 ** - After a game fails should the solution be shown?
@@ -18,10 +19,14 @@ import * as Const from './Const.js';
 **   Or by the same means to show WordChain's solution?
 ** - Resolve all TOODs!
 **
+** Testing
+** - Update test plan
+** - Tweak for display on iPhone/iPad
+**
 ** Before Sharing with Initial Friends
 ** - Review help message
 ** - 30 days of daily games
-** - Execute test plan on iPhone/iPad (Safari) and desk/laptop (Chrome)
+** - Execute test plan on iPhone/iPad (Safari) and desk/laptop (Safari/Chrome)
 **
 ** Deployment
 ** - How to create/minify/obscure one big js file
@@ -29,7 +34,7 @@ import * as Const from './Const.js';
 ** - Where to host?
 ** - How to manage daily game words long-term?
 ** - Testing on various browsers/devices
-** - Cookies: make secure? Save in back-end DB?
+** - Cookies: make secure? Obfuscate? Save in back-end DB?
 ** - Logo/favicon.ico
 */
 
@@ -100,8 +105,6 @@ class AppDisplay extends BaseLogger {
         this.createToastDiv();
 
         // The lower-div contains the divs for game setup and game play.
-        // TODO: If we ultimately support a separate practice game we will need to
-        // have multple gameDiv, pickerDiv, pickerInnerDiv.
         this.lowerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "lower-div"});
 
         this.createGameDiv(this.lowerDiv);

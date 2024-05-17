@@ -35,7 +35,6 @@ class Test extends BaseLogger {
 
     display() {
         this.outerDiv = ElementUtilities.addElement("div", {style: "margin: 2rem;"});
-        console.log(this.outerDiv);
         this.displayTestSuite();
         this.displayDictTester();
         this.displaySolverTester();
@@ -587,7 +586,6 @@ class Test extends BaseLogger {
             [...me.fullDict.getWords()]
             .filter(targetWord => (targetWord.length === targetWordLen))
             .map(targetWord => {
-                console.log("target: ", targetWord);
                 const solution = Solver.fastSolve(me.fullDict, startWord, targetWord);
                 if ( solution.isSolved() &&
                     (solution.numSteps() >= minSteps) &&
