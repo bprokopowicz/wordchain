@@ -77,7 +77,7 @@ class PracticeGameDisplay extends GameDisplay {
         let gameResult = super.pickerChangeCallback(event);
 
         if (gameResult === Const.OK) {
-            me.practiceGameWordsPlayed = me.State;
+            me.practiceGameWordsPlayed = me.gameState;
             Cookie.saveJson("PracticeGameWordsPlayed", me.practiceGameWordsPlayed);
         }
     }

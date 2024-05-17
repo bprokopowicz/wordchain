@@ -74,6 +74,21 @@ class ElementUtilities {
         }
     }
 
+    // Used only in Test.js
+    static getElement(elementId, mustExist=true) {
+        const element = document.getElementById(elementId);
+        if (mustExist && !element) {
+            throw new Error(`ElementUtilities.getElement(): no element with id ${elementId}`);
+        }   
+        return element;
+    }   
+
+    // Used only in Test.js.
+    static getElementValue(elementId) {
+        const element = ElementUtilities.getElement(elementId);
+        return element.value;
+    }   
+
     static editClass(fromPattern, toString, elements) {
 
         if (! (elements instanceof Array)) {
@@ -143,6 +158,12 @@ class ElementUtilities {
         buttonElement.addEventListener("keyup", localCallback);
         buttonElement.addEventListener("keydown", localCallback);
         //buttonElement.addEventListener("touchstart", callback);
+    }
+
+    // Used only in Test.js.
+    static setElementHTML(elementId, elementHTML) {
+        const element = ElementUtilities.getElement(elementId);
+        element.innerHTML = elementHTML;
     }
 
     static setElementText(element, elementText) {
