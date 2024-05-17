@@ -6,8 +6,6 @@ import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
-// Forwarding functions; see big comment in AppDisplay.js explaining how these came about.
-
 const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
 
 const globalWordList = await fetch(url)
