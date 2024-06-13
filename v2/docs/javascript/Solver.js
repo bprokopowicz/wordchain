@@ -9,6 +9,8 @@ class Solver {
    static logger = new BaseLogger();
 
    static solve(dictionary, fromWord, toWord) {
+        fromWord = fromWord.toUpperCase();
+        toWord = toWord.toUpperCase();
         let startingSolution = Solution.newEmptySolution(fromWord, toWord);
         if (! dictionary.isWord(fromWord)){
             startingSolution.addError(fromWord + " is not a word.");
@@ -49,10 +51,9 @@ class Solver {
 
             // Find all possible "next words" from the last word in the solution so far.
             let lastWord  = solution.getLastWord();
-            let nextWords = Array.from(workingDict.findNextWords(lastWord));
+            let nextWords = workingDict.findNextWords(lastWord);
 
-            // NOTE: Without sorting nextWords, we do not consistently find the same solution.
-            for (let word of nextWords.sort()) {
+            for (let word of nextWords) {
                 workingDict.removeWord(word);
                 let isCorrect = true;
                 let isPlayed = false;
@@ -70,8 +71,8 @@ class Solver {
             if (loopCount % 1000 === 0) {
                 // Date.now() returns milliseconds; if this is taking more than 7 seconds
                 // just assume there is no solution. Kind of a kludge, but ... ain't nobody
-                // got time to wait more than 7 seconds.
-                if (Date.now() - startTime > 7000) {
+                // got time to wait more than 15 seconds.
+                if (Date.now() - startTime > 15000) {
                     Solver.logger.logDebug(`it's taking too long to solve ${startingSolution.toStr()}! loopCount: ${loopCount}`, "solver");
                     solution.addError("No solution within a reasonable time");
                     return solution;
@@ -85,9 +86,11 @@ class Solver {
         return solution;
     }
 
-    static findPuzzles(dictionary, startWord, lowWordLen, highWordLen, minWords, maxWords,  minDifficulty) {
+    static findPuzzles(origDictionary, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty) {
 
-        let localDictionary = dictionary.copy();
+        startWord = startWord.toUpperCase();
+        Solver.logger.logDebug(`looking for puzzles starting with ${startWord} ending with a ${targetWordLen}-length word`, "solver");
+        let localDictionary = origDictionary.copy();
         let desiredPuzzles = [];
         if (!localDictionary.isWord(startWord)) {
             Solver.logger.logDebug(startWord + " is not a word.", "solver");
@@ -99,8 +102,9 @@ class Solver {
         listOfPossiblePuzzles.push(firstPuzzle);
         while (listOfPossiblePuzzles.length > 0) {
             let puzzle = listOfPossiblePuzzles.shift();
-            puzzle.calculateDifficulty(dictionary);
-            if (Solver.isDesired(puzzle,  lowWordLen, highWordLen, minWords, maxWords, minDifficulty)) {
+            Solver.logger.logDebug(`looking at puzzle ${puzzle.toStr()}`, "solver-details");
+            puzzle.target=puzzle.getLastWord();
+            if (Solver.isDesired(origDictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty)) {
 	            Solver.logger.logDebug(`found suitable puzzle ${puzzle.toStr()}`, "solver");
                 desiredPuzzles.push(puzzle);
             }
@@ -120,19 +124,23 @@ class Solver {
        return desiredPuzzles;
     }
 
-    static isDesired(puzzle, lowWordLen, highWordLen, minWords, maxWords, minDifficulty) {
+    static isDesired(dictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty) {
         if (puzzle.numWords() < minWords) {
             return false;
         }
         if (puzzle.numWords() > maxWords) {
             return false;
         }
-        if (puzzle.shortestWordLen() > lowWordLen){
+        if (puzzle.getTarget().length != targetWordLen) {
             return false;
         }
-        if (puzzle.longestWordLen() < highWordLen){
+        if (!puzzle.hasWordOfLength(wordLen1)) {
             return false;
         }
+        if (!puzzle.hasWordOfLength(wordLen2)) {
+            return false;
+        }
+        puzzle.calculateDifficulty(dictionary);
         if (puzzle.difficulty < minDifficulty) {
             return false;
         }
@@ -270,8 +278,17 @@ class Solution extends BaseLogger {
         return this.solutionSteps;
     }
 
+    hasWordOfLength(l) {
+        for (let solutionStep of this.solutionSteps) {
+            if (solutionStep.word.length == l) {
+                return true;
+            }
+        }
+        return false;
+    }
+        
     shortestWordLen() {
-	let shortestLen = 1000;
+        let shortestLen = 1000;
         for (let solutionStep of this.solutionSteps) {
 	        let word = solutionStep.word;
             if (word.length < shortestLen) {
@@ -282,7 +299,7 @@ class Solution extends BaseLogger {
     }
 
     longestWordLen() {
-	let longestLen = 0;
+        let longestLen = 0;
         for (let solutionStep of this.solutionSteps) {
 	        let word = solutionStep.word;
             if (word.length > longestLen) {

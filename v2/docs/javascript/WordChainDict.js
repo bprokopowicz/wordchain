@@ -1,4 +1,4 @@
-import { BaseLogger } from './BaseLogger.js';
+import { BaseLogger } from './BaseLogger.js';``
 
 // Synchronously wait for the word list to download.
 // Pop the last entry which is always an empty string following the last new-line.
@@ -67,9 +67,12 @@ class WordChainDict extends BaseLogger {
 
         // nextWords is the union of the 3 sets.
         let nextWords = new Set([...adders, ...removers, ...replacements]);
-        this.logDebug(`nextWords for ${word}: ${Array.from(nextWords).sort()}`, "next");
 
-        return nextWords;
+        let nextWordsSortedArray = Array.from(nextWords);
+        nextWordsSortedArray.sort();
+        this.logDebug(`nextWords for ${word}: ${nextWordsSortedArray}`);
+        return nextWordsSortedArray;
+
     }
 
     // Find the words that result from removing one letter anywhere in word.

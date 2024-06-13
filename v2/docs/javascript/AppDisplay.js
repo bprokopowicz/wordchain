@@ -107,8 +107,8 @@ class AppDisplay extends BaseLogger {
         // The lower-div contains the divs for game setup and game play.
         this.lowerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "lower-div"});
 
-        this.createGameDiv(this.lowerDiv);
         this.createPickerDiv(this.lowerDiv);
+        this.createGameDiv(this.lowerDiv);
 
         this.createAuxiliaryScreens();
         this.createGameButtons();
@@ -192,20 +192,20 @@ class AppDisplay extends BaseLogger {
     /* ----- Game ----- */
 
     createGameDiv(lowerDiv) {
-        // This div is the one we style as none or flex to hide/show the div.
-        this.gameDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "game-div"}, null);
-        this.gameDiv.style.display = "flex";
-    }
-
-    createPickerDiv(lowerDiv) {
-        // We always want the picker to appear on a "line" by itself, not
-        // next to the cell grid.
+        // We always want the game to appear on a "line" by itself, not
+        // next to the picker grid.
         //
         // A div with class "break" forces whatever comes after this div
         // to be on a "new line" when the containing div is display: flex.
         // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
         ElementUtilities.addElementTo("div", lowerDiv, {class: "break"});
 
+        // This div is the one we style as none or flex to hide/show the div.
+        this.gameDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "game-div"}, null);
+        this.gameDiv.style.display = "flex";
+    }
+
+    createPickerDiv(lowerDiv) {
         // This div is the one we style as none or flex to hide/show the div.
         this.pickerDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "picker-div"}, null),
 

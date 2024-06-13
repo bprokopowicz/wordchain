@@ -41,7 +41,7 @@ class GameDisplay extends BaseLogger {
 
     createPicker() {
 
-        this.letterPickerContainer = ElementUtilities.addElementTo("div", this.pickerDiv);
+        this.letterPickerContainer = ElementUtilities.addElementTo("div", this.pickerDiv, {class: "picker-container"});
 
         this.letterPickerLabel = ElementUtilities.addElementTo(
             "label", this.letterPickerContainer, {class: "picker-label"}, "Pick a letter: ")

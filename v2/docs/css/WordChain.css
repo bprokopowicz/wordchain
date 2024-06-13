@@ -231,6 +231,7 @@ hr {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    height: 95%;
 }
 
 /*
@@ -333,14 +334,14 @@ svg {
 }
 
 .letter-cell {
-    width: 30px;
-    height: 30px;
-    border-width: .15rem;
+    width: 25px;
+    height: 25px;
+    border-width: .10rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 5px;
-    margin-left: 5px;
+    margin-right: 4px;
+    margin-left: 4px;
 }
 
 .letter-cell-good {
@@ -352,7 +353,7 @@ svg {
 }
 
 .letter-cell-change {
-    border-width: .3rem;
+    border-width: .2rem;
     border-style: dashed;
 }
 
@@ -364,7 +365,7 @@ svg {
 }
 
 .letter-cell-future-change {
-    border-width: .3rem;
+    border-width: .2rem;
 }
 
 .letter-cell-played {
@@ -388,21 +389,23 @@ button.action-button {
 }
 
 .action-outer-cell {
-    width: 30px;    /* Must have same width as .letter-cell */
+    width: 25px;    /* Must have same width as .letter-cell */
     height: 15px;
     border: solid;
-    border-width: .15rem;
+    border-width: .10rem;
     border-color: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 4px;
+    margin-left: 4px;
 }
 
 .action-cell {
     width: 15px;
     height: 15px;
     border: solid;
-    border-width: .15rem;
+    border-width: .10rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -431,8 +434,24 @@ button.action-button {
 ** ------
 */
 
+#picker-div {
+    position: sticky;
+    top: 0;
+    height: 5%;
+    margin-bottom: 4px;
+}
+
+.picker-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
 .picker-label {
-    font-size:1.25rem;
+    font-size:1rem;
+    position: sticky;
+    top: 0;
+    margin-right: 5px;
 }
 
 .picker-label-enabled {
@@ -444,8 +463,8 @@ button.action-button {
 }
 
 .picker-select {
-    font-size:1.25rem;
-    width: 3.5rem;
+    font-size:1rem;
+    width: 3rem;
     text-align: center;
 }
 
@@ -460,6 +479,7 @@ button.action-button {
 .picker-option {
     background: var(--primary-bg);
     color: var(--primary-fg);
+    font-size: 1rem;
 }
 
 /*

@@ -21,8 +21,8 @@ class Test extends BaseLogger {
         super();
 
         this.name = "NOT SET";
-        this.tinyList  = ["apple", "pear", "banana"];
-        this.smallList = ["bad", "bade", "bald", "bat", "bate", "bid", "cad", "cat", "dog", "scad"]
+        this.tinyList  = ["APPLE", "PEAR", "BANANA"];
+        this.smallList = ["BAD", "BADE", "BALD", "BAT", "BATE", "BID", "CAD", "CAT", "DOG", "SCAD"]
         this.fullDict = new WordChainDict(globalWordList);
     }
 
@@ -131,9 +131,9 @@ class Test extends BaseLogger {
         this.name = "DictIsWord";
         const tinyDict  = new WordChainDict(this.tinyList);
         this.verify((tinyDict.getSize() === 3), "size !== 3") &&
-            this.verify(tinyDict.isWord("apple"), "apple is not a word") &&
+            this.verify(tinyDict.isWord("APPLE"), "APPLE is not a word") &&
             this.verify(tinyDict.isWord("apPlE"), "apPlE is not a word") &&
-            this.verify(!tinyDict.isWord("peach"), "peach is not a word") &&
+            this.verify(!tinyDict.isWord("PEACH"), "PEACH is not a word") &&
             this.success();
     }
 
@@ -141,13 +141,13 @@ class Test extends BaseLogger {
         this.name = "DictAdders";
         const smallDict = new WordChainDict(this.smallList);
 
-        const cadAdders = smallDict.findAdderWords("cad");
-        const badAdders = smallDict.findAdderWords("bad");
-        const batAdders = smallDict.findAdderWords("bat");
+        const cadAdders = smallDict.findAdderWords("CAD");
+        const badAdders = smallDict.findAdderWords("BAD");
+        const batAdders = smallDict.findAdderWords("BAT");
 
-        this.verify(cadAdders.has("scad"), "'scad' is not in 'cad' adders") &&
-            this.verify(badAdders.has("bald"), "'bald' is not in 'bad' adders") &&
-            this.verify(batAdders.has("bate"), "'bate' is not in 'bat' adders") &&
+        this.verify(cadAdders.has("SCAD"), "'SCAD' is not in 'CAD' adders") &&
+            this.verify(badAdders.has("BALD"), "'BALD' is not in 'BAD' adders") &&
+            this.verify(batAdders.has("BATE"), "'BATE' is not in 'BAT' adders") &&
             this.success();
     }
 
@@ -155,13 +155,13 @@ class Test extends BaseLogger {
         this.name = "DictRemovers";
         const smallDict = new WordChainDict(this.smallList);
 
-        const ccadRemovers = smallDict.findRemoverWords("ccad");
-        const baldRemovers = smallDict.findRemoverWords("bald");
-        const bateRemovers = smallDict.findRemoverWords("bate");
+        const ccadRemovers = smallDict.findRemoverWords("CCAD");
+        const baldRemovers = smallDict.findRemoverWords("BALD");
+        const bateRemovers = smallDict.findRemoverWords("BATE");
 
-        this.verify(ccadRemovers.has("cad"), "'cad' is not in 'ccad' removers") &&
-            this.verify(baldRemovers.has("bad"), "'bad' is not in 'bald' removers") &&
-            this.verify(bateRemovers.has("bat"), "'bat' is not in 'bate' removers") &&
+        this.verify(ccadRemovers.has("CAD"), "'CAD' is not in 'CCAD' removers") &&
+            this.verify(baldRemovers.has("BAD"), "'BAD' is not in 'BALD' removers") &&
+            this.verify(bateRemovers.has("BAT"), "'BAT' is not in 'BATE' removers") &&
             this.success();
     }
 
@@ -169,12 +169,12 @@ class Test extends BaseLogger {
         this.name = "DictReplacements";
         const smallDict = new WordChainDict(this.smallList);
 
-        const badReplacements = smallDict.findReplacementWords("bad");
-        const cadReplacements = smallDict.findReplacementWords("cad");
+        const badReplacements = smallDict.findReplacementWords("BAD");
+        const cadReplacements = smallDict.findReplacementWords("CAD");
 
-        this.verify(cadReplacements.has("bad"), "'bad' is not in 'cad' replacements") &&
-            this.verify(badReplacements.has("bid"), "'bid' is not in 'bad' replacements") &&
-            this.verify(badReplacements.has("bat"), "'bat' is not in 'bad' replacements") &&
+        this.verify(cadReplacements.has("BAD"), "'BAD' is not in 'CAD' replacements") &&
+            this.verify(badReplacements.has("BID"), "'BID' is not in 'BAD' replacements") &&
+            this.verify(badReplacements.has("BAT"), "'BAT' is not in 'BAD' replacements") &&
             this.success();
     }
 
@@ -184,18 +184,18 @@ class Test extends BaseLogger {
         const dictSize = this.fullDict.getSize();
         const expectedMinDictSize = 16000;
 
-        const catAdders = this.fullDict.findAdderWords("cat");
+        const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
         const expectedAddersSize = 9;
 
-        const badeReplacements = this.fullDict.findAdderWords("bade");
+        const badeReplacements = this.fullDict.findAdderWords("BADE");
         const replacementsSize = badeReplacements.size;
         const expectedReplacementsSize = 2;
 
         this.verify((dictSize >= expectedMinDictSize), `full dictionary has ${dictSize} words; expected at least ${expectedMinDictSize}`) &&
-            this.verify(this.fullDict.isWord("place"), "'place' is not in dict") &&
+            this.verify(this.fullDict.isWord("PLACe"), "'PLACE' is not in dict") &&
             this.verify(this.fullDict.isWord("PlAcE"), "'PlAcE' is not in dict") &&
-            this.verify(!this.fullDict.isWord("zizzamatizzateezyman"), "'zizzamatizzateezyman' is in dict") &&
+            this.verify(!this.fullDict.isWord("ZIZZAMATIZZATEEZYMAN"), "'ZIZZAMATIZZATEEZYMAN' is in dict") &&
             this.verify((addersSize == expectedAddersSize), `adders has ${addersSize} words; expected ${expectedAddersSize}`) &&
             this.verify((replacementsSize == expectedReplacementsSize), `adders has ${replacementsSize} words; expected ${expectedReplacementsSize}`) &&
             this.success();
@@ -218,51 +218,51 @@ class Test extends BaseLogger {
 
     testSolverIdentitySequence() {
         this.name = "SolverIdentitySequence";
-        const dict = new WordChainDict(["bad", "bat", "cad", "cat", "dog"]);
-        const solution = Solver.fastSolve(dict, "bat", "bat");
+        const dict = new WordChainDict(["BAD", "BAT", "CAD", "CAT", "DOG"]);
+        const solution = Solver.fastSolve(dict, "BAT", "BAT");
 
-        this.verify(solution.success(), `error in solving 'bat' to 'bat': ${solution.getError()}`) &&
-            this.verify((solution.numSteps() === 0), "solution for 'bat' to 'bat' is not 0") &&
-            this.verify((solution.getFirstWord() === 'bat'), "first word for 'bat' to 'bat' is not 'bat'") &&
-            this.verify((solution.getLastWord() === 'bat'), "last word for 'bat' to 'bat' is not 'bat'") &&
+        this.verify(solution.success(), `error in solving 'BAT' to 'BAT': ${solution.getError()}`) &&
+            this.verify((solution.numSteps() === 0), "solution for 'BAT' to 'BAT' is not 0") &&
+            this.verify((solution.getFirstWord() === 'BAT'), "first word for 'BAT' to 'BAT' is not 'BAT'") &&
+            this.verify((solution.getLastWord() === 'BAT'), "last word for 'BAT' to 'BAT' is not 'BAT'") &&
             this.success();
     }
 
     testSolverOneStep() {
         this.name = "SolverOneStep"
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"]);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
         // Adder
-        const solutionBadBade = Solver.fastSolve(smallDict, "bad", "bade");
+        const solutionBadBade = Solver.fastSolve(smallDict, "BAD", "BADE");
         // Remover
-        const solutionBadeBad = Solver.fastSolve(smallDict, "bade", "bad");
+        const solutionBadeBad = Solver.fastSolve(smallDict, "BADE", "BAD");
         // Replacer
-        const solutionBatCat = Solver.fastSolve(smallDict, "bat", "cat");
+        const solutionBatCat = Solver.fastSolve(smallDict, "BAT", "CAT");
         // Nope
-        const solutionNope = Solver.fastSolve(smallDict, "bat", "dog");
+        const solutionNope = Solver.fastSolve(smallDict, "BAT", "DOG");
 
-        this.verify(solutionBadBade.success(), `error on adder 'bad' to 'bade': ${solutionBadBade.getError()}`) &&
-            this.verify(solutionBadeBad.success(), `error on remover 'bade' to 'bad': ${solutionBadeBad.getError()}`) &&
-            this.verify(solutionBatCat.success(), `error on replacer 'bat' to 'cat': ${solutionBatCat.getError()}`) &&
-            this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'bad' to 'bade': ${solutionBadBade.getWords()}`) &&
-            this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'bade' to 'bad': ${solutionBadeBad.getWords()}`) &&
-            this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'bat' to 'cat': ${solutionBatCat.getWords()}`) &&
-            this.verify(!solutionNope.success(), "expected failure for 'bat' to 'dog'")&&
+        this.verify(solutionBadBade.success(), `error on adder 'BAD' to 'BADE': ${solutionBadBade.getError()}`) &&
+            this.verify(solutionBadeBad.success(), `error on remover 'BADE' to 'BAD': ${solutionBadeBad.getError()}`) &&
+            this.verify(solutionBatCat.success(), `error on replacer 'BAT' to 'CAT': ${solutionBatCat.getError()}`) &&
+            this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'BAD' to 'BADE': ${solutionBadBade.getWords()}`) &&
+            this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'BADE' to 'BAD': ${solutionBadeBad.getWords()}`) &&
+            this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'BAT' to 'CAT': ${solutionBatCat.getWords()}`) &&
+            this.verify(!solutionNope.success(), "expected failure for 'BAT' to 'DOG'")&&
             this.success();
 
     }
 
     testSolverMultiStep() {
         this.name = "SolverTwoStep"
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"]);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
-        const solutionBatScad = Solver.fastSolve(smallDict, "bat", "scad");
-        const solutionScadBat = Solver.fastSolve(smallDict, "scad", "bat");
+        const solutionBatScad = Solver.fastSolve(smallDict, "BAT", "SCAD");
+        const solutionScadBat = Solver.fastSolve(smallDict, "SCAD", "BAT");
 
-        this.verify(solutionBatScad.success(), `error on 'bat' to 'scad': ${solutionBatScad.getError()}`) &&
-            this.verify(solutionScadBat.success(), `error on 'scad' to 'bat': ${solutionScadBat.getError()}`) &&
-            this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'bat' to 'scad': ${solutionBatScad.getWords()}`) &&
-            this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'scad' to 'bat': ${solutionScadBat.getWords()}`) &&
+        this.verify(solutionBatScad.success(), `error on 'BAT' to 'SCAD': ${solutionBatScad.getError()}`) &&
+            this.verify(solutionScadBat.success(), `error on 'SCAD' to 'BAT': ${solutionScadBat.getError()}`) &&
+            this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'BAT' to 'SCAD': ${solutionBatScad.getWords()}`) &&
+            this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'SCAD' to 'BAT': ${solutionScadBat.getWords()}`) &&
             this.success();
     }
 
@@ -270,28 +270,28 @@ class Test extends BaseLogger {
         this.name = "SolverDistance";
 
         // Same length.
-        const distanceDogDot = Solution.wordDistance("dog", "dot");
-        const distanceDogCat = Solution.wordDistance("dog", "cat");
+        const distanceDogDot = Solution.wordDistance("DOG", "DOT");
+        const distanceDogCat = Solution.wordDistance("DOG", "CAT");
         // First word shorter.
-        const distanceDogGoat = Solution.wordDistance("dog", "goat");
+        const distanceDogGoat = Solution.wordDistance("DOG", "GOAT");
         // First word longer.
-        const distanceGoatDog = Solution.wordDistance("goat", "dog");
+        const distanceGoatDog = Solution.wordDistance("GOAT", "DOG");
 
-        this.verify((distanceDogDot === 1), `'dog' to 'dot' distance incorrect: ${distanceDogDot}`) &&
-            this.verify((distanceDogCat === 3), `'dog' to 'cat' distance incorrect: ${distanceDogCat}`) &&
-            this.verify((distanceDogGoat === 3), `'dog' to 'goat' distance incorrect: ${distanceDogGoat}`) &&
-            this.verify((distanceGoatDog === 3), `'goat' to 'dog' distance incorrect: ${distanceGoatDog}`) &&
+        this.verify((distanceDogDot === 1), `'DOG' to 'DOT' distance incorrect: ${distanceDogDot}`) &&
+            this.verify((distanceDogCat === 3), `'DOG' to 'CAT' distance incorrect: ${distanceDogCat}`) &&
+            this.verify((distanceDogGoat === 3), `'DOG' to 'GOAT' distance incorrect: ${distanceDogGoat}`) &&
+            this.verify((distanceGoatDog === 3), `'GOAT' to 'DOG' distance incorrect: ${distanceGoatDog}`) &&
             this.success();
     }
 
     testSolverLongChain() {
         this.name = "SolverLongChain";
 
-        const solutionTacoBimbo = Solver.fastSolve(this.fullDict, "taco", "bimbo");
+        const solutionTacoBimbo = Solver.fastSolve(this.fullDict, "TACO", "BIMBO");
         const foundWords = solutionTacoBimbo.getWords();
-        const expectedWords = [ "taco", "tao", "tab", "lab", "lamb", "limb", "limbo", "bimbo" ];
+        const expectedWords = [ "TACO", "TAO", "TAB", "LAB", "LAMB", "LIMB", "LIMBO", "BIMBO" ];
 
-        this.verify(solutionTacoBimbo.success(), `error on 'taco' to 'bimbo': ${solutionTacoBimbo.getError()}`) &&
+        this.verify(solutionTacoBimbo.success(), `error on 'TACO' to 'BIMBO': ${solutionTacoBimbo.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `foundWords: ${foundWords} is not as expected: ${expectedWords}`) &&
             this.success();
     }
@@ -302,15 +302,15 @@ class Test extends BaseLogger {
 
         // This takes too long if the solver doesn't try to go from 'matzo'
         // to 'ball' because 'ball' has so many next words.
-        const solutionMatzoBall = Solver.fastSolve(this.fullDict, "matzo", "ball");
-            this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'matzo' to 'ball': ${solutionMatzoBall.getError()}`) &&
+        const solutionMatzoBall = Solver.fastSolve(this.fullDict, "MATZO", "BALL");
+            this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'MATZO' TO 'BALL': ${solutionMatzoBall.getError()}`) &&
             this.success();
     }
 
     testSolverReverseSearchNoSolution() {
         this.name = "SolverReverseSearchNoSolution";
-        const triedReverseSearchNoSolution = Solver.fastSolve(this.fullDict, "frog", "echo");
-        this.verify(!triedReverseSearchNoSolution.isSolved(), `expected 'No solution' on 'frog' to 'echo'`) &&
+        const triedReverseSearchNoSolution = Solver.fastSolve(this.fullDict, "FROG", "ECHO");
+        this.verify(!triedReverseSearchNoSolution.isSolved(), `expected 'No solution' on 'FROG' to 'ECHO'`) &&
         this.success();
     }
 
@@ -331,11 +331,11 @@ class Test extends BaseLogger {
     testGameCorrectFirstWord() {
         this.name = "GameCorrectFirstWord";
 
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
-        const solution = Solver.fastSolve(smallDict, "scad", "bat");
-        const game = new Game("small", smallDict, solution);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const solution = Solver.fastSolve(smallDict, "SCAD", "BAT");
+        const game = new Game("SMALL", smallDict, solution);
 
-        const playResult = game.playWord("cad");
+        const playResult = game.playWord("CAD");
         this.verify((playResult === Const.OK), "Word played not OK") &&
             this.success();
     }
@@ -343,11 +343,11 @@ class Test extends BaseLogger {
     testGameNotOneStep() {
         this.name = "GameNotOneStep";
 
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
-        const solution = Solver.fastSolve(smallDict, "scad", "bat");
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const solution = Solver.fastSolve(smallDict, "SCAD", "BAT");
         const game = new Game("small", smallDict, solution);
 
-        const playResult = game.playWord("dog");
+        const playResult = game.playWord("DOG");
         this.verify((playResult === Const.NOT_ONE_STEP), "Word played not NOT_ONE_STEP") &&
             this.success();
     }
@@ -355,19 +355,19 @@ class Test extends BaseLogger {
     testGameDifferentWordFromInitialSolution() {
         this.name = "GameDifferentWordFromInitialSolution";
 
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
-        const origSolution = Solver.fastSolve(smallDict, "bad", "cat");
-        const game = new Game("small", smallDict, origSolution);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const origSolution = Solver.fastSolve(smallDict, "BAD", "CAT");
+        const game = new Game("SMALL", smallDict, origSolution);
         const origStep2 = game.getKnownSolution().getWordByStep(2)
 
         // "bade" is not in the original solution (but we'll verify that below)..
-        const playResult = game.playWord("bade");
+        const playResult = game.playWord("BADE");
         const knownStep1 = game.getKnownSolution().getWordByStep(1)
         const knownStep2 = game.getKnownSolution().getWordByStep(2)
 
         this.verify((playResult === Const.OK), "Word played not OK") &&
-            this.verify((! origSolution.wordList.includes('bade')), "Original solution has 'bade'") &&
-            this.verify((knownStep1 === "bade"), `Known step 1 unexpected: ${knownStep1}`) &&
+            this.verify((! origSolution.wordList.includes('BADE')), "Original solution has 'BADE'") &&
+            this.verify((knownStep1 === "BADE"), `Known step 1 unexpected: ${knownStep1}`) &&
             this.verify((knownStep2 !== origStep2), `Known step 2 same as original: ${knownStep2}`) &&
             this.success();
     }
@@ -375,12 +375,12 @@ class Test extends BaseLogger {
     testGameCompleteSmallDict() {
         this.name = "GameCompleteSmallDict";
 
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
-        const solution = Solver.fastSolve(smallDict, "bad", "scad");
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const solution = Solver.fastSolve(smallDict, "BAD", "SCAD");
         const game = new Game("small", smallDict, solution);
 
-        const playResult1 = game.playWord("cad");
-        const playResult2 = game.playWord("scad");
+        const playResult1 = game.playWord("CAD");
+        const playResult2 = game.playWord("SCAD");
 
         this.verify((playResult1 === Const.OK), "Word 1 played not OK") &&
             this.verify((playResult2 === Const.OK), "Word 2 played not OK") &&
@@ -400,18 +400,18 @@ class Test extends BaseLogger {
         const inProgStep1 = game.getSolutionInProgress().getWordByStep(1)
 
         this.verify((playResult === Const.OK), "Word played not OK") &&
-            this.verify((knownStep1 === "cad"), `Known step 1 unexpected: ${knownStep1}`) &&
-            this.verify((inProgStep1 === "cad"), `In progress step 1 unexpected: ${inProgStep1}`) &&
+            this.verify((knownStep1 === "CAD"), `Known step 1 unexpected: ${knownStep1}`) &&
+            this.verify((inProgStep1 === "CAD"), `In progress step 1 unexpected: ${inProgStep1}`) &&
             this.verify((knownStep2 !== origStep2), `Known step 2 same as original: ${knownStep2}`) &&
             this.success();
     }
 
     testGameNotShortestSolutionBug() {
         this.name = "GameNotShortestSolutionBug";
-        const solution = Solver.fastSolve(this.fullDict, "broken", "baked");
+        const solution = Solver.fastSolve(this.fullDict, "BROKEN", "BAKED");
         const foundWords = solution.getWords();
-        const expectedWords = [ "broken", "broke", "brake", "bake", "baked" ];
-        this.verify(solution.success(), `error on 'broken' to 'baked': ${solution.getError()}`) &&
+        const expectedWords = [ "BROKEN", "BROKE", "BRAKE", "BAKE", "BAKED" ];
+        this.verify(solution.success(), `error on 'BROKEN' to 'BAKED': ${solution.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `solution: ${foundWords} is not expected: ${expectedWords}`) &&
             this.success();
     }
@@ -419,20 +419,20 @@ class Test extends BaseLogger {
 
     testGameSolutionCannotHavePlayedWord() {
         this.name = "GameSolutionCannotHavePlayedWord";
-        const origSolution = Solver.fastSolve(this.fullDict, "cat", "dog");
+        const origSolution = Solver.fastSolve(this.fullDict, "CAT", "DOG");
         const game = new Game("full", this.fullDict, origSolution);
 
-        let playResult = game.playWord("cats")
-        let wordsAfterFromWord = game.getKnownSolution().getWords().slice(1)
+        let playResult = game.playWord("CATS");
+        let wordsAfterFromWord = game.getKnownSolution().getWords().slice(1);
 
-        this.verify((playResult === Const.OK), "No solution from 'cat, cats' to 'dog'") &&
-            this.verify(! wordsAfterFromWord.includes("cat"), "Solution of 'cats' to 'dog' contains 'cat'") &&
+        this.verify((playResult === Const.OK), "No solution from 'CAT, CATS' to 'DOG'") &&
+            this.verify(! wordsAfterFromWord.includes("cat"), "Solution of 'CATS' to 'DOG' contains 'CAT'") &&
             this.success();
     }
 
     testGameTypeSavingMode() {
         this.name = "GameTypeSavingMode";
-        const origSolution = Solver.fastSolve(this.fullDict, "cat", "dog");
+        const origSolution = Solver.fastSolve(this.fullDict, "CAT", "DOG");
         const typeSavingMode = true;
         const game = new Game("full", this.fullDict, origSolution, typeSavingMode);
         let gameWords = game.showGame();
@@ -466,7 +466,7 @@ class Test extends BaseLogger {
     findCallback(event) {
         const me = event.srcElement.callbackAccessor;
 
-        const word = ElementUtilities.getElementValue("someWord").toLowerCase();
+        const word = ElementUtilities.getElementValue("someWord");
         if (! me.fullDict.isWord(word)) {
             alert(`${word} is not a word`);
             return;
@@ -494,6 +494,8 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("p", this.outerDiv);
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "solveAnswer"}, "Click the button to see the chain.");
         ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {id: "solveTiming"}, "");
+        ElementUtilities.addElementTo("p", this.outerDiv);
 
         button.callbackAccessor = this;
         ElementUtilities.setButtonCallback(button, this.solveCallback);
@@ -501,21 +503,25 @@ class Test extends BaseLogger {
 
     solveCallback(event) {
         const me = event.srcElement.callbackAccessor,
-              startWord = ElementUtilities.getElementValue("solverStartWord").toLowerCase();
+              startWord = ElementUtilities.getElementValue("solverStartWord");
 
         if (! me.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
             return;
         }
 
-        const targetWord = ElementUtilities.getElementValue("solverTargetWord").toLowerCase();
+        const targetWord = ElementUtilities.getElementValue("solverTargetWord");
         if (! me.fullDict.isWord(targetWord)) {
             alert("Target word is empty or not a word");
             return;
         }
 
-        const solution = Solver.fastSolve(me.fullDict, startWord, targetWord);
+        const start = Date.now();
+        const solution = Solver.solve(me.fullDict, startWord, targetWord);
+        const end = Date.now();
+        solution.calculateDifficulty(me.fullDict);
         ElementUtilities.setElementHTML("solveAnswer", solution.toHtml());
+        ElementUtilities.setElementHTML("solveTiming",  `took ${(end-start)} ms`);
     }
 
     // ===== Puzzle Finder =====
@@ -539,20 +545,16 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min steps: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinSteps", type: "text", value: "1"});
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min words: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinWords", type: "text", value: "1"});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "max steps: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxSteps", type: "text", value: "1000"});
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "max words: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxWords", type: "text", value: "1000"});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "min difficulty: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinDifficulty", type: "text", value: "1" });
-        ElementUtilities.addElementTo("p", this.outerDiv);
-
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "max difficulty: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxDifficulty", type: "text", value: "1000"});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         var button = ElementUtilities.addElementTo("button", this.outerDiv, {id: "puzzleFinderFind"}, "Find!");
@@ -567,7 +569,7 @@ class Test extends BaseLogger {
 
     puzzleFinderFindCallback(event) {
         const me = event.srcElement.callbackAccessor,
-              startWord = ElementUtilities.getElementValue("puzzleFinderStartWord").toLowerCase();
+              startWord = ElementUtilities.getElementValue("puzzleFinderStartWord");
 
         if (! me.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
@@ -576,32 +578,15 @@ class Test extends BaseLogger {
 
         const reqWordLen1 = parseInt(ElementUtilities.getElementValue("puzzleFinderReqWordLen1")),
               reqWordLen2 = parseInt(ElementUtilities.getElementValue("puzzleFinderReqWordLen2")),
-              minSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMinSteps")),
-              maxSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxSteps")),
+              minSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMinWords")),
+              maxSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxWords")),
               minDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMinDifficulty")),
-              maxDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxDifficulty")),
               targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen"));
 
-        const goodTargetsWithDifficulty =
-            [...me.fullDict.getWords()]
-            .filter(targetWord => (targetWord.length === targetWordLen))
-            .map(targetWord => {
-                const solution = Solver.fastSolve(me.fullDict, startWord, targetWord);
-                if ( solution.isSolved() &&
-                    (solution.numSteps() >= minSteps) &&
-                    (solution.numSteps() <= maxSteps) &&
-                    (solution.difficulty >= minDifficulty) &&
-                    (solution.difficulty <= maxDifficulty) &&
-                    (solution.getWords().filter(word => (word.length === reqWordLen1)).length > 0) &&
-                    (solution.getWords().filter(word => (word.length === reqWordLen2)).length > 0)
-                   ) {
-                    return [targetWord, solution.difficulty];
-                } else {
-                   return [];
-                }
-            })
-            .filter (pair => (pair.length == 2))
-            .map(pair => pair.join(":"));
+        const goodTargetsWithDifficulty = 
+            Solver.findPuzzles(me.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
+            .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
+        goodTargetsWithDifficulty.sort();
 
         ElementUtilities.setElementHTML("puzzleFinderAnswer", goodTargetsWithDifficulty.join(","));
     }
