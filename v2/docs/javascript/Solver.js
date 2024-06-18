@@ -82,8 +82,8 @@ class Solver {
 
         }
 
-        solution.addError("No solution");
-        return solution;
+        startingSolution.addError("No solution");
+        return startingSolution;
     }
 
     static findPuzzles(origDictionary, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty) {
@@ -278,9 +278,13 @@ class Solution extends BaseLogger {
         return this.solutionSteps;
     }
 
-    hasWordOfLength(l) {
-        for (let solutionStep of this.solutionSteps) {
-            if (solutionStep.word.length == l) {
+    getSolutionWords() {
+        return this.solutionSteps.map((step)=>step.word);
+    }
+
+    hasWordOfLength(len) {
+        for (let word of this.getSolutionWords()) {
+            if (word.length == len) {
                 return true;
             }
         }
@@ -289,8 +293,7 @@ class Solution extends BaseLogger {
         
     shortestWordLen() {
         let shortestLen = 1000;
-        for (let solutionStep of this.solutionSteps) {
-	        let word = solutionStep.word;
+        for (let word of this.getSolutionWords()) {
             if (word.length < shortestLen) {
                 shortestLen = word.length;
             }
@@ -300,8 +303,7 @@ class Solution extends BaseLogger {
 
     longestWordLen() {
         let longestLen = 0;
-        for (let solutionStep of this.solutionSteps) {
-	        let word = solutionStep.word;
+        for (let word of this.getSolutionWords()) {
             if (word.length > longestLen) {
                 longestLen = word.length;
             }

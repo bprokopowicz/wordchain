@@ -19,13 +19,14 @@ class Game extends BaseLogger {
     // This needs to be converted to a list of SolutionStep objects
     // We maintain the played steps [start, word1, word2], target
     // and the remaining steps to target  [word3, word4, ...], target
-    constructor(startWord, targetWord, stepsOfSolution) {
+
+    // TODO - optionally pass in the dictionary, for testing
+    constructor(startWord, targetWord, stepsOfSolution, dict=new WordChainDict()) {
         super();
         this.logDebug("constructor(): startWord:", startWord, ", targetWord:", targetWord, "game");
         startWord = startWord.toUpperCase();
         targetWord = targetWord.toUpperCase();
-        this.dictionary = new WordChainDict();
-        this.wordToDisplayIndex = 0;
+        this.dictionary = dict;
         if (stepsOfSolution.length == 0) {
             this.logDebug("Constructing game from beginning", "game");
             this.playedSteps = Solution.newEmptySolution(startWord, targetWord);
@@ -33,8 +34,8 @@ class Game extends BaseLogger {
             // remove the start word from the remaining steps.
             this.remainingSteps.removeFirstStep();
         } else {
-            // we have a list of all the words, either played from start ... something
-            this.logDebug("Re-constructing game from existing steps", "game");
+            // we have a list of all the words, as tuples (word, wasPlayed, isCorrect)
+            this.logDebug(`Re-constructing game from existing steps: ${stepsOfSolution.join()}`, "game");
             let justThePlayedSteps = stepsOfSolution.filter((tup)=>tup[1]).map((tup)=> new SolutionStep(tup[0], tup[1], tup[2]));
             this.playedSteps = new Solution(justThePlayedSteps, targetWord);
 
@@ -46,53 +47,6 @@ class Game extends BaseLogger {
         this.logDebug("Game constructed: remaining steps: ", this.remainingSteps.toStr(), "game");
     }
 
-    // Return DisplayInstruction for the current 'wordToDisplayIndex'.  .
-    // The words displayed go from 0 to the number of steps in the full solution + 1
-
-/*
-      soln  played instruction  display
-    beginning - words played: 1 (start word) 
-    0 cat   cat  cat,START    cat
-    1 bat        cat,CHANGE@1 ?at
-    2 bart       bart,FUTURE  XXXX
-    3 barts      barts,TARGET barts
-
-    user types 'b' - words played: 2
-    0 cat   cat  cat,PLAYED   cat
-    1 bat   bat  bat,PLAYED   bat
-    2 bart       bat,ADD      +b+a+t+
-    3 barts      barts,TARGET barts
-
-    user clicks +2 - words played: 3 and set doing-insert
-    0 cat   cat   cat,PLAYED    cat
-    1 bat   bat   bat,PLAYED    bat
-    2 bart  ba?t  ba?t,CHANGE@3 ba?t
-    3 barts       barts,TARGET  barts
-
-    user types r  - words played: still 3 reset doing-insert
-    0 cat   cat   cat,PLAYED   cat
-    1 bat   bat   bat,PLAYED   bat
-    2 bart  bart  bart,ADD    +b+a+r+t+
-    3 barts       barts,TARGET barts
-
-    user clicks +4 - words played: 4 and set doing-insert
-    0 cat   cat    cat,PLAYED    cat
-    1 bat   bat    bat,PLAYED    bat
-    2 bart  bart   bart,PLAYED   bart
-    3 barts bart?  bart?,CHANGE@5 bart?
-
-    user types s - words played still 4 and reset doing-insert
-    0 cat   cat    cat,PLAYED   cat
-    1 bat   bat    bat,PLAYED   bat
-    2 bart  bart   bart,PLAYED  bart
-    3 barts barts  barts,TARGET barts
-
-    The words up to and including the last-played word, if any, are PLAYED.
-    EXCEPTION: if "doing-insert" is true, or equivalently, the last played word
-    has a hole in it, it should be displayed using the played word as usual, but the action should be CHANGE@ hole location.
-    The next word (after the played list is exhausted) is the ACTIVE WORD to reach
-    The words after the active word are FUTURE until TARGET.
-    */
 
     // Choose a random start/target that has a solution between
     // Const.PRACTICE_STEPS_MINIMUM and Const.PRACTICE_STEPS_MAXIMUM
@@ -131,7 +85,7 @@ class Game extends BaseLogger {
         }
     }
 
-    // returns a list to display all the steps of the puzzle. .
+    // returns a list to display all the steps of the puzzle. 
     getDisplayInstructions() {
         this.logDebug("played so far: " + this.playedSteps.toStr(), "game");
         this.logDebug("remaining unplayed: " + this.remainingSteps.toStr(), "game");
@@ -158,6 +112,7 @@ class Game extends BaseLogger {
         // now the target
         instructions.push(this.instructionForTargetWord());
     
+        this.logDebug(`display instructions: ${instructions.map((instruction)=>instruction.toStr()).join()}`, "game");
         return instructions;
     }
 

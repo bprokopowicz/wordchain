@@ -24,21 +24,22 @@ class DisplayInstruction {
 
     // Used for debugging only.
     toStr() {
-        var returnStr = `${this.displayType}`;
+        var returnStr = `(${this.displayType}`;
 
         if (this.word.length !== 0) {
-            returnStr += ` word: ${this.word}`;
+            returnStr += `,word:${this.word}`;
         } else {
-            returnStr += ` wordLength: ${this.wordLength}`;
+            returnStr += `,wordLength:${this.wordLength}`;
         }
 
         if (this.displayType !== Const.FUTURE && this.displayType !== Const.TARGET) {
-            returnStr += `, wasCorrect: ${this.wasCorrect}`;
+            returnStr += `,wasCorrect:${this.wasCorrect}`;
         }
 
         if (this.displayType === Const.CHANGE  || this.displayType === Const.FUTURE) {
-            returnStr += `, changePosition: ${this.changePosition}`;
+            returnStr += `,changePosition:${this.changePosition}`;
         }
+        returnStr += ")";
 
         return returnStr;
     }

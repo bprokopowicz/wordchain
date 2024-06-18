@@ -209,7 +209,6 @@ class Test extends BaseLogger {
         this.testSolverIdentitySequence();
         this.testSolverOneStep();
         this.testSolverMultiStep();
-        this.testSolverDistance();
         this.testSolverLongChain();
         this.testGameNotShortestSolutionBug();
         this.testSolverFastestDirection();
@@ -219,12 +218,12 @@ class Test extends BaseLogger {
     testSolverIdentitySequence() {
         this.name = "SolverIdentitySequence";
         const dict = new WordChainDict(["BAD", "BAT", "CAD", "CAT", "DOG"]);
-        const solution = Solver.fastSolve(dict, "BAT", "BAT");
+        const solution = Solver.solve(dict, "BAT", "BAT");
 
         this.verify(solution.success(), `error in solving 'BAT' to 'BAT': ${solution.getError()}`) &&
             this.verify((solution.numSteps() === 0), "solution for 'BAT' to 'BAT' is not 0") &&
-            this.verify((solution.getFirstWord() === 'BAT'), "first word for 'BAT' to 'BAT' is not 'BAT'") &&
-            this.verify((solution.getLastWord() === 'BAT'), "last word for 'BAT' to 'BAT' is not 'BAT'") &&
+            this.verify((solution.getStart() === 'BAT'), "first word for 'BAT' to 'BAT' is not 'BAT'") &&
+            this.verify((solution.getTarget() === 'BAT'), "last word for 'BAT' to 'BAT' is not 'BAT'") &&
             this.success();
     }
 
@@ -233,20 +232,20 @@ class Test extends BaseLogger {
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
         // Adder
-        const solutionBadBade = Solver.fastSolve(smallDict, "BAD", "BADE");
+        const solutionBadBade = Solver.solve(smallDict, "BAD", "BADE");
         // Remover
-        const solutionBadeBad = Solver.fastSolve(smallDict, "BADE", "BAD");
+        const solutionBadeBad = Solver.solve(smallDict, "BADE", "BAD");
         // Replacer
-        const solutionBatCat = Solver.fastSolve(smallDict, "BAT", "CAT");
+        const solutionBatCat = Solver.solve(smallDict, "BAT", "CAT");
         // Nope
-        const solutionNope = Solver.fastSolve(smallDict, "BAT", "DOG");
+        const solutionNope = Solver.solve(smallDict, "BAT", "DOG");
 
         this.verify(solutionBadBade.success(), `error on adder 'BAD' to 'BADE': ${solutionBadBade.getError()}`) &&
             this.verify(solutionBadeBad.success(), `error on remover 'BADE' to 'BAD': ${solutionBadeBad.getError()}`) &&
             this.verify(solutionBatCat.success(), `error on replacer 'BAT' to 'CAT': ${solutionBatCat.getError()}`) &&
-            this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'BAD' to 'BADE': ${solutionBadBade.getWords()}`) &&
-            this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'BADE' to 'BAD': ${solutionBadeBad.getWords()}`) &&
-            this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'BAT' to 'CAT': ${solutionBatCat.getWords()}`) &&
+            this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'BAD' to 'BADE': ${solutionBadBade.getSolutionSteps()}`) &&
+            this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'BADE' to 'BAD': ${solutionBadeBad.getSolutionSteps()}`) &&
+            this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'BAT' to 'CAT': ${solutionBatCat.getSolutionSteps()}`) &&
             this.verify(!solutionNope.success(), "expected failure for 'BAT' to 'DOG'")&&
             this.success();
 
@@ -256,39 +255,21 @@ class Test extends BaseLogger {
         this.name = "SolverTwoStep"
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
-        const solutionBatScad = Solver.fastSolve(smallDict, "BAT", "SCAD");
-        const solutionScadBat = Solver.fastSolve(smallDict, "SCAD", "BAT");
+        const solutionBatScad = Solver.solve(smallDict, "BAT", "SCAD");
+        const solutionScadBat = Solver.solve(smallDict, "SCAD", "BAT");
 
         this.verify(solutionBatScad.success(), `error on 'BAT' to 'SCAD': ${solutionBatScad.getError()}`) &&
             this.verify(solutionScadBat.success(), `error on 'SCAD' to 'BAT': ${solutionScadBat.getError()}`) &&
-            this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'BAT' to 'SCAD': ${solutionBatScad.getWords()}`) &&
-            this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'SCAD' to 'BAT': ${solutionScadBat.getWords()}`) &&
-            this.success();
-    }
-
-    testSolverDistance() {
-        this.name = "SolverDistance";
-
-        // Same length.
-        const distanceDogDot = Solution.wordDistance("DOG", "DOT");
-        const distanceDogCat = Solution.wordDistance("DOG", "CAT");
-        // First word shorter.
-        const distanceDogGoat = Solution.wordDistance("DOG", "GOAT");
-        // First word longer.
-        const distanceGoatDog = Solution.wordDistance("GOAT", "DOG");
-
-        this.verify((distanceDogDot === 1), `'DOG' to 'DOT' distance incorrect: ${distanceDogDot}`) &&
-            this.verify((distanceDogCat === 3), `'DOG' to 'CAT' distance incorrect: ${distanceDogCat}`) &&
-            this.verify((distanceDogGoat === 3), `'DOG' to 'GOAT' distance incorrect: ${distanceDogGoat}`) &&
-            this.verify((distanceGoatDog === 3), `'GOAT' to 'DOG' distance incorrect: ${distanceGoatDog}`) &&
+            this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'BAT' to 'SCAD': ${solutionBatScad.getSolutionSteps()}`) &&
+            this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'SCAD' to 'BAT': ${solutionScadBat.getSolutionSteps()}`) &&
             this.success();
     }
 
     testSolverLongChain() {
         this.name = "SolverLongChain";
 
-        const solutionTacoBimbo = Solver.fastSolve(this.fullDict, "TACO", "BIMBO");
-        const foundWords = solutionTacoBimbo.getWords();
+        const solutionTacoBimbo = Solver.solve(this.fullDict, "TACO", "BIMBO");
+        const foundWords = solutionTacoBimbo.getSolutionSteps().map((step)=>step.word);
         const expectedWords = [ "TACO", "TAO", "TAB", "LAB", "LAMB", "LIMB", "LIMBO", "BIMBO" ];
 
         this.verify(solutionTacoBimbo.success(), `error on 'TACO' to 'BIMBO': ${solutionTacoBimbo.getError()}`) &&
@@ -302,14 +283,14 @@ class Test extends BaseLogger {
 
         // This takes too long if the solver doesn't try to go from 'matzo'
         // to 'ball' because 'ball' has so many next words.
-        const solutionMatzoBall = Solver.fastSolve(this.fullDict, "MATZO", "BALL");
+        const solutionMatzoBall = Solver.solve(this.fullDict, "MATZO", "BALL");
             this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'MATZO' TO 'BALL': ${solutionMatzoBall.getError()}`) &&
             this.success();
     }
 
     testSolverReverseSearchNoSolution() {
         this.name = "SolverReverseSearchNoSolution";
-        const triedReverseSearchNoSolution = Solver.fastSolve(this.fullDict, "FROG", "ECHO");
+        const triedReverseSearchNoSolution = Solver.solve(this.fullDict, "FROG", "ECHO");
         this.verify(!triedReverseSearchNoSolution.isSolved(), `expected 'No solution' on 'FROG' to 'ECHO'`) &&
         this.success();
     }
@@ -320,55 +301,60 @@ class Test extends BaseLogger {
 
     runGameTests() {
         this.testGameCorrectFirstWord();
-        this.testGameNotOneStep();
+        this.testGameDeleteWrongLetter();
         this.testGameDifferentWordFromInitialSolution();
         this.testGameCompleteSmallDict();
         this.testGameCompleteFullDict();
-        this.testGameSolutionCannotHavePlayedWord();
-        this.testGameTypeSavingMode();
+        this.testGameDisplayInstructions();
     }
 
     testGameCorrectFirstWord() {
         this.name = "GameCorrectFirstWord";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const solution = Solver.fastSolve(smallDict, "SCAD", "BAT");
-        const game = new Game("SMALL", smallDict, solution);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict);
 
-        const playResult = game.playWord("CAD");
+        const playResult = game.playDelete(1);
         this.verify((playResult === Const.OK), "Word played not OK") &&
             this.success();
     }
 
-    testGameNotOneStep() {
-        this.name = "GameNotOneStep";
+    testGameDeleteWrongLetter() {
+        this.name = "GameDeleteLetterNotAWord";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const solution = Solver.fastSolve(smallDict, "SCAD", "BAT");
-        const game = new Game("small", smallDict, solution);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict);
 
-        const playResult = game.playWord("DOG");
-        this.verify((playResult === Const.NOT_ONE_STEP), "Word played not NOT_ONE_STEP") &&
+        const playResult = game.playDelete(3);
+        this.verify((playResult === Const.NOT_A_WORD), "NOT_A_WORD after deleting wrong letter") &&
             this.success();
     }
 
     testGameDifferentWordFromInitialSolution() {
         this.name = "GameDifferentWordFromInitialSolution";
 
-        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const origSolution = Solver.fastSolve(smallDict, "BAD", "CAT");
-        const game = new Game("SMALL", smallDict, origSolution);
-        const origStep2 = game.getKnownSolution().getWordByStep(2)
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAT", "DOG", "SCAD"]);
+        const origSolution = Solver.solve(smallDict, "BAD", "CAT");
+        const steps = [];
+        const game = new Game("BAD", "CAT", steps, smallDict);
+        const origWord1 = game.remainingSteps.getNthWord(0);
 
-        // "bade" is not in the original solution (but we'll verify that below)..
-        const playResult = game.playWord("BADE");
-        const knownStep1 = game.getKnownSolution().getWordByStep(1)
-        const knownStep2 = game.getKnownSolution().getWordByStep(2)
+        this.verify((origWord1 === "BAT"), "original solution should have BAT as first word");
+        // "bade" is not in the original solution 
+        this.verify((! origSolution.getSolutionWords().includes('BADE')), "Original solution should not have 'BADE'");
 
-        this.verify((playResult === Const.OK), "Word played not OK") &&
-            this.verify((! origSolution.wordList.includes('BADE')), "Original solution has 'BADE'") &&
-            this.verify((knownStep1 === "BADE"), `Known step 1 unexpected: ${knownStep1}`) &&
-            this.verify((knownStep2 !== origStep2), `Known step 2 same as original: ${knownStep2}`) &&
+        const playAddResult = game.playAdd(3);
+        this.verify((playAddResult === Const.OK), "playAdd(3) not OK");
+
+        const playLetterResult = game.playLetter(4, "E");
+        this.verify((playLetterResult === Const.OK), "playLetter(4, E) not OK");
+
+        const newPlayedWord = game.playedSteps.getNthWord(1);
+        this.verify((newPlayedWord === "BADE"), `Played word 1 should be BADE, not: ${newPlayedWord}`);
+        const newSolutionWord1 = game.remainingSteps.getNthWord(0);
+        this.verify((newSolutionWord1 === "BAT"), `New solution should continue with BAT, not: ${newSolutionWord1}`) &&
             this.success();
     }
 
@@ -376,68 +362,48 @@ class Test extends BaseLogger {
         this.name = "GameCompleteSmallDict";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const solution = Solver.fastSolve(smallDict, "BAD", "SCAD");
-        const game = new Game("small", smallDict, solution);
+        const solution = Solver.solve(smallDict, "BAD", "SCAD");
+        const isPlayed = true;
+        const isCorrect = true;
+        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, isCorrect]);
+        const game = new Game("BAD", "SCAD", fullSolutionAsTuples, smallDict);
 
-        const playResult1 = game.playWord("CAD");
-        const playResult2 = game.playWord("SCAD");
-
-        this.verify((playResult1 === Const.OK), "Word 1 played not OK") &&
-            this.verify((playResult2 === Const.OK), "Word 2 played not OK") &&
-            this.verify(game.getSolutionInProgress().isSolved(), `Solution in progress is not solved`) &&
+        this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
             this.success();
     }
 
     testGameCompleteFullDict() {
         this.name = "GameCompleteFullDict";
-        const origSolution = Solver.fastSolve(this.fullDict, "bad", "word");
-        const game = new Game("full", this.fullDict, origSolution);
-        const origStep2 = game.getKnownSolution().getWordByStep(2)
+        const solution = Solver.solve(this.fullDict, "bad", "word");
+        const isPlayed = true;
+        const isCorrect = true;
+        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, isCorrect]);
+        const game = new Game("bad", "word", fullSolutionAsTuples, this.fullDict);
 
-        const playResult = game.playWord("cad");
-        const knownStep1  = game.getKnownSolution().getWordByStep(1)
-        const knownStep2  = game.getKnownSolution().getWordByStep(2)
-        const inProgStep1 = game.getSolutionInProgress().getWordByStep(1)
-
-        this.verify((playResult === Const.OK), "Word played not OK") &&
-            this.verify((knownStep1 === "CAD"), `Known step 1 unexpected: ${knownStep1}`) &&
-            this.verify((inProgStep1 === "CAD"), `In progress step 1 unexpected: ${inProgStep1}`) &&
-            this.verify((knownStep2 !== origStep2), `Known step 2 same as original: ${knownStep2}`) &&
+        this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
             this.success();
     }
 
     testGameNotShortestSolutionBug() {
         this.name = "GameNotShortestSolutionBug";
-        const solution = Solver.fastSolve(this.fullDict, "BROKEN", "BAKED");
-        const foundWords = solution.getWords();
+        const solution = Solver.solve(this.fullDict, "BROKEN", "BAKED");
+        const foundWords = solution.getSolutionSteps().map((step)=>step.word);
         const expectedWords = [ "BROKEN", "BROKE", "BRAKE", "BAKE", "BAKED" ];
         this.verify(solution.success(), `error on 'BROKEN' to 'BAKED': ${solution.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `solution: ${foundWords} is not expected: ${expectedWords}`) &&
             this.success();
     }
 
-
-    testGameSolutionCannotHavePlayedWord() {
-        this.name = "GameSolutionCannotHavePlayedWord";
-        const origSolution = Solver.fastSolve(this.fullDict, "CAT", "DOG");
-        const game = new Game("full", this.fullDict, origSolution);
-
-        let playResult = game.playWord("CATS");
-        let wordsAfterFromWord = game.getKnownSolution().getWords().slice(1);
-
-        this.verify((playResult === Const.OK), "No solution from 'CAT, CATS' to 'DOG'") &&
-            this.verify(! wordsAfterFromWord.includes("cat"), "Solution of 'CATS' to 'DOG' contains 'CAT'") &&
+    testGameDisplayInstructions() {
+        this.name = "GameDisplayInstructions";
+        const steps = [];
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const game = new Game("SCAD", "BAT", steps, smallDict);
+        const initialInstructions = game.getDisplayInstructions();
+        this.verify((initialInstructions.length === 4), `Display instructions length should be 4, not ${initialInstructions.length}`) &&
             this.success();
     }
 
-    testGameTypeSavingMode() {
-        this.name = "GameTypeSavingMode";
-        const origSolution = Solver.fastSolve(this.fullDict, "CAT", "DOG");
-        const typeSavingMode = true;
-        const game = new Game("full", this.fullDict, origSolution, typeSavingMode);
-        let gameWords = game.showGame();
-        this.verify(gameWords[1] === "c!t+++") && this.success();
-    }
 
     /*
     ** Additional testing assets
