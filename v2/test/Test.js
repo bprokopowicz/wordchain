@@ -308,6 +308,7 @@ class Test extends BaseLogger {
         this.testGameCompleteFullDict();
         this.testGameDisplayInstructions();
         this.testGameDisplayInstructionsMistakes();
+        this.testGameDisplayInstructionsDifferentPath();
     }
 
     testGameCorrectFirstWord() {
@@ -364,7 +365,7 @@ class Test extends BaseLogger {
         if (!this.verify((playAddResult === Const.OK), "playAdd(3) not OK")) return;
 
         const playLetterResult = game.playLetter(4, "E");
-        if (!this.verify((playLetterResult === Const.OK), "playLetter(4, E) not OK")) return;
+        if (!this.verify((playLetterResult === Const.WRONG_MOVE), `playLetter(4, E) returns ${playLetterResult}, not WRONG_MOVE`)) return;
         this.logDebug("After playLetter(4,E), game.remainingSteps are:" + game.remainingSteps.toStr(), "game");
 
         const newPlayedWord = game.playedSteps.getNthWord(1);
@@ -450,24 +451,51 @@ class Test extends BaseLogger {
     }
 
     testGameDisplayInstructionsMistakes() {
-        this.name = "GameDisplayInstructionsMistake";
+        this.name = "GameDisplayInstructionsMistakes";
         const steps = [];
-        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const game = new Game("SCAD", "BAT", steps, smallDict);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD"]);
+        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
 
         const playDeleteResult = game.playDelete(4); // SCAD to SCA
         const afterDeleteInstructions = game.getDisplayInstructions();
 
+        game.playDelete(1); // SCAD to CAD
+
+        const cadToCarResult = game.playLetter(3,"R"); // CAD TO CAR
+        const cadToCarInstructions = game.getDisplayInstructions(); // SCAD,CAD,CAR,CAT,BAT
+
         this.verify((playDeleteResult === Const.NOT_A_WORD), `playDelete(4) expected ${Const.NOT_A_WORD}, got ${playDeleteResult}`) &&
-        this.verify((afterDeleteInstructions[0].toStr() === "(delete,word:SCAD)"), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
-        this.verify((afterDeleteInstructions[1].toStr() === "(future,word:CAD,changePosition:1)"), `after delete instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
-        this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
-        this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `initial instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
+        this.verify((afterDeleteInstructions[0].toStr() === "(delete,word:SCAD)"), `after delete, instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
+        this.verify((afterDeleteInstructions[1].toStr() === "(future,word:CAD,changePosition:1)"), `after delete, instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
+        this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete, instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
+        this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete, instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
+        this.verify((cadToCarResult === Const.WRONG_MOVE), `playLetter(3,R) expected ${Const.WRONG_MOVE}, got ${cadToCarResult}`) &&
+        this.verify((cadToCarInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after playing R, instruction[0] is ${cadToCarInstructions[0].toStr()}`) &&
+        this.verify((cadToCarInstructions[1].toStr() === "(played,word:CAD,wasCorrect:true)"), `after playing R, instruction[1] is ${cadToCarInstructions[1].toStr()}`) &&
+        this.verify((cadToCarInstructions[2].toStr() === "(change,word:CAR,changePosition:3)"), `after playing R, instruction[1] is ${cadToCarInstructions[2].toStr()}`) &&
+        this.verify((cadToCarInstructions[3].toStr() === "(future,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCarInstructions[3].toStr()}`) &&
+        this.verify((cadToCarInstructions[4].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCarInstructions[4].toStr()}`) &&
             this.success();
     }
 
+    testGameDisplayInstructionsDifferentPath() {
+        this.name = "GameDisplayInstructionsDifferentPath";
+        const steps = [];
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD"]);
+        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
 
+        game.playDelete(1); // SCAD to CAD
 
+        const cadToCatResult = game.playLetter(3,"T"); // CAD TO CAT
+        const cadToCatInstructions = game.getDisplayInstructions(); // SCAD,CAD,CAT,BAT
+
+        this.verify((cadToCatResult === Const.OK), `playLetter(3,T) expected ${Const.OK}, got ${cadToCatResult}`) &&
+        this.verify((cadToCatInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after playing R, instruction[0] is ${cadToCatInstructions[0].toStr()}`) &&
+        this.verify((cadToCatInstructions[1].toStr() === "(played,word:CAD,wasCorrect:true)"), `after playing R, instruction[1] is ${cadToCatInstructions[1].toStr()}`) &&
+        this.verify((cadToCatInstructions[2].toStr() === "(change,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCatInstructions[3].toStr()}`) &&
+        this.verify((cadToCatInstructions[3].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCatInstructions[3].toStr()}`) &&
+            this.success();
+    }
     /*
     ** Additional testing assets
     */
