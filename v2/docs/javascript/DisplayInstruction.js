@@ -32,7 +32,7 @@ class DisplayInstruction {
             returnStr += `,wordLength:${this.wordLength}`;
         }
 
-        if (this.displayType !== Const.FUTURE && this.displayType !== Const.TARGET) {
+        if (this.displayType === Const.PLAYED) {
             returnStr += `,wasCorrect:${this.wasCorrect}`;
         }
 

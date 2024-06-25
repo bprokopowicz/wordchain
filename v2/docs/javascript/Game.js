@@ -215,7 +215,7 @@ class Game extends BaseLogger {
             let isCorrect = (newRemainingSteps.numSteps() == (nCurrentRemainingSteps-1)); 
             this.remainingSteps = newRemainingSteps;
             this.playedSteps.addWord(word, isPlayed, isCorrect);
-            this.logDebug(`After adding ${word} the played steps areis: ${this.playedSteps.toStr()}`, "game");
+            this.logDebug(`After adding ${word} the played steps are: ${this.playedSteps.toStr()}`, "game");
             this.logDebug(`After adding ${word} the remaining steps are: ${this.remainingSteps.toStr()}`, "game");
             return Const.OK;
         } else {
@@ -264,6 +264,7 @@ class Game extends BaseLogger {
         deletePosition -= 1;
         if ((deletePosition < 0) || (deletePosition >= oldWord.length)) {
             this.logDebug("bad adjusted delete position", deletePosition, "game")
+            return Const.
         }
         let newWord = oldWord.substring(0,deletePosition) + oldWord.substring(deletePosition+1);
         return this.addWordIfExists(newWord);

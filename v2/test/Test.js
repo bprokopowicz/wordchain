@@ -302,10 +302,12 @@ class Test extends BaseLogger {
     runGameTests() {
         this.testGameCorrectFirstWord();
         this.testGameDeleteWrongLetter();
+        this.testGameDeleteBadPosition();
         this.testGameDifferentWordFromInitialSolution();
         this.testGameCompleteSmallDict();
         this.testGameCompleteFullDict();
         this.testGameDisplayInstructions();
+        this.testGameDisplayInstructionsMistakes();
     }
 
     testGameCorrectFirstWord() {
@@ -332,6 +334,19 @@ class Test extends BaseLogger {
             this.success();
     }
 
+    testGameDeleteBadPosition() {
+        this.name = "GameDeleteBadPosition";
+
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict);
+
+        const playResult = game.playDelete(6);
+        this.verify((playResult === Const.BAD_POSITION), "Delete attempted at bad position") &&
+            this.success();
+    }
+
+
     testGameDifferentWordFromInitialSolution() {
         this.name = "GameDifferentWordFromInitialSolution";
 
@@ -341,20 +356,21 @@ class Test extends BaseLogger {
         const game = new Game("BAD", "CAT", steps, smallDict);
         const origWord1 = game.remainingSteps.getNthWord(0);
 
-        this.verify((origWord1 === "BAT"), "original solution should have BAT as first word");
+        if ( !(this.verify((origWord1 === "BAT"), "original solution should have BAT as first word") &&
         // "bade" is not in the original solution 
-        this.verify((! origSolution.getSolutionWords().includes('BADE')), "Original solution should not have 'BADE'");
+            this.verify(! origSolution.getSolutionWords().includes('BADE'), "Original solution should not have 'BADE'"))) return;
 
         const playAddResult = game.playAdd(3);
-        this.verify((playAddResult === Const.OK), "playAdd(3) not OK");
+        if (!this.verify((playAddResult === Const.OK), "playAdd(3) not OK")) return;
 
         const playLetterResult = game.playLetter(4, "E");
-        this.verify((playLetterResult === Const.OK), "playLetter(4, E) not OK");
+        if (!this.verify((playLetterResult === Const.OK), "playLetter(4, E) not OK")) return;
+        this.logDebug("After playLetter(4,E), game.remainingSteps are:" + game.remainingSteps.toStr(), "game");
 
         const newPlayedWord = game.playedSteps.getNthWord(1);
-        this.verify((newPlayedWord === "BADE"), `Played word 1 should be BADE, not: ${newPlayedWord}`);
-        const newSolutionWord1 = game.remainingSteps.getNthWord(0);
-        this.verify((newSolutionWord1 === "BAT"), `New solution should continue with BAT, not: ${newSolutionWord1}`) &&
+        if (!this.verify((newPlayedWord === "BADE"), `Played word 1 should be BADE, not: ${newPlayedWord}`))  return;
+        const newSolutionWord0 = game.remainingSteps.getNthWord(0);
+        this.verify((newSolutionWord0 === "BAD"), `New solution should continue with BAD, not: ${newSolutionWord0}`) &&
             this.success();
     }
 
@@ -400,9 +416,56 @@ class Test extends BaseLogger {
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         const game = new Game("SCAD", "BAT", steps, smallDict);
         const initialInstructions = game.getDisplayInstructions();
+
+        const playDeleteResult = game.playDelete(1); // SCAD to CAD
+        const afterDeleteInstructions = game.getDisplayInstructions();
+
+        const playLetterBResult = game.playLetter(1, "B"); // CAD to BAD
+        const afterPlayLetterBInstructions = game.getDisplayInstructions();
+
+        const playLetterTResult = game.playLetter(3, "T"); // CAD to BAD
+        const afterPlayLetterTInstructions = game.getDisplayInstructions();
+
         this.verify((initialInstructions.length === 4), `Display instructions length should be 4, not ${initialInstructions.length}`) &&
+        this.verify((initialInstructions[0].toStr() === "(delete,word:SCAD)"), `initial instruction[0] is ${initialInstructions[0].toStr()}`) &&
+        this.verify((initialInstructions[1].toStr() === "(future,word:CAD,changePosition:1)"), `initial instruction[1] is ${initialInstructions[1].toStr()}`) &&
+        this.verify((initialInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `initial instruction[2] is ${initialInstructions[2].toStr()}`) &&
+        this.verify((initialInstructions[3].toStr() === "(target,word:BAT)"), `initial instruction[3] is ${initialInstructions[3].toStr()}`) &&
+        this.verify((playDeleteResult === Const.OK), "playDelete(1) not OK") &&
+        this.verify((afterDeleteInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
+        this.verify((afterDeleteInstructions[1].toStr() === "(change,word:CAD,changePosition:1)"), `after delete instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
+        this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
+        this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
+        this.verify((playLetterBResult === Const.OK), "playLetterBResult(1) not OK") &&
+        this.verify((afterPlayLetterBInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after delete instruction[0] is ${afterPlayLetterBInstructions[0].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[1].toStr() === "(played,word:CAD,wasCorrect:true)"), `after delete instruction[1] is ${afterPlayLetterBInstructions[1].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[2].toStr() === "(change,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterPlayLetterBInstructions[2].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterPlayLetterBInstructions[3].toStr()}`) &&
+        this.verify((playLetterTResult === Const.OK), "playLetterTResult(1) not OK") &&
+        this.verify((afterPlayLetterTInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after delete instruction[0] is ${afterPlayLetterTInstructions[0].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[1].toStr() === "(played,word:CAD,wasCorrect:true)"), `after delete instruction[1] is ${afterPlayLetterTInstructions[1].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[2].toStr() === "(played,word:BAD,wasCorrect:true)"), `after delete instruction[2] is ${afterPlayLetterTInstructions[2].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
             this.success();
     }
+
+    testGameDisplayInstructionsMistakes() {
+        this.name = "GameDisplayInstructionsMistake";
+        const steps = [];
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const game = new Game("SCAD", "BAT", steps, smallDict);
+
+        const playDeleteResult = game.playDelete(4); // SCAD to SCA
+        const afterDeleteInstructions = game.getDisplayInstructions();
+
+        this.verify((playDeleteResult === Const.NOT_A_WORD), `playDelete(4) expected ${Const.NOT_A_WORD}, got ${playDeleteResult}`) &&
+        this.verify((afterDeleteInstructions[0].toStr() === "(delete,word:SCAD)"), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
+        this.verify((afterDeleteInstructions[1].toStr() === "(future,word:CAD,changePosition:1)"), `after delete instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
+        this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
+        this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `initial instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
+            this.success();
+    }
+
 
 
     /*
