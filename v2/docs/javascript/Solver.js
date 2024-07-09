@@ -21,10 +21,14 @@ class Solver {
         if (startingSolution.getError()){
             return startingSolution;
         }
-        return Solver.resolve(dictionary, startingSolution);
+        return Solver.finish(dictionary, startingSolution);
     }
 
-    static resolve(dictionary, startingSolution) {
+    static finish(dictionary, startingSolution) {
+
+        if (startingSolution.isSolved()) {
+            return startingSolution;
+        }
 
         // Create a queue for our working solutions and push this starting working solution on the queue.
         let workingSolutions = [];
@@ -39,10 +43,7 @@ class Solver {
         while (workingSolutions.length > 0) {
             // Get the next partial solution from the heap; we'll add working solutions based on this
             let solution = workingSolutions.shift();
-            if (solution.isSolved()) {
-                return solution;
-            }
-            Solver.logger.logDebug(`popped working solution: ${solution.toStr()}`, "solver-details");
+            //Solver.logger.logDebug(`popped working solution: ${solution.toStr()}`, "solver-details");
             if (solution.numSteps() > longestSolution) {
                 longestSolution = solution.numSteps();
                 Solver.logger.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "solver-details");
@@ -58,18 +59,18 @@ class Solver {
                 let isCorrect = true;
                 let isPlayed = false;
                 let newWorkingSolution = solution.copy().addWord(word, isPlayed, isCorrect);
-                Solver.logger.logDebug(`   checking ${newWorkingSolution.toStr()}`, "solver-details");
+                // Solver.logger.logDebug(`   checking ${newWorkingSolution.toStr()}`, "solver-details");
                 if (newWorkingSolution.isSolved()) {
                     return newWorkingSolution;
                 }
-                Solver.logger.logDebug(`   adding ${newWorkingSolution.toStr()}`, "solver-details");
+                // Solver.logger.logDebug(`   adding ${newWorkingSolution.toStr()}`, "solver-details");
                 workingSolutions.push(newWorkingSolution);
             }
 
             // Every 1000 iterations check whether we are taking too long.
             loopCount += 1;
             if (loopCount % 1000 === 0) {
-                // Date.now() returns milliseconds; if this is taking more than 7 seconds
+                // Date.now() returns milliseconds; if this is taking more than 15 seconds
                 // just assume there is no solution. Kind of a kludge, but ... ain't nobody
                 // got time to wait more than 15 seconds.
                 if (Date.now() - startTime > 15000) {

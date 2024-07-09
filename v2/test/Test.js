@@ -54,7 +54,7 @@ class Test extends BaseLogger {
     */
 
     displayTestSuite() {
-        this.addTitle("WordChain Test Suite");
+        this.addTitle("WordChain Test Suite - allow 30+ seconds to complete.");
 
         var runAll    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",    class: "testButton" }, "Run All Tests"),
             runDict   = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",   class: "testButton" }, "Run Dict Tests"),
@@ -83,9 +83,11 @@ class Test extends BaseLogger {
 
         if (buttonId == "runAll" || buttonId == "runDict") {
             me.runDictTests();
-        } else if (buttonId == "runAll" || buttonId == "runSolver") {
+        }
+        if (buttonId == "runAll" || buttonId == "runSolver") {
             me.runSolverTests();
-        } else if (buttonId == "runAll" || buttonId == "runGame") {
+        }
+        if (buttonId == "runAll" || buttonId == "runGame") {
             me.runGameTests();
         }
 
@@ -120,11 +122,36 @@ class Test extends BaseLogger {
     */
 
     runDictTests() {
+        const startTestTime = Date.now();
+        this.logDebug("running dictionary tests ...", "test");
+        this.testDictTiming();
         this.testDictIsWord();
         this.testDictAdders();
         this.testDictRemovers();
         this.testDictReplacements();
         this.testDictFull();
+        const endTestTime = Date.now();
+        this.logDebug(`dictionary tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
+    }
+
+    testDictTiming() {
+        let startTestTime = Date.now();
+        const copyDict = this.fullDict.copy();
+        let endTestTime = Date.now();
+        this.logDebug(`dictionary copy elapsed time: ${endTestTime - startTestTime} ms`, "test");
+        startTestTime = Date.now();
+        let i = 0;
+        let sum = 0;
+        while (i < 10000) {
+            i++;
+            if (copyDict.isWord("junky-junk")) {
+                sum++;
+            }
+            let adders = copyDict.findAdderWords("READ"); 
+            sum += adders.size;
+        }
+        endTestTime = Date.now();
+        this.logDebug(`dictionary findAdders in copy elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testDictIsWord() {
@@ -206,16 +233,20 @@ class Test extends BaseLogger {
     */
 
     runSolverTests() {
+        const startTestTime = Date.now();
         this.testSolverIdentitySequence();
         this.testSolverOneStep();
         this.testSolverMultiStep();
         this.testSolverLongChain();
         this.testGameNotShortestSolutionBug();
-        this.testSolverFastestDirection();
-        this.testSolverReverseSearchNoSolution();
+        this.testSolverBothDirections();
+        this.testSolverSearchNoSolution();
+        const endTestTime = Date.now();
+        this.logDebug(`solver tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testSolverIdentitySequence() {
+        const startTestTime = Date.now();
         this.name = "SolverIdentitySequence";
         const dict = new WordChainDict(["BAD", "BAT", "CAD", "CAT", "DOG"]);
         const solution = Solver.solve(dict, "BAT", "BAT");
@@ -225,9 +256,12 @@ class Test extends BaseLogger {
             this.verify((solution.getStart() === 'BAT'), "first word for 'BAT' to 'BAT' is not 'BAT'") &&
             this.verify((solution.getTarget() === 'BAT'), "last word for 'BAT' to 'BAT' is not 'BAT'") &&
             this.success();
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testSolverOneStep() {
+        const startTestTime = Date.now();
         this.name = "SolverOneStep"
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
@@ -239,6 +273,9 @@ class Test extends BaseLogger {
         const solutionBatCat = Solver.solve(smallDict, "BAT", "CAT");
         // Nope
         const solutionNope = Solver.solve(smallDict, "BAT", "DOG");
+
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
         this.verify(solutionBadBade.success(), `error on adder 'BAD' to 'BADE': ${solutionBadBade.getError()}`) &&
             this.verify(solutionBadeBad.success(), `error on remover 'BADE' to 'BAD': ${solutionBadeBad.getError()}`) &&
@@ -252,11 +289,15 @@ class Test extends BaseLogger {
     }
 
     testSolverMultiStep() {
+        const startTestTime = Date.now();
         this.name = "SolverTwoStep"
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
         const solutionBatScad = Solver.solve(smallDict, "BAT", "SCAD");
         const solutionScadBat = Solver.solve(smallDict, "SCAD", "BAT");
+
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
         this.verify(solutionBatScad.success(), `error on 'BAT' to 'SCAD': ${solutionBatScad.getError()}`) &&
             this.verify(solutionScadBat.success(), `error on 'SCAD' to 'BAT': ${solutionScadBat.getError()}`) &&
@@ -267,10 +308,14 @@ class Test extends BaseLogger {
 
     testSolverLongChain() {
         this.name = "SolverLongChain";
+        const startTestTime = Date.now();
 
         const solutionTacoBimbo = Solver.solve(this.fullDict, "TACO", "BIMBO");
         const foundWords = solutionTacoBimbo.getSolutionSteps().map((step)=>step.word);
         const expectedWords = [ "TACO", "TAO", "TAB", "LAB", "LAMB", "LIMB", "LIMBO", "BIMBO" ];
+
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
         this.verify(solutionTacoBimbo.success(), `error on 'TACO' to 'BIMBO': ${solutionTacoBimbo.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `foundWords: ${foundWords} is not as expected: ${expectedWords}`) &&
@@ -278,20 +323,37 @@ class Test extends BaseLogger {
     }
 
 
-    testSolverFastestDirection() {
-        this.name = "SolverFastestDirection";
+    testSolverBothDirections() {
+        this.name = "SolverBothDirections";
+        let startTestTime = Date.now();
 
         // This takes too long if the solver doesn't try to go from 'matzo'
         // to 'ball' because 'ball' has so many next words.
         const solutionMatzoBall = Solver.solve(this.fullDict, "MATZO", "BALL");
-            this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'MATZO' TO 'BALL': ${solutionMatzoBall.getError()}`) &&
-            this.success();
+        let endTestTime = Date.now();
+        const elapsedForwardTime = endTestTime - startTestTime;
+        startTestTime = Date.now();
+        const solutionBallMatzo = Solver.solve(this.fullDict, "BALL", "MATZO");
+        endTestTime = Date.now();
+        const elapsedReverseTime = endTestTime - startTestTime;
+
+        this.logDebug(`${this.name} MATZO to BALL elapsed time: ${elapsedForwardTime} ms`, "test");
+        this.logDebug(`${this.name} BALL to MATZO elapsed time: ${elapsedReverseTime} ms`, "test");
+
+        this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'MATZO' TO 'BALL': ${solutionMatzoBall.getError()}`) &&
+        this.verify((solutionBallMatzo.getError()=== "No solution"), `expected slow 'No solution' on 'BALL' TO 'MATZO': ${solutionBallMatzo.getError()}`) &&
+        this.verify((100*elapsedForwardTime < elapsedReverseTime), `expected fast path ${elapsedForwardTime} to be at least 100x shorter than reverse path ${elapsedReverseTime}`) &&
+        this.success();
     }
 
-    testSolverReverseSearchNoSolution() {
-        this.name = "SolverReverseSearchNoSolution";
-        const triedReverseSearchNoSolution = Solver.solve(this.fullDict, "FROG", "ECHO");
-        this.verify(!triedReverseSearchNoSolution.isSolved(), `expected 'No solution' on 'FROG' to 'ECHO'`) &&
+    testSolverSearchNoSolution() {
+        const startTestTime = Date.now();
+        this.name = "SolverSearchNoSolution";
+        const triedSearchNoSolution = Solver.solve(this.fullDict, "FROG", "ECHO");
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
+
+        this.verify(!triedSearchNoSolution.isSolved(), `expected 'No solution' on 'FROG' to 'ECHO'`) &&
         this.success();
     }
 
@@ -300,6 +362,7 @@ class Test extends BaseLogger {
     */
 
     runGameTests() {
+        const startTestTime = Date.now();
         this.testGameCorrectFirstWord();
         this.testGameDeleteWrongLetter();
         this.testGameDeleteBadPosition();
@@ -309,6 +372,8 @@ class Test extends BaseLogger {
         this.testGameDisplayInstructions();
         this.testGameDisplayInstructionsMistakes();
         this.testGameDisplayInstructionsDifferentPath();
+        const endTestTime = Date.now();
+        this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testGameCorrectFirstWord() {

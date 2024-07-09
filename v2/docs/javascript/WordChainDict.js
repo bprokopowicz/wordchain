@@ -22,10 +22,20 @@ class WordChainDict extends BaseLogger {
         this.logDebug(`Dictionary has ${this.getSize()} words.`, "dictionary");
     }
 
+    shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
     // duplicate a dictionary.  Useful before destructively searching a dictionary to avoid repeats.
 
     copy() {
-        let newDict = new WordChainDict(this.getWordList());  // a non-empty placeholder to avoid fetching the whole dictionary
+        let wordList = this.getWordList();
+        this.shuffleArray(wordList);
+        let newDict = new WordChainDict(wordList);  
         this.logDebug(`dictionary copy has ${newDict.getSize()} words.`, "dictionary");
         return newDict;
     }
