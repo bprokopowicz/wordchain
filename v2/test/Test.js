@@ -1,16 +1,10 @@
 import { BaseLogger } from '../docs/javascript/BaseLogger.js';
-import { WordChainDict } from '../docs/javascript/WordChainDict.js';
+import { WordChainDict, globalWordList } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
 import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
-
-const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
-
-const globalWordList = await fetch(url)
-  .then(resp => resp.text())
-  .then(text => text.split("\n"));
 
 // Singleton class Test.
 

@@ -3,7 +3,7 @@ import { BaseLogger } from './BaseLogger.js';``
 // Synchronously wait for the word list to download.
 // Pop the last entry which is always an empty string following the last new-line.
 // TODO: This should use Const.DICT_URL.
-const globalWordList = await fetch("http://localhost:8000/docs/resources/WordFreqDict")
+const globalWordList = await fetch("http://localhost:8000/docs/resources/WordChainDict")
     .then(resp => resp.text())
     .then(text => text.split("\n"))
     .then(words => words.map((x)=>x.toUpperCase()))
@@ -166,4 +166,4 @@ class WordChainDict extends BaseLogger {
     }
 };
 
-export { WordChainDict };
+export { WordChainDict, globalWordList };

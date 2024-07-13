@@ -1,6 +1,6 @@
 // Constants for URLs.
 export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
-export const DICT_URL = `${URL_ROOT}/resources/dict/WordFreqDict`;
+export const DICT_URL = `${URL_ROOT}/resources/dict/WordChainDict`;
 
 // Constants for practice game word selection screen
 //export const PRACTICE_GAMES_PER_DAY = 3;       // Real value

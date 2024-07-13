@@ -132,7 +132,7 @@ class Solver {
         if (puzzle.numWords() > maxWords) {
             return false;
         }
-        if (puzzle.getTarget().length != targetWordLen) {
+        if ((targetWordLen > 0) && (puzzle.getTarget().length != targetWordLen)) {
             return false;
         }
         if (!puzzle.hasWordOfLength(wordLen1)) {
