@@ -207,7 +207,7 @@ class Test extends BaseLogger {
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
-        const expectedAddersSize = 9;
+        const expectedAddersSize = 6; /*scat, chat, coat, cart, cast, cats*/
 
         const badeReplacements = this.fullDict.findAdderWords("BADE");
         const replacementsSize = badeReplacements.size;
