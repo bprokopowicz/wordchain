@@ -223,10 +223,10 @@ class Game extends BaseLogger {
             this.playedSteps.addWord(word, isPlayed, isCorrect);
             this.logDebug(`After adding ${word} the played steps are: ${this.playedSteps.toStr()}`, "game");
             this.logDebug(`After adding ${word} the remaining steps are: ${this.remainingSteps.toStr()}`, "game");
-            if (isCorrect) {
-                return Const.OK;
-            } else if (isScrabbleGenius) {
+            if (isScrabbleGenius) {
                 return Const.GENIUS_MOVE;
+            } else if (isCorrect) {
+                return Const.OK;
             } else {
                 return Const.WRONG_MOVE;
             }
