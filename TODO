@@ -1,4 +1,5 @@
-Solution.difficulty() not implemented
+Change solution step to have 3 possible status values instead of binary isCorrect.  The values are 
+OK, WRONG_MOVE, and GENIUS_MOVE
 
 document how to run tests - js and python.
 

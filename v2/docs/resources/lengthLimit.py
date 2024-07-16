@@ -6,7 +6,7 @@ import sys
 
 def main():
     if len(sys.argv) < 4:
-        print("USAGE: intersect.py <file> min-len max-len\nWrites ok.txt tooShort.txt tooLong.txt\n");
+        print("USAGE: python3 lengthLimit.py <file> min-len max-len\nWrites ok.txt tooShort.txt tooLong.txt\n");
         sys.exit(1)
 
     inputFile = sys.argv[1];

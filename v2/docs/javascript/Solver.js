@@ -12,9 +12,11 @@ class Solver {
         fromWord = fromWord.toUpperCase();
         toWord = toWord.toUpperCase();
         let startingSolution = Solution.newEmptySolution(fromWord, toWord);
+        /*
         if (! dictionary.isWord(fromWord)){
             startingSolution.addError(fromWord + " is not a word.");
         }
+        */
         if (! dictionary.isWord(toWord)) {
             startingSolution.addError(toWord + " is not a word.");
         }

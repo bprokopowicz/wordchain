@@ -1,3 +1,13 @@
 as of July 2024
 
-using WordFreqDict.orig intersected with Scrabble words
+using WordFreqDict intersected with Scrabble words to create WordChainDict
+
+idea: two dictionaries.
+1) WordChainDict as defined above 
+2) full scrabble dictionary
+
+When solving, the app only uses WordChainDict.  When accepting input, use the full Scrabble dictionary, and ADD any
+such words into the WordChainDict for the lifetime of the running app.  
+
+This will allow the player to beat the solver by using obscure Scrabble words that the solver doesn't have access to.
+In that case, there should be a separate Share that indicates you beat the solver.

@@ -1,6 +1,6 @@
 import { DisplayInstruction } from './DisplayInstruction.js';
 import { Solver, Solution, SolutionStep} from './Solver.js';
-import { WordChainDict } from './WordChainDict.js';
+import { WordChainDict, scrabbleWordList } from './WordChainDict.js';
 import * as Const from './Const.js';
 import { BaseLogger } from './BaseLogger.js';
 
@@ -20,13 +20,14 @@ class Game extends BaseLogger {
     // We maintain the played steps [start, word1, word2], target
     // and the remaining steps to target  [word3, word4, ...], target
 
-    // TODO - optionally pass in the dictionary, for testing
+    // optionally pass in the dictionary, for testing
     constructor(startWord, targetWord, stepsOfSolution, dict=new WordChainDict()) {
         super();
         this.logDebug("constructor(): startWord:", startWord, ", targetWord:", targetWord, "game");
         startWord = startWord.toUpperCase();
         targetWord = targetWord.toUpperCase();
         this.dictionary = dict;
+        this.scrabbleDictionary = new WordChainDict(scrabbleWordList);
         if (stepsOfSolution.length == 0) {
             this.logDebug("Constructing game from beginning", "game");
             this.playedSteps = Solution.newEmptySolution(startWord, targetWord);
@@ -197,7 +198,9 @@ class Game extends BaseLogger {
     // 3) add the new step (correct or not) as played to the list of played steps..
     // 4) replace the remaining steps list with the newly calculated list.
     addWordIfExists(word) {
-        if (this.dictionary.isWord(word)) {
+        if (this.dictionary.isWord(word) || this.scrabbleDictionary.isWord(word)) {
+            this.logDebug(`Trying to play word ${word}`, "game");
+            const isScrabbleWord = !this.dictionary.isWord(word);
             if (word == this.remainingSteps.getNthWord(0)) {
                 // user is adding the same word we found
                 let isPlayed = true;
@@ -212,14 +215,19 @@ class Game extends BaseLogger {
             let newRemainingSteps = Solver.solve(this.dictionary, word, this.remainingSteps.getTarget());
             newRemainingSteps.removeFirstStep();
             let isPlayed = true;
-            let isCorrect = (newRemainingSteps.numSteps() == (nCurrentRemainingSteps-1)); 
+            let isScrabbleGenius = (newRemainingSteps.numSteps() < (nCurrentRemainingSteps-1)); 
+            //TODO: played steps now have 3 possible values: WRONG_MOVE, OK, GENIUS_MOVE instead of
+            // binary isCorrect as true or false
+            let isCorrect = isScrabbleGenius || (newRemainingSteps.numSteps() == (nCurrentRemainingSteps-1)); 
             this.remainingSteps = newRemainingSteps;
             this.playedSteps.addWord(word, isPlayed, isCorrect);
             this.logDebug(`After adding ${word} the played steps are: ${this.playedSteps.toStr()}`, "game");
             this.logDebug(`After adding ${word} the remaining steps are: ${this.remainingSteps.toStr()}`, "game");
             if (isCorrect) {
                 return Const.OK;
-                } else {
+            } else if (isScrabbleGenius) {
+                return Const.GENIUS_MOVE;
+            } else {
                 return Const.WRONG_MOVE;
             }
         } else {

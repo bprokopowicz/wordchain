@@ -30,6 +30,7 @@ export const SHARE_FAILED     = "Failed to share";
 export const SHARE_COPIED     = "Copied to clipboard";
 export const NO_STATS         = "Stats unavailable";
 export const WRONG_MOVE       = "D'oh! Wrong move";
+export const GENIUS_MOVE      = "Genius play!";
 export const BAD_POSITION     = "Bad letter position";
 
 // Returns from Game class that indicate a bug in its input from GameDisplay.

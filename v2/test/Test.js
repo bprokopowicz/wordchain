@@ -1,5 +1,5 @@
 import { BaseLogger } from '../docs/javascript/BaseLogger.js';
-import { WordChainDict, globalWordList } from '../docs/javascript/WordChainDict.js';
+import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
 import * as Const from '../docs/javascript/Const.js';
@@ -18,6 +18,7 @@ class Test extends BaseLogger {
         this.tinyList  = ["APPLE", "PEAR", "BANANA"];
         this.smallList = ["BAD", "BADE", "BALD", "BAT", "BATE", "BID", "CAD", "CAT", "DOG", "SCAD"]
         this.fullDict = new WordChainDict(globalWordList);
+        this.scrabbleDict = new WordChainDict(scrabbleWordList);
     }
 
     static singleton() {
@@ -124,6 +125,7 @@ class Test extends BaseLogger {
         this.testDictRemovers();
         this.testDictReplacements();
         this.testDictFull();
+        this.testScrabbleDict();
         const endTestTime = Date.now();
         this.logDebug(`dictionary tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -214,14 +216,21 @@ class Test extends BaseLogger {
         const expectedReplacementsSize = 2;
 
         this.verify((dictSize >= expectedMinDictSize), `full dictionary has ${dictSize} words; expected at least ${expectedMinDictSize}`) &&
-            this.verify(this.fullDict.isWord("PLACe"), "'PLACE' is not in dict") &&
-            this.verify(this.fullDict.isWord("PlAcE"), "'PlAcE' is not in dict") &&
-            this.verify(!this.fullDict.isWord("ZIZZAMATIZZATEEZYMAN"), "'ZIZZAMATIZZATEEZYMAN' is in dict") &&
+            this.verify(this.fullDict.isWord("PLACE"), "'PLACE' is missing in dict") &&
+            this.verify(this.fullDict.isWord("PlAcE"), "'PlAcE' is missing in dict") &&
+            this.verify(!this.fullDict.isWord("ZIZZAMATIZZATEEZYMAN"), "'ZIZZAMATIZZATEEZYMAN' should not be in dict") &&
             this.verify((addersSize == expectedAddersSize), `adders has ${addersSize} words; expected ${expectedAddersSize}`) &&
             this.verify((replacementsSize == expectedReplacementsSize), `adders has ${replacementsSize} words; expected ${expectedReplacementsSize}`) &&
             this.success();
     }
 
+    testScrabbleDict() {
+        this.name = "ScrabbleDict";
+        this.verify (this.scrabbleDict.isWord("aargh"), "aargh is missing in scrabble dict") &&
+        this.verify (this.scrabbleDict.isWord("zzz"), "zzz is missing in scrabble dict") &&
+        this.verify (!this.scrabbleDict.isWord("zzzbrother"), "zzzbrother should not be in scrabble dict") &&
+        this.success();
+    }
     /*
     ** Solver tests
     */
@@ -366,6 +375,8 @@ class Test extends BaseLogger {
         this.testGameDisplayInstructions();
         this.testGameDisplayInstructionsMistakes();
         this.testGameDisplayInstructionsDifferentPath();
+        this.testGameUsingScrabbleWord();
+        this.testGameUsingGeniusMove();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -553,6 +564,39 @@ class Test extends BaseLogger {
         this.verify((cadToCatInstructions[1].toStr() === "(played,word:CAD,wasCorrect:true)"), `after playing R, instruction[1] is ${cadToCatInstructions[1].toStr()}`) &&
         this.verify((cadToCatInstructions[2].toStr() === "(change,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCatInstructions[3].toStr()}`) &&
         this.verify((cadToCatInstructions[3].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCatInstructions[3].toStr()}`) &&
+            this.success();
+    }
+
+    testGameUsingScrabbleWord() {
+        this.name = "GameUsingScrabbleWord";
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT 
+
+        const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
+        const scagToSagResult = game.playDelete(2); // SCAG to SAG.  
+        const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
+        this.verify((scadToScagResult === Const.WRONG_MOVE), `playLetter(4,G) expected ${Const.WRONG_MOVE}, got ${scadToScagResult}`) &&
+        this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
+        this.verify((displayInstructionsAfterSAG[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after playing SAG, instruction[0] is ${displayInstructionsAfterSAG[0].toStr()}`) &&
+        this.verify((displayInstructionsAfterSAG[1].toStr() === "(played,word:SCAG,wasCorrect:false)"), `after playing SAG, instruction[1] is ${displayInstructionsAfterSAG[1].toStr()}`) &&
+        this.verify((displayInstructionsAfterSAG[2].toStr() === "(change,word:SAG,changePosition:3)"), `after playing SAG, instruction[2] is ${displayInstructionsAfterSAG[2].toStr()}`) &&
+        this.verify((displayInstructionsAfterSAG[3].toStr() === "(future,word:SAT,changePosition:1)"), `after playing SAG, instruction[3] is ${displayInstructionsAfterSAG[3].toStr()}`) &&
+            this.success();
+    }
+
+    testGameUsingGeniusMove() {
+        this.name = "GameUsingGeniusMove";
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
+        const steps = [];
+        const game = new Game("SCAD", "SAG", steps, smallDict); // shortest solution is SCAD,CAD,CAT,SAT,SAG
+                                                                // but genius solution is SCAD,SCAG,SAG
+
+        const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
+        const scagToSagResult = game.playDelete(2); // SCAG to SAG.  
+        const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
+        this.verify((scadToScagResult === Const.GENIUS_MOVE), `playLetter(4,G) expected ${Const.GENIUS_MOVE}, got ${scadToScagResult}`) &&
+        this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
             this.success();
     }
     /*

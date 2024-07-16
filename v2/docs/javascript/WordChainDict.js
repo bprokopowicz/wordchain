@@ -9,13 +9,22 @@ const globalWordList = await fetch("http://localhost:8000/docs/resources/WordCha
     .then(words => words.map((x)=>x.toUpperCase()))
     .then(words => words.slice(0,-1));
 
+const scrabbleWordList = await fetch("http://localhost:8000/docs/resources/Scrabble3-6")
+    .then(resp => resp.text())
+    .then(text => text.split("\n"))
+    .then(words => words.map((x)=>x.toUpperCase()))
+    .then(words => words.slice(0,-1));
+
 class WordChainDict extends BaseLogger {
+
     constructor(wordList=[]) {
         super();
 
         if (wordList.length == 0) {
+            this.shuffleArray(globalWordList);
             this.wordSet = new Set(globalWordList);
         } else {
+            this.shuffleArray(wordList);
             this.wordSet = new Set(wordList.map((x)=>x.toUpperCase()));
         }
 
@@ -34,7 +43,6 @@ class WordChainDict extends BaseLogger {
 
     copy() {
         let wordList = this.getWordList();
-        this.shuffleArray(wordList);
         let newDict = new WordChainDict(wordList);  
         this.logDebug(`dictionary copy has ${newDict.getSize()} words.`, "dictionary");
         return newDict;
@@ -166,4 +174,4 @@ class WordChainDict extends BaseLogger {
     }
 };
 
-export { WordChainDict, globalWordList };
+export { WordChainDict, globalWordList, scrabbleWordList };
