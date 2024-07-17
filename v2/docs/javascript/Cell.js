@@ -85,11 +85,13 @@ class LetterCell extends Cell {
         this.addContentsClass("letter");
     }
 
-    addCorrectnessClass(correct, targetWordInProgress=false) {
+    addCorrectnessClass(moveRating, targetWordInProgress=false) {
         if (targetWordInProgress) {
             this.addClass("letter-cell-target");
         } else {
-            if (correct) {
+            if (moveRating === Const.OK) {
+                this.addClass("letter-cell-good");
+            else if (moveRating === Const.GENIUS_MOVE) {
                 this.addClass("letter-cell-good");
             } else {
                 this.addClass("letter-cell-bad");
@@ -99,11 +101,11 @@ class LetterCell extends Cell {
 }
 
 class ActiveLetterCell extends LetterCell {
-    constructor(letter, letterPosition, letterPicker, wasCorrect, changePosition) {
+    constructor(letter, letterPosition, letterPicker, moveRating, changePosition) {
         super(letter);
 
         this.addClass("letter-cell-active");
-        this.addCorrectnessClass(wasCorrect);
+        this.addCorrectnessClass(moveRating);
 
         if (letterPosition === changePosition) {
             this.addClass("letter-cell-change");
@@ -115,11 +117,11 @@ class ActiveLetterCell extends LetterCell {
 }
 
 class PlayedLetterCell extends LetterCell {
-    constructor(letter, wasCorrect) {
+    constructor(letter, moveRating) {
         super(letter);
 
         this.addClass("letter-cell-played");
-        this.addCorrectnessClass(wasCorrect);
+        this.addCorrectnessClass(moveRating);
     }
 }
 
@@ -137,10 +139,10 @@ class FutureLetterCell extends LetterCell {
 }
 
 class TargetLetterCell extends LetterCell {
-    constructor(letter, wasSuccessful, gameOver) {
+    constructor(letter, moveRating, gameOver) {
         super(letter);
         // Pass !gameOver for targetWordInProgress
-        this.addCorrectnessClass(wasSuccessful, !gameOver);
+        this.addCorrectnessClass(moveRating, !gameOver);
     }
 }
 

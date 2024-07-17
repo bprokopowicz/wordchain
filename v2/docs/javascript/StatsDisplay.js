@@ -153,18 +153,20 @@ class StatsDisplay extends AuxiliaryDisplay {
         // Now, construct the graphic showing the lengths of the user's
         // played words, colored red or green to indicate whether that word
         // did or did not increase the solution length.
-        for (let wasCorrect of gameInfo.moveSummary) {
+        for (let moveRating of gameInfo.moveSummary) {
 
             let colorblindMode = this.appDisplay.isColorblindMode(),
                 emoji;
 
             // Determine which color square to display for this word.
-            if (wasCorrect) {
+            if (moveRating === Const.OK) {
                 // Word didn't increase the count; pick color indicating "good".
                 emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
-            } else {
+            } else if (moveRating === Const.WRONG_MOVE) {
                 // Word increased the count; pick color indicating "bad".
                 emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+            } else if (moveRating === Const.GENIUS_MOVE) {
+                emoji = colorblindMode ? Const.GOLD_STAR : Const.GOLD_STAR;
             }
 
             // Now repeat that emoji for the length of the word and add a newline,

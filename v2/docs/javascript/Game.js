@@ -10,12 +10,12 @@ import { BaseLogger } from './BaseLogger.js';
 // word:           empty string for future
 // displayType:    add, addChange, delete, change, future, played, target
 // changePosition: not relevant for played or target
-// wasCorrect:     not relevant for future
+// moveRating:    OK, WRONG_MOVE, GENIUS_MOVE; not relevant for future
 
 
 class Game extends BaseLogger {
 
-    // stepsOfSolution is a list of tuples of (word, wasPlayed, isCorrect).
+    // stepsOfSolution is a list of tuples of (word, wasPlayed, moveRating).
     // This needs to be converted to a list of SolutionStep objects
     // We maintain the played steps [start, word1, word2], target
     // and the remaining steps to target  [word3, word4, ...], target
@@ -35,7 +35,7 @@ class Game extends BaseLogger {
             // remove the start word from the remaining steps.
             this.remainingSteps.removeFirstStep();
         } else {
-            // we have a list of all the words, as tuples (word, wasPlayed, isCorrect)
+            // we have a list of all the words, as tuples (word, wasPlayed, moveRating)
             this.logDebug(`Re-constructing game from existing steps: ${stepsOfSolution.join()}`, "game");
             let justThePlayedSteps = stepsOfSolution.filter((tup)=>tup[1]).map((tup)=> new SolutionStep(tup[0], tup[1], tup[2]));
             this.playedSteps = new Solution(justThePlayedSteps, targetWord);
@@ -80,9 +80,9 @@ class Game extends BaseLogger {
     finishGame() {
         // play the remaining steps for the user
         let isPlayed = true;
-        let isCorrect = true;
+        let moveRating = Const.OK;
         for (let step of this.remainingSteps) {
-            this.playedSteps.addWord(step.word, isPlayed, isCorrect);
+            this.playedSteps.addWord(step.word, isPlayed, Const.OK);
         }
     }
 
@@ -120,7 +120,7 @@ class Game extends BaseLogger {
     instructionForPlayedWord(stepIndex) {
         let solutionStep = this.playedSteps.solutionSteps[stepIndex];
         let changePosition = -1;
-        return new DisplayInstruction(solutionStep.word, Const.PLAYED, changePosition, solutionStep.isCorrect);
+        return new DisplayInstruction(solutionStep.word, Const.PLAYED, changePosition, solutionStep.moveRating);
     }
 
     instructionForFutureWord(stepIndex) {
@@ -128,8 +128,8 @@ class Game extends BaseLogger {
         // the step index needs to be adjusted to account for the unplayed steps 
         let futureWord = this.remainingSteps.getNthWord(stepIndex);
         let nextFutureWord = this.remainingSteps.getNthWord(stepIndex+1);
-        let isCorrect = true;
-        let displayInstruction = this.displayInstructionForPlayingFromWordToWord(futureWord, nextFutureWord, isCorrect);
+        let moveRating = Const.OK;
+        let displayInstruction = this.displayInstructionForPlayingFromWordToWord(futureWord, nextFutureWord, moveRating);
         displayInstruction.displayType = Const.FUTURE;
         return displayInstruction;
     }
@@ -140,29 +140,29 @@ class Game extends BaseLogger {
         let stepIndex = this.playedSteps.numSteps();
         let lastPlayedStep = this.playedSteps.solutionSteps[stepIndex];
         let lastWord = lastPlayedStep.word;  // the string itself
-        let isCorrect = lastPlayedStep.isCorrect;
+        let moveRating = lastPlayedStep.moveRating;
         if (Game.wordHasHole(lastWord)) {
             // after user clicks plus somewhere, the list of played words includes the last word played with a hole
             // in it where the user clicked '+'.  This word with a hole is what we will return to the display to show.
             // the last word in the played list is the word with a hole
             let indexOfHole = Game.locationOfHole(lastWord);
-            return new DisplayInstruction(lastWord, Const.CHANGE, indexOfHole+1, isCorrect);
+            return new DisplayInstruction(lastWord, Const.CHANGE, indexOfHole+1, moveRating);
         } else {
             let nextWord = this.remainingSteps.getNthWord(0);
-            return this.displayInstructionForPlayingFromWordToWord(lastWord, nextWord, isCorrect);
+            return this.displayInstructionForPlayingFromWordToWord(lastWord, nextWord, moveRating);
         }
     }
 
     // this method is for displaying the actual, given target unconditionally.  
     instructionForTargetWord() {
         let targetWord = this.remainingSteps.getTarget();
-        let isCorrect = true;
+        let moveRating = Const.OK;
         let changePosition=-1;
-        return new DisplayInstruction(targetWord, Const.TARGET, changePosition, isCorrect);
+        return new DisplayInstruction(targetWord, Const.TARGET, changePosition, moveRating);
     }
 
     // how to display the last word that needs to be changed to give the next word.
-    displayInstructionForPlayingFromWordToWord(lastWordPlayed, nextWord, lastWordIsCorrect) {
+    displayInstructionForPlayingFromWordToWord(lastWordPlayed, nextWord, lastWordMoveRating) {
         if (nextWord.length == lastWordPlayed.length) {
             // which letter changed?
             let changedCharIndex = -1;
@@ -175,13 +175,13 @@ class Game extends BaseLogger {
             if (changedCharIndex == -1) {
                 throw new Error(`${nextWord} and ${lastWordPlayed} should differ by one letter but don't`);
             }
-            return new DisplayInstruction(lastWordPlayed, Const.CHANGE, changedCharIndex+1, lastWordIsCorrect);
+            return new DisplayInstruction(lastWordPlayed, Const.CHANGE, changedCharIndex+1, lastWordMoveRating);
         } else if (nextWord.length == lastWordPlayed.length+1) {
             // we display '+'s to let the user add a hole
-            return new DisplayInstruction(lastWordPlayed, Const.ADD, 0, lastWordIsCorrect);
+            return new DisplayInstruction(lastWordPlayed, Const.ADD, 0, lastWordMoveRating);
         } else if (nextWord.length == lastWordPlayed.length-1) {
             // we display '-'s to let the user delete a letter 
-            return new DisplayInstruction(lastWordPlayed, Const.DELETE, 0, lastWordIsCorrect);
+            return new DisplayInstruction(lastWordPlayed, Const.DELETE, 0, lastWordMoveRating);
         } else {
             throw new Error(`${nextWord} and ${lastWordPlayed} have more than 1 letter length difference.`);
         }
@@ -189,7 +189,7 @@ class Game extends BaseLogger {
 
     // Return true if game is over; false otherwise.
     isOver() {
-        return this.playedSteps.isSolved() || this.playedSteps.wrongMoves() >= Const.TOO_MANY_WRONG_MOVES;
+        return this.playedSteps.isSolved() || this.playedSteps.numWrongMoves() >= Const.TOO_MANY_WRONG_MOVES;
     }
 
     // when you add a word
@@ -204,8 +204,8 @@ class Game extends BaseLogger {
             if (word == this.remainingSteps.getNthWord(0)) {
                 // user is adding the same word we found
                 let isPlayed = true;
-                let isCorrect = true; 
-                this.playedSteps.addWord(word, isPlayed, isCorrect);
+                let moveRating = Const.OK; 
+                this.playedSteps.addWord(word, isPlayed, moveRating);
                 this.remainingSteps.removeFirstStep();
                 return Const.OK;
             }
@@ -215,21 +215,17 @@ class Game extends BaseLogger {
             let newRemainingSteps = Solver.solve(this.dictionary, word, this.remainingSteps.getTarget());
             newRemainingSteps.removeFirstStep();
             let isPlayed = true;
-            let isScrabbleGenius = (newRemainingSteps.numSteps() < (nCurrentRemainingSteps-1)); 
-            //TODO: played steps now have 3 possible values: WRONG_MOVE, OK, GENIUS_MOVE instead of
-            // binary isCorrect as true or false
-            let isCorrect = isScrabbleGenius || (newRemainingSteps.numSteps() == (nCurrentRemainingSteps-1)); 
+            let moveRating = Const.OK;
+            if (newRemainingSteps.numSteps() < (nCurrentRemainingSteps-1)) {
+                moveRating = Const.GENIUS_MOVE;
+            } else if (newRemainingSteps.numSteps() > (nCurrentRemainingSteps-1)) {
+                moveRating = Const.WRONG_MOVE;
+            }
             this.remainingSteps = newRemainingSteps;
-            this.playedSteps.addWord(word, isPlayed, isCorrect);
+            this.playedSteps.addWord(word, isPlayed, moveRating);
             this.logDebug(`After adding ${word} the played steps are: ${this.playedSteps.toStr()}`, "game");
             this.logDebug(`After adding ${word} the remaining steps are: ${this.remainingSteps.toStr()}`, "game");
-            if (isScrabbleGenius) {
-                return Const.GENIUS_MOVE;
-            } else if (isCorrect) {
-                return Const.OK;
-            } else {
-                return Const.WRONG_MOVE;
-            }
+            return moveRating;
         } else {
             return Const.NOT_A_WORD;
         }
@@ -261,8 +257,8 @@ class Game extends BaseLogger {
         // We put in a blank for where the letter hole is.
         let newWord = oldWord.substring(0,addPosition) + Game.HOLE() + oldWord.substring(addPosition);
         let isPlayed = true;
-        let isCorrect = true;
-        this.playedSteps.addWord(newWord, isPlayed, isCorrect);
+        let moveRating = Const.OK;
+        this.playedSteps.addWord(newWord, isPlayed, moveRating);
         return Const.OK;
     }
 

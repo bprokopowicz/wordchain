@@ -451,8 +451,8 @@ class Test extends BaseLogger {
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         const solution = Solver.solve(smallDict, "BAD", "SCAD");
         const isPlayed = true;
-        const isCorrect = true;
-        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, isCorrect]);
+        const moveRating = Const.OK;
+        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, moveRating]);
         const game = new Game("BAD", "SCAD", fullSolutionAsTuples, smallDict);
 
         this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
@@ -463,8 +463,8 @@ class Test extends BaseLogger {
         this.name = "GameCompleteFullDict";
         const solution = Solver.solve(this.fullDict, "bad", "word");
         const isPlayed = true;
-        const isCorrect = true;
-        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, isCorrect]);
+        const moveRating = Const.OK;
+        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, moveRating]);
         const game = new Game("bad", "word", fullSolutionAsTuples, this.fullDict);
 
         this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
@@ -503,20 +503,20 @@ class Test extends BaseLogger {
         this.verify((initialInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `initial instruction[2] is ${initialInstructions[2].toStr()}`) &&
         this.verify((initialInstructions[3].toStr() === "(target,word:BAT)"), `initial instruction[3] is ${initialInstructions[3].toStr()}`) &&
         this.verify((playDeleteResult === Const.OK), "playDelete(1) not OK") &&
-        this.verify((afterDeleteInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
+        this.verify((afterDeleteInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
         this.verify((afterDeleteInstructions[1].toStr() === "(change,word:CAD,changePosition:1)"), `after delete instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
         this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
         this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
         this.verify((playLetterBResult === Const.OK), "playLetterBResult(1) not OK") &&
-        this.verify((afterPlayLetterBInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after delete instruction[0] is ${afterPlayLetterBInstructions[0].toStr()}`) &&
-        this.verify((afterPlayLetterBInstructions[1].toStr() === "(played,word:CAD,wasCorrect:true)"), `after delete instruction[1] is ${afterPlayLetterBInstructions[1].toStr()}`) &&
-        this.verify((afterPlayLetterBInstructions[2].toStr() === "(change,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterPlayLetterBInstructions[2].toStr()}`) &&
-        this.verify((afterPlayLetterBInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterPlayLetterBInstructions[3].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after play letter B  instruction[0] is ${afterPlayLetterBInstructions[0].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after play letter B  instruction[1] is ${afterPlayLetterBInstructions[1].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[2].toStr() === "(change,word:BAD,changePosition:3)"), `after play letter B  instruction[2] is ${afterPlayLetterBInstructions[2].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[3].toStr() === "(target,word:BAT)"), `after play letter B  instruction[3] is ${afterPlayLetterBInstructions[3].toStr()}`) &&
         this.verify((playLetterTResult === Const.OK), "playLetterTResult(1) not OK") &&
-        this.verify((afterPlayLetterTInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after delete instruction[0] is ${afterPlayLetterTInstructions[0].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[1].toStr() === "(played,word:CAD,wasCorrect:true)"), `after delete instruction[1] is ${afterPlayLetterTInstructions[1].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[2].toStr() === "(played,word:BAD,wasCorrect:true)"), `after delete instruction[2] is ${afterPlayLetterTInstructions[2].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after play letter T instruction[0] is ${afterPlayLetterTInstructions[0].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after play letter T instruction[1] is ${afterPlayLetterTInstructions[1].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[2].toStr() === `(played,word:BAD,moveRating:${Const.OK})`), `after play letter T instruction[2] is ${afterPlayLetterTInstructions[2].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[3].toStr() === "(target,word:BAT)"), `after play letter T instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
             this.success();
     }
 
@@ -540,8 +540,8 @@ class Test extends BaseLogger {
         this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete, instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
         this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete, instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
         this.verify((cadToCarResult === Const.WRONG_MOVE), `playLetter(3,R) expected ${Const.WRONG_MOVE}, got ${cadToCarResult}`) &&
-        this.verify((cadToCarInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after playing R, instruction[0] is ${cadToCarInstructions[0].toStr()}`) &&
-        this.verify((cadToCarInstructions[1].toStr() === "(played,word:CAD,wasCorrect:true)"), `after playing R, instruction[1] is ${cadToCarInstructions[1].toStr()}`) &&
+        this.verify((cadToCarInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing R, instruction[0] is ${cadToCarInstructions[0].toStr()}`) &&
+        this.verify((cadToCarInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after playing R, instruction[1] is ${cadToCarInstructions[1].toStr()}`) &&
         this.verify((cadToCarInstructions[2].toStr() === "(change,word:CAR,changePosition:3)"), `after playing R, instruction[1] is ${cadToCarInstructions[2].toStr()}`) &&
         this.verify((cadToCarInstructions[3].toStr() === "(future,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCarInstructions[3].toStr()}`) &&
         this.verify((cadToCarInstructions[4].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCarInstructions[4].toStr()}`) &&
@@ -560,8 +560,8 @@ class Test extends BaseLogger {
         const cadToCatInstructions = game.getDisplayInstructions(); // SCAD,CAD,CAT,BAT
 
         this.verify((cadToCatResult === Const.OK), `playLetter(3,T) expected ${Const.OK}, got ${cadToCatResult}`) &&
-        this.verify((cadToCatInstructions[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after playing R, instruction[0] is ${cadToCatInstructions[0].toStr()}`) &&
-        this.verify((cadToCatInstructions[1].toStr() === "(played,word:CAD,wasCorrect:true)"), `after playing R, instruction[1] is ${cadToCatInstructions[1].toStr()}`) &&
+        this.verify((cadToCatInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing R, instruction[0] is ${cadToCatInstructions[0].toStr()}`) &&
+        this.verify((cadToCatInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after playing R, instruction[1] is ${cadToCatInstructions[1].toStr()}`) &&
         this.verify((cadToCatInstructions[2].toStr() === "(change,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCatInstructions[3].toStr()}`) &&
         this.verify((cadToCatInstructions[3].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCatInstructions[3].toStr()}`) &&
             this.success();
@@ -578,8 +578,8 @@ class Test extends BaseLogger {
         const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
         this.verify((scadToScagResult === Const.WRONG_MOVE), `playLetter(4,G) expected ${Const.WRONG_MOVE}, got ${scadToScagResult}`) &&
         this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
-        this.verify((displayInstructionsAfterSAG[0].toStr() === "(played,word:SCAD,wasCorrect:true)"), `after playing SAG, instruction[0] is ${displayInstructionsAfterSAG[0].toStr()}`) &&
-        this.verify((displayInstructionsAfterSAG[1].toStr() === "(played,word:SCAG,wasCorrect:false)"), `after playing SAG, instruction[1] is ${displayInstructionsAfterSAG[1].toStr()}`) &&
+        this.verify((displayInstructionsAfterSAG[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing SAG, instruction[0] is ${displayInstructionsAfterSAG[0].toStr()}`) &&
+        this.verify((displayInstructionsAfterSAG[1].toStr() === `(played,word:SCAG,moveRating:${Const.WRONG_MOVE})`), `after playing SAG, instruction[1] is ${displayInstructionsAfterSAG[1].toStr()}`) &&
         this.verify((displayInstructionsAfterSAG[2].toStr() === "(change,word:SAG,changePosition:3)"), `after playing SAG, instruction[2] is ${displayInstructionsAfterSAG[2].toStr()}`) &&
         this.verify((displayInstructionsAfterSAG[3].toStr() === "(future,word:SAT,changePosition:1)"), `after playing SAG, instruction[3] is ${displayInstructionsAfterSAG[3].toStr()}`) &&
             this.success();

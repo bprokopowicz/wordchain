@@ -1,10 +1,11 @@
 import { DisplayInstruction } from './DisplayInstruction.js';
 import { Game } from './Game.js';
+import * as Const from './Const.js';
 
 // word:           string is ignored for future; only length of it is used
 // displayType:    add, addChange, delete, change, future, played, target
 // changePosition: not relevant for played or target
-// wasCorrect:     not relevant for future
+// moveRating:     OK, WRONG_MOVE, or GENIUS_MOVEl not relevant for future
 
 // This a list of list of DisplayInstruction.
 // - Each "outer" list represents a move (one or two "panels" in the mock-up spreadsheet).
@@ -14,88 +15,88 @@ import { Game } from './Game.js';
 // add, addChange, delete, change are used for the active word.
 // There should be exactly ONE of these in any sequence of moves ("inner" list) except the final one.
 const LastMoveReplacer = [
-    //                         word,     displayType, changePosition, wasCorrect
+    //                         word,     displayType, changePosition, moveRating
     [
-        new DisplayInstruction("HARD",   "add",       0,              true),
-        new DisplayInstruction("HEARD",  "future",    0,              true),
-        new DisplayInstruction("HEAR",   "future",    1,              true),
-        new DisplayInstruction("PEAR",   "target",    0,              true),
+        new DisplayInstruction("HARD",   "add",       0,              Const.OK),
+        new DisplayInstruction("HEARD",  "future",    0,              Const.OK),
+        new DisplayInstruction("HEAR",   "future",    1,              Const.OK),
+        new DisplayInstruction("PEAR",   "target",    0,              Const.OK),
     ],
     // after user pressed '+' between H and A
     [
-        new DisplayInstruction("HARD",   "played",    0,              true),
-        new DisplayInstruction("H ARD",  "addchange", 2,              true),
-        new DisplayInstruction("HEAR",   "future",    1,              true),
-        new DisplayInstruction("PEAR",   "target",    0,              true),
+        new DisplayInstruction("HARD",   "played",    0,              Const.OK),
+        new DisplayInstruction("H ARD",  "addchange", 2,              Const.OK),
+        new DisplayInstruction("HEAR",   "future",    1,              Const.OK),
+        new DisplayInstruction("PEAR",   "target",    0,              Const.OK),
     ],
     // after user selected 'E'
     [
-        new DisplayInstruction("HARD",   "played",    0,              true),
-        new DisplayInstruction("HEARD",  "delete",    0,              true),
-        new DisplayInstruction("HEAR",   "future",    1,              true),
-        new DisplayInstruction("PEAR",   "target",    0,              true),
+        new DisplayInstruction("HARD",   "played",    0,              Const.OK),
+        new DisplayInstruction("HEARD",  "delete",    0,              Const.OK),
+        new DisplayInstruction("HEAR",   "future",    1,              Const.OK),
+        new DisplayInstruction("PEAR",   "target",    0,              Const.OK),
     ],
     // after deletes letter 5 'D'
     [
-        new DisplayInstruction("HARD",   "played",    0,              true),
-        new DisplayInstruction("HEARD",  "played",    0,              true),
-        new DisplayInstruction("HEAR",   "change",    1,              true),
-        new DisplayInstruction("PEAR",   "target",    0,              true),
+        new DisplayInstruction("HARD",   "played",    0,              Const.OK),
+        new DisplayInstruction("HEARD",  "played",    0,              Const.OK),
+        new DisplayInstruction("HEAR",   "change",    1,              Const.OK),
+        new DisplayInstruction("PEAR",   "target",    0,              Const.OK),
     ],
     [
-        new DisplayInstruction("HARD",   "played",    0,              true),
-        new DisplayInstruction("HEARD",  "played",    0,              true),
-        new DisplayInstruction("HEAR",   "played",    0,              true),
-        new DisplayInstruction("PEAR",   "target",    0,              true),
+        new DisplayInstruction("HARD",   "played",    0,              Const.OK),
+        new DisplayInstruction("HEARD",  "played",    0,              Const.OK),
+        new DisplayInstruction("HEAR",   "played",    0,              Const.OK),
+        new DisplayInstruction("PEAR",   "target",    0,              Const.OK),
     ],
 ];
 
 const PickWrongReplacer = [
-    //                         word,     displayType, changePosition, wasCorrect
+    //                         word,     displayType, changePosition, moveRating
     [
-        new DisplayInstruction("FATE",   "delete",    0,              true),
-        new DisplayInstruction("FAT",    "future",    1,              true),
-        new DisplayInstruction("SAT",    "future",    3,              true),
-        new DisplayInstruction("SAP",    "future",    2,              true),
-        new DisplayInstruction("SOP",    "target",    0,              true),
+        new DisplayInstruction("FATE",   "delete",    0,              Const.OK),
+        new DisplayInstruction("FAT",    "future",    1,              Const.OK),
+        new DisplayInstruction("SAT",    "future",    3,              Const.OK),
+        new DisplayInstruction("SAP",    "future",    2,              Const.OK),
+        new DisplayInstruction("SOP",    "target",    0,              Const.OK),
     ],
     [
-        new DisplayInstruction("FATE",   "played",    0,              true),
-        new DisplayInstruction("FAT",    "change",    1,              true),
-        new DisplayInstruction("SAT",    "future",    3,              true),
-        new DisplayInstruction("SAP",    "future",    2,              true),
-        new DisplayInstruction("SOP",    "target",    0,              true),
+        new DisplayInstruction("FATE",   "played",    0,              Const.OK),
+        new DisplayInstruction("FAT",    "change",    1,              Const.OK),
+        new DisplayInstruction("SAT",    "future",    3,              Const.OK),
+        new DisplayInstruction("SAP",    "future",    2,              Const.OK),
+        new DisplayInstruction("SOP",    "target",    0,              Const.OK),
     ],
     [
-        new DisplayInstruction("FATE",   "played",    0,              true),
-        new DisplayInstruction("FAT",    "played",    0,              true),
-        new DisplayInstruction("SAT",    "change",    3,              true),
-        new DisplayInstruction("SAP",    "future",    2,              true),
-        new DisplayInstruction("SOP",    "target",    0,              true),
+        new DisplayInstruction("FATE",   "played",    0,              Const.OK),
+        new DisplayInstruction("FAT",    "played",    0,              Const.OK),
+        new DisplayInstruction("SAT",    "change",    3,              Const.OK),
+        new DisplayInstruction("SAP",    "future",    2,              Const.OK),
+        new DisplayInstruction("SOP",    "target",    0,              Const.OK),
     ],
     [
-        new DisplayInstruction("FATE",   "played",    0,              true),
-        new DisplayInstruction("FAT",    "played",    0,              true),
-        new DisplayInstruction("SAT",    "played",    0,              true),
-        new DisplayInstruction("SAG",    "change",    3,              false),
-        new DisplayInstruction("SAP",    "future",    2,              true),
-        new DisplayInstruction("SOP",    "target",    0,              true),
+        new DisplayInstruction("FATE",   "played",    0,              Const.OK),
+        new DisplayInstruction("FAT",    "played",    0,              Const.OK),
+        new DisplayInstruction("SAT",    "played",    0,              Const.OK),
+        new DisplayInstruction("SAG",    "change",    3,              Const.WRONG_MOVE),
+        new DisplayInstruction("SAP",    "future",    2,              Const.OK),
+        new DisplayInstruction("SOP",    "target",    0,              Const.OK),
     ],
     [
-        new DisplayInstruction("FATE",   "played",    0,              true),
-        new DisplayInstruction("FAT",    "played",    0,              true),
-        new DisplayInstruction("SAT",    "played",    0,              true),
-        new DisplayInstruction("SAG",    "played",    0,              false),
-        new DisplayInstruction("SAP",    "change",    2,              true),
-        new DisplayInstruction("SOP",    "target",    0,              true),
+        new DisplayInstruction("FATE",   "played",    0,              Const.OK),
+        new DisplayInstruction("FAT",    "played",    0,              Const.OK),
+        new DisplayInstruction("SAT",    "played",    0,              Const.OK),
+        new DisplayInstruction("SAG",    "played",    0,              Const.WRONG_MOVE),
+        new DisplayInstruction("SAP",    "change",    2,              Const.OK),
+        new DisplayInstruction("SOP",    "target",    0,              Const.OK),
     ],
     [
-        new DisplayInstruction("FATE",   "played",    0,              true),
-        new DisplayInstruction("FAT",    "played",    1,              true),
-        new DisplayInstruction("SAT",    "played",    3,              true),
-        new DisplayInstruction("SAG",    "played",    2,              false),
-        new DisplayInstruction("SAP",    "played",    2,              true),
-        new DisplayInstruction("SOP",    "target",    0,              true),
+        new DisplayInstruction("FATE",   "played",    0,              Const.OK),
+        new DisplayInstruction("FAT",    "played",    1,              Const.OK),
+        new DisplayInstruction("SAT",    "played",    3,              Const.OK),
+        new DisplayInstruction("SAG",    "played",    2,              Const.WRONG_MOVE),
+        new DisplayInstruction("SAP",    "played",    2,              Const.OK),
+        new DisplayInstruction("SOP",    "target",    0,              Const.OK),
     ],
 ];
 

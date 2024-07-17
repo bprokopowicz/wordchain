@@ -1,4 +1,5 @@
 import { BaseLogger } from './BaseLogger.js';
+import * as Const from './Const.js';
 
 
 // This class tries to find a word chain from a "from word" to a "to word",
@@ -58,9 +59,9 @@ class Solver {
 
             for (let word of nextWords) {
                 workingDict.removeWord(word);
-                let isCorrect = true;
+                let moveRating = Const.OK;
                 let isPlayed = false;
-                let newWorkingSolution = solution.copy().addWord(word, isPlayed, isCorrect);
+                let newWorkingSolution = solution.copy().addWord(word, isPlayed, moveRating);
                 // Solver.logger.logDebug(`   checking ${newWorkingSolution.toStr()}`, "solver-details");
                 if (newWorkingSolution.isSolved()) {
                     return newWorkingSolution;
@@ -117,9 +118,9 @@ class Solver {
                 for (let nextWord of nextWords) {
                     localDictionary.removeWord(nextWord);
                     let newPuzzle = puzzle.copy();
-                    let isCorrect = true;
+                    let moveRating = Const.OK;
                     let isPlayed = false;
-                    newPuzzle.addWord(nextWord, isPlayed, isCorrect);
+                    newPuzzle.addWord(nextWord, isPlayed, moveCorrect);
                     listOfPossiblePuzzles.push(newPuzzle);
                 }
            }
@@ -152,14 +153,14 @@ class Solver {
 }
 
 class SolutionStep {
-    constructor(word, isPlayed, isCorrect) {
+    constructor(word, isPlayed, moveRating) {
         this.word = word;
         this.isPlayed = isPlayed;
-        this.isCorrect = isCorrect;
+        this.moveRating = moveRating;
     }
 
     toString() {
-        return `${this.word} played:${this.isPlayed}, correct:${this.isCorrect}`;
+        return `${this.word} played:${this.isPlayed}, moveRating:${this.moveRating}`;
     }
 
     wordLength() {
@@ -178,9 +179,9 @@ class Solution extends BaseLogger {
     }
 
     static newEmptySolution(start, target) {
-        let isCorrect = true;
+        let moveRating = Const.OK;
         let isPlayed = true;
-        let solutionStep = new SolutionStep(start, isPlayed, isCorrect);
+        let solutionStep = new SolutionStep(start, isPlayed, moveRating);
         return new Solution([solutionStep], target);
     }
 
@@ -189,14 +190,14 @@ class Solution extends BaseLogger {
         return this;
     }
 
-    addWord(newWord, isPlayed, isCorrect) {
-        this.solutionSteps.push(new SolutionStep(newWord, isPlayed, isCorrect));
+    addWord(newWord, isPlayed, moveRating) {
+        this.solutionSteps.push(new SolutionStep(newWord, isPlayed, moveRating));
         return this;
     }
 
 
-    wrongMoves() {
-        return this.solutionSteps.filter((solutionStep)=>!solutionStep.isCorrect).length;
+    numWrongMoves() {
+        return this.solutionSteps.filter((solutionStep)=>solutionStep.moveRating == Const.WRONG_MOVE).length;
     }
 
     calculateDifficulty(dictionary) {

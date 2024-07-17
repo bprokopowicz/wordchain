@@ -103,7 +103,7 @@ class GameDisplay extends BaseLogger {
 
         function getCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.wasCorrect, displayInstruction.changePosition);
+                displayInstruction.moveRating, displayInstruction.changePosition);
         }
 
         this.pickerEnabled = false;
@@ -116,7 +116,7 @@ class GameDisplay extends BaseLogger {
 
         function getCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.wasCorrect, displayInstruction.changePosition);
+                displayInstruction.moveRating, displayInstruction.changePosition);
         }
 
         // changePosition goes 1..wordLength, so need to subtract 1.
@@ -131,7 +131,7 @@ class GameDisplay extends BaseLogger {
         // First, display the letter cells.
         function getActiveLetterCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.wasCorrect, displayInstruction.changePosition);
+                displayInstruction.moveRating, displayInstruction.changePosition);
         }
 
         this.displayCommon(displayInstruction, getActiveLetterCell);
@@ -161,7 +161,7 @@ class GameDisplay extends BaseLogger {
 
     displayPlayed(displayInstruction) {
         function getCell(letter, letterPosition) {
-            return new PlayedLetterCell(letter, displayInstruction.wasCorrect);
+            return new PlayedLetterCell(letter, displayInstruction.moveRating);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -211,7 +211,7 @@ class GameDisplay extends BaseLogger {
             this.gameState.push([
                 displayInstruction.word,
                 displayInstruction.displayType == Const.PLAYED,
-                displayInstruction.wasCorrect
+                displayInstruction.moveRating
                 ]);
 
             if (displayInstruction.displayType === Const.ADD) {
@@ -355,7 +355,7 @@ class GameDisplay extends BaseLogger {
             wordLength = displayInstruction.wordLength,
             word = displayInstruction.word,
             letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
-            wasCorrect = displayInstruction.wasCorrect;
+            moveRating = displayInstruction.moveRating;
 
         // Pass 'this' to AdditionCell constructor here and in the loop, so that it can
         // be saved as "callbackAccessor" in the button so that the callback can get
@@ -382,8 +382,8 @@ class GameDisplay extends BaseLogger {
     getMoveSummary() {
         var summary = [];
 
-        for (let [__word, __wasPlayed, wasCorrect] of this.gameState) {
-            summary.push(wasCorrect);
+        for (let [__word, __wasPlayed, moveRating] of this.gameState) {
+            summary.push(moveRating);
         }
 
         return summary;
@@ -392,8 +392,8 @@ class GameDisplay extends BaseLogger {
     getWrongMoveCount() {
         var count = 0;
 
-        for (let [__word, __wasPlayed, wasCorrect] of this.gameState) {
-            if (!wasCorrect) {
+        for (let [__word, __wasPlayed, moveRating] of this.gameState) {
+            if (moveRating == Const.WRONG_MOVE) {
                 count++;
             }
         }

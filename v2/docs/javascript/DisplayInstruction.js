@@ -1,4 +1,4 @@
-  import * as Const from './Const.js'
+  import * as Const from './Const.js';
 
 // This class provides the interface between the GameDisplay and Game classes.
 // When displaying the game grid, GameDisplay requests display instructions from
@@ -11,15 +11,15 @@ class DisplayInstruction {
     // word:           string is ignored for future; only length of it is used
     // displayType:    add, delete, change, future, played, target
     // changePosition: relevant only for change and future; 1..word.length
-    // wasCorrect:     not relevant for future or target
+    // moveRating:     OK, WRONG_MOVE, GENIUS_MOVE; not relevant for future or target
     //
     // add, delete, change are used for the active word.
-    constructor(word, displayType, changePosition, wasCorrect) {
+    constructor(word, displayType, changePosition, moveRating) {
         this.word = word;
         this.wordLength = word.length;
         this.displayType = displayType;
         this.changePosition = changePosition;
-        this.wasCorrect = wasCorrect;
+        this.moveRating = moveRating;
     }
 
     // Used for debugging only.
@@ -33,7 +33,7 @@ class DisplayInstruction {
         }
 
         if (this.displayType === Const.PLAYED) {
-            returnStr += `,wasCorrect:${this.wasCorrect}`;
+            returnStr += `,moveRating:${this.moveRating}`;
         }
 
         if (this.displayType === Const.CHANGE  || this.displayType === Const.FUTURE) {
