@@ -153,7 +153,6 @@ class PracticeGameDisplay extends GameDisplay {
         }
 
         this.anyGamesRemaining = true;
-
     }
 
     updateWords() {

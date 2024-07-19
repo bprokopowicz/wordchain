@@ -14,7 +14,7 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Class Variables ----- */
 
-    static BaseDate = new Date("2024-05-02T00:00:00.000+00:00");
+    static BaseDate = new Date("2024-07-17T00:00:00.000+00:00");
     static BaseTimestamp = null;
     static DateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 

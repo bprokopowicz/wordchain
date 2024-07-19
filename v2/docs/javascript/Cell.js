@@ -1,3 +1,4 @@
+import * as Const from './Const.js';
 import { ElementUtilities } from './ElementUtilities.js';
 
 class Cell {
@@ -91,6 +92,7 @@ class LetterCell extends Cell {
         } else {
             if (moveRating === Const.OK) {
                 this.addClass("letter-cell-good");
+            }
             else if (moveRating === Const.GENIUS_MOVE) {
                 this.addClass("letter-cell-good");
             } else {
