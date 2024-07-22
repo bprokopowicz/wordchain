@@ -69,7 +69,8 @@ class AuxiliaryDisplay extends BaseLogger {
         // When the button was created with createSvgButton() we saved 'this'
         // as callbackAccessor on the button; use it to access other instance data.
         const me = event.srcElement.callbackAccessor;
-        this.logDebug("closeAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event, "callback");
+        // TODO: Why does this bomb?
+        //this.logDebug("closeAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
         // comprise the close button. Any combination of them may generate an event,
@@ -101,7 +102,8 @@ class AuxiliaryDisplay extends BaseLogger {
         // When the button was created with createSvgButton() we saved 'this'
         // as callbackAccessor on the button; use it to access other instance data.
         const me = event.srcElement.callbackAccessor;
-        this.logDebug("openAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event, "callback");
+        // TODO: Why does this bomb?
+        //this.logDebug("openAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
         // comprise the button that opens this display. Any combination of them may

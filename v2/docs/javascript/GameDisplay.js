@@ -191,8 +191,9 @@ class GameDisplay extends BaseLogger {
     }
 
     showMove(userRequestedSolution=false) {
-        const container = ElementUtilities.addElementTo("div", this.gameDiv),
-              tableElement = ElementUtilities.addElementTo("table", container, {class: "table-game"});
+        const container = ElementUtilities.addElementTo("div", this.gameDiv, {class: "game-container"}),
+              tableDiv = ElementUtilities.addElementTo("div", container, {class: "table-div"}),
+              tableElement = ElementUtilities.addElementTo("table", tableDiv, {class: "table-game"});
 
         // Create an element that can be used to add buttons (or whatever) after the display of
         // elements for the game.

@@ -138,6 +138,10 @@
     --stats-bar-fg:             White;
 }
 
+:root {
+    --cell-size: 25px;
+}
+
 /*
 ** IMPORTANT!!!
 ** No color names or color numbers should be used below this point!
@@ -159,6 +163,7 @@ html, body {
     height: 100vh;
     margin: 0px;
     background: var(--primary-bg);
+    overflow: hidden;
 }
 
 hr {
@@ -232,6 +237,9 @@ hr {
     flex-direction: column;
     justify-content: flex-start;
     height: 95%;
+    width: 95%;
+    overflow-y: scroll;
+    overflow-x: scroll;
 }
 
 /*
@@ -241,14 +249,16 @@ hr {
 */
 
 #header-div {
+    flex-shrink: 0;
     position: sticky;
     top: 0;
     /* This height, plus lower-div height must be 100% */
-    height: 7%;
+    height: 40px;
     display: flex;
     background: var(--header-bg);
     padding: .25rem;
     margin-bottom: 1rem;
+    overflow: hidden;
 }
 
 #game-button-div {
@@ -315,6 +325,12 @@ svg {
 ** -------------------
 */
 
+.table-div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
 .table-game {
     border-spacing: .0rem;
 }
@@ -334,8 +350,8 @@ svg {
 }
 
 .letter-cell {
-    width: 25px;
-    height: 25px;
+    width: var(--cell-size);
+    height: var(--cell-size);
     border-width: .10rem;
     display: flex;
     align-items: center;
@@ -389,7 +405,7 @@ button.action-button {
 }
 
 .action-outer-cell {
-    width: 25px;    /* Must have same width as .letter-cell */
+    width: var(--cell-size);    /* Must have same width as .letter-cell */
     height: 15px;
     border: solid;
     border-width: .10rem;
@@ -435,10 +451,12 @@ button.action-button {
 */
 
 #picker-div {
+    flex-shrink: 0;
     position: sticky;
     top: 0;
-    height: 5%;
+    height: 30px;
     margin-bottom: 4px;
+    overflow: hidden;
 }
 
 .picker-container {
@@ -463,8 +481,8 @@ button.action-button {
 }
 
 .picker-select {
-    font-size:1rem;
-    width: 3rem;
+    /*font-size:1rem;*/
+    width: 30px;
     text-align: center;
 }
 
@@ -479,7 +497,8 @@ button.action-button {
 .picker-option {
     background: var(--primary-bg);
     color: var(--primary-fg);
-    font-size: 1rem;
+    font-size: 8px;
+    width: 20px;
 }
 
 /*

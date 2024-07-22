@@ -115,10 +115,10 @@ class AppDisplay extends BaseLogger {
 
         // Create divs for the daily and practice games and pickers. When switching between games,
         // these will be shown/hidden as appropriate.
-        this.dailyGameDiv = ElementUtilities.addElementTo("div", this.gameDiv);
-        this.practiceGameDiv = ElementUtilities.addElementTo("div", this.gameDiv);
-        this.dailyPickerDiv = ElementUtilities.addElementTo("div", this.pickerInnerDiv);
-        this.practicePickerDiv = ElementUtilities.addElementTo("div", this.pickerInnerDiv);
+        this.dailyGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "daily-game-div"});
+        this.practiceGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "practice-game-div"});
+        this.dailyPickerDiv = ElementUtilities.addElementTo("div", this.pickerDiv, {id: "daily-picker-div"});
+        this.practicePickerDiv = ElementUtilities.addElementTo("div", this.pickerDiv, {id: "practice-picker-div"});
 
         // To start, hide the practice game divs.
         ElementUtilities.hide(this.practiceGameDiv);
@@ -208,12 +208,6 @@ class AppDisplay extends BaseLogger {
     createPickerDiv(lowerDiv) {
         // This div is the one we style as none or flex to hide/show the div.
         this.pickerDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "picker-div"}, null),
-
-        // picker-div always ends up with extra space at the top. The only way I was able
-        // to get rid of it is to create picker-inner-div, which has no extra space, and
-        // then in the JavaScript code set the height of picker-div to match that of
-        // picker-inner-div.
-        this.pickerInnerDiv = ElementUtilities.addElementTo("div", this.pickerDiv, {id: "picker-inner-div"}, null);
 
         // Show the picker initially by default.
         this.pickerDiv.style.display = "flex";

@@ -8,8 +8,9 @@ export const PRACTICE_GAMES_PER_DAY = 300;     // For testing
 export const PRACTICE_STEPS_MINIMUM = 5;
 export const PRACTICE_STEPS_MAXIMUM = 7;
 export const PRACTICE_DIFFICULTY_MINIMUM = 60;
-export const PRACTICE_MAX_SHORTEST_WORD = 4;
-export const PRACTICE_MIN_LONGEST_WORD = 6;
+export const PRACTICE_TARGET_WORD_LEN = 5;
+export const PRACTICE_REQ_WORD_LEN_1 = 4;
+export const PRACTICE_REQ_WORD_LEN_2 = 6;
 export const PRACTICE_START_WORDS = ["FACE", "TRUST", "GRASP", "TROPE", "SPACE", "PLATE", "TRAIL"];
 
 // Constants for game play toast notifications.

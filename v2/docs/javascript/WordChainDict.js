@@ -3,13 +3,13 @@ import { BaseLogger } from './BaseLogger.js';``
 // Synchronously wait for the word list to download.
 // Pop the last entry which is always an empty string following the last new-line.
 // TODO: This should use Const.DICT_URL.
-const globalWordList = await fetch("http://localhost:8000/docs/resources/WordChainDict")
+const globalWordList = await fetch("http://192.168.86.23:8000/docs/resources/WordChainDict")
     .then(resp => resp.text())
     .then(text => text.split("\n"))
     .then(words => words.map((x)=>x.toUpperCase()))
     .then(words => words.slice(0,-1));
 
-const scrabbleWordList = await fetch("http://localhost:8000/docs/resources/Scrabble3-6")
+const scrabbleWordList = await fetch("http://192.168.86.23:8000/docs/resources/Scrabble3-6")
     .then(resp => resp.text())
     .then(text => text.split("\n"))
     .then(words => words.map((x)=>x.toUpperCase()))
