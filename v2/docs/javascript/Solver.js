@@ -120,7 +120,7 @@ class Solver {
                     let newPuzzle = puzzle.copy();
                     let moveRating = Const.OK;
                     let isPlayed = false;
-                    newPuzzle.addWord(nextWord, isPlayed, moveCorrect);
+                    newPuzzle.addWord(nextWord, isPlayed, moveRating);
                     listOfPossiblePuzzles.push(newPuzzle);
                 }
            }

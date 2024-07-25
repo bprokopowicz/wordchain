@@ -53,6 +53,8 @@ class AppDisplay extends BaseLogger {
 
     constructor() {
         super();
+        window.theAppDisplayIsReady = false;
+        window.theAppDisplay = this;
 
         // Flags from Settings screen
         this.darkTheme      = Cookie.getBoolean("DarkTheme");
@@ -85,6 +87,9 @@ class AppDisplay extends BaseLogger {
 
         // Now set the colors based on darkTheme and colorblindMode.
         this.setColors();
+
+        window.theAppDisplayIsReady = true;
+
     }
 
     // Create the one and only object of this class if it hasn't yet been created.

@@ -2,9 +2,47 @@ import { BaseLogger } from '../docs/javascript/BaseLogger.js';
 import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
+import { Cookie } from '../docs/javascript/Cookie.js';
 import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
+
+/*
+   Mock event attributes needed by calllbacks:
+   event.game - the Game object 
+   event.srcElement - should hold mock object with getAttribute() method that understands the following attributes:
+
+   let me = event.srcElement.callbackAccessor - a reference to this (me) the tester.
+
+   let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
+   let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
+   let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition')),
+
+   The currentGameDisplay's 'letterPicker' object needs to be manipulated directly because we inspect
+   it to find the letter picked by the user.  
+   letterPicker.value = "J";  
+ */
+class MockEventSrcElement {
+    constructor(me) {
+        this.callbackAccessor = me;
+        this.attributes = new Map();
+    }
+
+    getAttribute(attributeName) {
+        return this.attributes.get(attributeName);
+    }
+
+    setAttribute(attributeName, value) {
+        return this.attributes.set(attributeName, value);
+    }
+}
+
+class MockEvent {
+    constructor (srcElement) {
+        this.srcElement = srcElement;
+    }
+}
+
 
 // Singleton class Test.
 
@@ -19,6 +57,7 @@ class Test extends BaseLogger {
         this.smallList = ["BAD", "BADE", "BALD", "BAT", "BATE", "BID", "CAD", "CAT", "DOG", "SCAD"]
         this.fullDict = new WordChainDict(globalWordList);
         this.scrabbleDict = new WordChainDict(scrabbleWordList);
+        this.messages = [];
     }
 
     static singleton() {
@@ -54,11 +93,11 @@ class Test extends BaseLogger {
         var runAll    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",    class: "testButton" }, "Run All Tests"),
             runDict   = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",   class: "testButton" }, "Run Dict Tests"),
             runSolver = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSolver", class: "testButton" }, "Run Solver Tests"),
-            runGame   = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",   class: "testButton" }, "Run Game Tests");
+            runGame   = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",   class: "testButton" }, "Run Game Tests"),
+            runApp    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",    class: "testButton" }, "Run App Tests");
 
-        ElementUtilities.addElementTo("p", this.outerDiv);
 
-        for (let button of [runAll, runDict, runSolver, runGame]) {
+        for (let button of [runAll, runDict, runSolver, runGame, runApp]) {
             button.callbackAccessor = this;
             ElementUtilities.setButtonCallback(button, this.runTestsCallback);
         }
@@ -85,6 +124,9 @@ class Test extends BaseLogger {
         if (buttonId == "runAll" || buttonId == "runGame") {
             me.runGameTests();
         }
+        if (buttonId == "runAll" || buttonId == "runApp") {
+            me.runAppTests();
+        }
 
         me.showResults();
     }
@@ -92,7 +134,7 @@ class Test extends BaseLogger {
     showResults() {
         let results = "";
 
-        results += `Success count: ${this.successCount}<br>`;
+        results += `<br>Success count: ${this.successCount}<br>`;
         results += `Failure count: ${this.failureCount}<p>`;
         results += this.messages.join("<br>");
 
@@ -603,6 +645,156 @@ class Test extends BaseLogger {
     ** Additional testing assets
     */
 
+    // ===== AppDisplay Tester =====
+
+    practiceGameTest() {
+        this.name = "PracticeGame"; 
+        
+        this.logDebug("Switching to practice game", "test");
+        this.theAppDisplay.switchToPracticeGame();
+        this.logDebug("Done switching to practice game", "test");
+
+        let practiceGame = this.theAppDisplay.practiceGame;
+        this.logDebug("updating practice game to TEST->PILOT", "test");
+        practiceGame.updateWords("TEST","PILOT");
+        this.logDebug("done updating practice game to TEST->PILOT", "test");
+
+        let gameDisplay = this.theAppDisplay.currentGameDisplay;
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+
+        // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
+        //  TEST -> LEST
+        gameDisplay.letterPicker.value = "L";
+        mockEvent.srcElement.setAttribute("letterPosition", "1");
+        let resultL1 = gameDisplay.pickerChangeCallback(mockEvent);
+
+        // LEST -> LET
+        mockEvent.srcElement.setAttribute("deletionPosition", "3");
+        let resultDelete3 = gameDisplay.deletionClickCallback(mockEvent);
+        
+        // LET -> LIT - wrong move!
+        gameDisplay.letterPicker.value = "I";
+        mockEvent.srcElement.setAttribute("letterPosition", "2");
+        let resultI2Wrong = gameDisplay.pickerChangeCallback(mockEvent);
+
+        // LIT -> LOT
+        gameDisplay.letterPicker.value = "O";
+        mockEvent.srcElement.setAttribute("letterPosition", "2");
+        let resultO2 = gameDisplay.pickerChangeCallback(mockEvent);
+
+        // LOT -> xLOT
+        mockEvent.srcElement.setAttribute("additionPosition", "0");
+        let resultAddition0 = gameDisplay.additionClickCallback(mockEvent);
+
+        // xLOT -> PLOT
+        gameDisplay.letterPicker.value = "P";
+        mockEvent.srcElement.setAttribute("letterPosition", "1");
+        let resultP1 = gameDisplay.pickerChangeCallback(mockEvent);
+
+        // PLOT -> PxLOT
+        mockEvent.srcElement.setAttribute("additionPosition", "1");
+        let resultAddition1 = gameDisplay.additionClickCallback(mockEvent);
+
+        // PxLOT -> PILOT
+        gameDisplay.letterPicker.value = "I";
+        mockEvent.srcElement.setAttribute("letterPosition", "2");
+        let resultI2 = gameDisplay.pickerChangeCallback(mockEvent);
+
+        this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
+            this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
+            this.verify((resultI2Wrong === Const.WRONG_MOVE), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
+            this.verify((resultO2 === Const.OK), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
+            this.verify((resultAddition0 === Const.OK), `playAdd(0) returns ${resultAddition0}, not ${Const.OK}`) &&
+            this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
+            this.verify((resultAddition1 === Const.OK), `playAdd(1) returns ${resultAddition1}, not ${Const.OK}`) &&
+            //this.verify((resultI2 === Const.OK), `playLetter(2, I) returns ${resultI2}, not ${Const.OK}`) &&
+            this.success();
+    }
+
+    geniusMoveTest() {
+        this.name = "GeniusMoveDisplay"; // move to test method
+        
+        this.theAppDisplay.switchToPracticeGame();
+
+        let practiceGame = this.theAppDisplay.practiceGame;
+        practiceGame.updateWords("SHORT","POOR");
+
+        let gameDisplay = this.theAppDisplay.currentGameDisplay;
+        let game = gameDisplay.game;
+
+        // add a genius word to the scrabble dictionary
+        game.scrabbleDictionary.addWord("HOOR");
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+
+        // regular solution:                SHORT SHOOT HOOT BOOT BOOR POOR
+        // solve the puzzle like a genius:  SHORT SHOOT HOOT HOOR POOR
+
+        //  SHORT -> SHOOT
+        gameDisplay.letterPicker.value = "O";
+        mockEvent.srcElement.setAttribute("letterPosition", "4");
+        let resultO4 = gameDisplay.pickerChangeCallback(mockEvent);
+
+        // SHOOT -> HOOT
+        mockEvent.srcElement.setAttribute("deletionPosition", "1");
+        let resultDelete1 = gameDisplay.deletionClickCallback(mockEvent);
+        
+        // HOOT -> HOOR genius move
+        gameDisplay.letterPicker.value = "R";
+        mockEvent.srcElement.setAttribute("letterPosition", "4");
+        let resultR4Genius = gameDisplay.pickerChangeCallback(mockEvent);
+
+        // HOOR -> POOR
+        gameDisplay.letterPicker.value = "P";
+        mockEvent.srcElement.setAttribute("letterPosition", "1");
+        let resultP1 = gameDisplay.pickerChangeCallback(mockEvent);
+
+        this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
+            this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
+            this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
+            this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
+            this.success();
+    }
+
+
+    /*
+        TODO
+        currently, this routine will need to be called repeatedly: once to open the new window,
+        then after waiting for newWindow.theAppDisplayIsReady
+        */
+    runAppTests() {
+        if (! this.newWindow) {
+            this.newWindow = window.open('../html/LocalWordChain.html', 'AppDisplayTest', 'width=600,height=800');
+            // give the newWindow our debugging settings
+            // TODO - but we can't turn on the console in the new window!
+            this.newWindow.localStorage.setItem("Debug",Cookie.get("Debug"));
+        }
+
+        // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
+
+        if (!this.theAppDisplay) {
+            this.theAppDisplay = this.newWindow.theAppDisplay;
+        } 
+
+        //TODO - remove object debugging log lines:
+        console.log ("remote window is " , this.newWindow);
+        console.log ("remote window's theAppDisplay is ", this.theAppDisplay);
+        this.logDebug(`remote window's app display is ready: ${this.newWindow.theAppDisplayIsReady}`);
+
+        if (this.newWindow.theAppDisplayIsReady) {
+            this.practiceGameTest();
+            //this.geniusMoveTest();
+        }
+    }
+
+
+/*
+
+        }
+    }
+    */
+
     // ===== Dictionary Tester =====
 
     displayDictTester() {
@@ -626,14 +818,24 @@ class Test extends BaseLogger {
     findCallback(event) {
         const me = event.srcElement.callbackAccessor;
 
-        const word = ElementUtilities.getElementValue("someWord");
-        if (! me.fullDict.isWord(word)) {
-            alert(`${word} is not a word`);
-            return;
+        const word = ElementUtilities.getElementValue("someWord").toUpperCase();
+        var result = `${word} in common dictionary: `;
+
+        if (me.fullDict.isWord(word)) {
+            result += "Y";
+        } else {
+            result += "N";
+        }
+        result += `; in scrabble dictionary: `;
+        if (me.scrabbleDict.isWord(word)) {
+            result += "Y";
+        } else {
+            result += "N";
         }
 
         const nextWords = [...me.fullDict.findNextWords(word)];
-        ElementUtilities.setElementHTML("findAnswer", `${nextWords.length} words from ${word}: ${nextWords.join(",")}`);
+        result += `; ${nextWords.length} words from ${word}: ${nextWords.join(",")}`;
+        ElementUtilities.setElementHTML("findAnswer", result);
     }
 
     // ===== Solver Tester =====
@@ -663,14 +865,14 @@ class Test extends BaseLogger {
 
     solveCallback(event) {
         const me = event.srcElement.callbackAccessor,
-              startWord = ElementUtilities.getElementValue("solverStartWord");
+              startWord = ElementUtilities.getElementValue("solverStartWord").toUpperCase();
 
         if (! me.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
             return;
         }
 
-        const targetWord = ElementUtilities.getElementValue("solverTargetWord");
+        const targetWord = ElementUtilities.getElementValue("solverTargetWord").toUpperCase();
         if (! me.fullDict.isWord(targetWord)) {
             alert("Target word is empty or not a word");
             return;
@@ -752,6 +954,8 @@ class Test extends BaseLogger {
     }
 }
 
+//TODO - remove
+console.log("This is high-level static code");
 
 Test.singleton().display();
 

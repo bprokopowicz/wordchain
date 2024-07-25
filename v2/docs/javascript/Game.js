@@ -60,8 +60,10 @@ class Game extends BaseLogger {
         let logger = new BaseLogger();
 
         let startWord = Const.PRACTICE_START_WORDS[rand];
+            //findPuzzles(origDictionary, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty) {
         let puzzles = Solver.findPuzzles(dictionary, startWord,
-              Const.PRACTICE_MAX_SHORTEST_WORD, Const.PRACTICE_MIN_LONGEST_WORD,
+              Const.PRACTICE_TARGET_WORD_LEN,
+              Const.PRACTICE_REQ_WORD_LEN_1, Const.PRACTICE_REQ_WORD_LEN_2,
               Const.PRACTICE_STEPS_MINIMUM, Const.PRACTICE_STEPS_MAXIMUM,
               Const.PRACTICE_DIFFICULTY_MINIMUM);
         
@@ -81,7 +83,7 @@ class Game extends BaseLogger {
         // play the remaining steps for the user
         let isPlayed = true;
         let moveRating = Const.OK;
-        for (let step of this.remainingSteps) {
+        for (let step of this.remainingSteps.getSolutionSteps()) {
             this.playedSteps.addWord(step.word, isPlayed, Const.OK);
         }
     }

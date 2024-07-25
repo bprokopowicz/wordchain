@@ -168,20 +168,24 @@ class GameDisplay extends BaseLogger {
     }
 
     displayTarget(displayInstruction) {
-        var showSuccessful = false,
-            gameOver = false;
+        var gameOver = false;
+        var rating = Const.OK; 
 
         function getCell(letter, __letterPosition) {
-            return new TargetLetterCell(letter, showSuccessful, gameOver);
+            return new TargetLetterCell(letter, rating, gameOver);
         }
 
+        // The only condition for displaying the Target as not OK is if the game is
+        // over and we are not a winner (too many wrong moves, etc)
         if (this.game.isOver()) {
             gameOver = true;
 
             if (this.game.isWinner()) {
-                showSuccessful = true;
+                rating = Const.OK;
+            } else {
+                rating = Const.WRONG_MOVE;
             }
-        }
+        } 
 
         this.displayCommon(displayInstruction, getCell);
     }
@@ -391,15 +395,7 @@ class GameDisplay extends BaseLogger {
     }
 
     getWrongMoveCount() {
-        var count = 0;
-
-        for (let [__word, __wasPlayed, moveRating] of this.gameState) {
-            if (moveRating == Const.WRONG_MOVE) {
-                count++;
-            }
-        }
-
-        return count;
+        return this.gameState.filter(state => (state.moveRating == Const.WRONG_MOVE)).length;
     }
 
     processGameResult(gameResult) {

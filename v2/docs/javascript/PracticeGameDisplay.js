@@ -64,6 +64,7 @@ class PracticeGameDisplay extends GameDisplay {
             me.practiceGameWordsPlayed = me.gameState;
             Cookie.saveJson("PracticeGameWordsPlayed", me.practiceGameWordsPlayed);
         }
+        return gameResult;
     }
 
     // Override superclass callback to update PracticeGameWordsPlayed cookie.
@@ -80,6 +81,7 @@ class PracticeGameDisplay extends GameDisplay {
             me.practiceGameWordsPlayed = me.gameState;
             Cookie.saveJson("PracticeGameWordsPlayed", me.practiceGameWordsPlayed);
         }
+        return gameResult;
     }
 
     /* ----- Utilities ----- */
@@ -155,28 +157,34 @@ class PracticeGameDisplay extends GameDisplay {
         this.anyGamesRemaining = true;
     }
 
-    updateWords() {
+    updateWords(startWord=null, targetWord=null) {
 
-        // Save the timestamp of this game in the instance and cookies.
-        this.practiceGameTimestamps.push(this.updateTime);
-        Cookie.save("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
-
-        // See if we have words in the cookie.
-        this.startWord  = Cookie.get("PracticeGameStart");
-        this.targetWord = Cookie.get("PracticeGameTarget");
-
-        if (!this.startWord || this.startWord.length === 0) {
-            // No words in the cookie; get new ones from the Game class and save them.
-            [this.startWord, this.targetWord] = Game.getPracticePuzzle();
-            //this.startWord = "FATE";
-            //this.targetWord = "CAT";
-            Cookie.save("PracticeGameStart", this.startWord);
-            Cookie.save("PracticeGameTarget", this.targetWord);
-            Cookie.saveJson("PracticeGameWordsPlayed", []);
+        if (startWord && targetWord) {
+            this.startWord = startWord;
+            this.targetWord = targetWord;
             this.practiceGameWordsPlayed = [];
         } else {
-            // We did have start/target words; get any words already played.
-            this.practiceGameWordsPlayed = Cookie.getJsonOrElse("PracticeGameWordsPlayed", []);
+            // Save the timestamp of this game in the instance and cookies.
+            this.practiceGameTimestamps.push(this.updateTime);
+            Cookie.save("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
+
+            // See if we have words in the cookie.
+            this.startWord  = Cookie.get("PracticeGameStart");
+            this.targetWord = Cookie.get("PracticeGameTarget");
+
+            if (!this.startWord || this.startWord.length === 0) {
+                // No words in the cookie; get new ones from the Game class and save them.
+                [this.startWord, this.targetWord] = Game.getPracticePuzzle();
+                //this.startWord = "FATE";
+                //this.targetWord = "CAT";
+                Cookie.save("PracticeGameStart", this.startWord);
+                Cookie.save("PracticeGameTarget", this.targetWord);
+                Cookie.saveJson("PracticeGameWordsPlayed", []);
+                this.practiceGameWordsPlayed = [];
+            } else {
+                // We did have start/target words; get any words already played.
+                this.practiceGameWordsPlayed = Cookie.getJsonOrElse("PracticeGameWordsPlayed", []);
+            }
         }
 
         // Now we're ready to construct (and display) the game.

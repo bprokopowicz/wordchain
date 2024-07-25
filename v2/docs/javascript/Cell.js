@@ -90,12 +90,13 @@ class LetterCell extends Cell {
         if (targetWordInProgress) {
             this.addClass("letter-cell-target");
         } else {
-            if (moveRating === Const.OK) {
+            if (moveRating == Const.OK) {
                 this.addClass("letter-cell-good");
             }
-            else if (moveRating === Const.GENIUS_MOVE) {
+            else if (moveRating == Const.GENIUS_MOVE) {
                 this.addClass("letter-cell-good");
-            } else {
+            }
+            else {
                 this.addClass("letter-cell-bad");
             }
         }
@@ -143,8 +144,8 @@ class FutureLetterCell extends LetterCell {
 class TargetLetterCell extends LetterCell {
     constructor(letter, moveRating, gameOver) {
         super(letter);
-        // Pass !gameOver for targetWordInProgress
-        this.addCorrectnessClass(moveRating, !gameOver);
+        const inProgress = !gameOver;
+        this.addCorrectnessClass(moveRating, inProgress);
     }
 }
 
