@@ -746,14 +746,19 @@ class Test extends BaseLogger {
         let resultR4Genius = gameDisplay.pickerChangeCallback(mockEvent);
 
         // HOOR -> POOR
+        /*
+        don't finish the game, so we can see the Genius toast before it
+        is replaced by the Solved toast.
+
         gameDisplay.letterPicker.value = "P";
         mockEvent.srcElement.setAttribute("letterPosition", "1");
         let resultP1 = gameDisplay.pickerChangeCallback(mockEvent);
+        */
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
             this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
             this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
-            this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
+            // this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
             this.success();
     }
 
@@ -784,7 +789,7 @@ class Test extends BaseLogger {
 
         if (this.newWindow.theAppDisplayIsReady) {
             this.practiceGameTest();
-            //this.geniusMoveTest();
+            this.geniusMoveTest();
         }
     }
 
