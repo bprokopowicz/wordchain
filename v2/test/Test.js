@@ -7,6 +7,10 @@ import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /*
    Mock event attributes needed by calllbacks:
    event.game - the Game object 
@@ -22,6 +26,7 @@ import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
    it to find the letter picked by the user.  
    letterPicker.value = "J";  
  */
+
 class MockEventSrcElement {
     constructor(me) {
         this.callbackAccessor = me;
@@ -88,7 +93,7 @@ class Test extends BaseLogger {
     */
 
     displayTestSuite() {
-        this.addTitle("WordChain Test Suite - allow 30+ seconds to complete.");
+        this.addTitle("WordChain Test Suite - allow 30+ seconds to complete.  Browser popups must be allowed.");
 
         var runAll    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",    class: "testButton" }, "Run All Tests"),
             runDict   = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",   class: "testButton" }, "Run Dict Tests"),
@@ -124,11 +129,15 @@ class Test extends BaseLogger {
         if (buttonId == "runAll" || buttonId == "runGame") {
             me.runGameTests();
         }
+        let sleepTime = 0;
         if (buttonId == "runAll" || buttonId == "runApp") {
             me.runAppTests();
+            // we need to pause before checking results because this test runs separately
+            sleepTime += 10000; 
         }
 
-        me.showResults();
+        console.log(`pausing  ${sleepTime} for remote window to finish App tests if needed.`);
+        sleep(sleepTime).then( () => { me.showResults();});
     }
 
     showResults() {
@@ -762,29 +771,19 @@ class Test extends BaseLogger {
             this.success();
     }
 
-
-    /*
-        TODO
-        currently, this routine will need to be called repeatedly: once to open the new window,
-        then after waiting for newWindow.theAppDisplayIsReady
-        */
     runAppTests() {
-        if (! this.newWindow) {
-            this.newWindow = window.open('../html/LocalWordChain.html', 'AppDisplayTest', 'width=600,height=800');
-            // give the newWindow our debugging settings
-            // TODO - but we can't turn on the console in the new window!
-            this.newWindow.localStorage.setItem("Debug",Cookie.get("Debug"));
-        }
+        this.newWindow = window.open('../html/LocalWordChain.html', 'AppDisplayTest', 'width=600,height=800');
+        let windowInitTime = 6000;
+        console.log (`pausing ${windowInitTime} for new window to initialize its game.`);
+        sleep(windowInitTime).then( () => { this.runTheTests();});
+    }
 
+    runTheTests() {
         // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
+        // It should be ready before this method is called because of the sleep in runAppTests().
 
-        if (!this.theAppDisplay) {
-            this.theAppDisplay = this.newWindow.theAppDisplay;
-        } 
-
-        //TODO - remove object debugging log lines:
-        console.log ("remote window is " , this.newWindow);
-        console.log ("remote window's theAppDisplay is ", this.theAppDisplay);
+        this.newWindow.localStorage.setItem("Debug",Cookie.get("Debug"));
+        this.theAppDisplay = this.newWindow.theAppDisplay;
         this.logDebug(`remote window's app display is ready: ${this.newWindow.theAppDisplayIsReady}`);
 
         if (this.newWindow.theAppDisplayIsReady) {
@@ -792,13 +791,6 @@ class Test extends BaseLogger {
             this.geniusMoveTest();
         }
     }
-
-
-/*
-
-        }
-    }
-    */
 
     // ===== Dictionary Tester =====
 
@@ -958,9 +950,6 @@ class Test extends BaseLogger {
         ElementUtilities.setElementHTML("puzzleFinderAnswer", goodTargetsWithDifficulty.join(","));
     }
 }
-
-//TODO - remove
-console.log("This is high-level static code");
 
 Test.singleton().display();
 
