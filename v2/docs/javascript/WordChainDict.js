@@ -169,7 +169,9 @@ class WordChainDict extends BaseLogger {
             throw new Error("WordChainDict.isWord(): Word cannot have length 0");
         }
 
-        return this.wordSet.has(theWord);
+        const result = this.wordSet.has(theWord);
+        // this.logDebug(`is ${theWord} in Dictionary of ${this.getSize()} words: ${result}`, "dictionary");
+        return result;
     }
 
     addWord(word) {

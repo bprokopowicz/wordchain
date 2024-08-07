@@ -119,6 +119,7 @@ class Test extends BaseLogger {
         me.successCount = 0;
         me.failureCount = 0;
         me.messages = [];
+        me.resultsAreReady = true;
 
         if (buttonId == "runAll" || buttonId == "runDict") {
             me.runDictTests();
@@ -129,15 +130,24 @@ class Test extends BaseLogger {
         if (buttonId == "runAll" || buttonId == "runGame") {
             me.runGameTests();
         }
-        let sleepTime = 0;
         if (buttonId == "runAll" || buttonId == "runApp") {
+            me.resultsAreReady = false;
             me.runAppTests();
-            // we need to pause before checking results because this test runs separately
-            sleepTime += 10000; 
         }
 
-        console.log(`pausing  ${sleepTime} for remote window to finish App tests if needed.`);
-        sleep(sleepTime).then( () => { me.showResults();});
+        // we may need to pause before checking results because App Tess run separately
+        me.waitForResultsThenShowThem();
+    }
+
+    waitForResultsThenShowThem() {
+        if (this.getResultsAreReady()) {
+            console.log ("results are ready - show them.");
+            this.showResults();
+        }  else {
+            const sleepTime = 1000;
+            console.log(`pausing  ${sleepTime} for resultsAreReady.`);
+            sleep(sleepTime).then( () => { this.waitForResultsThenShowThem();});
+        }
     }
 
     showResults() {
@@ -773,23 +783,44 @@ class Test extends BaseLogger {
 
     runAppTests() {
         this.newWindow = window.open('../html/LocalWordChain.html', 'AppDisplayTest', 'width=600,height=800');
-        let windowInitTime = 6000;
-        console.log (`pausing ${windowInitTime} for new window to initialize its game.`);
-        sleep(windowInitTime).then( () => { this.runTheTests();});
+        console.log("new window opened.  Calling waitForAppDisplayThenRunTheAppTests().");
+        this.waitForAppDisplayThenRunTheAppTests();
+    }
+
+    getNewWindow() {
+        return this.newWindow;
+    }
+
+    waitForAppDisplayThenRunTheAppTests() {
+        if (this.getNewWindow().theAppDisplayIsReady) {
+            console.log("new window AppDisplay is ready; running tests now.");
+            this.runTheTests();
+        } else {
+            const sleepTime = 1000;
+            console.log (`pausing ${sleepTime} for new window AppDisplay to be ready.`);
+            sleep(sleepTime).then( () => { this.waitForAppDisplayThenRunTheAppTests();});
+        }
     }
 
     runTheTests() {
         // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
         // It should be ready before this method is called because of the sleep in runAppTests().
 
-        this.newWindow.localStorage.setItem("Debug",Cookie.get("Debug"));
-        this.theAppDisplay = this.newWindow.theAppDisplay;
-        this.logDebug(`remote window's app display is ready: ${this.newWindow.theAppDisplayIsReady}`);
+        this.getNewWindow().localStorage.setItem("Debug",Cookie.get("Debug"));
+        this.theAppDisplay = this.getNewWindow().theAppDisplay;
+        this.logDebug(`remote window's app display is ready: ${this.getNewWindow().theAppDisplayIsReady}`);
 
-        if (this.newWindow.theAppDisplayIsReady) {
+        if (this.getNewWindow().theAppDisplayIsReady) {
             this.practiceGameTest();
             this.geniusMoveTest();
+        } else {
+            console.log("ASSERTION: trying to run the AppDisplay tests before theAppDisplayIsReady.");
         }
+        this.resultsAreReady = true;
+    }
+
+    getResultsAreReady() {
+        return this.resultsAreReady;
     }
 
     // ===== Dictionary Tester =====
