@@ -119,11 +119,15 @@ class Test extends BaseLogger {
         if (me.testingInProgress) {
             console.log("Testing already in progress, please wait for results ...");
             return;
+        } else {
+            console.log("Testing started, please wait for results ...");
         }
         me.successCount = 0;
         me.failureCount = 0;
         me.messages = [];
         me.resultsAreReady = true;
+
+        let testingStartTime = Date.now();
 
         if (buttonId == "runAll" || buttonId == "runDict") {
             me.runDictTests();
@@ -141,7 +145,8 @@ class Test extends BaseLogger {
 
         // we may need to pause before checking results because App Tess run separately
         me.waitForResultsThenShowThem();
-        console.log("Testing finished.");
+        console.log(`Testing took ${Date.now() - testingStartTime} ms.`);
+        me.testingStartTime = Date.now();
         me.testingInProgress = false;
     }
 
