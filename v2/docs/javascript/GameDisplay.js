@@ -32,8 +32,6 @@ class GameDisplay extends BaseLogger {
         // only if it was played),
         this.gameState = [];
 
-        this.logDebug("testing logDebug in GameDisplay", "test");
-
         // Derived class constructor must call constructGame().
     }
 
@@ -212,7 +210,7 @@ class GameDisplay extends BaseLogger {
 
         let displayInstructions = this.game.getDisplayInstructions();
         for (let displayInstruction of displayInstructions) {
-            this.logDebug("displayInstruction:", displayInstruction, "instruction");
+            Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
             this.gameState.push([
                 displayInstruction.word,
                 displayInstruction.displayType == Const.PLAYED,
@@ -285,7 +283,7 @@ class GameDisplay extends BaseLogger {
             return;
         }
 
-        me.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
+        Const.GL_DEBUG && me.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
             gameResult = me.game.playAdd(additionPosition);
 
@@ -299,7 +297,7 @@ class GameDisplay extends BaseLogger {
             return;
         }
 
-        me.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
+        Const.GL_DEBUG && me.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
             gameResult = me.game.playDelete(deletionPosition);
 
@@ -316,7 +314,7 @@ class GameDisplay extends BaseLogger {
 
     pickerChangeCallback(event) {
         var me = event.srcElement.callbackAccessor;
-        me.logDebug("pickerChangeCallback(): event:", event, "callback");
+        Const.GL_DEBUG && me.logDebug("pickerChangeCallback(): event:", event, "callback");
 
         if (me.game.isOver()) {
             return;

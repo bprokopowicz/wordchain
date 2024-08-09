@@ -1,3 +1,6 @@
+// Turn on/off debugging.
+export const GL_DEBUG = true;
+
 // Constants for URLs.
 export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
 export const DICT_URL = `${URL_ROOT}/resources/dict/WordChainDict`;

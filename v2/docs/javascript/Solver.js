@@ -46,11 +46,11 @@ class Solver {
         while (workingSolutions.length > 0) {
             // Get the next partial solution from the heap; we'll add working solutions based on this
             let solution = workingSolutions.shift();
-            //Solver.logger.logDebug(`popped working solution: ${solution.toStr()}`, "solver-details");
+            //Const.GL_DEBUG && Solver.logger.logDebug(`popped working solution: ${solution.toStr()}`, "solver-details");
             if (solution.numSteps() > longestSolution) {
                 longestSolution = solution.numSteps();
-                Solver.logger.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "solver-details");
-                Solver.logger.logDebug(`loopCount: ${loopCount}: search size: ${workingSolutions.length}`, "solver-details");
+                Const.GL_DEBUG && Solver.logger.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "solver-details");
+                Const.GL_DEBUG && Solver.logger.logDebug(`loopCount: ${loopCount}: search size: ${workingSolutions.length}`, "solver-details");
             }
 
             // Find all possible "next words" from the last word in the solution so far.
@@ -62,11 +62,11 @@ class Solver {
                 let moveRating = Const.OK;
                 let isPlayed = false;
                 let newWorkingSolution = solution.copy().addWord(word, isPlayed, moveRating);
-                // Solver.logger.logDebug(`   checking ${newWorkingSolution.toStr()}`, "solver-details");
+                // Const.GL_DEBUG && Solver.logger.logDebug(`   checking ${newWorkingSolution.toStr()}`, "solver-details");
                 if (newWorkingSolution.isSolved()) {
                     return newWorkingSolution;
                 }
-                // Solver.logger.logDebug(`   adding ${newWorkingSolution.toStr()}`, "solver-details");
+                // Const.GL_DEBUG && Solver.logger.logDebug(`   adding ${newWorkingSolution.toStr()}`, "solver-details");
                 workingSolutions.push(newWorkingSolution);
             }
 
@@ -77,11 +77,11 @@ class Solver {
                 // just assume there is no solution. Kind of a kludge, but ... ain't nobody
                 // got time to wait more than 15 seconds.
                 if (Date.now() - startTime > 15000) {
-                    Solver.logger.logDebug(`it's taking too long to solve ${startingSolution.toStr()}! loopCount: ${loopCount}`, "solver");
+                    Const.GL_DEBUG && Solver.logger.logDebug(`it's taking too long to solve ${startingSolution.toStr()}! loopCount: ${loopCount}`, "solver");
                     solution.addError("No solution within a reasonable time");
                     return solution;
                 }
-                Solver.logger.logDebug(`loopCount: ${loopCount}: size: ${workingSolutions.length}`, "solver-details");
+                Const.GL_DEBUG && Solver.logger.logDebug(`loopCount: ${loopCount}: size: ${workingSolutions.length}`, "solver-details");
             }
 
         }
@@ -93,11 +93,11 @@ class Solver {
     static findPuzzles(origDictionary, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty) {
 
         startWord = startWord.toUpperCase();
-        Solver.logger.logDebug(`looking for puzzles starting with ${startWord} ending with a ${targetWordLen}-length word`, "solver");
+        Const.GL_DEBUG && Solver.logger.logDebug(`looking for puzzles starting with ${startWord} ending with a ${targetWordLen}-length word`, "solver");
         let localDictionary = origDictionary.copy();
         let desiredPuzzles = [];
         if (!localDictionary.isWord(startWord)) {
-            Solver.logger.logDebug(startWord + " is not a word.", "solver");
+            Const.GL_DEBUG && Solver.logger.logDebug(startWord + " is not a word.", "solver");
             return desiredPuzzles;
         }
         // search forever until all suitable puzzles are found
@@ -106,10 +106,10 @@ class Solver {
         listOfPossiblePuzzles.push(firstPuzzle);
         while (listOfPossiblePuzzles.length > 0) {
             let puzzle = listOfPossiblePuzzles.shift();
-            Solver.logger.logDebug(`looking at puzzle ${puzzle.toStr()}`, "solver-details");
+            Const.GL_DEBUG && Solver.logger.logDebug(`looking at puzzle ${puzzle.toStr()}`, "solver-details");
             puzzle.target=puzzle.getLastWord();
             if (Solver.isDesired(origDictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty)) {
-	            Solver.logger.logDebug(`found suitable puzzle ${puzzle.toStr()}`, "solver");
+	            Const.GL_DEBUG && Solver.logger.logDebug(`found suitable puzzle ${puzzle.toStr()}`, "solver");
                 desiredPuzzles.push(puzzle);
             }
             // keep looking if not too long already

@@ -163,7 +163,7 @@ html, body {
     height: 100vh;
     margin: 0px;
     background: var(--primary-bg);
-    overflow: hidden;
+    overflow-x: none;
 }
 
 hr {
@@ -186,7 +186,7 @@ hr {
 #root-div {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     background: var(--primary-bg);
     height: 100%;
     width: 100%;
@@ -216,6 +216,13 @@ hr {
 ** Shell around the content below the WordChain banner.
 */
 
+#upper-div {
+    flex-direction: column;
+    justify-content: flex-start;
+    position: sticky;
+    top: 0;
+}
+
 #lower-div {
     display: flex;
     /*
@@ -228,18 +235,16 @@ hr {
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
-    /* This height, plus header-div height must be 100% */
-    height: 93%;
 }
 
 #game-div {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    /*
     height: 95%;
     width: 95%;
-    overflow-y: scroll;
-    overflow-x: scroll;
+    */
 }
 
 /*
@@ -249,16 +254,13 @@ hr {
 */
 
 #header-div {
+    flex-wrap: wrap;
     flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    /* This height, plus lower-div height must be 100% */
-    height: 40px;
+    height: 45px;
     display: flex;
     background: var(--header-bg);
-    padding: .25rem;
-    margin-bottom: 1rem;
-    overflow: hidden;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 #game-button-div {
@@ -451,12 +453,12 @@ button.action-button {
 */
 
 #picker-div {
-    flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    height: 30px;
-    margin-bottom: 4px;
-    overflow: hidden;
+    justify-content: center;
+    background: var(--primary-bg);
+    width: 100%;
+    height: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 .picker-container {
@@ -467,8 +469,6 @@ button.action-button {
 
 .picker-label {
     font-size:1rem;
-    position: sticky;
-    top: 0;
     margin-right: 5px;
 }
 
@@ -482,7 +482,7 @@ button.action-button {
 
 .picker-select {
     /*font-size:1rem;*/
-    width: 30px;
+    width: 2.5rem;
     text-align: center;
 }
 
@@ -497,8 +497,8 @@ button.action-button {
 .picker-option {
     background: var(--primary-bg);
     color: var(--primary-fg);
-    font-size: 8px;
-    width: 20px;
+    font-size: 1em;
+    /*width: 20px;*/
 }
 
 /*

@@ -1,4 +1,5 @@
 import { BaseLogger } from './BaseLogger.js';``
+import * as Const from './Const.js';
 
 // Synchronously wait for the word list to download.
 // This code runs before any other code
@@ -30,7 +31,7 @@ class WordChainDict extends BaseLogger {
             this.wordSet = new Set(wordList.map((x)=>x.toUpperCase()));
         }
 
-        this.logDebug(`Dictionary has ${this.getSize()} words.`, "dictionary");
+        Const.GL_DEBUG && this.logDebug(`Dictionary has ${this.getSize()} words.`, "dictionary");
     }
 
     shuffleArray(array) {
@@ -46,7 +47,7 @@ class WordChainDict extends BaseLogger {
     copy() {
         let wordList = this.getWordList();
         let newDict = new WordChainDict(wordList);  
-        this.logDebug(`dictionary copy has ${newDict.getSize()} words.`, "dictionary");
+        Const.GL_DEBUG && this.logDebug(`dictionary copy has ${newDict.getSize()} words.`, "dictionary");
         return newDict;
     }
 
@@ -65,16 +66,16 @@ class WordChainDict extends BaseLogger {
                 let letter = alphabet.substr(letterIndex, 1);
 
                 let potentialWord = word.substr(0, wordIndex) + letter + word.substr(wordIndex);
-                this.logDebug(`>>>>> potential: ${potentialWord}`, "adderDetail");
+                Const.GL_DEBUG && this.logDebug(`>>>>> potential: ${potentialWord}`, "adderDetail");
 
                 if (this.isWord(potentialWord)) {
-                    this.logDebug(`>>>>> adding adder: ${potentialWord}`, "adderDetail");
+                    Const.GL_DEBUG && this.logDebug(`>>>>> adding adder: ${potentialWord}`, "adderDetail");
                     adders.add(potentialWord);
                 }
             }
         }
 
-        this.logDebug(`adders for ${word}: ${Array.from(adders).sort()}`, "adders");
+        Const.GL_DEBUG && this.logDebug(`adders for ${word}: ${Array.from(adders).sort()}`, "adders");
         return adders;
     }
 
@@ -90,7 +91,7 @@ class WordChainDict extends BaseLogger {
 
         let nextWordsSortedArray = Array.from(nextWords);
         nextWordsSortedArray.sort();
-        this.logDebug(`nextWords for ${word}: ${nextWordsSortedArray}`);
+        Const.GL_DEBUG && this.logDebug(`nextWords for ${word}: ${nextWordsSortedArray}`);
         return nextWordsSortedArray;
 
     }
@@ -102,14 +103,14 @@ class WordChainDict extends BaseLogger {
         // Test isWord() when we remove each each letter in word.
         for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
             let potentialWord = word.substr(0, wordIndex) + word.substr(wordIndex+1);
-            this.logDebug(`>>>>> potential: ${potentialWord}`, "removerDetail");
+            Const.GL_DEBUG && this.logDebug(`>>>>> potential: ${potentialWord}`, "removerDetail");
             if (this.isWord(potentialWord)) {
-                this.logDebug(`>>>>> adding remover: ${potentialWord}`, "removerDetail");
+                Const.GL_DEBUG && this.logDebug(`>>>>> adding remover: ${potentialWord}`, "removerDetail");
                 removers.add(potentialWord);
             }
         }
 
-        this.logDebug(`removers for ${word}: ${Array.from(removers).sort()}`, "removers");
+        Const.GL_DEBUG && this.logDebug(`removers for ${word}: ${Array.from(removers).sort()}`, "removers");
         return removers;
     }
 
@@ -134,15 +135,15 @@ class WordChainDict extends BaseLogger {
                     potentialWord = word.substr(0, word.length - 1) + letter;
                 }
 
-                this.logDebug(`>>>>> potential: ${potentialWord}`, "replDetail");
+                Const.GL_DEBUG && this.logDebug(`>>>>> potential: ${potentialWord}`, "replDetail");
                 if (potentialWord !== word && this.isWord(potentialWord)) {
-                    this.logDebug(`>>>>> adding replacement: ${potentialWord}`, "replDetail");
+                    Const.GL_DEBUG && this.logDebug(`>>>>> adding replacement: ${potentialWord}`, "replDetail");
                     replacements.add(potentialWord);
                 }
             }
         }
 
-        this.logDebug(`replacements for ${word}: ${Array.from(replacements).sort()}`, "replacements");
+        Const.GL_DEBUG && this.logDebug(`replacements for ${word}: ${Array.from(replacements).sort()}`, "replacements");
         return replacements;
     }
 

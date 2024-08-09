@@ -105,27 +105,28 @@ class AppDisplay extends BaseLogger {
     createScreens() {
         this.rootDiv = ElementUtilities.addElementTo("div", document.body, {id: "root-div"});
 
-        this.auxiliaryDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "auxiliary-div", class: "auxiliary-div"});
+        // The upper-div contains the divs for the header and picker.
+        this.upperDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "upper-div"});
         this.createHeaderDiv();
-        this.createToastDiv();
-
-        // The lower-div contains the divs for game setup and game play.
-        this.lowerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "lower-div"});
-
-        this.createPickerDiv(this.lowerDiv);
-        this.createGameDiv(this.lowerDiv);
-
-        this.createAuxiliaryScreens();
-        this.createGameButtons();
-
-        // Create divs for the daily and practice games and pickers. When switching between games,
-        // these will be shown/hidden as appropriate.
-        this.dailyGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "daily-game-div"});
-        this.practiceGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "practice-game-div"});
+        this.createPickerDiv(this.upperDiv);
         this.dailyPickerDiv = ElementUtilities.addElementTo("div", this.pickerDiv, {id: "daily-picker-div"});
         this.practicePickerDiv = ElementUtilities.addElementTo("div", this.pickerDiv, {id: "practice-picker-div"});
 
-        // To start, hide the practice game divs.
+        // The lower-div contains the divs for game play. When switching between games,
+        // these the game and picker divs be shown/hidden as appropriate.
+        this.lowerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "lower-div"});
+        this.createGameDiv(this.lowerDiv);
+        this.dailyGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "daily-game-div"});
+        this.practiceGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "practice-game-div"});
+
+        // The auxiliary-div contains all the auxiliary screens.
+        this.auxiliaryDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "auxiliary-div", class: "auxiliary-div"});
+        this.createAuxiliaryScreens();
+
+        // The toast-div displays all messages to the user.
+        this.toastDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "toast-div", class: "pop-up hide"});
+
+        // To start, hide the practice divs.
         ElementUtilities.hide(this.practiceGameDiv);
         ElementUtilities.hide(this.practicePickerDiv);
 
@@ -180,11 +181,12 @@ class AppDisplay extends BaseLogger {
 
     createHeaderDiv() {
         // This div is the one we style as none or flex to hide/show the div.
-        this.headerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "header-div"});
+        this.headerDiv = ElementUtilities.addElementTo("div", this.upperDiv, {id: "header-div"});
         this.headerDiv.style.display = "flex";
 
         // game-button-div holds buttons related to game play.
         this.gameButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "game-button-div"});
+        this.createGameButtons();
 
         // TODO: Add a logo icon.
         const titleDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "title-div"});
@@ -210,18 +212,13 @@ class AppDisplay extends BaseLogger {
         this.gameDiv.style.display = "flex";
     }
 
-    createPickerDiv(lowerDiv) {
+    createPickerDiv(parentDiv) {
         // This div is the one we style as none or flex to hide/show the div.
-        this.pickerDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "picker-div"}, null),
+        ElementUtilities.addElementTo("div", parentDiv, {class: "break"});
+        this.pickerDiv = ElementUtilities.addElementTo("div", parentDiv, {id: "picker-div"}, null),
 
         // Show the picker initially by default.
         this.pickerDiv.style.display = "flex";
-    }
-
-    /* ----- Toast Notifications ----- */
-
-    createToastDiv() {
-        this.toastDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "toast-div", class: "pop-up hide"});
     }
 
     /* ----- Callbacks ----- */
