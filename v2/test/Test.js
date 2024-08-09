@@ -316,6 +316,7 @@ class Test extends BaseLogger {
         this.testGameNotShortestSolutionBug();
         this.testSolverBothDirections();
         this.testSolverSearchNoSolution();
+        this.testPuzzleFinder();
         const endTestTime = Date.now();
         this.logDebug(`solver tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -431,6 +432,36 @@ class Test extends BaseLogger {
         this.verify(!triedSearchNoSolution.isSolved(), `expected 'No solution' on 'FROG' to 'ECHO'`) &&
         this.success();
     }
+
+    testPuzzleFinder() {
+        const startTestTime = Date.now();
+        this.name = "PuzzleFinder";
+ 
+        const startWord = "BLUE",
+              reqWordLen1 = 3,
+              reqWordLen2 = 5,
+              minSteps = 7,
+              maxSteps = 9,
+              minDifficulty = 45,
+              targetWordLen = 5,
+              expectedNumberOfPuzzles = 664;
+
+        const suitablePuzzles = 
+            Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
+            .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
+        suitablePuzzles.sort();
+
+        const [targetWord, difficulty] = suitablePuzzles[0].split(":");
+        const solution = Solver.solve(this.fullDict, startWord, targetWord);
+        this.verify(suitablePuzzles.length == expectedNumberOfPuzzles, `expected ${expectedNumberOfPuzzles}, got ${suitablePuzzles.length}`) &&
+            this.verify(solution.numSteps() >= minSteps, `solution too short ${solution.numSteps()} not ${minSteps}`) &&
+            this.verify(solution.numSteps() <= maxSteps, `solution too long ${solution.numSteps()} not ${maxSteps}`) &&
+            this.verify(solution.hasWordOfLength(reqWordLen1), `solution missing word of length ${reqWordLen1}`) &&
+            this.verify(solution.hasWordOfLength(reqWordLen2), `solution missing word of length ${reqWordLen2}`) &&
+            this.verify(difficulty >= minDifficulty, `solution to easy: ${difficulty} is not at least ${minDifficulty}`) &&
+            this.success();
+    }
+
 
     /*
     ** Game tests

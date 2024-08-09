@@ -18,9 +18,6 @@ class Solver {
             startingSolution.addError(fromWord + " is not a word.");
         }
         */
-        if (! dictionary.isWord(toWord)) {
-            startingSolution.addError(toWord + " is not a word.");
-        }
         if (startingSolution.getError()){
             return startingSolution;
         }
