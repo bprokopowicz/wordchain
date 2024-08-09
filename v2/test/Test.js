@@ -116,6 +116,10 @@ class Test extends BaseLogger {
         const me = event.srcElement.callbackAccessor,
               buttonId = event.srcElement.getAttribute("id");
 
+        if (me.testingInProgress) {
+            console.log("Testing already in progress, please wait for results ...");
+            return;
+        }
         me.successCount = 0;
         me.failureCount = 0;
         me.messages = [];
@@ -137,6 +141,8 @@ class Test extends BaseLogger {
 
         // we may need to pause before checking results because App Tess run separately
         me.waitForResultsThenShowThem();
+        console.log("Testing finished.");
+        me.testingInProgress = false;
     }
 
     waitForResultsThenShowThem() {
