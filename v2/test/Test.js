@@ -209,14 +209,9 @@ class Test extends BaseLogger {
         this.logDebug(`dictionary copy elapsed time: ${endTestTime - startTestTime} ms`, "test");
         startTestTime = Date.now();
         let i = 0;
-        let sum = 0;
-        while (i < 10000) {
+        while (i < 1000) {
             i++;
-            if (copyDict.isWord("junky-junk")) {
-                sum++;
-            }
             let adders = copyDict.findAdderWords("READ"); 
-            sum += adders.size;
         }
         endTestTime = Date.now();
         this.logDebug(`dictionary findAdders in copy elapsed time: ${endTestTime - startTestTime} ms`, "test");
