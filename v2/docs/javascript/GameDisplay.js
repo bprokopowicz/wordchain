@@ -1,7 +1,8 @@
 import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
-import { Game } from './Game.js';
 import { ElementUtilities } from './ElementUtilities.js';
+import { Game } from './Game.js';
+import { Picker } from './Picker.js';
 import * as Const from './Const.js';
 
 import { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell } from './Cell.js';
@@ -9,13 +10,9 @@ import { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedL
 
 class GameDisplay extends BaseLogger {
 
-    /* ----- Class Variables ----- */
-
-    PICKER_UNSELECTED = " ";
-
     /* ----- Construction ----- */
 
-    constructor(appDisplay, gameDiv, pickerDiv) {
+    constructor(appDisplay, gameDiv, pickerDiv, pickerId) {
 
         super();
 
@@ -23,13 +20,14 @@ class GameDisplay extends BaseLogger {
 
         this.gameDiv   = gameDiv;
         this.pickerDiv = pickerDiv;
+        this.pickerId = pickerId;
 
         this.createPicker();
 
         // This will be (re)populated in showMove().
         // This is an array of three-element arrays, which act like a Python tuple:
         // the word, whether it was played, and whether it was correct(relevant
-        // only if it was played),
+        // only if it was played).
         this.gameState = [];
 
         // Derived class constructor must call constructGame().
@@ -38,49 +36,36 @@ class GameDisplay extends BaseLogger {
     /* ----- Picker ----- */
 
     createPicker() {
-
-        this.letterPickerContainer = ElementUtilities.addElementTo("div", this.pickerDiv, {class: "picker-container"});
-
-        this.letterPickerLabel = ElementUtilities.addElementTo(
-            "label", this.letterPickerContainer, {class: "picker-label"}, "Pick a letter: ")
-
-        // Initial size will be the default of 1 (so it looks like a button),
-        // and when the user focuses on it, the size will change to present a
-        // scrolling window to select a latter.
-        this.letterPicker = ElementUtilities.addElementTo("select", this.letterPickerContainer);
-
-        ElementUtilities.addElementTo( "option", this.letterPicker,
-            {value: GameDisplay.PICKER_UNSELECTED, class: "picker-option"}, GameDisplay.PICKER_UNSELECTED)
-
-        var codeLetterA = "A".charCodeAt(0),
-            codeLetterZ = "Z".charCodeAt(0),
-            letter;
-
-        for (let letterCode = codeLetterA; letterCode <= codeLetterZ; letterCode++) {
-            letter = String.fromCharCode(letterCode);
-            ElementUtilities.addElementTo("option", this.letterPicker, {value: letter, class: "picker-option"}, letter)
-        }
-
-        // Save 'this' in the letterPicker element so that we can access
-        // it (via event.srcElement.callbackAccessor) in the callback.
-        this.letterPicker.callbackAccessor = this;
-        this.letterPicker.addEventListener("change", this.pickerChangeCallback);
-        this.letterPicker.addEventListener("focus",  this.pickerFocusCallback);
-        this.letterPicker.addEventListener("blur",   this.pickerBlurCallback);
-
+        this.letterPicker = new Picker(this, this.pickerDiv, this.pickerId);
         this.currentLetter = " ";
     }
 
     disablePicker() {
-        this.letterPickerLabel.setAttribute("class", "picker-label picker-label-disabled");
-        this.letterPicker.setAttribute("class", "picker-select picker-select-disabled");
-        this.letterPicker.setAttribute("disabled", "disabled");
+        this.letterPicker.disable();
     }
 
     enablePicker() {
-        this.letterPickerLabel.setAttribute("class", "picker-label picker-label-enabled");
-        this.letterPicker.setAttribute("class", "picker-select picker-select-enabled");
-        this.letterPicker.removeAttribute("disabled");
+        this.letterPicker.enable();
+    }
+
+    // This is kind of a callback, but doesn't really follow our callback
+    // protocol because of how the picker is implemented as a separate object.
+    letterPicked(letter, letterPosition) {
+        Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
+
+        if (this.game.isOver()) {
+            return;
+        }
+
+        if (letter === this.currentLetter) {
+            this.letterPicker.clear();
+            this.appDisplay.showToast(Const.PICK_NEW_LETTER);
+            return Const.PICK_NEW_LETTER;
+        }
+
+        let gameResult = this.game.playLetter(letterPosition, letter);
+
+        return (this.processGameResult(gameResult));
     }
 
     /* ----- Game ----- */
@@ -167,7 +152,7 @@ class GameDisplay extends BaseLogger {
 
     displayTarget(displayInstruction) {
         var gameOver = false;
-        var rating = Const.OK; 
+        var rating = Const.OK;
 
         function getCell(letter, __letterPosition) {
             return new TargetLetterCell(letter, rating, gameOver);
@@ -183,7 +168,7 @@ class GameDisplay extends BaseLogger {
             } else {
                 rating = Const.WRONG_MOVE;
             }
-        } 
+        }
 
         this.displayCommon(displayInstruction, getCell);
     }
@@ -238,7 +223,7 @@ class GameDisplay extends BaseLogger {
             this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
         }
 
-        // Were there more wrong words than the last time we showed a move? 
+        // Were there more wrong words than the last time we showed a move?
         // If so, we need to show a toast message.
         const wrongMoveCount = this.getWrongMoveCount()
         if (wrongMoveCount > this.wrongMoves) {
@@ -302,51 +287,6 @@ class GameDisplay extends BaseLogger {
             gameResult = me.game.playDelete(deletionPosition);
 
         return (me.processGameResult(gameResult));
-    }
-
-    pickerBlurCallback(event) {
-        var me = event.srcElement.callbackAccessor;
-
-        // Change the size of the picker so that it is no longer
-        // showing 10 elements when the user moves the mouse away.
-        me.letterPicker.setAttribute("size", 1);
-    }
-
-    pickerChangeCallback(event) {
-        var me = event.srcElement.callbackAccessor;
-        Const.GL_DEBUG && me.logDebug("pickerChangeCallback(): event:", event, "callback");
-
-        if (me.game.isOver()) {
-            return;
-        }
-
-        if (me.letterPicker.value === GameDisplay.PICKER_UNSELECTED) {
-            me.appDisplay.showToast(Const.PICK_LETTER);
-            return Const.PICK_LETTER;
-        }
-
-        if (me.letterPicker.value === me.currentLetter) {
-            me.appDisplay.showToast(Const.PICK_NEW_LETTER);
-            return Const.PICK_NEW_LETTER;
-        }
-
-        // Change the size of the picker back to 1 when a letter has been picked.
-        me.letterPicker.setAttribute("size", 1);
-
-        let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition')),
-            gameResult = me.game.playLetter(letterPosition, me.letterPicker.value);
-
-        me.letterPicker.value = GameDisplay.PICKER_UNSELECTED;
-
-        return (me.processGameResult(gameResult));
-    }
-
-    pickerFocusCallback(event) {
-        var me = event.srcElement.callbackAccessor;
-
-        // Change the size of the picker so that multiple words are
-        // shown with scrolling to select.
-        me.letterPicker.setAttribute("size", 10);
     }
 
     /* ----- Utilities ----- */

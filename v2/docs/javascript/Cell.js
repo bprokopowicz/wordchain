@@ -113,8 +113,8 @@ class ActiveLetterCell extends LetterCell {
         if (letterPosition === changePosition) {
             this.addClass("letter-cell-change");
 
-            // Add to the picker element so we can get it when the event comes.
-            letterPicker.setAttribute('letterPosition', letterPosition);
+            // Save the letter position so we can get it when the event comes.
+            letterPicker.saveLetterPosition(letterPosition);
         }
     }
 }

@@ -1,5 +1,5 @@
 // Turn on/off debugging.
-export const GL_DEBUG = true;
+export const GL_DEBUG = false;
 
 // Constants for URLs.
 export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";

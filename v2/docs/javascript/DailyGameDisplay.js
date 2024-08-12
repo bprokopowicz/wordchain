@@ -49,7 +49,7 @@ class DailyGameDisplay extends GameDisplay {
     /* ----- Construction ----- */
 
     constructor(appDisplay, gameDiv, pickerDiv) {
-        super(appDisplay, gameDiv, pickerDiv);
+        super(appDisplay, gameDiv, pickerDiv, "daily-picker");
 
         // Construct initial stats to be used if we don't have a cookie for daily stats.
         let initialStats = {

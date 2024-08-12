@@ -43,6 +43,24 @@
 }
 
 /*
+** These colors don't change for dark/light OR colorblind/non-colorblind.
+*/
+:root {
+    /* ===== Add/Delete Buttons and Picker ===== */
+    --user-input-fg:            Black;
+    --user-input-bg:            #ffff00;    /* yellow */
+    --user-input-bg-enabled:    var(--user-input-bg);
+    --user-input-bg-disabled:   LightGray;
+    --user-input-bg-selected:   LightGray;
+    --user-input-fg-enabled:    var(--user-input-fg);
+    --user-input-fg-disabled:   LightGray;
+
+    /* ===== Stats ===== */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
+}
+
+/*
 ** Light/dark settings that are NOT affected by colorblind mode are enabled by
 ** setting adding light-mode or dark-mode to the document element class.
 */
@@ -58,24 +76,19 @@
 
     /* ===== Header ===== */
     --header-button-bg:         LightGray;
-    --header-bg:                #97b2d5;
+    --header-bg:                #97b2d5;    /* slate blue */
 
     /* Currently not used in v2 */
     --active-button-bg:         SlateGray;
     --inactive-button-bg:       LightGray;
-
-    /* ===== Add/Delete Buttons and Picker ===== */
-    --user-input-bg:            #ffff00;    /* yellow */
-    --picker-enabled-bg:        var(--user-input-bg);
-    --picker-disabled-bg:       LightGray;
 
     /* ===== Cells and Letters ===== */
     --cell-border:              var(--primary-fg);
     --target-word-bg:           #d09ade;    /* pale purple */
 
     /* These properties are affected by changes in the Colorblind Mode setting */
-    --non-colorblind-good-bg:      var(--non-colorblind-good-bg-light);
-    --non-colorblind-bad-bg:       var(--non-colorblind-bad-bg-light);
+    --non-colorblind-good-bg:   var(--non-colorblind-good-bg-light);
+    --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-light);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
@@ -86,42 +99,32 @@
     --setting-description-fg:   Gray;
     --link-fg:                  Blue;
     --visited-link-fg:          Purple;
-
-    /* ===== Stats ===== */
-    --stats-bar-bg:             Gray;
-    --stats-bar-fg:             White;
 }
 
 :root.dark-mode {
     /* ===== Colors used to define other properties ===== */
     --primary-fg:               White;
-    --primary-fg-disabled:      #555555;    /* Very dark gray */
+    --primary-fg-disabled:      #555555;    /* very dark greenish gray */
     --secondary-fg:             Black;
 
-    --primary-bg:               #1d1d1f;
+    --primary-bg:               #1d1d1f;    /* very dark blueish gray */
     --secondary-bg:             White;
 
     /* ===== Header ===== */
-    --header-button-bg:         #49515a;
+    --header-button-bg:         #49515a;    /* dark blueish gray */
     --header-bg:                Black;
 
     /* Currently not used in v2 */
-    --active-button-bg:         #858b90;
-    --inactive-button-bg:       #49515a;
-
-    /* ===== Add/Delete Buttons and Picker ===== */
-    --user-input-bg:            #ffff00;    /* yellow */
-    --picker-enabled-bg:        var(--user-input-bg);
-    --picker-disabled-bg:       LightGray;
+    --active-button-bg:         #858b90;    /* light blueish gray */
+    --inactive-button-bg:       #49515a;    /* dark blueish gray */
 
     /* ===== Cells and Letters ===== */
-    --cell-border:              var(--primary-fg);
+    --cell-border:              #8d5f0c;    /* medium brown */
     --target-word-bg:           #b319ff;    /* medium purple */
-    --active-word-bg:           #ffff00;    /* yellow */
 
     /* These properties are affected by changes in the Colorblind Mode setting */
-    --non-colorblind-good-bg:      var(--non-colorblind-good-bg-dark);
-    --non-colorblind-bad-bg:       var(--non-colorblind-bad-bg-dark);
+    --non-colorblind-good-bg:   var(--non-colorblind-good-bg-dark);
+    --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-dark);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
@@ -132,14 +135,16 @@
     --setting-description-fg:   Gray;
     --link-fg:                  #5b6ef0;    /* light blue */
     --visited-link-fg:          #9b5bf0;    /* light purple */
-
-    /* ===== Stats ===== */
-    --stats-bar-bg:             Gray;
-    --stats-bar-fg:             White;
 }
 
+/*
+** Sizing constants.
+*/
 :root {
     --cell-size: 25px;
+
+    --custom-menu-scroll-height: 20rem;
+    --custom-menu-width: 3rem;
 }
 
 /*
@@ -199,11 +204,11 @@ hr {
 */
 
 .wordchain-button {
-    font-size: .5rem;
+    font-size: .75rem;
     padding: .3rem;
+    margin: .2rem;
     border-width: 0;
     border-radius: .5rem;
-    margin: .1rem;
     color: var(--primary-fg);
     color: var(--primary-fg);
 }
@@ -376,6 +381,7 @@ svg {
 }
 
 .letter-cell-active {
+    color: var(--user-input-fg);
     background: var(--user-input-bg);
 }
 
@@ -399,7 +405,7 @@ svg {
 
 button.action-button {
     border: none;
-    color: var(--primary-fg); /* text color */
+    color: var(--user-input-fg); /* text color */
     background: transparent;
     display: flex;
     align-items: center;
@@ -447,9 +453,9 @@ button.action-button {
 }
 
 /*
-** ------
-** Picker
-** ------
+** ----------------------
+** Picker and Custom-Menu
+** ----------------------
 */
 
 #picker-div {
@@ -473,33 +479,112 @@ button.action-button {
 }
 
 .picker-label-enabled {
-    color: var(--primary-fg);
+    color: var(--user-input-fg-enabled);
 }
 
 .picker-label-disabled {
-    color: var(--primary-fg-disabled);
+    color: var(--user-input-fg-disabled);
 }
 
-.picker-select {
-    /*font-size:1rem;*/
+.picker-button {
     width: 2.5rem;
-    text-align: center;
+    text-align: end;
 }
 
-.picker-select-enabled {
-    background: var(--picker-enabled-bg);
+.picker-button-enabled {
+    color: var(--user-input-fg-enabled);
+    background: var(--user-input-bg-enabled);
 }
 
-.picker-select-disabled {
-    background: var(--picker-disabled-bg);
+.picker-button-disabled {
+    color: var(--user-input-fg-disabled);
+    background: var(--user-input-bg-disabled);
 }
 
 .picker-option {
     background: var(--primary-bg);
     color: var(--primary-fg);
-    font-size: 1em;
-    /*width: 20px;*/
+    font-size: 1rem;
+    text-align: center;
 }
+
+/* Styles for custom-menu, custom-menu-button, and custom-menu-options elements */
+
+custom-menu {
+    position: relative;
+    display: inline-block;
+}
+
+custom-menu custom-menu-button {
+    min-width: var(--custom-menu-width);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    border: 1px solid var(--primary-fg);
+    border-radius: 0.3rem;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+}
+
+custom-menu custom-menu-options {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: var(--custom-menu-scroll-height);
+    min-width: var(--custom-menu-width);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+}
+
+custom-menu custom-menu-options.hidden {
+    height: 0;
+    overflow: hidden;
+}
+
+custom-menu input[type="radio"].hidden {
+    width: 0; /* This makes the radio button itself invisible */
+    overflow: hidden;
+}
+
+custom-menu label.selected {
+    background-color: var(--user-input-bg-selected);
+}
+
+custom-menu label:hover {
+    background-color: var(--user-input-bg-selected);
+}
+
+/* Optional styles for custom-menu-options elements */
+
+custom-menu custom-menu-button-selection {
+}
+
+custom-menu custom-menu-button-arrow {
+}
+
+custom-menu custom-menu-options label {
+    /*
+    This would style each option, which looks ... odd.
+    border: 2px solid darkgreen;
+    border-radius: 2px;
+    background-color: lightgreen;
+    */
+}
+custom-menu custom-menu-options label::before {
+    /*
+    This would put '>>>' before each label, with a little margin
+    content: '>>>';
+    margin-left: 0.2em;
+    margin-right: 0.2em;
+    */
+}
+
 
 /*
 ** =========================================
