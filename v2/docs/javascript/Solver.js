@@ -43,7 +43,7 @@ class Solver {
         while (workingSolutions.length > 0) {
             // Get the next partial solution from the heap; we'll add working solutions based on this
             let solution = workingSolutions.shift();
-            //Const.GL_DEBUG && Solver.logger.logDebug(`popped working solution: ${solution.toStr()}`, "solver-details");
+            Const.GL_DEBUG && Solver.logger.logDebug(`popped working solution: ${solution.toStr()}`, "solver-details");
             if (solution.numSteps() > longestSolution) {
                 longestSolution = solution.numSteps();
                 Const.GL_DEBUG && Solver.logger.logDebug(`loopCount: ${loopCount}: longestSolution: ${longestSolution}`, "solver-details");

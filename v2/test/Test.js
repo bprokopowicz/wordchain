@@ -93,7 +93,7 @@ class Test extends BaseLogger {
     */
 
     displayTestSuite() {
-        this.addTitle("WordChain Test Suite - allow 30+ seconds to complete.  Browser popups must be allowed.");
+        this.addTitle("WordChain Test Suite - allow 10+ seconds to complete.  Set Const.GL_DEBUG=false; Browser popups must be allowed.");
 
         var runAll    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",    class: "testButton" }, "Run All Tests"),
             runDict   = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",   class: "testButton" }, "Run Dict Tests"),
