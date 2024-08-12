@@ -204,12 +204,15 @@ class GameDisplay extends BaseLogger {
 
             if (displayInstruction.displayType === Const.ADD) {
                 this.displayAdd(displayInstruction);
+                ElementUtilities.addClass(this.rowElement, "tr-game-active");
             } else if (displayInstruction.displayType === Const.CHANGE) {
                 this.displayChange(displayInstruction);
+                ElementUtilities.addClass(this.rowElement, "tr-game-active");
             } else if (displayInstruction.displayType === Const.DELETE) {
                 // This method adds another row, so unlike the others,
                 // it needs access to the table element.
                 this.displayDelete(displayInstruction, tableElement);
+                ElementUtilities.addClass(this.rowElement, "tr-game-active");
             } else if (displayInstruction.displayType === Const.FUTURE) {
                 this.displayFuture(displayInstruction);
             } else if (displayInstruction.displayType === Const.PLAYED) {

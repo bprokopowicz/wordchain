@@ -107,7 +107,6 @@ class ActiveLetterCell extends LetterCell {
     constructor(letter, letterPosition, letterPicker, moveRating, changePosition) {
         super(letter);
 
-        this.addClass("letter-cell-active");
         this.addCorrectnessClass(moveRating);
 
         if (letterPosition === changePosition) {

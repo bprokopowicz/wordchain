@@ -142,6 +142,7 @@
 */
 :root {
     --cell-size: 25px;
+    --picker-font-size: 1.3rem;
 
     --custom-menu-scroll-height: 20rem;
     --custom-menu-width: 3rem;
@@ -246,10 +247,6 @@ hr {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    /*
-    height: 95%;
-    width: 95%;
-    */
 }
 
 /*
@@ -345,8 +342,13 @@ svg {
 .tr-game {
 }
 
+.tr-game-active {
+    background: var(--user-input-bg);
+}
+
 .td-game {
-    padding-bottom: 15px;
+    padding-top: 7px;
+    padding-bottom: 7px;
 }
 
 .circle {
@@ -378,11 +380,6 @@ svg {
 .letter-cell-change {
     border-width: .2rem;
     border-style: dashed;
-}
-
-.letter-cell-active {
-    color: var(--user-input-fg);
-    background: var(--user-input-bg);
 }
 
 .letter-cell-future {
@@ -474,7 +471,7 @@ button.action-button {
 }
 
 .picker-label {
-    font-size:1rem;
+    font-size: var(--picker-font-size);
     margin-right: 5px;
 }
 
@@ -487,7 +484,7 @@ button.action-button {
 }
 
 .picker-button {
-    width: 2.5rem;
+    font-size: var(--picker-font-size);
     text-align: end;
 }
 
@@ -502,9 +499,9 @@ button.action-button {
 }
 
 .picker-option {
-    background: var(--primary-bg);
+    font-size: var(--picker-font-size);
     color: var(--primary-fg);
-    font-size: 1rem;
+    background: var(--primary-bg);
     text-align: center;
 }
 
