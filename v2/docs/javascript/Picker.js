@@ -107,7 +107,7 @@ class Picker extends BaseLogger {
     // a letter from the picker. In our case text and value are the same,
     // so we only use text.
     selectionMade(text, __value) {
-        this.gameDisplay.letterPicked(text, this.letterPosition)
+        return this.gameDisplay.letterPicked(text, this.letterPosition)
     }
 }
 

@@ -718,44 +718,40 @@ class Test extends BaseLogger {
         let gameDisplay = this.theAppDisplay.currentGameDisplay;
         let srcElement = new MockEventSrcElement(gameDisplay);
         let mockEvent = new MockEvent(srcElement);
+        let unused = "";
 
         // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
         //  TEST -> LEST
-        gameDisplay.letterPicker.value = "L";
-        mockEvent.srcElement.setAttribute("letterPosition", "1");
-        let resultL1 = gameDisplay.pickerChangeCallback(mockEvent);
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        let resultL1 = gameDisplay.letterPicker.selectionMade("L", unused);
 
         // LEST -> LET
         mockEvent.srcElement.setAttribute("deletionPosition", "3");
         let resultDelete3 = gameDisplay.deletionClickCallback(mockEvent);
         
         // LET -> LIT - wrong move!
-        gameDisplay.letterPicker.value = "I";
-        mockEvent.srcElement.setAttribute("letterPosition", "2");
-        let resultI2Wrong = gameDisplay.pickerChangeCallback(mockEvent);
+        gameDisplay.letterPicker.saveLetterPosition(2);
+        let resultI2Wrong = gameDisplay.letterPicker.selectionMade("I", unused);
 
         // LIT -> LOT
-        gameDisplay.letterPicker.value = "O";
-        mockEvent.srcElement.setAttribute("letterPosition", "2");
-        let resultO2 = gameDisplay.pickerChangeCallback(mockEvent);
+        gameDisplay.letterPicker.saveLetterPosition(2);
+        let resultO2 = gameDisplay.letterPicker.selectionMade("O", unused);
 
         // LOT -> xLOT
         mockEvent.srcElement.setAttribute("additionPosition", "0");
         let resultAddition0 = gameDisplay.additionClickCallback(mockEvent);
 
         // xLOT -> PLOT
-        gameDisplay.letterPicker.value = "P";
-        mockEvent.srcElement.setAttribute("letterPosition", "1");
-        let resultP1 = gameDisplay.pickerChangeCallback(mockEvent);
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        let resultP1 = gameDisplay.letterPicker.selectionMade("P", unused);
 
         // PLOT -> PxLOT
         mockEvent.srcElement.setAttribute("additionPosition", "1");
         let resultAddition1 = gameDisplay.additionClickCallback(mockEvent);
 
         // PxLOT -> PILOT
-        gameDisplay.letterPicker.value = "I";
-        mockEvent.srcElement.setAttribute("letterPosition", "2");
-        let resultI2 = gameDisplay.pickerChangeCallback(mockEvent);
+        gameDisplay.letterPicker.saveLetterPosition(2);
+        let resultI2 = gameDisplay.letterPicker.selectionMade("I", unused);
 
         this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
             this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
@@ -764,7 +760,7 @@ class Test extends BaseLogger {
             this.verify((resultAddition0 === Const.OK), `playAdd(0) returns ${resultAddition0}, not ${Const.OK}`) &&
             this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
             this.verify((resultAddition1 === Const.OK), `playAdd(1) returns ${resultAddition1}, not ${Const.OK}`) &&
-            //this.verify((resultI2 === Const.OK), `playLetter(2, I) returns ${resultI2}, not ${Const.OK}`) &&
+            this.verify((resultI2 === Const.OK), `playLetter(2, I) returns ${resultI2}, not ${Const.OK}`) &&
             this.success();
     }
 
@@ -788,33 +784,25 @@ class Test extends BaseLogger {
         // solve the puzzle like a genius:  SHORT SHOOT HOOT HOOR POOR
 
         //  SHORT -> SHOOT
-        gameDisplay.letterPicker.value = "O";
-        mockEvent.srcElement.setAttribute("letterPosition", "4");
-        let resultO4 = gameDisplay.pickerChangeCallback(mockEvent);
+        let unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        let resultO4 = gameDisplay.letterPicker.selectionMade("O", unused);
 
         // SHOOT -> HOOT
+        
         mockEvent.srcElement.setAttribute("deletionPosition", "1");
         let resultDelete1 = gameDisplay.deletionClickCallback(mockEvent);
         
         // HOOT -> HOOR genius move
-        gameDisplay.letterPicker.value = "R";
-        mockEvent.srcElement.setAttribute("letterPosition", "4");
-        let resultR4Genius = gameDisplay.pickerChangeCallback(mockEvent);
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        let resultR4Genius = gameDisplay.letterPicker.selectionMade("R", unused);
 
-        // HOOR -> POOR
-        /*
-        don't finish the game, so we can see the Genius toast before it
-        is replaced by the Solved toast.
-
-        gameDisplay.letterPicker.value = "P";
-        mockEvent.srcElement.setAttribute("letterPosition", "1");
-        let resultP1 = gameDisplay.pickerChangeCallback(mockEvent);
-        */
+        // HOOR -> POOR  we are skipping this - it's enough that we saw the genius move
+       
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
             this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
             this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
-            // this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
             this.success();
     }
 
