@@ -1,8 +1,17 @@
-Change solution step to have 3 possible status values instead of binary isCorrect.  The values are 
-OK, WRONG_MOVE, and GENIUS_MOVE
-
 document how to run tests - js and python.
 
-remove V1 code
+Not working:
+- local game and local test
+- accessing https URLs from locally connected phone
+
+http://localhost:8000/wordchain/docs/html/LocalWordChain.html
+http://localhost:8000/wordchain/docs/html/Test.html
+===> Only works if URLs in WordChainDict.js are changed to use http instead of https
+
+These are working:
+
+https://bprokopowicz.github.io/wordchain/docs/html/WordChain.html
+https://bprokopowicz.github.io/wordchain/docs/html/Test.html
+
 
 
