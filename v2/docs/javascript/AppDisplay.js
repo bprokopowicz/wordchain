@@ -21,12 +21,17 @@ import * as Const from './Const.js';
 **   - Mode where future rows do not have change cells outlined thicker. (harder)
 **   - Mode where picker displays only letters that could result in valid words. (easier)
 ** - Resolve all TOODs!
+** - Remove v1 code
 **
 ** Testing
 ** - Update test plan
 ** - Tweak for display on iPhone/iPad
 **
 ** Before Sharing with Initial Friends
+** - Need to get a web server that supports https (Python's http.server doesn't)
+**   ===> Will github work?
+**   - URL has to be https or localhost in order to access navigator.clipboard
+**   - URL has to be https in order to access navigator.share() (mobile only, so no localhost)
 ** - Review help message
 ** - 30 days of daily games
 ** - Execute test plan on iPhone/iPad (Safari) and desk/laptop (Safari/Chrome)

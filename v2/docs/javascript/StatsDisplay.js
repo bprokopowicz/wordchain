@@ -109,10 +109,11 @@ class StatsDisplay extends AuxiliaryDisplay {
                     me.appDisplay.showToast(Const.SHARE_FAILED);
                     console.error("Failed to share: ", error);
                 });
+            // Are we in a *secure* environment that has access to clipboard (probably on a laptop/desktop)?
             } else if (navigator.clipboard) {
-                // No -- just save the shareString to the clipboard (probably on a laptop/desktop).
                 navigator.clipboard.writeText(shareString);
                 me.appDisplay.showToast(Const.SHARE_COPIED);
+            // Insecure.
             } else {
                 me.appDisplay.showToast(Const.SHARE_INSECURE);
             }
