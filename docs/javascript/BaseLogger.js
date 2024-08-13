@@ -13,13 +13,15 @@ class BaseLogger {
 
                 let argumentsAsArray = Array.from(arguments),
                     itemsToLog = argumentsAsArray.slice(0, -1),
-                    tagsTurnedOn = new Set(debugTags.split(',')),
-                    tagsForMessage = new Set(messageTags.split(','));
+                    tagsTurnedOn = debugTags.split(','),
+                    tagsForMessage = messageTags.split(',');
 
-                const intersection = new Set(Array.from(tagsTurnedOn).filter(x => tagsForMessage.has(x)));
-
-                if (intersection.size !== 0) {
-                    console.log(...itemsToLog);
+                //const intersection = new Set(Array.from(tagsTurnedOn).filter(x => tagsForMessage.has(x)));
+                for (const tagTurnedOn of tagsTurnedOn) {
+                    if (tagsForMessage.includes(tagTurnedOn)) {
+                        console.log(...itemsToLog);
+                        break;
+                    }
                 }
             }
         } else {

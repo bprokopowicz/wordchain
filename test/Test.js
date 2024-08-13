@@ -825,7 +825,7 @@ class Test extends BaseLogger {
     }
 
     runAppTests() {
-        this.newWindow = window.open('../html/WordChain.html', 'AppDisplayTest', 'width=600,height=800');
+        this.newWindow = window.open('/wordchain/docs/html/WordChain.html', 'AppDisplayTest', 'width=600,height=800');
         console.log("new window opened.  Calling waitForAppDisplayThenRunTheAppTests().");
         this.waitForAppDisplayThenRunTheAppTests();
     }
@@ -835,7 +835,7 @@ class Test extends BaseLogger {
     }
 
     waitForAppDisplayThenRunTheAppTests() {
-        if (this.getNewWindow().theAppDisplayIsReady) {
+        if (this.getNewWindow() && this.getNewWindow().theAppDisplayIsReady) {
             console.log("new window AppDisplay is ready; running tests now.");
             this.runTheTests();
         } else {

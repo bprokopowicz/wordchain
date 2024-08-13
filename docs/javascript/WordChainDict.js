@@ -31,7 +31,7 @@ class WordChainDict extends BaseLogger {
             this.wordSet = new Set(wordList.map((x)=>x.toUpperCase()));
         }
 
-        Const.GL_DEBUG && this.logDebug(`Dictionary has ${this.getSize()} words.`, "dictionary");
+        Const.GL_DEBUG && this.logDebug("Dictionary has", this.getSize(), " words.", "dictionary");
     }
 
     shuffleArray(array) {
@@ -47,7 +47,7 @@ class WordChainDict extends BaseLogger {
     copy() {
         let wordList = this.getWordList();
         let newDict = new WordChainDict(wordList);  
-        Const.GL_DEBUG && this.logDebug(`dictionary copy has ${newDict.getSize()} words.`, "dictionary");
+        Const.GL_DEBUG && this.logDebug("dictionary copy has ", newDict.getSize(), " words.", "dictionary");
         return newDict;
     }
 
@@ -66,16 +66,16 @@ class WordChainDict extends BaseLogger {
                 let letter = alphabet.substr(letterIndex, 1);
 
                 let potentialWord = word.substr(0, wordIndex) + letter + word.substr(wordIndex);
-                Const.GL_DEBUG && this.logDebug(`>>>>> potential: ${potentialWord}`, "dictionary-details");
+                Const.GL_DEBUG && this.logDebug(">>>>> potential: ", potentialWord, "dictionary-details");
 
                 if (this.isWord(potentialWord)) {
-                    Const.GL_DEBUG && this.logDebug(`>>>>> adding adder: ${potentialWord}`, "dictionary-details");
+                    Const.GL_DEBUG && this.logDebug(">>>>> adding adder: ", potentialWord, "dictionary-details");
                     adders.add(potentialWord);
                 }
             }
         }
 
-        Const.GL_DEBUG && this.logDebug(`adders for ${word}: ${Array.from(adders).sort()}`, "dictionary-details");
+        Const.GL_DEBUG && this.logDebug("adders for ", word, ": ", Array.from(adders).sort(), "dictionary-details");
         return adders;
     }
 
@@ -91,7 +91,7 @@ class WordChainDict extends BaseLogger {
 
         let nextWordsSortedArray = Array.from(nextWords);
         nextWordsSortedArray.sort();
-        Const.GL_DEBUG && this.logDebug(`nextWords for ${word}: ${nextWordsSortedArray}`, "dictionary");
+        Const.GL_DEBUG && this.logDebug("nextWords for ", word, ": ", nextWordsSortedArray, "dictionary");
         return nextWordsSortedArray;
 
     }
@@ -103,14 +103,14 @@ class WordChainDict extends BaseLogger {
         // Test isWord() when we remove each each letter in word.
         for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
             let potentialWord = word.substr(0, wordIndex) + word.substr(wordIndex+1);
-            Const.GL_DEBUG && this.logDebug(`>>>>> potential: ${potentialWord}`, "dictionary-details");
+            Const.GL_DEBUG && this.logDebug(">>>>> potential: ", potentialWord, "dictionary-details");
             if (this.isWord(potentialWord)) {
-                Const.GL_DEBUG && this.logDebug(`>>>>> adding remover: ${potentialWord}`, "dictionary-details");
+                Const.GL_DEBUG && this.logDebug(">>>>> adding remover: ", potentialWord, "dictionary-details");
                 removers.add(potentialWord);
             }
         }
 
-        Const.GL_DEBUG && this.logDebug(`removers for ${word}: ${Array.from(removers).sort()}`, "dictionary-details");
+        Const.GL_DEBUG && this.logDebug("removers for ", word, ": ", Array.from(removers).sort(), "dictionary-details");
         return removers;
     }
 
@@ -135,15 +135,15 @@ class WordChainDict extends BaseLogger {
                     potentialWord = word.substr(0, word.length - 1) + letter;
                 }
 
-                Const.GL_DEBUG && this.logDebug(`>>>>> potential: ${potentialWord}`, "dictionary-details");
+                Const.GL_DEBUG && this.logDebug(">>>>> potential: ", potentialWord, "dictionary-details");
                 if (potentialWord !== word && this.isWord(potentialWord)) {
-                    Const.GL_DEBUG && this.logDebug(`>>>>> adding replacement: ${potentialWord}`, "dictionary-details");
+                    Const.GL_DEBUG && this.logDebug(">>>>> adding replacement: ", potentialWord, "dictionary-details");
                     replacements.add(potentialWord);
                 }
             }
         }
 
-        Const.GL_DEBUG && this.logDebug(`replacements for ${word}: ${Array.from(replacements).sort()}`, "dictionary-details");
+        Const.GL_DEBUG && this.logDebug("replacements for ", word, ": ", Array.from(replacements).sort(), "dictionary-details");
         return replacements;
     }
 
@@ -170,7 +170,7 @@ class WordChainDict extends BaseLogger {
         }
 
         const result = this.wordSet.has(theWord);
-        Const.GL_DEBUG && this.logDebug(`is ${theWord} in Dictionary of ${this.getSize()} words: ${result}`, "dictionary-details");
+        Const.GL_DEBUG && this.logDebug("is ", theWord, " in Dictionary? ", result, "dictionary-details");
         return result;
     }
 
