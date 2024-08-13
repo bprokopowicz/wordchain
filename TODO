@@ -6,7 +6,15 @@ Not working:
 
 http://localhost:8000/wordchain/docs/html/LocalWordChain.html
 http://localhost:8000/wordchain/docs/html/Test.html
-===> Only works if URLs in WordChainDict.js are changed to use http instead of https
+
+SOLUTION:
+added simple-https-server.py to wordchain/python/
+from wordchain/.. directory, run
+python3 wordchain/python/simple-https-server.py
+
+The URLs for local game and test are:
+https://localhost/wordchain/docs/html/LocalWordChain.html
+https://localhost/wordchain/docs/html/Test.html
 
 These are working:
 
