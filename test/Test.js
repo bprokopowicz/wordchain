@@ -825,7 +825,7 @@ class Test extends BaseLogger {
     }
 
     runAppTests() {
-        this.newWindow = window.open('../html/LocalWordChain.html', 'AppDisplayTest', 'width=600,height=800');
+        this.newWindow = window.open('../html/WordChain.html', 'AppDisplayTest', 'width=600,height=800');
         console.log("new window opened.  Calling waitForAppDisplayThenRunTheAppTests().");
         this.waitForAppDisplayThenRunTheAppTests();
     }

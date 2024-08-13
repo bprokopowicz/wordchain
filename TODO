@@ -12,14 +12,13 @@ added simple-https-server.py to wordchain/python/
 from wordchain/.. directory, run
 python3 wordchain/python/simple-https-server.py
 
-The URLs for local game and test are:
-https://localhost/wordchain/docs/html/LocalWordChain.html
-https://localhost/wordchain/docs/html/Test.html
-
-These are working:
+The regular (non-local) version of the game and test HTML work both remotely and locally now
 
 https://bprokopowicz.github.io/wordchain/docs/html/WordChain.html
 https://bprokopowicz.github.io/wordchain/docs/html/Test.html
 
+locally:
+https://localhost/wordchain/docs/html/WordChain.html
+https://localhost/wordchain/docs/html/Test.html
 
 
