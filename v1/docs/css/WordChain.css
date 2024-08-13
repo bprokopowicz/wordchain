@@ -1,0 +1,851 @@
+/*
+************************************
+** Default styling for Mobile Phones
+************************************
+*/
+
+/*
+** Global Settings
+*/
+
+:root {
+    /*
+    ** These colors are defined for :root to enable implementation of both
+    ** dark and colorblind mode. We define properties for "good" and "bad"
+    ** indications for both light and dark themes. We also define both
+    ** dark and light variants for the colors used for any properties
+    ** that are affected by dark and light mode. All of these colors will
+    ** be used in the javascript code to effect theme and colorblind changes.
+    */
+
+    /* Light */
+    --colorblind-good-light:            #5f99e4;    /* blue */
+    --colorblind-bad-light:             #ebaf42;    /* orange */
+    --played-word-same-bg-light:        #85daac;    /* green */
+    --played-word-longer-bg-light:      #ea9797;    /* red */
+
+    /* Dark */
+    --colorblind-good-dark:             #2b558c;    /* blue */
+    --colorblind-bad-dark:              #d58b04;    /* orange */
+    --played-word-same-bg-dark:         #076707;    /* green */
+    --played-word-longer-bg-dark:       #ac0706;    /* red */
+}
+
+:root,
+:root.light-mode {
+    /* Colors used to define other properties */
+    --primary-fg:               Black;
+    --secondary-fg:             White;
+
+    --primary-bg:               White;
+    --secondary-bg:             Black;
+
+    --start-target-active-bg:   SlateGray;
+    --letter-key-inactive-bg:   LightGray;
+    --header-button-input-bg:   #97b2d5;
+
+    /* Header */
+    --header-button-bg:         var(--letter-key-inactive-bg);
+    --active-button-bg:         var(--start-target-active-bg);
+    --inactive-button-bg:       var(--letter-key-inactive-bg);
+    --header-bg:                var(--header-button-input-bg);
+
+    --game-button-bg:           var(--header-button-input-bg);
+
+    /* Tiles and Letters */
+    --input-tile-bg:            var(--header-button-input-bg);
+    --tile-border:              var(--primary-fg);;
+    --tile-border-grayed:       LightGray;
+
+    --start-target-tile-bg:     var(--start-target-active-bg);
+    --start-target-letter-fg:   var(--secondary-fg);;
+
+    --unplayed-word-tile-bg:    var(--primary-bg);
+
+    /* These properties are affected by changes in the Colorblind Mode setting */
+    --played-word-same-bg:      var(--played-word-same-bg-light);
+    --played-word-longer-bg:    var(--played-word-longer-bg-light);
+
+    /* Keyboard */
+    --key-bg:                   var(--letter-key-inactive-bg);
+    --wide-key-bg:              var(--header-button-input-bg);
+
+    --toast-bg:                 var(--secondary-bg);
+    --toast-fg:                 var(--secondary-fg);
+
+    /* Settings */
+    --setting-separator:        LightGray;
+    --setting-description-fg:   Gray;
+
+    /* Links */
+    --link-fg:                  Blue;
+    --visited-link-fg:          Purple;
+
+    /* Stats */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
+}
+
+:root.dark-mode {
+    /* Colors used to define other properties */
+    --primary-fg:               White;
+    --secondary-fg:             Black;
+
+    --primary-bg:               #1d1d1f;
+    --secondary-bg:             White;
+
+    --start-target-active-bg:   #858b90;
+    --game-button-input-bg:     #0f56b1;
+    --letter-key-inactive-bg:   #49515a;
+
+    /* Header */
+    --header-button-bg:         var(--letter-key-inactive-bg);
+    --active-button-bg:         var(--start-target-active-bg);
+    --inactive-button-bg:       var(--letter-key-inactive-bg);
+    --header-bg:                Black;
+
+    --game-button-bg:           var(--game-button-input-bg);
+
+    /* Tiles and Letters */
+    --input-tile-bg:            var(--game-button-input-bg);
+    --tile-border:              var(--primary-fg);;
+    --tile-border-grayed:       LightGray;
+
+    --start-target-tile-bg:     var(--start-target-active-bg);
+    --start-target-letter-fg:   var(--secondary-fg);;
+
+    --unplayed-word-tile-bg:    var(--primary-bg);
+
+    /* These properties are affected by changes in the Colorblind Mode setting */
+    --played-word-same-bg:      var(--played-word-same-bg-dark);
+    --played-word-longer-bg:    var(--played-word-longer-bg-dark);
+
+    /* Keyboard */
+    --key-bg:                   var(--letter-key-inactive-bg);
+    --wide-key-bg:              var(--game-button-input-bg);
+
+    --toast-bg:                 var(--secondary-bg);
+    --toast-fg:                 var(--secondary-fg);
+
+    /* Settings */
+    --setting-separator:        Gray;
+    --setting-description-fg:   Gray;
+
+    /* Links */
+    --link-fg:                  #5b6ef0;    /* light blue */
+    --visited-link-fg:          #9b5bf0;    /* light purple */
+
+    /* Stats */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
+}
+
+* {
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+html, body {
+    /* vh means "viewport height" -- this says to make the body take 100% of the viewport height. */
+    height: 100vh;
+    margin: 0px;
+    background: var(--primary-bg);
+}
+
+hr {
+    /* Need to set this for when it is within a display: flex else it doesn't show up. */
+    width: 100%;
+}
+
+#root-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--primary-bg);
+    height: 100%;
+    width: 100%;
+}
+
+svg {
+    display: block;
+    margin: auto;
+    fill: var(--primary-fg);
+}
+
+/*
+This class is used in divs with display: flex to force whatever comes
+after the div to be on a "new line".
+See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
+*/
+.break {
+    flex-basis: 100%;
+}
+
+/*
+** Common styling for "primary screens" (Solution and Practice Setup Screens (including their common header))
+*/
+
+.wordchain-button {
+    font-size: .8rem;
+    padding: .3rem;
+    border-width: 0;
+    border-radius: .5rem;
+    margin: .1rem;
+    color: var(--primary-fg);
+}
+
+.wordchain-button:focus {
+    outline: none;
+}
+
+.game-button {
+    font-weight: bold;
+    background: var(--game-button-bg);;
+}
+
+/* Shell around the solution/keyboard/practice divs */
+#lower-div {
+    display: flex;
+    /*
+    ** For some reason, if we have "flex-direction: column;" here (and remove "flex-wrap: wrap;"),
+    ** it messes up the scrolling of games that no longer fit on the screen -- scrolling up as
+    ** far as possible cuts off the top row(s) of tiles. If we have both settings, that messes up the
+    ** display and the keyboard is to the right of the game tiles, even with the "break div".
+    ** So we shouldn't change these settings because the scrolling works just right now!
+    */
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    /* This height, plus header-div height must be 100% */
+    height: 93%;
+}
+#lower-div div:nth-of-type(4) {
+    flex-basis: 0px;
+}
+
+/* Keyboard Display (for Daily and Practice games) */
+#keyboard-div {
+    background: var(--primary-bg);
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: .5rem;
+}
+
+#keyboard-inner-div {
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.keyboard-row {
+    display: flex;
+    margin-top: 0;
+    margin-right: auto;
+    margin-left: auto;
+    margin-bottom: .4rem;
+    /* https://stackoverflow.com/questions/46167604/ios-html-disable-double-tap-to-zoom */
+    touch-action: manipulation;
+}
+
+.keyboard-key {
+    font-size: 1rem;
+    font-family: inherit;
+    font-weight: bold;
+    border: 0;
+    padding: 0;
+    margin-top: 0;
+    margin-right: .3rem;
+    margin-bottom: 0;
+    margin-left: 0;
+    width: 1.9rem;
+    height: 2.4rem;
+    border-radius: .2rem;
+    cursor: pointer;
+    user-select: none;
+    background-color: var(--key-bg);
+    color: var(--primary-fg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: uppercase;
+}
+
+.keyboard-spacer {
+    width: 0.95rem;
+    visibility: hidden;
+}
+
+.keyboard-wide-key {
+    width: 3rem;
+    background: var(--wide-key-bg);
+    color: var(--primary-fg);
+}
+
+/*
+** Header (common for Practice Setup and Solution screens)
+*/
+
+#header-div {
+    position: sticky;
+    top: 0;
+    /* This height, plus lower-div height must be 100% */
+    height: 7%;
+    display: flex;
+    background: var(--header-bg);;
+    padding: .25rem;
+    margin-bottom: 1rem;
+}
+
+#left-button-div {
+    width: 30%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#title-div {
+    width: 40%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#right-button-div {
+    width: 30%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary-fg);
+}
+
+.header-game-button {
+    font-weight: bold;
+    background: var(--header-button-bg);
+}
+
+.active-button {
+    background: var(--active-button-bg);
+    color: var(--secondary-fg);
+}
+
+.not-active {
+    background: var(--inactive-button-bg);
+    color: var(--primary-fg);
+}
+
+.header-aux-button {
+    background: var(--header-button-bg);
+    border-radius: 50%;
+    border-width: 0;
+    padding: .15rem;
+    margin: .2rem;
+}
+
+/*
+** Practice Game Setup Screen
+*/
+
+#practice-entry-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+#practice-words-div {
+    display: flex;
+    justify-content: center;
+    margin-top: .25rem;
+}
+
+#practice-buttons-div {
+    display: flex;
+    justify-content: center;
+}
+
+.help-info {
+    color: var(--primary-fg);
+    text-align: center;
+    margin-bottom: .25rem;
+}
+
+/*
+** Solution Screen (for Daily and Practice games)
+*/
+
+#game-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+#game-words-div {
+    display: flex;
+    justify-content: center;
+}
+
+#game-buttons-div {
+    display: flex;
+    justify-content: center;
+}
+
+table {
+    border-spacing: .4rem;
+}
+
+/* Tile td classes */
+
+.tile {
+    width: 2rem;
+    height: 2rem;
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-align: center;
+    vertical-align: middle;
+    color: var(--primary-fg);
+    border-style: solid;
+    border-color: var(--tile-border);
+    background: var(--primary-bg);
+}
+
+.tile-label {
+    width: 8rem;
+    height: 3rem;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    vertical-align: middle;
+    color: var(--primary-fg);
+    border-style: none;
+}
+
+.tile-grayed {
+    border-color: var(--tile-border-grayed);
+}
+
+.tile-hidden {
+    border-color: var(--primary-bg);
+}
+
+.tile-not-grayed {
+    border-color: var(--tile-border);
+}
+
+.start-target-tile {
+    background: var(--start-target-tile-bg);
+}
+
+.letter-change {
+    border-width: .3rem;
+    padding: 0;
+}
+
+.no-change {
+    border-width: .15rem;
+    padding: .15rem;
+}
+
+.input-tile {
+    background: var(--input-tile-bg);
+}
+
+.not-input-tile {
+    background: var(--primary-bg);
+}
+
+.solution-longer {
+    background: var(--played-word-longer-bg);
+    color: var(--primary-fg);
+}
+
+.solution-same-length {
+    background: var(--played-word-same-bg);
+    color: var(--primary-fg);
+}
+
+/* Letter div classes */
+
+.label-word {
+    color: var(--primary-fg);
+}
+
+.start-target-letter {
+    color: var(--start-target-letter-fg);
+}
+
+.shown-letter {
+    visibility: visible;
+}
+
+.hidden-letter {
+    visibility: hidden;
+}
+
+/*
+** Common styling for "auxiliary screens" (Help, Settings, Stats)
+*/
+
+.close-button-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.close-button {
+    background: transparent;
+    border-width: 0;
+}
+
+.auxiliary-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.auxiliary-container-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    color: var(--primary-fg);
+    margin: 1.5rem;
+}
+
+.auxiliary-container-div h1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.auxiliary-container-div h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+.auxiliary-container-div h3 {
+    font-size: 1rem;
+    font-weight: bold;
+}
+.auxiliary-container-div p {
+    font-size: 1rem;
+}
+
+/*
+** Help screen
+*/
+#help-content-div {
+}
+
+/*
+** Settings screen
+*/
+
+#settings-content-div {
+    display: block;
+}
+
+.setting-simple {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--setting-separator);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.setting-text {
+    padding-right: 2rem;
+}
+
+.setting-title {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.setting-description {
+    font-size: .8rem;
+    color: var(--setting-description-fg);
+}
+
+input.setting-checkbox {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+a:link {
+    color: var(--link-fg);
+}
+
+a:link {
+    color: var(--visited-link-fg);
+}
+
+.setting-complex {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--setting-separator);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+#setting-radio-tr {
+    padding-bottom: .5rem;
+}
+
+input.setting-radio {
+    width: 1rem;
+    height: 1rem;
+    margin-right: .5rem;
+}
+
+.radio-container {
+    margin-top: 1rem;
+    /* First value sets horizontal spacing; second one sets vertical. */
+    border-spacing: .4rem .2rem;
+}
+
+.radio-label {
+    font-size: 1rem;
+}
+
+/*
+** Stats screen
+*/
+
+#stats-content-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.stats-tile {
+    width: .5rem;
+    height: .5rem;
+    border-style: none;
+}
+
+/* This holds the group of stats at the top */
+#stats-container-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.one-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: .5rem;
+}
+
+.one-stat-value {
+    font-size: 2rem;
+}
+
+.one-stat-label {
+    font-size: .75rem;
+}
+
+/* This holds the distribution graph */
+#distribution-div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.one-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 20rem;
+    margin-bottom: .5rem;
+}
+
+.one-bar-label {
+    margin-right: .5rem;
+}
+
+.one-bar-bar {
+    background: var(--stats-bar-bg);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.one-bar-value {
+    color: var(--stats-bar-fg);
+    font-weight: bold;
+    margin-right: .5rem;
+}
+
+#countdown-clock {
+    background: var(--primary-bg);
+    color: var(--primary-fg);
+    font-size: 4rem;
+    padding: .5rem;
+}
+
+
+/*
+** Toast Pop-ups
+*/
+
+.pop-up {
+    visibility: hidden;
+    font-size: 1rem;
+    background: var(--toast-bg);
+    color: var(--toast-fg);
+    text-align: center;
+    border-radius: .5rem;
+    padding: .75rem;
+    min-width: 14rem;           /* Set a default minimum width */
+    margin-left: -7rem;         /* Divide value of min-width by 2 */
+    position: fixed;            /* Sit on top of the screen */
+    top: 10rem;                 /* 10rem from the top */
+    left: 50%;                  /* Center the toast */
+}
+
+#toast-div.show {
+  visibility: visible;
+  /*
+  ** Add animation: Take 0.5 seconds to fade in and out the toast.
+  ** However, delay the fade out process for 2.5 seconds.
+  */
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+#cannot-load-div.show {
+  visibility: visible;
+  animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+    from {
+        top: 0;
+        opacity: 0;
+    }
+    to {
+        top: 10rem;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeout {
+    from {
+        top: 10rem;
+        opacity: 1;
+    }
+    to {
+        top: 0;
+        opacity: 0;
+    }
+}
+
+
+/*
+*******************************
+** Override Styling for Tablets
+*******************************
+*/
+
+@media only screen and (min-width: 600px) {
+    table {
+        border-spacing: .7rem;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .header-aux-button {
+        padding: .35rem;
+        margin: .5rem;
+    }
+
+    .wordchain-button {
+        font-size: 1.25rem;
+        padding: .3rem;
+        margin: .5rem;
+    }
+
+    .tile {
+        width: 3rem;
+        height: 3rem;
+        font-size: 2rem;
+    }
+
+    .keyboard-key {
+        font-size: 2rem;
+        width: 2.5rem;
+        height: 3.4rem;
+        margin-right: .5rem;
+    }
+    .keyboard-spacer {
+        width: 1.3rem;
+    }
+    .keyboard-wide-key {
+        width: 4.2rem;
+    }
+}
+
+/*
+**************************************
+** Override Styling for Larger Screens
+**************************************
+*/
+
+@media only screen and (min-width: 991px) {
+    table {
+        border-spacing: .9rem;
+    }
+
+    .letter-change {
+        border-width: .4rem;
+        padding: 0;
+    }
+    .no-change {
+        border-width: .2rem;
+        padding: .2rem;
+    }
+
+    .auxiliary-container-div {
+        width: 60%;
+    }
+
+    #keyboard-div {
+        /*
+        ** Extend keyboard right/left to take up the whole viewport so that if the user's standard
+        ** size (i.e. 1rem) is so large that game-div is wider than the keyboard, the entire
+        ** game-div is obscured  when scrolling, i.e. no bits of game tiles around the edges
+        ** of the keyboard.
+        **
+        ** NOTE: If we have these changes for phone or tablet, it causes a horizontal scroll bar,
+        ** which makes the whole screen seem to jiggle. In those environments, the problem this
+        ** is solving doesn't exist.
+        */
+        padding-right: 50vw;
+        padding-left: 50vw;
+        /* But just a bit of padding on the top and bottom. */
+        padding-top: .5rem;
+        padding-bottom: .5rem;
+    }
+    .keyboard-key {
+        font-size: 2rem;
+        width: 3rem;
+        height: 4rem;
+        margin-right: .5rem;
+    }
+    .keyboard-spacer {
+        width: 1.5rem;
+    }
+    .keyboard-wide-key {
+        width: 5rem;
+    }
+}

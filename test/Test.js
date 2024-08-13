@@ -1,34 +1,53 @@
 import { BaseLogger } from '../docs/javascript/BaseLogger.js';
-import { WordChainDict } from '../docs/javascript/WordChainDict.js';
+import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
+import { Cookie } from '../docs/javascript/Cookie.js';
 import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
-// Forwarding functions; see big comment in AppDisplay.js explaining how these came about.
-
-const url = "https://bprokopowicz.github.io/wordchain/resources/dict/WordFreqDict";
-
-const globalWordList = await fetch(url)
-  .then(resp => resp.text())
-  .then(text => text.split("\n"));
-
-function runTestsCallback() {
-    Test.singleton().runTestsCallback();
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function lookupCallback() {
-    Test.singleton().lookupCallback();
+/*
+   Mock event attributes needed by calllbacks:
+   event.game - the Game object 
+   event.srcElement - should hold mock object with getAttribute() method that understands the following attributes:
+
+   let me = event.srcElement.callbackAccessor - a reference to this (me) the tester.
+
+   let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
+   let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
+   let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition')),
+
+   The currentGameDisplay's 'letterPicker' object needs to be manipulated directly because we inspect
+   it to find the letter picked by the user.  
+   letterPicker.value = "J";  
+ */
+
+class MockEventSrcElement {
+    constructor(me) {
+        this.callbackAccessor = me;
+        this.attributes = new Map();
+    }
+
+    getAttribute(attributeName) {
+        return this.attributes.get(attributeName);
+    }
+
+    setAttribute(attributeName, value) {
+        return this.attributes.set(attributeName, value);
+    }
 }
 
-function solveCallback() {
-    Test.singleton().solveCallback();
+class MockEvent {
+    constructor (srcElement) {
+        this.srcElement = srcElement;
+    }
 }
 
-function puzzleFinderFindCallback() {
-    Test.singleton().puzzleFinderFindCallback();
-}
 
 // Singleton class Test.
 
@@ -39,9 +58,11 @@ class Test extends BaseLogger {
         super();
 
         this.name = "NOT SET";
-        this.tinyList  = ["apple", "pear", "banana"];
-        this.smallList = ["bad", "bade", "bald", "bat", "bate", "bid", "cad", "cat", "dog", "scad"]
+        this.tinyList  = ["APPLE", "PEAR", "BANANA"];
+        this.smallList = ["BAD", "BADE", "BALD", "BAT", "BATE", "BID", "CAD", "CAT", "DOG", "SCAD"]
         this.fullDict = new WordChainDict(globalWordList);
+        this.scrabbleDict = new WordChainDict(scrabbleWordList);
+        this.messages = [];
     }
 
     static singleton() {
@@ -53,11 +74,10 @@ class Test extends BaseLogger {
 
     display() {
         this.outerDiv = ElementUtilities.addElement("div", {style: "margin: 2rem;"});
-        console.log(this.outerDiv);
         this.displayTestSuite();
-        this.displayDictTest();
-        this.displaySolverTest();
-        this.displayPuzzleFinderTest();
+        this.displayDictTester();
+        this.displaySolverTester();
+        this.displayPuzzleFinderTester();
         ElementUtilities.addElementTo("hr", this.outerDiv);
     }
 
@@ -73,28 +93,78 @@ class Test extends BaseLogger {
     */
 
     displayTestSuite() {
-        this.addTitle("WordChain Test Suite");
-        ElementUtilities.addElementTo("button", this.outerDiv, {id: "runTests"}, "Run Tests");
-        ElementUtilities.addElementTo("p", this.outerDiv);
-        ElementUtilities.addElementTo("label", this.outerDiv, {id: "testResults"}, "");
-        ElementUtilities.addElementTo("p", this.outerDiv);
+        this.addTitle("WordChain Test Suite - allow 10+ seconds to complete.  Set Const.GL_DEBUG=false; Browser popups must be allowed.");
 
-        ElementUtilities.getElement("runTests").addEventListener("click", runTestsCallback);
+        var runAll    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",    class: "testButton" }, "Run All Tests"),
+            runDict   = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",   class: "testButton" }, "Run Dict Tests"),
+            runSolver = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSolver", class: "testButton" }, "Run Solver Tests"),
+            runGame   = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",   class: "testButton" }, "Run Game Tests"),
+            runApp    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",    class: "testButton" }, "Run App Tests");
+
+
+        for (let button of [runAll, runDict, runSolver, runGame, runApp]) {
+            button.callbackAccessor = this;
+            ElementUtilities.setButtonCallback(button, this.runTestsCallback);
+        }
+
+        ElementUtilities.addElementTo("label", this.outerDiv, {id: "testResults"}, "");
     }
 
-    runTestsCallback() {
-        this.successCount = 0;
-        this.failureCount = 0;
-        this.messages = [];
+    runTestsCallback(event) {
+        // When the button was created we saved 'this' as callbackAccessor in the button
+        // element; use it to access other instance data.
+        const me = event.srcElement.callbackAccessor,
+              buttonId = event.srcElement.getAttribute("id");
 
-        this.runAllTests();
-        this.showResults();
+        if (me.testingInProgress) {
+            console.log("Testing already in progress, please wait for results ...");
+            return;
+        } else {
+            console.log("Testing started, please wait for results ...");
+        }
+        me.successCount = 0;
+        me.failureCount = 0;
+        me.messages = [];
+        me.resultsAreReady = true;
+
+        let testingStartTime = Date.now();
+
+        if (buttonId == "runAll" || buttonId == "runDict") {
+            me.runDictTests();
+        }
+        if (buttonId == "runAll" || buttonId == "runSolver") {
+            me.runSolverTests();
+        }
+        if (buttonId == "runAll" || buttonId == "runGame") {
+            me.runGameTests();
+        }
+        if (buttonId == "runAll" || buttonId == "runApp") {
+            me.resultsAreReady = false;
+            me.runAppTests();
+        }
+
+        // we may need to pause before checking results because App Tess run separately
+        me.waitForResultsThenShowThem();
+        console.log(`Testing took ${Date.now() - testingStartTime} ms.`);
+        me.testingStartTime = Date.now();
+        me.testingInProgress = false;
+    }
+
+    waitForResultsThenShowThem() {
+        if (this.getResultsAreReady()) {
+            console.log ("results are ready - show them.");
+            this.showResults();
+        }  else {
+            const sleepTime = 1000;
+            console.log(`pausing  ${sleepTime} for resultsAreReady.`);
+            sleep(sleepTime).then( () => { this.waitForResultsThenShowThem();});
+        }
     }
 
     showResults() {
         let results = "";
 
-        results += `Success count: ${this.successCount}<br>`;
+        results += `<br>Success count: ${this.successCount}<br>`;
         results += `Failure count: ${this.failureCount}<p>`;
         results += this.messages.join("<br>");
 
@@ -115,33 +185,45 @@ class Test extends BaseLogger {
     }
 
     /*
-    ** All tests
-    */
-    runAllTests() {
-        this.runDictTests();
-        this.runSolverTests();
-        this.runGameTests();
-    }
-
-    /*
     ** WordChainDict tests
     */
 
     runDictTests() {
+        const startTestTime = Date.now();
+        this.logDebug("running dictionary tests ...", "test");
+        this.testDictTiming();
         this.testDictIsWord();
         this.testDictAdders();
         this.testDictRemovers();
         this.testDictReplacements();
         this.testDictFull();
+        this.testScrabbleDict();
+        const endTestTime = Date.now();
+        this.logDebug(`dictionary tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
+    }
+
+    testDictTiming() {
+        let startTestTime = Date.now();
+        const copyDict = this.fullDict.copy();
+        let endTestTime = Date.now();
+        this.logDebug(`dictionary copy elapsed time: ${endTestTime - startTestTime} ms`, "test");
+        startTestTime = Date.now();
+        let i = 0;
+        while (i < 1000) {
+            i++;
+            let adders = copyDict.findAdderWords("READ"); 
+        }
+        endTestTime = Date.now();
+        this.logDebug(`dictionary findAdders in copy elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testDictIsWord() {
         this.name = "DictIsWord";
         const tinyDict  = new WordChainDict(this.tinyList);
         this.verify((tinyDict.getSize() === 3), "size !== 3") &&
-            this.verify(tinyDict.isWord("apple"), "apple is not a word") &&
+            this.verify(tinyDict.isWord("APPLE"), "APPLE is not a word") &&
             this.verify(tinyDict.isWord("apPlE"), "apPlE is not a word") &&
-            this.verify(!tinyDict.isWord("peach"), "peach is not a word") &&
+            this.verify(!tinyDict.isWord("PEACH"), "PEACH is not a word") &&
             this.success();
     }
 
@@ -149,13 +231,13 @@ class Test extends BaseLogger {
         this.name = "DictAdders";
         const smallDict = new WordChainDict(this.smallList);
 
-        const cadAdders = smallDict.findAdderWords("cad");
-        const badAdders = smallDict.findAdderWords("bad");
-        const batAdders = smallDict.findAdderWords("bat");
+        const cadAdders = smallDict.findAdderWords("CAD");
+        const badAdders = smallDict.findAdderWords("BAD");
+        const batAdders = smallDict.findAdderWords("BAT");
 
-        this.verify(cadAdders.has("scad"), "'scad' is not in 'cad' adders") &&
-            this.verify(badAdders.has("bald"), "'bald' is not in 'bad' adders") &&
-            this.verify(batAdders.has("bate"), "'bate' is not in 'bat' adders") &&
+        this.verify(cadAdders.has("SCAD"), "'SCAD' is not in 'CAD' adders") &&
+            this.verify(badAdders.has("BALD"), "'BALD' is not in 'BAD' adders") &&
+            this.verify(batAdders.has("BATE"), "'BATE' is not in 'BAT' adders") &&
             this.success();
     }
 
@@ -163,13 +245,13 @@ class Test extends BaseLogger {
         this.name = "DictRemovers";
         const smallDict = new WordChainDict(this.smallList);
 
-        const ccadRemovers = smallDict.findRemoverWords("ccad");
-        const baldRemovers = smallDict.findRemoverWords("bald");
-        const bateRemovers = smallDict.findRemoverWords("bate");
+        const ccadRemovers = smallDict.findRemoverWords("CCAD");
+        const baldRemovers = smallDict.findRemoverWords("BALD");
+        const bateRemovers = smallDict.findRemoverWords("BATE");
 
-        this.verify(ccadRemovers.has("cad"), "'cad' is not in 'ccad' removers") &&
-            this.verify(baldRemovers.has("bad"), "'bad' is not in 'bald' removers") &&
-            this.verify(bateRemovers.has("bat"), "'bat' is not in 'bate' removers") &&
+        this.verify(ccadRemovers.has("CAD"), "'CAD' is not in 'CCAD' removers") &&
+            this.verify(baldRemovers.has("BAD"), "'BAD' is not in 'BALD' removers") &&
+            this.verify(bateRemovers.has("BAT"), "'BAT' is not in 'BATE' removers") &&
             this.success();
     }
 
@@ -177,12 +259,12 @@ class Test extends BaseLogger {
         this.name = "DictReplacements";
         const smallDict = new WordChainDict(this.smallList);
 
-        const badReplacements = smallDict.findReplacementWords("bad");
-        const cadReplacements = smallDict.findReplacementWords("cad");
+        const badReplacements = smallDict.findReplacementWords("BAD");
+        const cadReplacements = smallDict.findReplacementWords("CAD");
 
-        this.verify(cadReplacements.has("bad"), "'bad' is not in 'cad' replacements") &&
-            this.verify(badReplacements.has("bid"), "'bid' is not in 'bad' replacements") &&
-            this.verify(badReplacements.has("bat"), "'bat' is not in 'bad' replacements") &&
+        this.verify(cadReplacements.has("BAD"), "'BAD' is not in 'CAD' replacements") &&
+            this.verify(badReplacements.has("BID"), "'BID' is not in 'BAD' replacements") &&
+            this.verify(badReplacements.has("BAT"), "'BAT' is not in 'BAD' replacements") &&
             this.success();
     }
 
@@ -190,404 +272,758 @@ class Test extends BaseLogger {
         this.name = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 16000;
+        const expectedMinDictSize = 15989;
 
-        const catAdders = this.fullDict.findAdderWords("cat");
+        const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
-        const expectedAddersSize = 9;
+        const expectedAddersSize = 6; /*scat, chat, coat, cart, cast, cats*/
 
-        const badeReplacements = this.fullDict.findAdderWords("bade");
+        const badeReplacements = this.fullDict.findAdderWords("BADE");
         const replacementsSize = badeReplacements.size;
         const expectedReplacementsSize = 2;
 
         this.verify((dictSize >= expectedMinDictSize), `full dictionary has ${dictSize} words; expected at least ${expectedMinDictSize}`) &&
-            this.verify(this.fullDict.isWord("place"), "'place' is not in dict") &&
-            this.verify(this.fullDict.isWord("PlAcE"), "'PlAcE' is not in dict") &&
-            this.verify(!this.fullDict.isWord("zizzamatizzateezyman"), "'zizzamatizzateezyman' is in dict") &&
+            this.verify(this.fullDict.isWord("PLACE"), "'PLACE' is missing in dict") &&
+            this.verify(this.fullDict.isWord("PlAcE"), "'PlAcE' is missing in dict") &&
+            this.verify(!this.fullDict.isWord("ZIZZAMATIZZATEEZYMAN"), "'ZIZZAMATIZZATEEZYMAN' should not be in dict") &&
             this.verify((addersSize == expectedAddersSize), `adders has ${addersSize} words; expected ${expectedAddersSize}`) &&
             this.verify((replacementsSize == expectedReplacementsSize), `adders has ${replacementsSize} words; expected ${expectedReplacementsSize}`) &&
             this.success();
     }
 
+    testScrabbleDict() {
+        this.name = "ScrabbleDict";
+        this.verify (this.scrabbleDict.isWord("aargh"), "aargh is missing in scrabble dict") &&
+        this.verify (this.scrabbleDict.isWord("zzz"), "zzz is missing in scrabble dict") &&
+        this.verify (!this.scrabbleDict.isWord("zzzbrother"), "zzzbrother should not be in scrabble dict") &&
+        this.success();
+    }
     /*
     ** Solver tests
     */
 
     runSolverTests() {
+        const startTestTime = Date.now();
         this.testSolverIdentitySequence();
         this.testSolverOneStep();
         this.testSolverMultiStep();
-        this.testSolverDistance();
         this.testSolverLongChain();
         this.testGameNotShortestSolutionBug();
-        this.testSolverFastestDirection();
-        this.testSolverReverseSearchNoSolution();
+        this.testSolverBothDirections();
+        this.testSolverSearchNoSolution();
+        this.testPuzzleFinder();
+        const endTestTime = Date.now();
+        this.logDebug(`solver tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testSolverIdentitySequence() {
+        const startTestTime = Date.now();
         this.name = "SolverIdentitySequence";
-        const dict = new WordChainDict(["bad", "bat", "cad", "cat", "dog"]);
-        const solution = Solver.fastSolve(dict, "bat", "bat");
+        const dict = new WordChainDict(["BAD", "BAT", "CAD", "CAT", "DOG"]);
+        const solution = Solver.solve(dict, "BAT", "BAT");
 
-        this.verify(solution.success(), `error in solving 'bat' to 'bat': ${solution.getError()}`) &&
-            this.verify((solution.numSteps() === 0), "solution for 'bat' to 'bat' is not 0") &&
-            this.verify((solution.getFirstWord() === 'bat'), "first word for 'bat' to 'bat' is not 'bat'") &&
-            this.verify((solution.getLastWord() === 'bat'), "last word for 'bat' to 'bat' is not 'bat'") &&
+        this.verify(solution.success(), `error in solving 'BAT' to 'BAT': ${solution.getError()}`) &&
+            this.verify((solution.numSteps() === 0), "solution for 'BAT' to 'BAT' is not 0") &&
+            this.verify((solution.getStart() === 'BAT'), "first word for 'BAT' to 'BAT' is not 'BAT'") &&
+            this.verify((solution.getTarget() === 'BAT'), "last word for 'BAT' to 'BAT' is not 'BAT'") &&
             this.success();
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testSolverOneStep() {
+        const startTestTime = Date.now();
         this.name = "SolverOneStep"
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"]);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
         // Adder
-        const solutionBadBade = Solver.fastSolve(smallDict, "bad", "bade");
+        const solutionBadBade = Solver.solve(smallDict, "BAD", "BADE");
         // Remover
-        const solutionBadeBad = Solver.fastSolve(smallDict, "bade", "bad");
+        const solutionBadeBad = Solver.solve(smallDict, "BADE", "BAD");
         // Replacer
-        const solutionBatCat = Solver.fastSolve(smallDict, "bat", "cat");
+        const solutionBatCat = Solver.solve(smallDict, "BAT", "CAT");
         // Nope
-        const solutionNope = Solver.fastSolve(smallDict, "bat", "dog");
+        const solutionNope = Solver.solve(smallDict, "BAT", "DOG");
 
-        this.verify(solutionBadBade.success(), `error on adder 'bad' to 'bade': ${solutionBadBade.getError()}`) &&
-            this.verify(solutionBadeBad.success(), `error on remover 'bade' to 'bad': ${solutionBadeBad.getError()}`) &&
-            this.verify(solutionBatCat.success(), `error on replacer 'bat' to 'cat': ${solutionBatCat.getError()}`) &&
-            this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'bad' to 'bade': ${solutionBadBade.getWords()}`) &&
-            this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'bade' to 'bad': ${solutionBadeBad.getWords()}`) &&
-            this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'bat' to 'cat': ${solutionBatCat.getWords()}`) &&
-            this.verify(!solutionNope.success(), "expected failure for 'bat' to 'dog'")&&
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
+
+        this.verify(solutionBadBade.success(), `error on adder 'BAD' to 'BADE': ${solutionBadBade.getError()}`) &&
+            this.verify(solutionBadeBad.success(), `error on remover 'BADE' to 'BAD': ${solutionBadeBad.getError()}`) &&
+            this.verify(solutionBatCat.success(), `error on replacer 'BAT' to 'CAT': ${solutionBatCat.getError()}`) &&
+            this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'BAD' to 'BADE': ${solutionBadBade.getSolutionSteps()}`) &&
+            this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'BADE' to 'BAD': ${solutionBadeBad.getSolutionSteps()}`) &&
+            this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'BAT' to 'CAT': ${solutionBatCat.getSolutionSteps()}`) &&
+            this.verify(!solutionNope.success(), "expected failure for 'BAT' to 'DOG'")&&
             this.success();
 
     }
 
     testSolverMultiStep() {
+        const startTestTime = Date.now();
         this.name = "SolverTwoStep"
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"]);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
-        const solutionBatScad = Solver.fastSolve(smallDict, "bat", "scad");
-        const solutionScadBat = Solver.fastSolve(smallDict, "scad", "bat");
+        const solutionBatScad = Solver.solve(smallDict, "BAT", "SCAD");
+        const solutionScadBat = Solver.solve(smallDict, "SCAD", "BAT");
 
-        this.verify(solutionBatScad.success(), `error on 'bat' to 'scad': ${solutionBatScad.getError()}`) &&
-            this.verify(solutionScadBat.success(), `error on 'scad' to 'bat': ${solutionScadBat.getError()}`) &&
-            this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'bat' to 'scad': ${solutionBatScad.getWords()}`) &&
-            this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'scad' to 'bat': ${solutionScadBat.getWords()}`) &&
-            this.success();
-    }
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
-    testSolverDistance() {
-        this.name = "SolverDistance";
-
-        // Same length.
-        const distanceDogDot = Solution.wordDistance("dog", "dot");
-        const distanceDogCat = Solution.wordDistance("dog", "cat");
-        // First word shorter.
-        const distanceDogGoat = Solution.wordDistance("dog", "goat");
-        // First word longer.
-        const distanceGoatDog = Solution.wordDistance("goat", "dog");
-
-        this.verify((distanceDogDot === 1), `'dog' to 'dot' distance incorrect: ${distanceDogDot}`) &&
-            this.verify((distanceDogCat === 3), `'dog' to 'cat' distance incorrect: ${distanceDogCat}`) &&
-            this.verify((distanceDogGoat === 3), `'dog' to 'goat' distance incorrect: ${distanceDogGoat}`) &&
-            this.verify((distanceGoatDog === 3), `'goat' to 'dog' distance incorrect: ${distanceGoatDog}`) &&
+        this.verify(solutionBatScad.success(), `error on 'BAT' to 'SCAD': ${solutionBatScad.getError()}`) &&
+            this.verify(solutionScadBat.success(), `error on 'SCAD' to 'BAT': ${solutionScadBat.getError()}`) &&
+            this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'BAT' to 'SCAD': ${solutionBatScad.getSolutionSteps()}`) &&
+            this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'SCAD' to 'BAT': ${solutionScadBat.getSolutionSteps()}`) &&
             this.success();
     }
 
     testSolverLongChain() {
         this.name = "SolverLongChain";
+        const startTestTime = Date.now();
 
-        const solutionTacoBimbo = Solver.fastSolve(this.fullDict, "taco", "bimbo");
-        const foundWords = solutionTacoBimbo.getWords();
-        const expectedWords = [ "taco", "tao", "tab", "lab", "lamb", "limb", "limbo", "bimbo" ];
+        const solutionTacoBimbo = Solver.solve(this.fullDict, "TACO", "BIMBO");
+        const foundWords = solutionTacoBimbo.getSolutionSteps().map((step)=>step.word);
+        const expectedWords = [ "TACO", "TAO", "TAB", "LAB", "LAMB", "LIMB", "LIMBO", "BIMBO" ];
 
-        this.verify(solutionTacoBimbo.success(), `error on 'taco' to 'bimbo': ${solutionTacoBimbo.getError()}`) &&
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
+
+        this.verify(solutionTacoBimbo.success(), `error on 'TACO' to 'BIMBO': ${solutionTacoBimbo.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `foundWords: ${foundWords} is not as expected: ${expectedWords}`) &&
             this.success();
     }
 
 
-    testSolverFastestDirection() {
-        this.name = "SolverFastestDirection";
+    testSolverBothDirections() {
+        this.name = "SolverBothDirections";
+        let startTestTime = Date.now();
 
         // This takes too long if the solver doesn't try to go from 'matzo'
         // to 'ball' because 'ball' has so many next words.
-        const solutionMatzoBall = Solver.fastSolve(this.fullDict, "matzo", "ball");
-            this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'matzo' to 'ball': ${solutionMatzoBall.getError()}`) &&
+        const solutionMatzoBall = Solver.solve(this.fullDict, "MATZO", "BALL");
+        let endTestTime = Date.now();
+        const elapsedForwardTime = endTestTime - startTestTime;
+        startTestTime = Date.now();
+        const solutionBallMatzo = Solver.solve(this.fullDict, "BALL", "MATZO");
+        endTestTime = Date.now();
+        const elapsedReverseTime = endTestTime - startTestTime;
+
+        this.logDebug(`${this.name} MATZO to BALL elapsed time: ${elapsedForwardTime} ms`, "test");
+        this.logDebug(`${this.name} BALL to MATZO elapsed time: ${elapsedReverseTime} ms`, "test");
+
+        this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'MATZO' TO 'BALL': ${solutionMatzoBall.getError()}`) &&
+        this.verify((solutionBallMatzo.getError()=== "No solution"), `expected slow 'No solution' on 'BALL' TO 'MATZO': ${solutionBallMatzo.getError()}`) &&
+        this.verify((100*elapsedForwardTime < elapsedReverseTime), `expected fast path ${elapsedForwardTime} to be at least 100x shorter than reverse path ${elapsedReverseTime}`) &&
+        this.success();
+    }
+
+    testSolverSearchNoSolution() {
+        const startTestTime = Date.now();
+        this.name = "SolverSearchNoSolution";
+        const triedSearchNoSolution = Solver.solve(this.fullDict, "FROG", "ECHO");
+        const endTestTime = Date.now();
+        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
+
+        this.verify(!triedSearchNoSolution.isSolved(), `expected 'No solution' on 'FROG' to 'ECHO'`) &&
+        this.success();
+    }
+
+    testPuzzleFinder() {
+        const startTestTime = Date.now();
+        this.name = "PuzzleFinder";
+ 
+        const startWord = "BLUE",
+              reqWordLen1 = 3,
+              reqWordLen2 = 5,
+              minSteps = 7,
+              maxSteps = 9,
+              minDifficulty = 45,
+              targetWordLen = 5,
+              expectedNumberOfPuzzles = 664;
+
+        const suitablePuzzles = 
+            Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
+            .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
+        suitablePuzzles.sort();
+
+        const [targetWord, difficulty] = suitablePuzzles[0].split(":");
+        const solution = Solver.solve(this.fullDict, startWord, targetWord);
+        this.verify(suitablePuzzles.length == expectedNumberOfPuzzles, `expected ${expectedNumberOfPuzzles}, got ${suitablePuzzles.length}`) &&
+            this.verify(solution.numSteps() >= minSteps, `solution too short ${solution.numSteps()} not ${minSteps}`) &&
+            this.verify(solution.numSteps() <= maxSteps, `solution too long ${solution.numSteps()} not ${maxSteps}`) &&
+            this.verify(solution.hasWordOfLength(reqWordLen1), `solution missing word of length ${reqWordLen1}`) &&
+            this.verify(solution.hasWordOfLength(reqWordLen2), `solution missing word of length ${reqWordLen2}`) &&
+            this.verify(difficulty >= minDifficulty, `solution to easy: ${difficulty} is not at least ${minDifficulty}`) &&
             this.success();
     }
 
-    testSolverReverseSearchNoSolution() {
-        this.name = "SolverReverseSearchNoSolution";
-        const triedReverseSearchNoSolution = Solver.fastSolve(this.fullDict, "frog", "echo");
-        this.verify(!triedReverseSearchNoSolution.isSolved(), `expected 'No solution' on 'frog' to 'echo'`) &&
-        this.success();
-    }
+
     /*
     ** Game tests
     */
 
     runGameTests() {
+        const startTestTime = Date.now();
         this.testGameCorrectFirstWord();
-        this.testGameNotOneStep();
+        this.testGameDeleteWrongLetter();
+        this.testGameDeleteBadPosition();
         this.testGameDifferentWordFromInitialSolution();
         this.testGameCompleteSmallDict();
         this.testGameCompleteFullDict();
-        this.testGameSolutionCannotHavePlayedWord();
-        this.testGameTypeSavingMode();
+        this.testGameDisplayInstructions();
+        this.testGameDisplayInstructionsMistakes();
+        this.testGameDisplayInstructionsDifferentPath();
+        this.testGameUsingScrabbleWord();
+        this.testGameUsingGeniusMove();
+        this.testGameFinish();
+        const endTestTime = Date.now();
+        this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testGameCorrectFirstWord() {
         this.name = "GameCorrectFirstWord";
 
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
-        const solution = Solver.fastSolve(smallDict, "scad", "bat");
-        const game = new Game("small", smallDict, solution);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict);
 
-        const playResult = game.playWord("cad");
+        const playResult = game.playDelete(1);
         this.verify((playResult === Const.OK), "Word played not OK") &&
             this.success();
     }
 
-    testGameNotOneStep() {
-        this.name = "GameNotOneStep";
+    testGameDeleteWrongLetter() {
+        this.name = "GameDeleteLetterNotAWord";
 
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
-        const solution = Solver.fastSolve(smallDict, "scad", "bat");
-        const game = new Game("small", smallDict, solution);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict);
 
-        const playResult = game.playWord("dog");
-        this.verify((playResult === Const.NOT_ONE_STEP), "Word played not NOT_ONE_STEP") &&
+        const playResult = game.playDelete(3);
+        this.verify((playResult === Const.NOT_A_WORD), "NOT_A_WORD after deleting wrong letter") &&
             this.success();
     }
+
+    testGameDeleteBadPosition() {
+        this.name = "GameDeleteBadPosition";
+
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict);
+
+        const playResult = game.playDelete(6);
+        this.verify((playResult === Const.BAD_POSITION), "Delete attempted at bad position") &&
+            this.success();
+    }
+
 
     testGameDifferentWordFromInitialSolution() {
         this.name = "GameDifferentWordFromInitialSolution";
 
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
-        const origSolution = Solver.fastSolve(smallDict, "bad", "cat");
-        const game = new Game("small", smallDict, origSolution);
-        const origStep2 = game.getKnownSolution().getWordByStep(2)
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAT", "DOG", "SCAD"]);
+        const origSolution = Solver.solve(smallDict, "BAD", "CAT");
+        const steps = [];
+        const game = new Game("BAD", "CAT", steps, smallDict);
+        const origWord1 = game.remainingSteps.getNthWord(0);
 
-        // "bade" is not in the original solution (but we'll verify that below)..
-        const playResult = game.playWord("bade");
-        const knownStep1 = game.getKnownSolution().getWordByStep(1)
-        const knownStep2 = game.getKnownSolution().getWordByStep(2)
+        if ( !(this.verify((origWord1 === "BAT"), "original solution should have BAT as first word") &&
+        // "bade" is not in the original solution 
+            this.verify(! origSolution.getSolutionWords().includes('BADE'), "Original solution should not have 'BADE'"))) return;
 
-        this.verify((playResult === Const.OK), "Word played not OK") &&
-            this.verify((! origSolution.wordList.includes('bade')), "Original solution has 'bade'") &&
-            this.verify((knownStep1 === "bade"), `Known step 1 unexpected: ${knownStep1}`) &&
-            this.verify((knownStep2 !== origStep2), `Known step 2 same as original: ${knownStep2}`) &&
+        const playAddResult = game.playAdd(3);
+        if (!this.verify((playAddResult === Const.OK), "playAdd(3) not OK")) return;
+
+        const playLetterResult = game.playLetter(4, "E");
+        if (!this.verify((playLetterResult === Const.WRONG_MOVE), `playLetter(4, E) returns ${playLetterResult}, not WRONG_MOVE`)) return;
+        this.logDebug("After playLetter(4,E), game.remainingSteps are:" + game.remainingSteps.toStr(), "game");
+
+        const newPlayedWord = game.playedSteps.getNthWord(1);
+        if (!this.verify((newPlayedWord === "BADE"), `Played word 1 should be BADE, not: ${newPlayedWord}`))  return;
+        const newSolutionWord0 = game.remainingSteps.getNthWord(0);
+        this.verify((newSolutionWord0 === "BAD"), `New solution should continue with BAD, not: ${newSolutionWord0}`) &&
             this.success();
     }
 
     testGameCompleteSmallDict() {
         this.name = "GameCompleteSmallDict";
 
-        const smallDict = new WordChainDict(["bad", "bade", "bat", "bate", "cad", "cat", "dog", "scad"])
-        const solution = Solver.fastSolve(smallDict, "bad", "scad");
-        const game = new Game("small", smallDict, solution);
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const solution = Solver.solve(smallDict, "BAD", "SCAD");
+        const isPlayed = true;
+        const moveRating = Const.OK;
+        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, moveRating]);
+        const game = new Game("BAD", "SCAD", fullSolutionAsTuples, smallDict);
 
-        const playResult1 = game.playWord("cad");
-        const playResult2 = game.playWord("scad");
-
-        this.verify((playResult1 === Const.OK), "Word 1 played not OK") &&
-            this.verify((playResult2 === Const.OK), "Word 2 played not OK") &&
-            this.verify(game.getSolutionInProgress().isSolved(), `Solution in progress is not solved`) &&
+        this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
             this.success();
     }
 
     testGameCompleteFullDict() {
         this.name = "GameCompleteFullDict";
-        const origSolution = Solver.fastSolve(this.fullDict, "bad", "word");
-        const game = new Game("full", this.fullDict, origSolution);
-        const origStep2 = game.getKnownSolution().getWordByStep(2)
+        const solution = Solver.solve(this.fullDict, "bad", "word");
+        const isPlayed = true;
+        const moveRating = Const.OK;
+        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, moveRating]);
+        const game = new Game("bad", "word", fullSolutionAsTuples, this.fullDict);
 
-        const playResult = game.playWord("cad");
-        const knownStep1  = game.getKnownSolution().getWordByStep(1)
-        const knownStep2  = game.getKnownSolution().getWordByStep(2)
-        const inProgStep1 = game.getSolutionInProgress().getWordByStep(1)
-
-        this.verify((playResult === Const.OK), "Word played not OK") &&
-            this.verify((knownStep1 === "cad"), `Known step 1 unexpected: ${knownStep1}`) &&
-            this.verify((inProgStep1 === "cad"), `In progress step 1 unexpected: ${inProgStep1}`) &&
-            this.verify((knownStep2 !== origStep2), `Known step 2 same as original: ${knownStep2}`) &&
+        this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
             this.success();
     }
 
     testGameNotShortestSolutionBug() {
         this.name = "GameNotShortestSolutionBug";
-        const solution = Solver.fastSolve(this.fullDict, "broken", "baked");
-        const foundWords = solution.getWords();
-        const expectedWords = [ "broken", "broke", "brake", "bake", "baked" ];
-        this.verify(solution.success(), `error on 'broken' to 'baked': ${solution.getError()}`) &&
-                this.verify((foundWords.toString() == expectedWords.toString()), `solution: ${foundWords} is not expected: ${expectedWords}`) &&
-                this.success();
-    }
-
-
-    testGameSolutionCannotHavePlayedWord() {
-        this.name = "GameSolutionCannotHavePlayedWord";
-        const origSolution = Solver.fastSolve(this.fullDict, "cat", "dog");
-        const game = new Game("full", this.fullDict, origSolution);
-
-        let playResult = game.playWord("cats")
-        let wordsAfterFromWord = game.getKnownSolution().getWords().slice(1)
-
-        this.verify((playResult === Const.OK), "No solution from 'cat, cats' to 'dog'") &&
-            this.verify(! wordsAfterFromWord.includes("cat"), "Solution of 'cats' to 'dog' contains 'cat'") &&
+        const solution = Solver.solve(this.fullDict, "BROKEN", "BAKED");
+        const foundWords = solution.getSolutionSteps().map((step)=>step.word);
+        const expectedWords = [ "BROKEN", "BROKE", "BRAKE", "BAKE", "BAKED" ];
+        this.verify(solution.success(), `error on 'BROKEN' to 'BAKED': ${solution.getError()}`) &&
+            this.verify((foundWords.toString() == expectedWords.toString()), `solution: ${foundWords} is not expected: ${expectedWords}`) &&
             this.success();
     }
 
-    testGameTypeSavingMode() {
-        this.name = "GameTypeSavingMode";
-        const origSolution = Solver.fastSolve(this.fullDict, "cat", "dog");
-        const typeSavingMode = true;
-        const game = new Game("full", this.fullDict, origSolution, typeSavingMode);
-        let gameWords = game.showGame();
-        this.verify(gameWords[1] === "c!t+++") && this.success();
+    testGameDisplayInstructions() {
+        this.name = "GameDisplayInstructions";
+        const steps = [];
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const game = new Game("SCAD", "BAT", steps, smallDict);
+        const initialInstructions = game.getDisplayInstructions();
+
+        const playDeleteResult = game.playDelete(1); // SCAD to CAD
+        const afterDeleteInstructions = game.getDisplayInstructions();
+
+        const playLetterBResult = game.playLetter(1, "B"); // CAD to BAD
+        const afterPlayLetterBInstructions = game.getDisplayInstructions();
+
+        const playLetterTResult = game.playLetter(3, "T"); // CAD to BAD
+        const afterPlayLetterTInstructions = game.getDisplayInstructions();
+
+        this.verify((initialInstructions.length === 4), `Display instructions length should be 4, not ${initialInstructions.length}`) &&
+        this.verify((initialInstructions[0].toStr() === "(delete,word:SCAD)"), `initial instruction[0] is ${initialInstructions[0].toStr()}`) &&
+        this.verify((initialInstructions[1].toStr() === "(future,word:CAD,changePosition:1)"), `initial instruction[1] is ${initialInstructions[1].toStr()}`) &&
+        this.verify((initialInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `initial instruction[2] is ${initialInstructions[2].toStr()}`) &&
+        this.verify((initialInstructions[3].toStr() === "(target,word:BAT)"), `initial instruction[3] is ${initialInstructions[3].toStr()}`) &&
+        this.verify((playDeleteResult === Const.OK), "playDelete(1) not OK") &&
+        this.verify((afterDeleteInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
+        this.verify((afterDeleteInstructions[1].toStr() === "(change,word:CAD,changePosition:1)"), `after delete instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
+        this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
+        this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
+        this.verify((playLetterBResult === Const.OK), "playLetterBResult(1) not OK") &&
+        this.verify((afterPlayLetterBInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after play letter B  instruction[0] is ${afterPlayLetterBInstructions[0].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after play letter B  instruction[1] is ${afterPlayLetterBInstructions[1].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[2].toStr() === "(change,word:BAD,changePosition:3)"), `after play letter B  instruction[2] is ${afterPlayLetterBInstructions[2].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[3].toStr() === "(target,word:BAT)"), `after play letter B  instruction[3] is ${afterPlayLetterBInstructions[3].toStr()}`) &&
+        this.verify((playLetterTResult === Const.OK), "playLetterTResult(1) not OK") &&
+        this.verify((afterPlayLetterTInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after play letter T instruction[0] is ${afterPlayLetterTInstructions[0].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after play letter T instruction[1] is ${afterPlayLetterTInstructions[1].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[2].toStr() === `(played,word:BAD,moveRating:${Const.OK})`), `after play letter T instruction[2] is ${afterPlayLetterTInstructions[2].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[3].toStr() === "(target,word:BAT)"), `after play letter T instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
+            this.success();
+    }
+
+    testGameDisplayInstructionsMistakes() {
+        this.name = "GameDisplayInstructionsMistakes";
+        const steps = [];
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD"]);
+        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
+
+        const playDeleteResult = game.playDelete(4); // SCAD to SCA
+        const afterDeleteInstructions = game.getDisplayInstructions();
+
+        game.playDelete(1); // SCAD to CAD
+
+        const cadToCarResult = game.playLetter(3,"R"); // CAD TO CAR
+        const cadToCarInstructions = game.getDisplayInstructions(); // SCAD,CAD,CAR,CAT,BAT
+
+        this.verify((playDeleteResult === Const.NOT_A_WORD), `playDelete(4) expected ${Const.NOT_A_WORD}, got ${playDeleteResult}`) &&
+        this.verify((afterDeleteInstructions[0].toStr() === "(delete,word:SCAD)"), `after delete, instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
+        this.verify((afterDeleteInstructions[1].toStr() === "(future,word:CAD,changePosition:1)"), `after delete, instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
+        this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete, instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
+        this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete, instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
+        this.verify((cadToCarResult === Const.WRONG_MOVE), `playLetter(3,R) expected ${Const.WRONG_MOVE}, got ${cadToCarResult}`) &&
+        this.verify((cadToCarInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing R, instruction[0] is ${cadToCarInstructions[0].toStr()}`) &&
+        this.verify((cadToCarInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after playing R, instruction[1] is ${cadToCarInstructions[1].toStr()}`) &&
+        this.verify((cadToCarInstructions[2].toStr() === "(change,word:CAR,changePosition:3)"), `after playing R, instruction[1] is ${cadToCarInstructions[2].toStr()}`) &&
+        this.verify((cadToCarInstructions[3].toStr() === "(future,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCarInstructions[3].toStr()}`) &&
+        this.verify((cadToCarInstructions[4].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCarInstructions[4].toStr()}`) &&
+            this.success();
+    }
+
+    testGameDisplayInstructionsDifferentPath() {
+        this.name = "GameDisplayInstructionsDifferentPath";
+        const steps = [];
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD"]);
+        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
+
+        game.playDelete(1); // SCAD to CAD
+
+        const cadToCatResult = game.playLetter(3,"T"); // CAD TO CAT
+        const cadToCatInstructions = game.getDisplayInstructions(); // SCAD,CAD,CAT,BAT
+
+        this.verify((cadToCatResult === Const.OK), `playLetter(3,T) expected ${Const.OK}, got ${cadToCatResult}`) &&
+        this.verify((cadToCatInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing R, instruction[0] is ${cadToCatInstructions[0].toStr()}`) &&
+        this.verify((cadToCatInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after playing R, instruction[1] is ${cadToCatInstructions[1].toStr()}`) &&
+        this.verify((cadToCatInstructions[2].toStr() === "(change,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCatInstructions[3].toStr()}`) &&
+        this.verify((cadToCatInstructions[3].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCatInstructions[3].toStr()}`) &&
+            this.success();
+    }
+
+    testGameUsingScrabbleWord() {
+        this.name = "GameUsingScrabbleWord";
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT 
+
+        const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
+        const scagToSagResult = game.playDelete(2); // SCAG to SAG.  
+        const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
+        this.verify((scadToScagResult === Const.WRONG_MOVE), `playLetter(4,G) expected ${Const.WRONG_MOVE}, got ${scadToScagResult}`) &&
+        this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
+        this.verify((displayInstructionsAfterSAG[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing SAG, instruction[0] is ${displayInstructionsAfterSAG[0].toStr()}`) &&
+        this.verify((displayInstructionsAfterSAG[1].toStr() === `(played,word:SCAG,moveRating:${Const.WRONG_MOVE})`), `after playing SAG, instruction[1] is ${displayInstructionsAfterSAG[1].toStr()}`) &&
+        this.verify((displayInstructionsAfterSAG[2].toStr() === "(change,word:SAG,changePosition:3)"), `after playing SAG, instruction[2] is ${displayInstructionsAfterSAG[2].toStr()}`) &&
+        this.verify((displayInstructionsAfterSAG[3].toStr() === "(future,word:SAT,changePosition:1)"), `after playing SAG, instruction[3] is ${displayInstructionsAfterSAG[3].toStr()}`) &&
+            this.success();
+    }
+
+    testGameUsingGeniusMove() {
+        this.name = "GameUsingGeniusMove";
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
+        const steps = [];
+        const game = new Game("SCAD", "SAG", steps, smallDict); // shortest solution is SCAD,CAD,CAT,SAT,SAG
+                                                                // but genius solution is SCAD,SCAG,SAG
+
+        const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
+        const scagToSagResult = game.playDelete(2); // SCAG to SAG.  
+        const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
+        this.verify((scadToScagResult === Const.GENIUS_MOVE), `playLetter(4,G) expected ${Const.GENIUS_MOVE}, got ${scadToScagResult}`) &&
+        this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
+            this.success();
+    }
+
+    testGameFinish() {
+        this.name = "GameFinish";
+
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict);
+
+        const playResult = game.playDelete(1);
+        game.finishGame();
+        const displayInstructionsAfterFinish = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
+        this.verify((playResult === Const.OK), "Word played not OK") &&
+            this.verify((displayInstructionsAfterFinish.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructionsAfterFinish.length}`) &&
+            this.verify(game.isOver()) && 
+            this.success();
     }
 
     /*
     ** Additional testing assets
     */
 
-    // Dictionary testing
+    // ===== AppDisplay Tester =====
 
-    displayDictTest() {
+    practiceGameTest() {
+        this.name = "PracticeGame"; 
+        
+        this.logDebug("Switching to practice game", "test");
+        this.theAppDisplay.switchToPracticeGame();
+        this.logDebug("Done switching to practice game", "test");
+
+        let practiceGame = this.theAppDisplay.practiceGame;
+        this.logDebug("updating practice game to TEST->PILOT", "test");
+        practiceGame.updateWords("TEST","PILOT");
+        this.logDebug("done updating practice game to TEST->PILOT", "test");
+
+        let gameDisplay = this.theAppDisplay.currentGameDisplay;
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+        let unused = "";
+
+        // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
+        //  TEST -> LEST
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        let resultL1 = gameDisplay.letterPicker.selectionMade("L", unused);
+
+        // LEST -> LET
+        mockEvent.srcElement.setAttribute("deletionPosition", "3");
+        let resultDelete3 = gameDisplay.deletionClickCallback(mockEvent);
+        
+        // LET -> LIT - wrong move!
+        gameDisplay.letterPicker.saveLetterPosition(2);
+        let resultI2Wrong = gameDisplay.letterPicker.selectionMade("I", unused);
+
+        // LIT -> LOT
+        gameDisplay.letterPicker.saveLetterPosition(2);
+        let resultO2 = gameDisplay.letterPicker.selectionMade("O", unused);
+
+        // LOT -> xLOT
+        mockEvent.srcElement.setAttribute("additionPosition", "0");
+        let resultAddition0 = gameDisplay.additionClickCallback(mockEvent);
+
+        // xLOT -> PLOT
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        let resultP1 = gameDisplay.letterPicker.selectionMade("P", unused);
+
+        // PLOT -> PxLOT
+        mockEvent.srcElement.setAttribute("additionPosition", "1");
+        let resultAddition1 = gameDisplay.additionClickCallback(mockEvent);
+
+        // PxLOT -> PILOT
+        gameDisplay.letterPicker.saveLetterPosition(2);
+        let resultI2 = gameDisplay.letterPicker.selectionMade("I", unused);
+
+        this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
+            this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
+            this.verify((resultI2Wrong === Const.WRONG_MOVE), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
+            this.verify((resultO2 === Const.OK), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
+            this.verify((resultAddition0 === Const.OK), `playAdd(0) returns ${resultAddition0}, not ${Const.OK}`) &&
+            this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
+            this.verify((resultAddition1 === Const.OK), `playAdd(1) returns ${resultAddition1}, not ${Const.OK}`) &&
+            this.verify((resultI2 === Const.OK), `playLetter(2, I) returns ${resultI2}, not ${Const.OK}`) &&
+            this.success();
+    }
+
+    geniusMoveTest() {
+        this.name = "GeniusMoveDisplay"; // move to test method
+        
+        this.theAppDisplay.switchToPracticeGame();
+
+        let practiceGame = this.theAppDisplay.practiceGame;
+        practiceGame.updateWords("SHORT","POOR");
+
+        let gameDisplay = this.theAppDisplay.currentGameDisplay;
+        let game = gameDisplay.game;
+
+        // add a genius word to the scrabble dictionary
+        game.scrabbleDictionary.addWord("HOOR");
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+
+        // regular solution:                SHORT SHOOT HOOT BOOT BOOR POOR
+        // solve the puzzle like a genius:  SHORT SHOOT HOOT HOOR POOR
+
+        //  SHORT -> SHOOT
+        let unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        let resultO4 = gameDisplay.letterPicker.selectionMade("O", unused);
+
+        // SHOOT -> HOOT
+        
+        mockEvent.srcElement.setAttribute("deletionPosition", "1");
+        let resultDelete1 = gameDisplay.deletionClickCallback(mockEvent);
+        
+        // HOOT -> HOOR genius move
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        let resultR4Genius = gameDisplay.letterPicker.selectionMade("R", unused);
+
+        // HOOR -> POOR  we are skipping this - it's enough that we saw the genius move
+       
+
+        this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
+            this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
+            this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
+            this.success();
+    }
+
+    runAppTests() {
+        this.newWindow = window.open('../html/LocalWordChain.html', 'AppDisplayTest', 'width=600,height=800');
+        console.log("new window opened.  Calling waitForAppDisplayThenRunTheAppTests().");
+        this.waitForAppDisplayThenRunTheAppTests();
+    }
+
+    getNewWindow() {
+        return this.newWindow;
+    }
+
+    waitForAppDisplayThenRunTheAppTests() {
+        if (this.getNewWindow().theAppDisplayIsReady) {
+            console.log("new window AppDisplay is ready; running tests now.");
+            this.runTheTests();
+        } else {
+            const sleepTime = 1000;
+            console.log (`pausing ${sleepTime} for new window AppDisplay to be ready.`);
+            sleep(sleepTime).then( () => { this.waitForAppDisplayThenRunTheAppTests();});
+        }
+    }
+
+    runTheTests() {
+        // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
+        // It should be ready before this method is called because of the sleep in runAppTests().
+
+        this.getNewWindow().localStorage.setItem("Debug",Cookie.get("Debug"));
+        this.theAppDisplay = this.getNewWindow().theAppDisplay;
+        this.logDebug(`remote window's app display is ready: ${this.getNewWindow().theAppDisplayIsReady}`);
+
+        if (this.getNewWindow().theAppDisplayIsReady) {
+            this.practiceGameTest();
+            this.geniusMoveTest();
+        } else {
+            console.log("ASSERTION: trying to run the AppDisplay tests before theAppDisplayIsReady.");
+        }
+        this.resultsAreReady = true;
+    }
+
+    getResultsAreReady() {
+        return this.resultsAreReady;
+    }
+
+    // ===== Dictionary Tester =====
+
+    displayDictTester() {
         this.addTitle("Dictionary Tester");
+
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "word: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "someWord", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
-        ElementUtilities.addElementTo("button", this.outerDiv, {id: "lookup"}, "lookup");
+
+        var button = ElementUtilities.addElementTo("button", this.outerDiv, {id: "find"}, "find");
+
         ElementUtilities.addElementTo("p", this.outerDiv);
-        ElementUtilities.addElementTo("label", this.outerDiv, {id: "lookupAnswer"}, " Click the button to look up the word.");
+        ElementUtilities.addElementTo("label", this.outerDiv, {id: "findAnswer"}, " Click the button to find the word and following words.");
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.getElement("lookup").addEventListener("click", lookupCallback);
+        button.callbackAccessor = this;
+        ElementUtilities.setButtonCallback(button, this.findCallback);
+
     }
 
-    lookupCallback() {
-        const word = ElementUtilities.getElementValue("someWord").toLowerCase();
-        if (! this.fullDict.isWord(word)) {
-            alert(`${word} is not a word`);
-            return;
+    findCallback(event) {
+        const me = event.srcElement.callbackAccessor;
+
+        const word = ElementUtilities.getElementValue("someWord").toUpperCase();
+        var result = `${word} in common dictionary: `;
+
+        if (me.fullDict.isWord(word)) {
+            result += "Y";
+        } else {
+            result += "N";
+        }
+        result += `; in scrabble dictionary: `;
+        if (me.scrabbleDict.isWord(word)) {
+            result += "Y";
+        } else {
+            result += "N";
         }
 
-        const nextWords = [...this.fullDict.findNextWords(word)];
-        ElementUtilities.setElementHTML("lookupAnswer", `${nextWords.length} words from ${word}: ${nextWords.join(",")}`);
+        const nextWords = [...me.fullDict.findNextWords(word)];
+        result += `; ${nextWords.length} words from ${word}: ${nextWords.join(",")}`;
+        ElementUtilities.setElementHTML("findAnswer", result);
     }
 
-    // Solver testing
+    // ===== Solver Tester =====
 
-    displaySolverTest() {
+    displaySolverTester() {
         this.addTitle("Solver Tester");
+
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "Start word: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "solverStartWord", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
+
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "Target word: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "solverTargetWord", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
-        ElementUtilities.addElementTo("button", this.outerDiv, {id: "solve"}, "Solve!");
+
+        var button = ElementUtilities.addElementTo("button", this.outerDiv, {id: "solve"}, "Solve!");
+
         ElementUtilities.addElementTo("p", this.outerDiv);
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "solveAnswer"}, "Click the button to see the chain.");
         ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {id: "solveTiming"}, "");
+        ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.getElement("solve").addEventListener("click", solveCallback);
+        button.callbackAccessor = this;
+        ElementUtilities.setButtonCallback(button, this.solveCallback);
     }
 
-    solveCallback() {
-        const startWord = ElementUtilities.getElementValue("solverStartWord").toLowerCase();
-        if (! this.fullDict.isWord(startWord)) {
+    solveCallback(event) {
+        const me = event.srcElement.callbackAccessor,
+              startWord = ElementUtilities.getElementValue("solverStartWord").toUpperCase();
+
+        if (! me.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
             return;
         }
 
-        const targetWord = ElementUtilities.getElementValue("solverTargetWord").toLowerCase();
-        if (! this.fullDict.isWord(targetWord)) {
+        const targetWord = ElementUtilities.getElementValue("solverTargetWord").toUpperCase();
+        if (! me.fullDict.isWord(targetWord)) {
             alert("Target word is empty or not a word");
             return;
         }
 
-        const solution = Solver.fastSolve(this.fullDict, startWord, targetWord);
+        const start = Date.now();
+        const solution = Solver.solve(me.fullDict, startWord, targetWord);
+        const end = Date.now();
+        solution.calculateDifficulty(me.fullDict);
         ElementUtilities.setElementHTML("solveAnswer", solution.toHtml());
+        ElementUtilities.setElementHTML("solveTiming",  `took ${(end-start)} ms`);
     }
 
-    // Puzzle Finder
-    displayPuzzleFinderTest() {
+    // ===== Puzzle Finder =====
+
+    displayPuzzleFinderTester() {
         this.addTitle("Puzzle Finder");
+
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "Start word: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderStartWord", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
+
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 1: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen1", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
+        
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 2: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen2", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
+        
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "final word len: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min steps: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinSteps", type: "text", value: "1"});
+
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min words: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinWords", type: "text", value: "1"});
         ElementUtilities.addElementTo("p", this.outerDiv);
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "max steps: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxSteps", type: "text", value: "1000"});
+
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "max words: ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxWords", type: "text", value: "1000"});
         ElementUtilities.addElementTo("p", this.outerDiv);
+
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "min difficulty: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinDifficulty", type: "text", value: "1" });
         ElementUtilities.addElementTo("p", this.outerDiv);
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "max difficulty: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxDifficulty", type: "text", value: "1000"});
-        ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.addElementTo("button", this.outerDiv, {id: "puzzleFinderFind"}, "Find!");
+        var button = ElementUtilities.addElementTo("button", this.outerDiv, {id: "puzzleFinderFind"}, "Find!");
+
         ElementUtilities.addElementTo("p", this.outerDiv);
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "puzzleFinderAnswer"}, "Click the button to see the target words.");
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.getElement("puzzleFinderFind").addEventListener("click", puzzleFinderFindCallback);
+        button.callbackAccessor = this;
+        ElementUtilities.setButtonCallback(button, this.puzzleFinderFindCallback);
     }
 
-    puzzleFinderFindCallback() {
-        const startWord = ElementUtilities.getElementValue("puzzleFinderStartWord").toLowerCase();
-        if (! this.fullDict.isWord(startWord)) {
+    puzzleFinderFindCallback(event) {
+        const me = event.srcElement.callbackAccessor,
+              startWord = ElementUtilities.getElementValue("puzzleFinderStartWord");
+
+        if (! me.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
             return;
         }
 
-        const reqWordLen1 = parseInt(ElementUtilities.getElementValue("puzzleFinderReqWordLen1"));
-        const reqWordLen2 = parseInt(ElementUtilities.getElementValue("puzzleFinderReqWordLen2"));
-        const minSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMinSteps"));
-        const maxSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxSteps"));
-        const minDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMinDifficulty"));
-        const maxDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxDifficulty"));
-        const targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen"));
+        const reqWordLen1 = parseInt(ElementUtilities.getElementValue("puzzleFinderReqWordLen1")),
+              reqWordLen2 = parseInt(ElementUtilities.getElementValue("puzzleFinderReqWordLen2")),
+              minSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMinWords")),
+              maxSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxWords")),
+              minDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMinDifficulty")),
+              targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen"));
 
-        const goodTargetsWithDifficulty =
-            [...this.fullDict.getWords()]
-            .filter(targetWord => (targetWord.length === targetWordLen))
-            .map(targetWord => {
-                console.log("target: ", targetWord);
-                const solution = Solver.fastSolve(this.fullDict, startWord, targetWord);
-                if ( solution.isSolved() &&
-                    (solution.numSteps() >= minSteps) &&
-                    (solution.numSteps() <= maxSteps) &&
-                    (solution.difficulty >= minDifficulty) &&
-                    (solution.difficulty <= maxDifficulty) &&
-                    (solution.getWords().filter(word => (word.length === reqWordLen1)).length > 0) &&
-                    (solution.getWords().filter(word => (word.length === reqWordLen2)).length > 0)
-                   ) {
-                    return [targetWord, solution.difficulty];
-                } else {
-                   return [];
-                }
-            })
-            .filter (pair => (pair.length == 2))
-            .map(pair => pair.join(":"));
+        const goodTargetsWithDifficulty = 
+            Solver.findPuzzles(me.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
+            .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
+        goodTargetsWithDifficulty.sort();
 
         ElementUtilities.setElementHTML("puzzleFinderAnswer", goodTargetsWithDifficulty.join(","));
     }
 }
-
 
 Test.singleton().display();
 

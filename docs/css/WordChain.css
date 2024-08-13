@@ -5,191 +5,214 @@
 */
 
 /*
+** ===============
 ** Global Settings
+** ===============
 */
 
+
+/*
+** These colors are defined for :root to enable implementation of both
+** dark and colorblind mode. We define properties for "good" and "bad"
+** indications for both light and dark themes. We also define both
+** dark and light variants for the colors used for any properties
+** that are affected by dark and light mode. All of these colors will
+** be used in the javascript code to effect theme and colorblind changes.
+*/
 :root {
+
     /*
-    ** These colors are defined for :root to enable implementation of both
-    ** dark and colorblind mode. We define properties for "good" and "bad"
-    ** indications for both light and dark themes. We also define both
-    ** dark and light variants for the colors used for any properties
-    ** that are affected by dark and light mode. All of these colors will
-    ** be used in the javascript code to effect theme and colorblind changes.
+    ** Light Mode Colors
     */
 
-    /* Light */
+    /* ===== Cells ===== */
     --colorblind-good-light:            #5f99e4;    /* blue */
     --colorblind-bad-light:             #ebaf42;    /* orange */
-    --played-word-same-bg-light:        #85daac;    /* green */
-    --played-word-longer-bg-light:      #ea9797;    /* red */
+    --non-colorblind-good-bg-light:     #85daac;    /* green */
+    --non-colorblind-bad-bg-light:      #ea9797;    /* red */
 
-    /* Dark */
-    --colorblind-good-dark:             #2b558c;    /* blue */
+    /*
+    ** Dark Mode Colors
+    */
+
+    /* ===== Cells ===== */
+    --colorblind-good-dark:             #2d7be1;    /* blue */
     --colorblind-bad-dark:              #d58b04;    /* orange */
-    --played-word-same-bg-dark:         #076707;    /* green */
-    --played-word-longer-bg-dark:       #ac0706;    /* red */
+    --non-colorblind-good-bg-dark:      #28c128;    /* green */
+    --non-colorblind-bad-bg-dark:       #d33433;    /* red */
 }
 
+/*
+** These colors don't change for dark/light OR colorblind/non-colorblind.
+*/
+:root {
+    /* ===== Add/Delete Buttons and Picker ===== */
+    --user-input-fg:            Black;
+    --user-input-bg:            #ffff00;    /* yellow */
+    --user-input-bg-enabled:    var(--user-input-bg);
+    --user-input-bg-disabled:   LightGray;
+    --user-input-bg-selected:   LightGray;
+    --user-input-fg-enabled:    var(--user-input-fg);
+    --user-input-fg-disabled:   LightGray;
+
+    /* ===== Stats ===== */
+    --stats-bar-bg:             Gray;
+    --stats-bar-fg:             White;
+}
+
+/*
+** Light/dark settings that are NOT affected by colorblind mode are enabled by
+** setting adding light-mode or dark-mode to the document element class.
+*/
 :root,
 :root.light-mode {
-    /* Colors used to define other properties */
+    /* ===== Colors used to define other properties ===== */
     --primary-fg:               Black;
+    --primary-fg-disabled:      LightGray;
     --secondary-fg:             White;
 
     --primary-bg:               White;
     --secondary-bg:             Black;
 
-    --start-target-active-bg:   SlateGray;
-    --letter-key-inactive-bg:   LightGray;
-    --header-button-input-bg:   #97b2d5;
+    /* ===== Header ===== */
+    --header-button-bg:         LightGray;
+    --header-bg:                #97b2d5;    /* slate blue */
 
-    /* Header */
-    --header-button-bg:         var(--letter-key-inactive-bg);
-    --active-button-bg:         var(--start-target-active-bg);
-    --inactive-button-bg:       var(--letter-key-inactive-bg);
-    --header-bg:                var(--header-button-input-bg);
+    /* Currently not used in v2 */
+    --active-button-bg:         SlateGray;
+    --inactive-button-bg:       LightGray;
 
-    --game-button-bg:           var(--header-button-input-bg);
-
-    /* Tiles and Letters */
-    --input-tile-bg:            var(--header-button-input-bg);
-    --tile-border:              var(--primary-fg);;
-    --tile-border-grayed:       LightGray;
-
-    --start-target-tile-bg:     var(--start-target-active-bg);
-    --start-target-letter-fg:   var(--secondary-fg);;
-
-    --unplayed-word-tile-bg:    var(--primary-bg);
+    /* ===== Cells, Letters, Buttons below Cells ===== */
+    --cell-border:              var(--primary-fg);
+    --target-word-bg:           #d09ade;    /* pale purple */
+    --game-button-bg:           LightGray;
 
     /* These properties are affected by changes in the Colorblind Mode setting */
-    --played-word-same-bg:      var(--played-word-same-bg-light);
-    --played-word-longer-bg:    var(--played-word-longer-bg-light);
+    --non-colorblind-good-bg:   var(--non-colorblind-good-bg-light);
+    --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-light);
 
-    /* Keyboard */
-    --key-bg:                   var(--letter-key-inactive-bg);
-    --wide-key-bg:              var(--header-button-input-bg);
-
+    /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
     --toast-fg:                 var(--secondary-fg);
 
-    /* Settings */
+    /* ===== Settings/Links ===== */
     --setting-separator:        LightGray;
     --setting-description-fg:   Gray;
-
-    /* Links */
     --link-fg:                  Blue;
     --visited-link-fg:          Purple;
-
-    /* Stats */
-    --stats-bar-bg:             Gray;
-    --stats-bar-fg:             White;
 }
 
 :root.dark-mode {
-    /* Colors used to define other properties */
+    /* ===== Colors used to define other properties ===== */
     --primary-fg:               White;
+    --primary-fg-disabled:      #555555;    /* very dark greenish gray */
     --secondary-fg:             Black;
 
-    --primary-bg:               #1d1d1f;
+    --primary-bg:               #1d1d1f;    /* very dark blueish gray */
     --secondary-bg:             White;
 
-    --start-target-active-bg:   #858b90;
-    --game-button-input-bg:     #0f56b1;
-    --letter-key-inactive-bg:   #49515a;
-
-    /* Header */
-    --header-button-bg:         var(--letter-key-inactive-bg);
-    --active-button-bg:         var(--start-target-active-bg);
-    --inactive-button-bg:       var(--letter-key-inactive-bg);
+    /* ===== Header ===== */
+    --header-button-bg:         #49515a;    /* dark blueish gray */
     --header-bg:                Black;
 
-    --game-button-bg:           var(--game-button-input-bg);
+    /* Currently not used in v2 */
+    --active-button-bg:         #858b90;    /* light blueish gray */
+    --inactive-button-bg:       #49515a;    /* dark blueish gray */
 
-    /* Tiles and Letters */
-    --input-tile-bg:            var(--game-button-input-bg);
-    --tile-border:              var(--primary-fg);;
-    --tile-border-grayed:       LightGray;
-
-    --start-target-tile-bg:     var(--start-target-active-bg);
-    --start-target-letter-fg:   var(--secondary-fg);;
-
-    --unplayed-word-tile-bg:    var(--primary-bg);
+    /* ===== Cells, Letters, Buttons below Cells ===== */
+    --cell-border:              #8d5f0c;    /* medium brown */
+    --target-word-bg:           #b319ff;    /* medium purple */
+    --game-button-bg:           #49515a;    /* dark blueish gray */
 
     /* These properties are affected by changes in the Colorblind Mode setting */
-    --played-word-same-bg:      var(--played-word-same-bg-dark);
-    --played-word-longer-bg:    var(--played-word-longer-bg-dark);
+    --non-colorblind-good-bg:   var(--non-colorblind-good-bg-dark);
+    --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-dark);
 
-    /* Keyboard */
-    --key-bg:                   var(--letter-key-inactive-bg);
-    --wide-key-bg:              var(--game-button-input-bg);
-
+    /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
     --toast-fg:                 var(--secondary-fg);
 
-    /* Settings */
+    /* ===== Settings/Links ===== */
     --setting-separator:        Gray;
     --setting-description-fg:   Gray;
-
-    /* Links */
     --link-fg:                  #5b6ef0;    /* light blue */
     --visited-link-fg:          #9b5bf0;    /* light purple */
-
-    /* Stats */
-    --stats-bar-bg:             Gray;
-    --stats-bar-fg:             White;
 }
 
+/*
+** Sizing constants.
+*/
+:root {
+    --cell-size: 25px;
+    --picker-font-size: 1.3rem;
+
+    --custom-menu-scroll-height: 20rem;
+    --custom-menu-width: 3rem;
+}
+
+/*
+** IMPORTANT!!!
+** No color names or color numbers should be used below this point!
+** Only use references to properties defined above.
+*/
+
+/*
+** Same font for everyone.
+*/
 * {
     font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 }
 
+/*
+** Settings for the outermost HTML elements.
+*/
 html, body {
     /* vh means "viewport height" -- this says to make the body take 100% of the viewport height. */
     height: 100vh;
     margin: 0px;
     background: var(--primary-bg);
+    overflow-x: none;
 }
 
 hr {
-    /* Need to set this for when it is within a display: flex else it doesn't show up. */
+    /* Need to set this for when it is within a "display: flex" else it doesn't show up. */
     width: 100%;
-}
-
-#root-div {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background: var(--primary-bg);
-    height: 100%;
-    width: 100%;
-}
-
-svg {
-    display: block;
-    margin: auto;
-    fill: var(--primary-fg);
 }
 
 /*
-This class is used in divs with display: flex to force whatever comes
-after the div to be on a "new line".
-See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
+** This class is used in divs with display: flex to force whatever comes
+** after the div to be on a "new line".
+** See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
 */
 .break {
     flex-basis: 100%;
 }
 
 /*
-** Common styling for "primary screens" (Solution and Practice Setup Screens (including their common header))
+** The top-level application div.
+*/
+#root-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background: var(--primary-bg);
+    height: 100%;
+    width: 100%;
+}
+
+/*
+** ===========
+** Game screen
+** ===========
 */
 
 .wordchain-button {
-    font-size: .8rem;
+    font-size: .75rem;
     padding: .3rem;
+    margin: .2rem;
     border-width: 0;
     border-radius: .5rem;
-    margin: .1rem;
+    color: var(--primary-fg);
     color: var(--primary-fg);
 }
 
@@ -197,111 +220,63 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     outline: none;
 }
 
-.game-button {
-    font-weight: bold;
-    background: var(--game-button-bg);;
+/*
+** Shell around the content below the WordChain banner.
+*/
+
+#upper-div {
+    flex-direction: column;
+    justify-content: flex-start;
+    position: sticky;
+    top: 0;
 }
 
-/* Shell around the solution/keyboard/practice divs */
 #lower-div {
     display: flex;
     /*
     ** For some reason, if we have "flex-direction: column;" here (and remove "flex-wrap: wrap;"),
     ** it messes up the scrolling of games that no longer fit on the screen -- scrolling up as
-    ** far as possible cuts off the top row(s) of tiles. If we have both settings, that messes up the
-    ** display and the keyboard is to the right of the game tiles, even with the "break div".
+    ** far as possible cuts off the top row(s) of cells. If we have both settings, that messes up the
+    ** display and the picker is to the right of the game cells, even with the "break div".
     ** So we shouldn't change these settings because the scrolling works just right now!
     */
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
-    /* This height, plus header-div height must be 100% */
-    height: 93%;
-}
-#lower-div div:nth-of-type(4) {
-    flex-basis: 0px;
 }
 
-/* Keyboard Display (for Daily and Practice games) */
-#keyboard-div {
-    background: var(--primary-bg);
-    position: sticky;
-    bottom: 0;
+#game-div {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    padding: .5rem;
-}
-
-#keyboard-inner-div {
-    flex-direction: column;
-    justify-content: flex-end;
-}
-
-.keyboard-row {
-    display: flex;
-    margin-top: 0;
-    margin-right: auto;
-    margin-left: auto;
-    margin-bottom: .4rem;
-    /* https://stackoverflow.com/questions/46167604/ios-html-disable-double-tap-to-zoom */
-    touch-action: manipulation;
-}
-
-.keyboard-key {
-    font-size: 1rem;
-    font-family: inherit;
-    font-weight: bold;
-    border: 0;
-    padding: 0;
-    margin-top: 0;
-    margin-right: .3rem;
-    margin-bottom: 0;
-    margin-left: 0;
-    width: 1.9rem;
-    height: 2.4rem;
-    border-radius: .2rem;
-    cursor: pointer;
-    user-select: none;
-    background-color: var(--key-bg);
-    color: var(--primary-fg);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-transform: uppercase;
-}
-
-.keyboard-spacer {
-    width: 0.95rem;
-    visibility: hidden;
-}
-
-.keyboard-wide-key {
-    width: 3rem;
-    background: var(--wide-key-bg);
-    color: var(--primary-fg);
+    justify-content: flex-start;
 }
 
 /*
-** Header (common for Practice Setup and Solution screens)
+** -----------------------------
+** Header (the WordChain banner)
+** -----------------------------
 */
 
 #header-div {
-    position: sticky;
-    top: 0;
-    /* This height, plus lower-div height must be 100% */
-    height: 7%;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    height: 45px;
     display: flex;
-    background: var(--header-bg);;
-    padding: .25rem;
-    margin-bottom: 1rem;
+    background: var(--header-bg);
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
-#left-button-div {
+#game-button-div {
     width: 30%;
     display: flex;
     justify-content: flex-start;
     align-items: center;
+}
+
+.header-button {
+    font-weight: bold;
+    background: var(--header-button-bg);
 }
 
 #title-div {
@@ -311,35 +286,20 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     align-items: center;
 }
 
-#right-button-div {
-    width: 30%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-
 .title {
     font-size: 1.3rem;
     font-weight: bold;
     color: var(--primary-fg);
 }
 
-.header-game-button {
-    font-weight: bold;
-    background: var(--header-button-bg);
+#auxiliary-button-div {
+    width: 30%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }
 
-.active-button {
-    background: var(--active-button-bg);
-    color: var(--secondary-fg);
-}
-
-.not-active {
-    background: var(--inactive-button-bg);
-    color: var(--primary-fg);
-}
-
-.header-aux-button {
+.aux-button {
     background: var(--header-button-bg);
     border-radius: 50%;
     border-width: 0;
@@ -347,148 +307,334 @@ See: https://tobiasahlin.com/blog/flexbox-break-to-new-row
     margin: .2rem;
 }
 
-/*
-** Practice Game Setup Screen
-*/
-
-#practice-entry-div {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+svg {
+    display: block;
+    margin: auto;
+    fill: var(--primary-fg);
 }
 
-#practice-words-div {
-    display: flex;
-    justify-content: center;
-    margin-top: .25rem;
+/* Currently not used in v2 */
+.active-button {
+    background: var(--active-button-bg);
+    color: var(--secondary-fg);
 }
 
-#practice-buttons-div {
-    display: flex;
-    justify-content: center;
-}
-
-.help-info {
+/* Currently not used in v2 */
+.not-active {
+    background: var(--inactive-button-bg);
     color: var(--primary-fg);
-    text-align: center;
-    margin-bottom: .25rem;
 }
 
 /*
-** Solution Screen (for Daily and Practice games)
+** ----------------------------------------
+** Cell Grid, Cells, Buttons Below the Grid
+** ----------------------------------------
 */
 
-#game-div {
+.table-div {
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-#game-words-div {
-    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
 }
 
-#game-buttons-div {
+.table-game {
+    border-spacing: .0rem;
+}
+
+.tr-game {
+}
+
+.tr-game-active {
+    background: var(--user-input-bg);
+}
+
+.td-game {
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
+
+.circle {
+    border: solid;
+    border-color: var(--cell-border);
+    border-radius: 50%;   /* Makes the div a circle */
+    padding: 0px;
+}
+
+.letter-cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    border-width: .10rem;
     display: flex;
+    align-items: center;
     justify-content: center;
+    margin-right: 4px;
+    margin-left: 4px;
 }
 
-table {
-    border-spacing: .4rem;
+.letter-cell-good {
+    background: var(--played-word-good-bg);
 }
 
-/* Tile td classes */
+.letter-cell-bad {
+    background: var(--played-word-bad-bg);
+}
 
-.tile {
-    width: 2rem;
-    height: 2rem;
+.letter-cell-change {
+    border-width: .2rem;
+    border-style: dashed;
+}
+
+.letter-cell-future {
+}
+
+.letter-cell-future-change {
+    border-width: .2rem;
+}
+
+.letter-cell-played {
+}
+
+.letter-cell-target {
+    background: var(--target-word-bg);
+}
+
+.letter {
     font-weight: bold;
+}
+
+button.action-button {
+    border: none;
+    color: var(--user-input-fg); /* text color */
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-outer-cell {
+    width: var(--cell-size);    /* Must have same width as .letter-cell */
+    height: 15px;
+    border: solid;
+    border-width: .10rem;
+    border-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+    margin-left: 4px;
+}
+
+.action-cell {
+    width: 15px;
+    height: 15px;
+    border: solid;
+    border-width: .10rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--user-input-bg);
+}
+
+.action-cell-addition {
+}
+
+.action-cell-deletion {
+}
+
+.action {
+    font-weight: bold;
+}
+
+.post-game-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-button {
     font-size: 1.5rem;
-    text-align: center;
-    vertical-align: middle;
-    color: var(--primary-fg);
-    border-style: solid;
-    border-color: var(--tile-border);
-    background: var(--primary-bg);
-}
-
-.tile-label {
-    width: 8rem;
-    height: 3rem;
     font-weight: bold;
-    font-size: 1rem;
-    text-align: center;
-    vertical-align: middle;
     color: var(--primary-fg);
-    border-style: none;
-}
-
-.tile-grayed {
-    border-color: var(--tile-border-grayed);
-}
-
-.tile-hidden {
-    border-color: var(--primary-bg);
-}
-
-.tile-not-grayed {
-    border-color: var(--tile-border);
-}
-
-.start-target-tile {
-    background: var(--start-target-tile-bg);
-}
-
-.letter-change {
-    border-width: .3rem;
-    padding: 0;
-}
-
-.no-change {
-    border-width: .15rem;
-    padding: .15rem;
-}
-
-.input-tile {
-    background: var(--input-tile-bg);
-}
-
-.not-input-tile {
-    background: var(--primary-bg);
-}
-
-.solution-longer {
-    background: var(--played-word-longer-bg);
-    color: var(--primary-fg);
-}
-
-.solution-same-length {
-    background: var(--played-word-same-bg);
-    color: var(--primary-fg);
-}
-
-/* Letter div classes */
-
-.label-word {
-    color: var(--primary-fg);
-}
-
-.start-target-letter {
-    color: var(--start-target-letter-fg);
-}
-
-.shown-letter {
-    visibility: visible;
-}
-
-.hidden-letter {
-    visibility: hidden;
+    background: var(--game-button-bg);
 }
 
 /*
-** Common styling for "auxiliary screens" (Help, Settings, Stats)
+** ----------------------
+** Picker and Custom-Menu
+** ----------------------
 */
+
+#picker-div {
+    justify-content: center;
+    background: var(--primary-bg);
+    width: 100%;
+    height: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.picker-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.picker-label {
+    font-size: var(--picker-font-size);
+    margin-right: 5px;
+}
+
+.picker-label-enabled {
+    color: var(--user-input-fg-enabled);
+}
+
+.picker-label-disabled {
+    color: var(--user-input-fg-disabled);
+}
+
+.picker-button {
+    font-size: var(--picker-font-size);
+    text-align: end;
+}
+
+.picker-button-enabled {
+    color: var(--user-input-fg-enabled);
+    background: var(--user-input-bg-enabled);
+}
+
+.picker-button-disabled {
+    color: var(--user-input-fg-disabled);
+    background: var(--user-input-bg-disabled);
+}
+
+.picker-option {
+    font-size: var(--picker-font-size);
+    color: var(--primary-fg);
+    background: var(--primary-bg);
+    text-align: center;
+}
+
+/* Styles for custom-menu, custom-menu-button, and custom-menu-options elements */
+
+custom-menu {
+    position: relative;
+    display: inline-block;
+}
+
+custom-menu custom-menu-button {
+    min-width: var(--custom-menu-width);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    border: 1px solid var(--primary-fg);
+    border-radius: 0.3rem;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+}
+
+custom-menu custom-menu-options {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: var(--custom-menu-scroll-height);
+    min-width: var(--custom-menu-width);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+}
+
+custom-menu custom-menu-options.hidden {
+    height: 0;
+    overflow: hidden;
+}
+
+custom-menu input[type="radio"].hidden {
+    width: 0; /* This makes the radio button itself invisible */
+    overflow: hidden;
+}
+
+custom-menu label.selected {
+    background-color: var(--user-input-bg-selected);
+}
+
+custom-menu label:hover {
+    background-color: var(--user-input-bg-selected);
+}
+
+/* Optional styles for custom-menu-options elements */
+
+custom-menu custom-menu-button-selection {
+}
+
+custom-menu custom-menu-button-arrow {
+}
+
+custom-menu custom-menu-options label {
+    /*
+    This would style each option, which looks ... odd.
+    border: 2px solid darkgreen;
+    border-radius: 2px;
+    background-color: lightgreen;
+    */
+}
+custom-menu custom-menu-options label::before {
+    /*
+    This would put '>>>' before each label, with a little margin
+    content: '>>>';
+    margin-left: 0.2em;
+    margin-right: 0.2em;
+    */
+}
+
+
+/*
+** =========================================
+** Auxiliary Screens (Help, Settings, Stats)
+** =========================================
+*/
+
+.auxiliary-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auxiliary-container-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.auxiliary-content-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    color: var(--primary-fg);
+    margin: 1.5rem;
+}
+
+.auxiliary-content-div h1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.auxiliary-content-div h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+.auxiliary-content-div h3 {
+    font-size: 1rem;
+    font-weight: bold;
+}
+.auxiliary-content-div p {
+    font-size: 1rem;
+}
 
 .close-button-div {
     width: 100%;
@@ -502,49 +648,22 @@ table {
     border-width: 0;
 }
 
-.auxiliary-div {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
+/*
+** ----
+** Help
+** ----
+*/
 
-.auxiliary-container-div {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    color: var(--primary-fg);
-    margin: 1.5rem;
-}
-
-.auxiliary-container-div h1 {
-    font-size: 1.5rem;
-    font-weight: bold;
-}
-.auxiliary-container-div h2 {
-    font-size: 1.25rem;
-    font-weight: bold;
-}
-.auxiliary-container-div h3 {
-    font-size: 1rem;
-    font-weight: bold;
-}
-.auxiliary-container-div p {
-    font-size: 1rem;
+.help-content-container {
 }
 
 /*
-** Help screen
-*/
-#help-content-div {
-}
-
-/*
-** Settings screen
+** --------
+** Settings
+** --------
 */
 
-#settings-content-div {
+.settings-content-container {
     display: block;
 }
 
@@ -614,24 +733,23 @@ input.setting-radio {
 }
 
 /*
-** Stats screen
+** -----
+** Stats
+** -----
 */
 
-#stats-content-div {
+.stats-content-container {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
 }
 
-.stats-tile {
-    width: .5rem;
-    height: .5rem;
-    border-style: none;
+.stats-content-div {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* This holds the group of stats at the top */
-#stats-container-div {
+.stats-container-div {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -653,7 +771,7 @@ input.setting-radio {
 }
 
 /* This holds the distribution graph */
-#distribution-div {
+.distribution-div {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -685,16 +803,31 @@ input.setting-radio {
     margin-right: .5rem;
 }
 
-#countdown-clock {
+/* This holds the countdown clock */
+.countdown-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.countdown-clock {
     background: var(--primary-bg);
     color: var(--primary-fg);
     font-size: 4rem;
     padding: .5rem;
 }
 
+/* This holds the buttons */
+.stats-button-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
 /*
+** =============
 ** Toast Pop-ups
+** =============
 */
 
 .pop-up {
@@ -750,6 +883,17 @@ input.setting-radio {
 
 
 /*
+** =======
+** Test.js
+** =======
+*/
+
+.testButton {
+    margin: .5rem;
+}
+
+
+/*
 *******************************
 ** Override Styling for Tablets
 *******************************
@@ -764,7 +908,7 @@ input.setting-radio {
         font-size: 2rem;
     }
 
-    .header-aux-button {
+    .aux-button {
         padding: .35rem;
         margin: .5rem;
     }
@@ -775,24 +919,7 @@ input.setting-radio {
         margin: .5rem;
     }
 
-    .tile {
-        width: 3rem;
-        height: 3rem;
-        font-size: 2rem;
-    }
-
-    .keyboard-key {
-        font-size: 2rem;
-        width: 2.5rem;
-        height: 3.4rem;
-        margin-right: .5rem;
-    }
-    .keyboard-spacer {
-        width: 1.3rem;
-    }
-    .keyboard-wide-key {
-        width: 4.2rem;
-    }
+    /* TODO: May need to add cell classes here */
 }
 
 /*
@@ -815,37 +942,7 @@ input.setting-radio {
         padding: .2rem;
     }
 
-    .auxiliary-container-div {
-        width: 60%;
-    }
-
-    #keyboard-div {
-        /*
-        ** Extend keyboard right/left to take up the whole viewport so that if the user's standard
-        ** size (i.e. 1rem) is so large that game-div is wider than the keyboard, the entire
-        ** game-div is obscured  when scrolling, i.e. no bits of game tiles around the edges
-        ** of the keyboard.
-        **
-        ** NOTE: If we have these changes for phone or tablet, it causes a horizontal scroll bar,
-        ** which makes the whole screen seem to jiggle. In those environments, the problem this
-        ** is solving doesn't exist.
-        */
-        padding-right: 50vw;
-        padding-left: 50vw;
-        /* But just a bit of padding on the top and bottom. */
-        padding-top: .5rem;
-        padding-bottom: .5rem;
-    }
-    .keyboard-key {
-        font-size: 2rem;
-        width: 3rem;
-        height: 4rem;
-        margin-right: .5rem;
-    }
-    .keyboard-spacer {
-        width: 1.5rem;
-    }
-    .keyboard-wide-key {
-        width: 5rem;
+    .auxiliary-content-div {
+        width: 40%;
     }
 }

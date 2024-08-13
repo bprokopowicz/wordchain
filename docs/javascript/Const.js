@@ -1,38 +1,64 @@
-// Constants for URLs.
+// Turn on/off debugging.
+export const GL_DEBUG = false;
+
+// Constants for URLs. (CURRENTLY UNUSED)
 export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
-export const DICT_URL = `${URL_ROOT}/resources/dict/WordFreqDict`;
+export const DICT_URL = `${URL_ROOT}/resources/dict/WordChainDict`;
+
+// Constants for practice game word selection screen
+// TODO: UNCOMMENT
+//export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
+export const PRACTICE_GAMES_PER_DAY = 300;     // For testing
+export const PRACTICE_STEPS_MINIMUM = 5;
+export const PRACTICE_STEPS_MAXIMUM = 7;
+export const PRACTICE_DIFFICULTY_MINIMUM = 30;
+export const PRACTICE_TARGET_WORD_LEN = 5;
+export const PRACTICE_REQ_WORD_LEN_1 = 4;
+export const PRACTICE_REQ_WORD_LEN_2 = 6;
+export const PRACTICE_START_WORDS = ["FACE", "TRUST", "GRASP", "TROPE", "SPACE", "PLATE", "TRAIL"];
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
-export const OK           = "ok";
-export const NOT_ONE_STEP = "Not one step";
-export const DEAD_END     = "No solution";
-export const DUPLICATE    = "Already played";
-export const NOT_A_WORD   = "Not in word list";
-export const TOO_SHORT    = "Too short";
+// --- Returned from Game class.
+export const OK               = "ok";
+export const NOT_A_WORD       = "Not in word list";
+// --- Displayed from one of the *Display classes.
+export const GAME_WON         = "Solved!";
+export const GAME_LOST        = "Too many wrong moves";
+export const PICK_LETTER      = "Pick a letter";                // Displayed when no letter in picker.
+export const PICK_NEW_LETTER  = "Pick a different letter";      // Displayed when user selects the letter already in the cell to be changed.
+export const UNEXPECTED_ERROR = "Yikes! Something went wrong";
+export const TOO_MANY_GAMES   = `Only ${PRACTICE_GAMES_PER_DAY} games allowed per day`;
+export const NO_DAILY         = "Unable to create daily game;<br>here is a fun back-up";
+export const DAILY_NOT_OVER   = "Daily game still in progress";
+export const SHARE_FAILED     = "Failed to share";
+export const SHARE_COPIED     = "Copied to clipboard";
+export const SHARE_INSECURE   = "Cannot share in insecure environment";
+export const NO_STATS         = "Stats unavailable";
+export const WRONG_MOVE       = "D'oh! Wrong move";
+export const GENIUS_MOVE      = "Genius play!";
+export const BAD_POSITION     = "Bad letter position";
+
+// Returns from Game class that indicate a bug in its input from GameDisplay.
+export const BAD_OPERATION       = "bad operation";
+export const BAD_LETTER_POSITION = "bad letter position";
+
+// DisplayInstruction displayTypes.
+export const ADD       = "add";
+export const CHANGE    = "change";
+export const DELETE    = "delete";
+export const FUTURE    = "future";
+export const PLAYED    = "played";
+export const TARGET    = "target";
 
 // Special characters used in Game.showGame() return string;
 // a few other classes use these.
-export const NO_CHANGE = "*";
-export const CHANGE    = "!";
-export const EXTRA     = "+";
+export const NO_CHANGE_CHAR = "*";
+export const CHANGE_CHAR    = "!";
+export const INSERT_CHAR    = "+";
 
 export const MIN_WORD_LENGTH = 3;
 export const MAX_WORD_LENGTH = 6;
-
-export const RESET_START  = "start";
-export const RESET_TARGET = "target";
-export const RESET_BOTH   = "both";
-
-// Constants for keyboard action buttons on game play and
-// practice game word selection screens.
-export const BACKSPACE = "←"; 
-export const ENTER = "↵"; 
-
-// Constants for practice game word selection screen
-export const PRACTICE_GAMES_PER_DAY = 30;
-export const PLACEHOLDER = "*";
-export const PLACEHOLDER_WORD = PLACEHOLDER.repeat(MAX_WORD_LENGTH);
 
 // Constants for settings screen
 export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
@@ -40,13 +66,14 @@ export const FAQ_HREF   = "FAQ.html";
 
 // Constants for sharing graphic and stats screen
 // Emoji code strings for share string
-export const RED_SQUARE     = "\u{1F7E5}";     // Extra steps in graphic
-export const GREEN_SQUARE   = "\u{1F7E9}";     // No extra steps in graphic
-export const ORANGE_SQUARE  = "\u{1F7E7}";     // Extra steps in graphic -- colorblind
-export const BLUE_SQUARE    = "\u{1F7E6}";     // No extra steps in graphic -- colorblind
-export const STAR           = "\u{2B50}";      // No extra steps in first share line
-export const CONFOUNDED     = "\u{1F616}";     // Too many extra steps in first share line
-export const FIRE           = "\u{1F525}";     // Hard mode in first share line
+export const RED_SQUARE     = "\u{1F7E5}";     // Wrong moves in graphic
+export const GREEN_SQUARE   = "\u{1F7E9}";     // Correct moves in graphic
+export const GOLD_STAR      = "\u{1F31F}";     // genius  moves in graphic
+export const ORANGE_SQUARE  = "\u{1F7E7}";     // Wrong moves in graphic -- colorblind
+export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves in graphic -- colorblind
+export const STAR           = "\u{2B50}";      // No wrong moves in first share line
+export const CONFOUNDED     = "\u{1F616}";     // Too many wrong movesin first share line and stats graph
+export const FIRE           = "\u{1F525}";     // CURRENTLY NOT USED: Hard mode in first share line
 export const ROCKET         = "\u{1F680}";     // Unused
 export const FIREWORKS      = "\u{1F386}";     // Unused
 export const TROPHY         = "\u{1F3C6}";     // Unused
@@ -66,14 +93,9 @@ export const NUMBERS        = [                // Used in first share line
     "\u{0039}\u{FE0F}\u{20E3}",     // 9 
 ];    
 
-export const TOO_MANY_EXTRA_STEPS = 6;  // Shouldnt be > 9; relates to NUMBERS array above
+export const TOO_MANY_WRONG_MOVES = 5;  // Shouldn't be > 9; relates to NUMBERS array above
 
-// SVG (Scalable Vector Graphics) paths for keyboard keys, copy/pasted from
-// various corners of the interwebs.
-export const BACKSPACE_PATH = "M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z";
-export const ENTER_PATH = "M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7h-2z";
-
-// SVG paths for icons.
+// SVG (Scalable Vector Graphics) paths for icons.
 export const CLOSE_PATH = "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 export const HELP_PATH = "M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z";
 export const MENU_PATH = "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z";

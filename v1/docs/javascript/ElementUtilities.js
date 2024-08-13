@@ -1,51 +1,11 @@
 // This class is all static methods that relate to finding,
 // checking, setting aspects of HTML elements.
 class ElementUtilities {
-
-    static addClass(element, classNameOrList) {
-
-        let elementClass = element.getAttribute('class'),
-            className,
-            classes;
-
-        if (typeof classNameOrList === 'string') {
-            classes = [classNameOrList];
-        } else {
-            classes = classNameOrList;
-        }
-
-        for (className of classes)
-        {
-            if (elementClass === null) {
-                elementClass = className;
-            } else {
-                elementClass += ` ${className}`;
-            }
-        }
-
-        element.setAttribute('class', elementClass);
-    }
-
     static addElement(elementType, attributes=null, innerHTML=null) {
         return ElementUtilities.addElementTo(elementType, document.body, attributes, innerHTML);
     }
 
     static addElementTo(elementType, parent, attributes=null, innerHTML=null) {
-        let element;
-
-        // If it's an object, assume the element we're adding has already been created and just append it.
-        if (typeof elementType === "string") {
-            element = ElementUtilities.createElement(elementType, attributes, innerHTML)
-        } else {
-            element = elementType;
-        }
-
-        parent.appendChild(element);
-
-        return element;
-    }
-
-    static createElement(elementType, attributes=null, innerHTML=null) {
         const svgElements = ["svg", "path"];
 
         let element;
@@ -63,6 +23,8 @@ class ElementUtilities {
             element.innerHTML = innerHTML;
         }
 
+        parent.appendChild(element);
+
         return element;
     }
 
@@ -73,21 +35,6 @@ class ElementUtilities {
             }
         }
     }
-
-    // Used only in Test.js
-    static getElement(elementId, mustExist=true) {
-        const element = document.getElementById(elementId);
-        if (mustExist && !element) {
-            throw new Error(`ElementUtilities.getElement(): no element with id ${elementId}`);
-        }   
-        return element;
-    }   
-
-    // Used only in Test.js.
-    static getElementValue(elementId) {
-        const element = ElementUtilities.getElement(elementId);
-        return element.value;
-    }   
 
     static editClass(fromPattern, toString, elements) {
 
@@ -102,13 +49,27 @@ class ElementUtilities {
         }
     }
 
-    // Not currently used.
-    static isHidden(element) {
-        return element.style.visibility === "hidden";
+    static getElement(elementId, mustExist=true) {
+        const element = document.getElementById(elementId);
+        if (mustExist && !element) {
+            throw new Error(`ElementUtilities.getElement(): no element with id ${elementId}`);
+        }
+        return element;
     }
 
-    static hide(element) {
-        element.setAttribute("style", "display: none;");
+    // Currently used only in Test.js.
+    static getElementValue(elementId) {
+        const element = ElementUtilities.getElement(elementId);
+        return element.value;
+    }
+
+    static isHidden(element) {
+        return element.style.display === "none";
+    }
+
+    static isLetter(letter) {
+        // JavaScript doesn't have this builtin!
+        return letter.length === 1 && letter.match(/[a-z]/i);
     }
 
     static setButtonCallback(buttonElement, callback) {
@@ -160,20 +121,28 @@ class ElementUtilities {
         //buttonElement.addEventListener("touchstart", callback);
     }
 
-    // Used only in Test.js.
+    // Currently used only in Test.js.
     static setElementHTML(elementId, elementHTML) {
         const element = ElementUtilities.getElement(elementId);
         element.innerHTML = elementHTML;
     }
 
-    static setElementText(element, elementText) {
-        element.innerHTML = elementText;
+    // Currently not used.
+    static setElementValue(elementId, elementValue) {
+        const element = ElementUtilities.getElement(elementId);
+        element.value = elementValue;
     }
 
-    static show(element, display="flex") {
-        element.setAttribute("style", `display: ${display};`);
-    }
+    static toggleClass(className, elements) {
 
+        if (! (elements instanceof Array)) {
+            elements = [elements];
+        }
+
+        for (let element of elements) {
+            element.classList.toggle(className);
+        }
+    }
 }
 
 export { ElementUtilities };
