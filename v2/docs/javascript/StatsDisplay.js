@@ -99,7 +99,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
         if (shareString)
         {
-            // Are we in an environment that has a "share" button, like a smart phone?
+            // Are we in a *secure* environment that has a "share" button, like a smart phone?
             if (navigator.share) {
                 // Yes -- use the button to share the shareString.
                 navigator.share({
@@ -109,10 +109,12 @@ class StatsDisplay extends AuxiliaryDisplay {
                     me.appDisplay.showToast(Const.SHARE_FAILED);
                     console.error("Failed to share: ", error);
                 });
-            } else {
+            } else if (navigator.clipboard) {
                 // No -- just save the shareString to the clipboard (probably on a laptop/desktop).
                 navigator.clipboard.writeText(shareString);
                 me.appDisplay.showToast(Const.SHARE_COPIED);
+            } else {
+                me.appDisplay.showToast(Const.SHARE_INSECURE);
             }
         }
     }
@@ -128,7 +130,9 @@ class StatsDisplay extends AuxiliaryDisplay {
         //
         //  over:            true if the game is over (user has found target word or too many steps)
         //  numWrongMoves:   how many more steps it took to solve than the minimum
-        //  moveSummary:     array of booleans indicating which words were correct/incorrect 
+        //  moveSummary:     array of arrays containing for each move:
+        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius 
+        //      length of the move's word
         //  dailyGameNumber: the current game number
         const gameInfo = this.appDisplay.getDailyGameInfo();
 
@@ -153,7 +157,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         // Now, construct the graphic showing the lengths of the user's
         // played words, colored red or green to indicate whether that word
         // did or did not increase the solution length.
-        for (let moveRating of gameInfo.moveSummary) {
+        for (let [moveRating, wordLength] of gameInfo.moveSummary) {
 
             let colorblindMode = this.appDisplay.isColorblindMode(),
                 emoji;
@@ -171,7 +175,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
             // Now repeat that emoji for the length of the word and add a newline,
             // creating a row that looks like the row of tiles in the game.
-            shareString += emoji.repeat(wordInfo.wordLength) + "\n";
+            shareString += emoji.repeat(wordLength) + "\n";
         }
 
         return shareString;

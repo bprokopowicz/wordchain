@@ -328,8 +328,8 @@ class GameDisplay extends BaseLogger {
     getMoveSummary() {
         var summary = [];
 
-        for (let [__word, __wasPlayed, moveRating] of this.gameState) {
-            summary.push(moveRating);
+        for (let [word, __wasPlayed, moveRating] of this.gameState) {
+            summary.push([moveRating, word.length]);
         }
 
         return summary;

@@ -82,9 +82,10 @@
     --active-button-bg:         SlateGray;
     --inactive-button-bg:       LightGray;
 
-    /* ===== Cells and Letters ===== */
+    /* ===== Cells, Letters, Buttons below Cells ===== */
     --cell-border:              var(--primary-fg);
     --target-word-bg:           #d09ade;    /* pale purple */
+    --game-button-bg:           LightGray;
 
     /* These properties are affected by changes in the Colorblind Mode setting */
     --non-colorblind-good-bg:   var(--non-colorblind-good-bg-light);
@@ -118,9 +119,10 @@
     --active-button-bg:         #858b90;    /* light blueish gray */
     --inactive-button-bg:       #49515a;    /* dark blueish gray */
 
-    /* ===== Cells and Letters ===== */
+    /* ===== Cells, Letters, Buttons below Cells ===== */
     --cell-border:              #8d5f0c;    /* medium brown */
     --target-word-bg:           #b319ff;    /* medium purple */
+    --game-button-bg:           #49515a;    /* dark blueish gray */
 
     /* These properties are affected by changes in the Colorblind Mode setting */
     --non-colorblind-good-bg:   var(--non-colorblind-good-bg-dark);
@@ -272,7 +274,7 @@ hr {
     align-items: center;
 }
 
-.game-button {
+.header-button {
     font-weight: bold;
     background: var(--header-button-bg);
 }
@@ -324,9 +326,9 @@ svg {
 }
 
 /*
-** -------------------
-** Cell Grid and Cells
-** -------------------
+** ----------------------------------------
+** Cell Grid, Cells, Buttons Below the Grid
+** ----------------------------------------
 */
 
 .table-div {
@@ -447,6 +449,13 @@ button.action-button {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.game-button {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-fg);
+    background: var(--game-button-bg);
 }
 
 /*

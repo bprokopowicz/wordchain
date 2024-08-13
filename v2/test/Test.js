@@ -475,6 +475,7 @@ class Test extends BaseLogger {
         this.testGameDisplayInstructionsDifferentPath();
         this.testGameUsingScrabbleWord();
         this.testGameUsingGeniusMove();
+        this.testGameFinish();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -697,6 +698,23 @@ class Test extends BaseLogger {
         this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
             this.success();
     }
+
+    testGameFinish() {
+        this.name = "GameFinish";
+
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, smallDict);
+
+        const playResult = game.playDelete(1);
+        game.finishGame();
+        const displayInstructionsAfterFinish = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
+        this.verify((playResult === Const.OK), "Word played not OK") &&
+            this.verify((displayInstructionsAfterFinish.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructionsAfterFinish.length}`) &&
+            this.verify(game.isOver()) && 
+            this.success();
+    }
+
     /*
     ** Additional testing assets
     */

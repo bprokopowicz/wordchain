@@ -1,11 +1,12 @@
 // Turn on/off debugging.
-export const GL_DEBUG = false;
+export const GL_DEBUG = true;
 
 // Constants for URLs.
 export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
 export const DICT_URL = `${URL_ROOT}/resources/dict/WordChainDict`;
 
 // Constants for practice game word selection screen
+// TODO: UNCOMMENT
 //export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
 export const PRACTICE_GAMES_PER_DAY = 300;     // For testing
 export const PRACTICE_STEPS_MINIMUM = 5;
@@ -32,6 +33,7 @@ export const NO_DAILY         = "Unable to create daily game;<br>here is a fun b
 export const DAILY_NOT_OVER   = "Daily game still in progress";
 export const SHARE_FAILED     = "Failed to share";
 export const SHARE_COPIED     = "Copied to clipboard";
+export const SHARE_INSECURE   = "Cannot share in insecure environment";
 export const NO_STATS         = "Stats unavailable";
 export const WRONG_MOVE       = "D'oh! Wrong move";
 export const GENIUS_MOVE      = "Genius play!";

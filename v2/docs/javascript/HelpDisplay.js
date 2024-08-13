@@ -1,5 +1,7 @@
 import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
+import * as Const from './Const.js';
+
 
 class HelpDisplay extends AuxiliaryDisplay {
 
@@ -14,17 +16,23 @@ class HelpDisplay extends AuxiliaryDisplay {
         </h2>
         <p>
         A step consists of adding, deleting, or changing one letter.
-        <p>
-        WordChain shows letter cells for the shortest solution.
-        When a letter should be changed, the outline around the letter to change is thicker.
+        Your next move is indicated with a yellow background:
+        pluses to add, minuses to delete, and the letter picker menu button to change.
         </p>
         <p>
-        If you play a word that increases the number of steps from the start to the target word,
-        the background of its letters will be red; otherwise they will be green
+        WordChain shows letter cells for the shortest solution,
+        which can help you decide what to do next.
+        When a letter should be changed, the outline around the letter to change is thicker
+        (and dashed when it is the current move).
+        </p>
+        <p>
+        If your step increases the number of steps from the start to the target word,
+        the background of its letters will be red; otherwise it will be green
         (or orange/blue in Colorblind Mode).
         </p>
         <h3>
         Every day there will be a new daily WordChain game.
+        You can play up to ${Const.PRACTICE_GAMES_PER_DAY} practice games per day.
         </h3>
         `;
 

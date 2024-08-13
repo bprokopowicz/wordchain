@@ -86,6 +86,7 @@ class Game extends BaseLogger {
         for (let step of this.remainingSteps.getSolutionSteps()) {
             this.playedSteps.addWord(step.word, isPlayed, Const.OK);
         }
+        this.remainingSteps.removeAllSteps();
     }
 
     // returns a list to display all the steps of the puzzle. 

@@ -245,6 +245,10 @@ class Solution extends BaseLogger {
         this.solutionSteps.shift();
     }
 
+    removeAllSteps() {
+        this.solutionSteps = [];
+    }
+
     getPenultimateWord() {
         if (this.solutionSteps.length < 2) {
             throw new Error(`Solution.getPenultimateWord(): solutionSteps length (${this.solutionSteps.length}) cannot be < 2`)

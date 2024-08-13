@@ -13,10 +13,13 @@ import * as Const from './Const.js';
 ** TODO:
 **
 ** Implementation
-** - Solution button -- add means to show WordChain's solution?
+** - Solution button -- add means to show WordChain's ORIGINAL solution?
 ** - After a game fails should the solution be shown?
 **   If so from the point of failure onward?
 **   Or by the same means to show WordChain's solution?
+** - Possible settings to tweak game difficulty:
+**   - Mode where future rows do not have change cells outlined thicker. (harder)
+**   - Mode where picker displays only letters that could result in valid words. (easier)
 ** - Resolve all TOODs!
 **
 ** Testing
@@ -159,7 +162,7 @@ class AppDisplay extends BaseLogger {
         // Button to show the solution.
         this.solutionButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
-            {id: "show-solution", class: "wordchain-button game-button"},
+            {id: "show-solution", class: "wordchain-button header-button"},
             "Solution");
 
         // Save 'this' in the solutionButton element so that we can access
@@ -170,7 +173,7 @@ class AppDisplay extends BaseLogger {
         // Button to switch between Daily and Practice games.
         this.switchGamesButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
-            {id: "switch-games", class: "wordchain-button game-button"},
+            {id: "switch-games", class: "wordchain-button header-button"},
             "Practice");
 
         // Save 'this' in the switchGamesButton element so that we can access

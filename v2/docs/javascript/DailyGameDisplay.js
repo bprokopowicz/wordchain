@@ -14,7 +14,7 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Class Variables ----- */
 
-    static BaseDate = new Date("2024-07-17T00:00:00.000+00:00");
+    static BaseDate = new Date("2024-08-12T00:00:00.000+00:00");
     static BaseTimestamp = null;
     static DateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
@@ -265,8 +265,10 @@ class DailyGameDisplay extends GameDisplay {
         //  Construct an object for StatsDisplay with these properties:
         //  over:            true if the game is over (user has found target word or too many steps)
         //  numWrongMoves:   how many more steps it took to solve than the minimum
-        //  moveSummary:     array of booleans indicating which words were correct/incorrect
-        //  dailyGameNumber: the
+        //  moveSummary:     array of arrays containing for each move:
+        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius 
+        //      length of the move's word
+        //  dailyGameNumber: the game number of today's game
         let gameInfo = {};
 
         gameInfo.over = this.game.isOver();
