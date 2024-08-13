@@ -6,13 +6,13 @@ import * as Const from './Const.js';
 // Pop the last entry which is always an empty string following the last new-line.
 // TODO: This should use Const.DICT_URL.
 
-const globalWordList = await fetch("http:/docs/resources/WordChainDict")
+const globalWordList = await fetch("https:/docs/resources/WordChainDict")
     .then(resp => resp.text())
     .then(text => text.split("\n"))
     .then(words => words.map((x)=>x.toUpperCase()))
     .then(words => words.slice(0,-1));
 
-const scrabbleWordList = await fetch("http:/docs/resources/Scrabble3-6")
+const scrabbleWordList = await fetch("https:/docs/resources/Scrabble3-6")
     .then(resp => resp.text())
     .then(text => text.split("\n"))
     .then(words => words.map((x)=>x.toUpperCase()))
