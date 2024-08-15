@@ -37,6 +37,24 @@ class PracticeGameDisplay extends GameDisplay {
         }
     }
 
+    /* ----- Pseudo Callbacks ----- */
+
+    // Override superclass letterPicked() to update gameState and PracticeGameWordsPlayed cookie.
+    letterPicked(letter, letterPosition) {
+        if (this.game.isOver()) {
+            console.error("PracticeGameDisplay.letterPicked(): game is already over");
+            return Const.UNEXPECTED_ERROR;
+        } 
+
+        let gameResult = super.letterPicked(letter, letterPosition);
+
+        if (gameResult === Const.OK) {
+            this.practiceGameWordsPlayed = this.gameState;
+            Cookie.saveJson("PracticeGameWordsPlayed", this.practiceGameWordsPlayed);
+        } 
+        return gameResult;
+    } 
+
     /* ----- Callbacks ----- */
 
     newGameCallback(event) {
@@ -55,27 +73,11 @@ class PracticeGameDisplay extends GameDisplay {
         let me = event.srcElement.callbackAccessor;
 
         if (me.game.isOver()) {
-            return;
+            console.error("PracticeGameDisplay.deletionClickCallback(): game is already over");
+            return Const.UNEXPECTED_ERROR;
         }
 
         let gameResult = super.deletionClickCallback(event);
-
-        if (gameResult === Const.OK) {
-            me.practiceGameWordsPlayed = me.gameState;
-            Cookie.saveJson("PracticeGameWordsPlayed", me.practiceGameWordsPlayed);
-        }
-        return gameResult;
-    }
-
-    // Override superclass callback to update PracticeGameWordsPlayed cookie.
-    pickerChangeCallback(event) {
-        let me = event.srcElement.callbackAccessor;
-
-        if (me.game.isOver()) {
-            return;
-        }
-
-        let gameResult = super.pickerChangeCallback(event);
 
         if (gameResult === Const.OK) {
             me.practiceGameWordsPlayed = me.gameState;

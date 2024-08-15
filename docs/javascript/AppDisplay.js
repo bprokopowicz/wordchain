@@ -10,43 +10,6 @@ import * as Const from './Const.js';
 
 
 /*
-** TODO:
-**
-** Implementation
-** - Solution button -- add means to show WordChain's ORIGINAL solution?
-** - After a game fails should the solution be shown?
-**   If so from the point of failure onward?
-**   Or by the same means to show WordChain's solution?
-** - Possible settings to tweak game difficulty:
-**   - Mode where future rows do not have change cells outlined thicker. (harder)
-**   - Mode where picker displays only letters that could result in valid words. (easier)
-** - Resolve all TOODs!
-** - Remove v1 code
-**
-** Testing
-** - Update test plan
-** - Tweak for display on iPhone/iPad
-**
-** Before Sharing with Initial Friends
-** - Need to get a web server that supports https (Python's http.server doesn't)
-**   ===> Will github work?
-**   - URL has to be https or localhost in order to access navigator.clipboard
-**   - URL has to be https in order to access navigator.share() (mobile only, so no localhost)
-** - Review help message
-** - 30 days of daily games
-** - Execute test plan on iPhone/iPad (Safari) and desk/laptop (Safari/Chrome)
-**
-** Deployment
-** - How to create/minify/obscure one big js file
-** - Buy domain wordchain.com?
-** - Where to host?
-** - How to manage daily game words long-term?
-** - Testing on various browsers/devices
-** - Cookies: make secure? Obfuscate? Save in back-end DB?
-** - Logo/favicon.ico
-*/
-
-/*
 ** See the Cookie class for a description of the cookies that this class uses.
 */
 

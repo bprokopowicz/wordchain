@@ -1,24 +1,32 @@
-document how to run tests - js and python.
-
-Not working:
-- local game and local test
-- accessing https URLs from locally connected phone
-
-http://localhost:8000/wordchain/docs/html/LocalWordChain.html
-http://localhost:8000/wordchain/docs/html/Test.html
-
-SOLUTION:
-added simple-https-server.py to wordchain/python/
-from wordchain/.. directory, run
-python3 wordchain/python/simple-https-server.py
-
-The regular (non-local) version of the game and test HTML work both remotely and locally now
-
-https://bprokopowicz.github.io/wordchain/docs/html/WordChain.html
-https://bprokopowicz.github.io/wordchain/docs/html/Test.html
-
-locally:
-https://localhost/wordchain/docs/html/WordChain.html
-https://localhost/wordchain/docs/html/Test.html
+Implementation
+- Solution button -- add means to show WordChain's ORIGINAL solution?
+- After a game fails should the solution be shown?
+  If so from the point of failure onward?
+  Or by the same means to show WordChain's solution?
+- Possible settings to tweak game difficulty:
+  - Mode where future rows do not have change cells outlined thicker. (harder)
+  - Mode where picker displays only letters that could result in valid words. (easier)
+- Resolve all TOODs!
 
 
+Testing
+- Document how to run tests - js and python.
+- Update test plan (https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing)
+- Tweak for display on iPhone/iPad
+- Stats tests
+
+
+Before Sharing with Initial Friends
+- Review help message
+- 30 days of daily games
+- Execute test plan on iPhone/iPad (Safari) and desk/laptop (Safari/Chrome)
+
+
+Deployment
+- How to create/minify/obscure one big js file
+- Buy domain wordchain.com?
+- Where to host?
+- How to manage daily game words long-term?
+- Testing on various browsers/devices
+- Cookies: make secure? Obfuscate? Save in back-end DB?
+- Logo/favicon.ico

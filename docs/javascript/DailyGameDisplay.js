@@ -5,7 +5,7 @@ import * as Const from './Const.js';
 
 /*
 ** This class reads and updates a DailyStats cookie, which is stored in
-** this class as instance variable dailyStats. See the StatsDicplay class
+** this class as instance variable dailyStats. See the StatsDisplay class
 ** for a description of the contents of the cookie. See the Cookie class
 ** for a description of the other cookies that this class uses.
 */
@@ -72,13 +72,21 @@ class DailyGameDisplay extends GameDisplay {
         // had stats before. In all other cases this is redundant, but oh well!
         Cookie.saveJson("DailyStats", this.dailyStats);
 
+        // Test.js will give a special argument on the HTML when it opens
+        // the window to run a daily game that requires the daily game to
+        // be static; check for that.
+        const queryString = window.location.search;
+        if (queryString.indexOf('testing') >= 0) {
+            Cookie.save("DebugStaticDaily", true);
+        }
+
         // Debug-only cookie that can be manually added to use a static daily game.
         const debugStaticDaily = Cookie.getBoolean("DebugStaticDaily");
         Const.GL_DEBUG && this.logDebug("debugStaticDaily:", debugStaticDaily, "daily");
 
         if (debugStaticDaily) {
-            this.startWord = "dog";
-            this.targetWord = "bite";
+            this.startWord = Const.STATIC_DAILY_GAME_START;
+            this.targetWord = Const.STATIC_DAILY_GAME_TARGET;
             this.validGame = true;
             this.incrementStat("gamesPlayed");
             this.dailyGameNumber = 1;
@@ -88,10 +96,6 @@ class DailyGameDisplay extends GameDisplay {
             Cookie.save("DailySolutionShown", false);
             Cookie.saveJson("DailyGameWordsPlayed", []);
         } else {
-            // Create a backup daily game words, in case we cannot get one.
-            this.backupStartWord  = "daily";
-            this.backupTargetWord = "broken";
-
             // Get today's daily game; this will set this.startWord and
             // this.targetWord so that we can call the base class constructGame()
             // and display the game.
@@ -157,8 +161,8 @@ class DailyGameDisplay extends GameDisplay {
             this.validGame = true;
         } else {
             // No daily game? Something went awry; use the backup.
-            this.startWord  = this.backupStartWord;
-            this.targetWord = this.backupTargetWord;
+            this.startWord  = Const.BACKUP_DAILY_GAME_START;
+            this.targetWord = Const.BACKUP_DAILY_GAME_TARGET;
             this.appDisplay.showToast(Const.NO_DAILY);
 
             // Return now; don't consider this a new game.
@@ -197,6 +201,25 @@ class DailyGameDisplay extends GameDisplay {
         return nextGameTimestamp - (new Date()).getTime();
     }
 
+    /* ----- Pseudo Callbacks ----- */
+
+    // Override superclass letterPicked() to update gameState and DailyGameWordsPlayed cookie
+    letterPicked(letter, letterPosition) {
+        if (this.game.isOver()) {
+            console.error("DailyGameDisplay.letterPicked(): game is already over");
+            return Const.UNEXPECTED_ERROR;
+        }
+
+        let gameResult = super.letterPicked(letter, letterPosition);
+
+        if (gameResult === Const.OK) {
+            this.dailyGameWordsPlayed = this.gameState
+            Cookie.saveJson("DailyGameWordsPlayed", this.dailyGameWordsPlayed);
+        }
+
+        return gameResult;
+    }
+
     /* ----- Callbacks ----- */
 
     // Override superclass callback to update DailyStats cookie.
@@ -204,7 +227,8 @@ class DailyGameDisplay extends GameDisplay {
         let me = event.srcElement.callbackAccessor;
 
         if (me.game.isOver()) {
-            return;
+            console.error("DailyGameDisplay.additionClickCallback(): game is already over");
+            return Const.UNEXPECTED_ERROR;
         }
 
         me.updateGameStats(super.additionClickCallback(event));
@@ -212,6 +236,8 @@ class DailyGameDisplay extends GameDisplay {
         // NOTE: No need to save words in DailyGameWordsPlayed because an addition
         // doesn't actually provide a word; we'll pick up the new word in
         // pickerChangeCallback().
+
+        return Const.OK;
     }
 
     // Override superclass callback to update DailyStats and DailyGameWordsPlayed cookie.
@@ -219,7 +245,8 @@ class DailyGameDisplay extends GameDisplay {
         let me = event.srcElement.callbackAccessor;
 
         if (me.game.isOver()) {
-            return;
+            console.error("DailyGameDisplay.deletionClickCallback(): game is already over");
+            return Const.UNEXPECTED_ERROR;
         }
 
         let gameResult = super.deletionClickCallback(event);
@@ -229,24 +256,7 @@ class DailyGameDisplay extends GameDisplay {
             me.dailyGameWordsPlayed = me.gameState;
             Cookie.saveJson("DailyGameWordsPlayed", me.dailyGameWordsPlayed);
         }
-    }
-
-    // Override superclass callback to update DailyStats and DailyGameWordsPlayed cookie.
-    pickerChangeCallback(event) {
-        let me = event.srcElement.callbackAccessor;
-
-        if (me.game.isOver()) {
-            return;
-        }
-
-        let gameResult = super.pickerChangeCallback(event);
-
-        me.updateGameStats(gameResult);
-
-        if (gameResult === Const.OK) {
-            me.dailyGameWordsPlayed = me.gameState
-            Cookie.saveJson("DailyGameWordsPlayed", me.dailyGameWordsPlayed);
-        }
+        return gameResult;
     }
 
     updateGameStats(gameResult) {
@@ -266,7 +276,7 @@ class DailyGameDisplay extends GameDisplay {
         //  over:            true if the game is over (user has found target word or too many steps)
         //  numWrongMoves:   how many more steps it took to solve than the minimum
         //  moveSummary:     array of arrays containing for each move:
-        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius 
+        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius
         //      length of the move's word
         //  dailyGameNumber: the game number of today's game
         let gameInfo = {};

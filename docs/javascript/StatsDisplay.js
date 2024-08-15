@@ -118,6 +118,7 @@ class StatsDisplay extends AuxiliaryDisplay {
                 me.appDisplay.showToast(Const.SHARE_INSECURE);
             }
         }
+        return shareString; // used in testing only
     }
 
     /* ----- Utilities ----- */
@@ -179,7 +180,7 @@ class StatsDisplay extends AuxiliaryDisplay {
             shareString += emoji.repeat(wordLength) + "\n";
         }
 
-        return shareString;
+        return shareString.trim();
     }
 
     // This is called when the user opens the Stats screen; it displays a

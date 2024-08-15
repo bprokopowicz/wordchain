@@ -12,6 +12,8 @@ function sleep(ms) {
 }
 
 /*
+    TODO: UPDATE THIS COMMENT!
+
    Mock event attributes needed by calllbacks:
    event.game - the Game object 
    event.srcElement - should hold mock object with getAttribute() method that understands the following attributes:
@@ -785,16 +787,10 @@ class Test extends BaseLogger {
     geniusMoveTest() {
         this.name = "GeniusMoveDisplay"; // move to test method
         
-        this.theAppDisplay.switchToPracticeGame();
-
-        let practiceGame = this.theAppDisplay.practiceGame;
-        practiceGame.updateWords("SHORT","POOR");
+        this.theAppDisplay.switchToDailyGame();
 
         let gameDisplay = this.theAppDisplay.currentGameDisplay;
-        let game = gameDisplay.game;
 
-        // add a genius word to the scrabble dictionary
-        game.scrabbleDictionary.addWord("HOOR");
         let srcElement = new MockEventSrcElement(gameDisplay);
         let mockEvent = new MockEvent(srcElement);
 
@@ -807,7 +803,6 @@ class Test extends BaseLogger {
         let resultO4 = gameDisplay.letterPicker.selectionMade("O", unused);
 
         // SHOOT -> HOOT
-        
         mockEvent.srcElement.setAttribute("deletionPosition", "1");
         let resultDelete1 = gameDisplay.deletionClickCallback(mockEvent);
         
@@ -816,17 +811,35 @@ class Test extends BaseLogger {
         let resultR4Genius = gameDisplay.letterPicker.selectionMade("R", unused);
 
         // HOOR -> POOR  we are skipping this - it's enough that we saw the genius move
-       
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        let resultP1 = gameDisplay.letterPicker.selectionMade("P", unused);
+
+        // While we're here, let's look at the share ...
+        let statsDisplay = this.theAppDisplay.statsDisplay;
+        console.log("theAppDisplay", this.theAppDisplay);
+        console.log("gameDisplay", gameDisplay);
+        console.log("theAppDisplay.statsDisplay", statsDisplay);
+
+        let statsSrcElement = new MockEventSrcElement(statsDisplay);
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        let shareString = statsDisplay.shareCallback(statsMockEvent);
+
+        let expectedShareString = "WordChain #1 ⭐\n\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🌟🌟🌟🌟\n🟩🟩🟩🟩";
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
             this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
             this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
+            this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
+            this.verify((shareString === expectedShareString), `sharestring: expected '${expectedShareString}', got '${shareString}'`) &&
             this.success();
     }
 
     runAppTests() {
-        this.newWindow = window.open('/wordchain/docs/html/WordChain.html', 'AppDisplayTest', 'width=600,height=800');
-        console.log("new window opened.  Calling waitForAppDisplayThenRunTheAppTests().");
+        this.newWindow = window.open('/wordchain/docs/html/WordChain.html?testing', 'AppDisplayTest', 'width=600,height=800');
+
+        // pass our debug settings to the child window
+        this.newWindow.localStorage.setItem("Debug", Cookie.get("Debug")); 
+        console.log("new window opened. Calling waitForAppDisplayThenRunTheAppTests().");
         this.waitForAppDisplayThenRunTheAppTests();
     }
 
@@ -849,15 +862,14 @@ class Test extends BaseLogger {
         // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
         // It should be ready before this method is called because of the sleep in runAppTests().
 
-        this.getNewWindow().localStorage.setItem("Debug",Cookie.get("Debug"));
         this.theAppDisplay = this.getNewWindow().theAppDisplay;
-        this.logDebug(`remote window's app display is ready: ${this.getNewWindow().theAppDisplayIsReady}`);
+        Const.GL_DEBUG && this.logDebug("remote window's app display is ready:", this.getNewWindow().theAppDisplayIsReady, "test");
 
         if (this.getNewWindow().theAppDisplayIsReady) {
             this.practiceGameTest();
             this.geniusMoveTest();
         } else {
-            console.log("ASSERTION: trying to run the AppDisplay tests before theAppDisplayIsReady.");
+            console.error("ASSERTION: trying to run the AppDisplay tests before theAppDisplayIsReady.");
         }
         this.resultsAreReady = true;
     }

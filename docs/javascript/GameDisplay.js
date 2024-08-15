@@ -54,7 +54,8 @@ class GameDisplay extends BaseLogger {
         Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
 
         if (this.game.isOver()) {
-            return;
+            console.error("GameDisplay.letterPicked(): game is already over");
+            return Const.UNEXPECTED_ERROR;
         }
 
         if (letter === this.currentLetter) {
@@ -268,7 +269,8 @@ class GameDisplay extends BaseLogger {
         var me = event.srcElement.callbackAccessor;
 
         if (me.game.isOver()) {
-            return;
+            console.error("GameDisplay.additionClickCallback(): game is already over");
+            return Const.UNEXPECTED_ERROR;
         }
 
         Const.GL_DEBUG && me.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
@@ -282,7 +284,8 @@ class GameDisplay extends BaseLogger {
         var me = event.srcElement.callbackAccessor;
 
         if (me.game.isOver()) {
-            return;
+            console.error("GameDisplay.deletionClickCallback(): game is already over");
+            return Const.UNEXPECTED_ERROR;
         }
 
         Const.GL_DEBUG && me.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");

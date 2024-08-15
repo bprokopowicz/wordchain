@@ -60,6 +60,12 @@ export const INSERT_CHAR    = "+";
 export const MIN_WORD_LENGTH = 3;
 export const MAX_WORD_LENGTH = 6;
 
+// Constants for testing/debugging games and broken games
+export const STATIC_DAILY_GAME_START  = "short";
+export const STATIC_DAILY_GAME_TARGET = "poor";
+export const BACKUP_DAILY_GAME_START  = "daily";
+export const BACKUP_DAILY_GAME_TARGET = "broken";
+
 // Constants for settings screen
 export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
 export const FAQ_HREF   = "FAQ.html";
