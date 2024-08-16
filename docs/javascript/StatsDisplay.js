@@ -268,11 +268,9 @@ class StatsDisplay extends AuxiliaryDisplay {
         function addBar(barValue, barLabel, parentDiv) {
 
             // Calculate the width of the bar as a percentage of the maximum value determined above.
-            // If width calculates to 0, set it to 5 so there's a bar to contain the value.
-            let width = Math.round((barValue / maxWrongWordsValue) * 100);
-            if (width === 0) {
-                width = 10;
-            }
+            // Set width to a minimum of 10% so there's a bar to contain the value.
+            let width = (maxWrongWordsValue === 0) ? 0 : Math.round((barValue / maxWrongWordsValue) * 100);
+            width = Math.max(width, 10);
 
             // Add a div for this bar.
             const oneBar = ElementUtilities.addElementTo("div", parentDiv, {class: "one-bar"});

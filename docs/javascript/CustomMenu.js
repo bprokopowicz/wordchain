@@ -1,3 +1,4 @@
+// Define a new HTML element that the Picker class will create.
 class CustomMenu extends HTMLElement {
     constructor() {
         super();
