@@ -20,7 +20,7 @@ class PracticeGameDisplay extends GameDisplay {
         super(appDisplay, gameDiv, pickerDiv, "practice-picker");
 
         // Debug-only cookie that can be manually added to the time period.
-        this.debugMinPerDay = Cookie.getInt("DebugPracticeMinPerDay");
+        this.debugMinPerDay = Cookie.getInt(Cookie.DEBUG_PRACTICE_MIN_PER_DAY);
 
         // Are we debugging limiting practice games?
         if (this.debugMinPerDay) {
@@ -50,7 +50,7 @@ class PracticeGameDisplay extends GameDisplay {
 
         if (gameResult === Const.OK) {
             this.practiceGameWordsPlayed = this.gameState;
-            Cookie.saveJson("PracticeGameWordsPlayed", this.practiceGameWordsPlayed);
+            Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, this.practiceGameWordsPlayed);
         } 
         return gameResult;
     } 
@@ -58,10 +58,7 @@ class PracticeGameDisplay extends GameDisplay {
     /* ----- Callbacks ----- */
 
     newGameCallback(event) {
-        // When the button was created we saved 'this' as callbackAccessor in the button
-        // element; use it to access other instance data.
-        const me = event.srcElement.callbackAccessor;
-        me.updateWords();
+        this.updateWords();
     }
 
     // NOTE: No need to override additionClickCallback() an addition doesn't actually provide
@@ -70,9 +67,8 @@ class PracticeGameDisplay extends GameDisplay {
 
     // Override superclass callback to update PracticeGameWordsPlayed cookie.
     deletionClickCallback(event) {
-        let me = event.srcElement.callbackAccessor;
 
-        if (me.game.isOver()) {
+        if (this.game.isOver()) {
             console.error("PracticeGameDisplay.deletionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
         }
@@ -80,8 +76,8 @@ class PracticeGameDisplay extends GameDisplay {
         let gameResult = super.deletionClickCallback(event);
 
         if (gameResult === Const.OK) {
-            me.practiceGameWordsPlayed = me.gameState;
-            Cookie.saveJson("PracticeGameWordsPlayed", me.practiceGameWordsPlayed);
+            this.practiceGameWordsPlayed = this.gameState;
+            Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, this.practiceGameWordsPlayed);
         }
         return gameResult;
     }
@@ -91,8 +87,8 @@ class PracticeGameDisplay extends GameDisplay {
     // This will be called in GameDisplay when the game is determined to be over.
     additionalGameOverActions() {
         // Clear out the practice game words in the cookies.
-        Cookie.save("PracticeGameStart", "");
-        Cookie.save("PracticeGameTarget", "");
+        Cookie.remove(Cookie.PRACTICE_GAME_START);
+        Cookie.remove(Cookie.PRACTICE_GAME_TARGET);
 
         this.updateTimestamps();
 
@@ -103,10 +99,8 @@ class PracticeGameDisplay extends GameDisplay {
                 {id: "new-game", class: "wordchain-button game-button"},
                 "New Game");
 
-            // Save 'this' in the newGameButton element so that we can access
-            // it (via event.srcElement.callbackAccessor) in the callback.
-            this.newGameButton.callbackAccessor = this;
-            ElementUtilities.setButtonCallback(this.newGameButton, this.newGameCallback);
+            // Save 'this' by binding it to the naked callback function
+            ElementUtilities.setButtonCallback(this.newGameButton, this.newGameCallback.bind(this));
         }
     }
 
@@ -127,7 +121,7 @@ class PracticeGameDisplay extends GameDisplay {
     updateTimestamps() {
         this.updateTime = (new Date()).getTime();
 
-        this.practiceGameTimestamps = Cookie.getJsonOrElse("PracticeGameTimestamps", []);
+        this.practiceGameTimestamps = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_TIMESTAMPS, []);
 
         // Make sure the user hasn't used up their practice games for the day.
         if (this.practiceGameTimestamps.length >= Const.PRACTICE_GAMES_PER_DAY) {
@@ -168,24 +162,24 @@ class PracticeGameDisplay extends GameDisplay {
         } else {
             // Save the timestamp of this game in the instance and cookies.
             this.practiceGameTimestamps.push(this.updateTime);
-            Cookie.save("PracticeGameTimestamps", JSON.stringify(this.practiceGameTimestamps));
+            Cookie.save(Cookie.PRACTICE_GAME_TIMESTAMPS, JSON.stringify(this.practiceGameTimestamps));
 
             // See if we have words in the cookie.
-            this.startWord  = Cookie.get("PracticeGameStart");
-            this.targetWord = Cookie.get("PracticeGameTarget");
+            this.startWord  = Cookie.get(Cookie.PRACTICE_GAME_START);
+            this.targetWord = Cookie.get(Cookie.PRACTICE_GAME_TARGET);
 
             if (!this.startWord || this.startWord.length === 0) {
                 // No words in the cookie; get new ones from the Game class and save them.
                 [this.startWord, this.targetWord] = Game.getPracticePuzzle();
                 //this.startWord = "FATE";
                 //this.targetWord = "CAT";
-                Cookie.save("PracticeGameStart", this.startWord);
-                Cookie.save("PracticeGameTarget", this.targetWord);
-                Cookie.saveJson("PracticeGameWordsPlayed", []);
+                Cookie.save(Cookie.PRACTICE_GAME_START, this.startWord);
+                Cookie.save(Cookie.PRACTICE_GAME_TARGET, this.targetWord);
+                Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
                 this.practiceGameWordsPlayed = [];
             } else {
                 // We did have start/target words; get any words already played.
-                this.practiceGameWordsPlayed = Cookie.getJsonOrElse("PracticeGameWordsPlayed", []);
+                this.practiceGameWordsPlayed = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
             }
         }
 

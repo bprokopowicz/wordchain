@@ -157,7 +157,6 @@ class ElementUtilities {
         buttonElement.addEventListener("click", localCallback);
         buttonElement.addEventListener("keyup", localCallback);
         buttonElement.addEventListener("keydown", localCallback);
-        //buttonElement.addEventListener("touchstart", callback);
     }
 
     // Used only in Test.js.

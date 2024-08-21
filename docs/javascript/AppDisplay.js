@@ -28,8 +28,8 @@ class AppDisplay extends BaseLogger {
         window.theAppDisplay = this;
 
         // Flags from Settings screen
-        this.darkTheme      = Cookie.getBoolean("DarkTheme");
-        this.colorblindMode = Cookie.getBoolean("ColorblindMode");
+        this.darkTheme      = Cookie.getBoolean(Cookie.DARK_THEME);
+        this.colorblindMode = Cookie.getBoolean(Cookie.COLORBLIND_MODE);
 
         // The mother of all divs.
         this.rootDiv = null;
@@ -133,10 +133,8 @@ class AppDisplay extends BaseLogger {
             {id: "show-solution", class: "wordchain-button header-button"},
             "Solution");
 
-        // Save 'this' in the solutionButton element so that we can access
-        // it (via event.srcElement.callbackAccessor) in the callback.
-        this.solutionButton.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(this.solutionButton, this.solutionCallback);
+        // bind 'this' to the callback for the solutionButton element so that we can access ourself.
+        ElementUtilities.setButtonCallback(this.solutionButton, this.solutionCallback.bind(this));
 
         // Button to switch between Daily and Practice games.
         this.switchGamesButton = ElementUtilities.addElementTo(
@@ -144,10 +142,8 @@ class AppDisplay extends BaseLogger {
             {id: "switch-games", class: "wordchain-button header-button"},
             "Practice");
 
-        // Save 'this' in the switchGamesButton element so that we can access
-        // it (via event.srcElement.callbackAccessor) in the callback.
-        this.switchGamesButton.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(this.switchGamesButton, this.switchGamesCallback);
+        // bind 'this' to the callback for the solutionButton element so that we can access ourself.
+        ElementUtilities.setButtonCallback(this.switchGamesButton, this.switchGamesCallback.bind(this));
     }
 
     createHeaderDiv() {
@@ -196,23 +192,16 @@ class AppDisplay extends BaseLogger {
 
     // Callback for the Solution button.
     solutionCallback(event) {
-        // When the button was created we saved 'this' as callbackAccessor in the button
-        // element; use it to access other instance data.
-        const me = event.srcElement.callbackAccessor;
-        me.currentGameDisplay.showSolution();
+        this.currentGameDisplay.showSolution();
     }
 
     // Callback for the Switch Games button.
     switchGamesCallback(event) {
-        // When the button was created we saved 'this' as callbackAccessor in the button
-        // element; use it to access other instance data.
-        const me = event.srcElement.callbackAccessor,
-              buttonText = event.srcElement.innerText;
-
+        const buttonText = event.srcElement.innerText;
         if (buttonText === "Practice") {
-            me.switchToPracticeGame();
+            this.switchToPracticeGame();
         } else {
-            me.switchToDailyGame();
+            this.switchToDailyGame();
         }
     }
 

@@ -43,6 +43,9 @@
 **        number of practice games allowed in a day.
 **     DebugPracticeMinPerDay
 **        Integer: Number of minutes to consider one day when debugging practice games.
+**
+**   Obsolete
+**     HardMode, TypeSavingMode
 */
 
 
@@ -50,21 +53,74 @@
 // on iOS, so it was changed to this much, much simpler localStorage approach -- bam!
 // Didn't even need to change any calling code.
 class Cookie {
-    static get(name) {
-        return localStorage.getItem(name);
+
+    static DEBUG = "Debug";
+    static DARK_THEME = "DarkTheme";
+    static COLORBLIND_MODE = "ColorblindMode";
+    static DAILY_GAME_NUMBER = "DailyGameNumber";
+    static DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
+    static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
+    static DAILY_STATS = "DailyStats";
+    static DEBUG_STATIC_DAILY = "DebugStaticDaily";
+    static DEBUG_DAILY_MIN_PER_DAY = "DebugDailyMinPerDay";
+    static DEBUG_BASE_TIMESTAMP = "DebugBaseTimestamp";
+    static PRACTICE_GAME_START = "PracticeGameStart";
+    static PRACTICE_GAME_TARGET = "PracticeGameTarget";
+    static PRACTICE_GAME_WORDS_PLAYED = "PracticeGameWordsPlayed";
+    static PRACTICE_GAME_TIMESTAMPS = "PracticeGameTimestamps";
+    static DEBUG_PRACTICE_MIN_PER_DAY = "DebugPracticeMinPerDay";
+    static HARD_MODE = "HardMode";
+    static TYPE_SAVING_MODE = "TypeSavingMode";
+
+    static ALL_COOKIE_NAMES = [
+        Cookie.DEBUG,
+        Cookie.DARK_THEME,
+        Cookie.COLORBLIND_MODE,
+        Cookie.DAILY_GAME_NUMBER,
+        Cookie.DAILY_GAME_WORDS_PLAYED,
+        Cookie.DAILY_SOLUTION_SHOWN,
+        Cookie.DAILY_STATS,
+        Cookie.DEBUG_STATIC_DAILY,
+        Cookie.DEBUG_DAILY_MIN_PER_DAY,
+        Cookie.DEBUG_BASE_TIMESTAMP,
+        Cookie.PRACTICE_GAME_START,
+        Cookie.PRACTICE_GAME_TARGET,
+        Cookie.PRACTICE_GAME_WORDS_PLAYED,
+        Cookie.PRACTICE_GAME_TIMESTAMPS,
+        Cookie.DEBUG_PRACTICE_MIN_PER_DAY,
+        Cookie.HARD_MODE,
+        Cookie.TYPE_SAVING_MODE
+    ];
+
+    static clearAllCookies(theWindow=window) {
+        for (const cookieName of Cookie.ALL_COOKIE_NAMES) {
+            Cookie.remove(cookieName, theWindow);
+        }
     }
 
-    static getBoolean(name) {
-        return Cookie.get(name) === "true";
+    static clearNonDebugCookies(theWindow=window) {
+        for (const cookieName of Cookie.ALL_COOKIE_NAMES) {
+            if (cookieName.indexOf("Debug") < 0) {
+                Cookie.remove(cookieName, theWindow);
+            }
+        }
     }
 
-    static getInt(name) {
-        const strVal = Cookie.get(name);
+    static get(name, theWindow=window) {
+        return theWindow.localStorage.getItem(name);
+    }
+
+    static getBoolean(name, theWindow=window) {
+        return Cookie.get(name, theWindow) === "true";
+    }
+
+    static getInt(name, theWindow=window) {
+        const strVal = Cookie.get(name, theWindow);
         return strVal ? parseInt(strVal) : null;
     }
 
-    static getJsonOrElse(name, defaultVal=null) {
-        const strVal = Cookie.get(name);
+    static getJsonOrElse(name, defaultVal, theWindow=window) {
+        const strVal = Cookie.get(name, theWindow);
         if (strVal) {
             return JSON.parse(strVal);
         } else {
@@ -72,20 +128,16 @@ class Cookie {
         }
     }
 
-    static remove(name, secure) {
-        localStorage.removeItem(name);
+    static remove(name, theWindow=window) {
+        theWindow.localStorage.removeItem(name);
     }
 
-    static save(name, value) {
-        localStorage.setItem(name, value.toString());
+    static save(name, value, theWindow=window) {
+        theWindow.localStorage.setItem(name, value.toString());
     }
 
-    static saveInt(name, intVal) {
-        Cookie.save(name, intVal);
-    }
-
-    static saveJson(name, val) {
-        Cookie.save(name, JSON.stringify(val));
+    static saveJson(name, val, theWindow=window) {
+        Cookie.save(name, JSON.stringify(val), theWindow);
     }
 }
 

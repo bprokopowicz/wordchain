@@ -60,6 +60,10 @@ class SettingsDisplay extends AuxiliaryDisplay {
         return ElementUtilities.addElementTo("div", settingDiv, {});
     }
 
+    getAppDisplay() {
+        return this.appDisplay;
+    }
+
     // Add a setting whose input is a checkbox.
     addCheckboxSetting(title, id, value) {
         // setting-simple class styles the contents of the setting (title/description,
@@ -69,10 +73,7 @@ class SettingsDisplay extends AuxiliaryDisplay {
         const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
             {type: "checkbox", id: id, class: "setting-checkbox"});
 
-        // Save the appDisplay in the checkbox element so that we can access its
-        // methods in the callback via event.srcElement.callbackAccessor).
-        checkbox.callbackAccessor = this.appDisplay;
-        checkbox.addEventListener("change", this.checkboxCallback);
+        checkbox.addEventListener("change", this.checkboxCallback.bind(this));
         checkbox.checked = value;
     }
 
@@ -109,10 +110,7 @@ class SettingsDisplay extends AuxiliaryDisplay {
                 {value: radioInfo.value, name: radioName, class: "setting-radio", type: "radio"});
             radio.checked = radioInfo.checked;
 
-            // Save the appDisplay in the radio element so that we can access its methods
-            // in the callback (via event.srcElement.callbackAccessor).
-            radio.callbackAccessor = this.appDisplay;
-            radio.addEventListener("change", callbackFunction);
+            radio.addEventListener("change", callbackFunction.bind(this));
 
             // Column 2: the description of the radio item.
             const tdCol2 = ElementUtilities.addElementTo("td", tableRow, {});
@@ -127,10 +125,6 @@ class SettingsDisplay extends AuxiliaryDisplay {
 
     // Callback for Settings checkbox changes.
     checkboxCallback(event) {
-        // When the checkbox was created we saved the AppDisplay object passed
-        // to the constructor; use it to access AppDisplay methods to change the
-        // corresponding settings.
-        const appDisplay = event.srcElement.callbackAccessor;
 
         // The id attribute in the event's srcElement property tells us which setting whas changed.
         const checkboxId = event.srcElement.getAttribute("id");
@@ -139,46 +133,42 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // checkbox was checked or unchecked. Set the boolean corresponding to the
         // checkbox's id according to that.
         if (checkboxId === "dark") {
-            appDisplay.darkTheme = event.srcElement.checked ? true : false;
-            Cookie.save("DarkTheme", appDisplay.darkTheme);
-            appDisplay.setColors();
+            this.appDisplay.darkTheme = event.srcElement.checked ? true : false;
+            Cookie.save(Cookie.DARK_THEME, this.appDisplay.darkTheme);
+            this.appDisplay.setColors();
 
         } else if (checkboxId === "colorblind") {
-            appDisplay.colorblindMode = event.srcElement.checked ? true : false;
-            Cookie.save("ColorblindMode", appDisplay.colorblindMode);
-            appDisplay.setColors();
+            this.appDisplay.colorblindMode = event.srcElement.checked ? true : false;
+            Cookie.save(Cookie.COLORBLIND_MODE, this.appDisplay.colorblindMode);
+            this.appDisplay.setColors();
         }
     }
 
     /*
     // Callback for Settings radio button changes.
     radioCallback(event) {
-        // When the radio was created we saved the AppDisplay object passed
-        // to the constructor; use it to access AppDisplay methods to change the
-        // corresponding settings.
-        const appDisplay = event.srcElement.callbackAccessor;
 
         const selection = event.srcElement.value;
         if (selection == "Hard") {
-            appDisplay.hardMode = true;
-            appDisplay.typeSavingMode = false;
+            this.appDisplay.hardMode = true;
+            this.appDisplay.typeSavingMode = false;
         } else if (selection === "Type-Saving") {
-            appDisplay.typeSavingMode = true;
-            appDisplay.hardMode = false;
+            this.appDisplay.typeSavingMode = true;
+            this.appDisplay.hardMode = false;
         } else {
-            appDisplay.typeSavingMode = false;
-            appDisplay.hardMode = false;
+            this.appDisplay.typeSavingMode = false;
+            this.appDisplay.hardMode = false;
         }
 
         // Save both cookies.
-        Cookie.save("HardMode", appDisplay.hardMode);
-        Cookie.save("TypeSavingMode", appDisplay.typeSavingMode);
+        Cookie.save(Cookie.HARD_MODE, this.appDisplay.hardMode);
+        Cookie.save(Cookie.TYPE_SAVING_MODE, this.appDisplay.typeSavingMode);
 
         // Hard and Type-Saving modes are implemented in the game tile display,
         // so tell it what our modes are now.
         // ========= Will need to figure out what the v2 equivalent of this is.
-        appDisplay.gameTileDisplay.setHardMode(appDisplay.hardMode);
-        appDisplay.gameTileDisplay.setTypeSavingMode(appDisplay.typeSavingMode);
+        this.appDisplay.gameTileDisplay.setHardMode(this.appDisplay.hardMode);
+        this.appDisplay.gameTileDisplay.setTypeSavingMode(this.appDisplay.typeSavingMode);
     }
     */
 

@@ -7,7 +7,10 @@ import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
-function sleep(ms) {
+// use: inTheFuture(2000).then( (foo=this) => {foo.doSomething(arg1, arg2)}
+// the method will called as this.doSomething(arg1, arg2);
+
+function inTheFuture(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -15,23 +18,27 @@ function sleep(ms) {
     TODO: UPDATE THIS COMMENT!
 
    Mock event attributes needed by calllbacks:
-   event.game - the Game object 
+   event.game - the Game object
    event.srcElement - should hold mock object with getAttribute() method that understands the following attributes:
-
-   let me = event.srcElement.callbackAccessor - a reference to this (me) the tester.
 
    let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
    let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
    let letterPosition = parseInt(event.srcElement.getAttribute('letterPosition')),
 
    The currentGameDisplay's 'letterPicker' object needs to be manipulated directly because we inspect
-   it to find the letter picked by the user.  
-   letterPicker.value = "J";  
+   it to find the letter picked by the user.
+   letterPicker.value = "J";
  */
+
+class TestClassForCookie {
+    constructor() {
+        this.nums = [];
+        this.field = "";
+    }
+}
 
 class MockEventSrcElement {
     constructor(me) {
-        this.callbackAccessor = me;
         this.attributes = new Map();
     }
 
@@ -59,7 +66,7 @@ class Test extends BaseLogger {
     constructor() {
         super();
 
-        this.name = "NOT SET";
+        this.testName = "NOT SET";
         this.tinyList  = ["APPLE", "PEAR", "BANANA"];
         this.smallList = ["BAD", "BADE", "BALD", "BAT", "BATE", "BID", "CAD", "CAT", "DOG", "SCAD"]
         this.fullDict = new WordChainDict(globalWordList);
@@ -105,61 +112,56 @@ class Test extends BaseLogger {
 
 
         for (let button of [runAll, runDict, runSolver, runGame, runApp]) {
-            button.callbackAccessor = this;
-            ElementUtilities.setButtonCallback(button, this.runTestsCallback);
+            ElementUtilities.setButtonCallback(button, this.runTestsCallback.bind(this));
         }
 
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "testResults"}, "");
     }
 
     runTestsCallback(event) {
-        // When the button was created we saved 'this' as callbackAccessor in the button
-        // element; use it to access other instance data.
-        const me = event.srcElement.callbackAccessor,
-              buttonId = event.srcElement.getAttribute("id");
 
-        if (me.testingInProgress) {
+        const buttonId = event.srcElement.getAttribute("id");
+
+        if (this.testingInProgress) {
             console.log("Testing already in progress, please wait for results ...");
             return;
         } else {
             console.log("Testing started, please wait for results ...");
         }
-        me.successCount = 0;
-        me.failureCount = 0;
-        me.messages = [];
-        me.resultsAreReady = true;
+        this.successCount = 0;
+        this.failureCount = 0;
+        this.messages = [];
+        this.needToWaitForAsyncResults = false;
 
-        let testingStartTime = Date.now();
+        this.testingStartTime = Date.now();
 
         if (buttonId == "runAll" || buttonId == "runDict") {
-            me.runDictTests();
+            this.runDictTests();
         }
         if (buttonId == "runAll" || buttonId == "runSolver") {
-            me.runSolverTests();
+            this.runSolverTests();
         }
         if (buttonId == "runAll" || buttonId == "runGame") {
-            me.runGameTests();
+            this.runGameTests();
         }
         if (buttonId == "runAll" || buttonId == "runApp") {
-            me.resultsAreReady = false;
-            me.runAppTests();
+            this.runAppTests();
         }
 
         // we may need to pause before checking results because App Tess run separately
-        me.waitForResultsThenShowThem();
-        console.log(`Testing took ${Date.now() - testingStartTime} ms.`);
-        me.testingStartTime = Date.now();
-        me.testingInProgress = false;
+        this.waitForResultsThenShowThem();
+        this.testingInProgress = false;
     }
 
     waitForResultsThenShowThem() {
         if (this.getResultsAreReady()) {
-            console.log ("results are ready - show them.");
+            this.logDebug("results are ready - show them.", "test");
             this.showResults();
+            console.log(`Testing took ${Date.now() - this.testingStartTime} ms.`);
         }  else {
             const sleepTime = 1000;
-            console.log(`pausing  ${sleepTime} for resultsAreReady.`);
-            sleep(sleepTime).then( () => { this.waitForResultsThenShowThem();});
+            this.logDebug("pausing  ", sleepTime, " for needToWaitForAsyncResults.");
+            inTheFuture(sleepTime).then( (foo=this) => { foo.waitForResultsThenShowThem();});
         }
     }
 
@@ -175,14 +177,14 @@ class Test extends BaseLogger {
 
     verify(truthValue, message) {
         if (! truthValue) {
-            this.messages.push(`${this.name}: Failed: ${message}`);
+            this.messages.push(`${this.testName}: Failed: ${message}`);
             this.failureCount += 1;
         }
         return truthValue;
     }
 
     success(testName) {
-        this.messages.push(`${this.name}: Succeeded`);
+        this.messages.push(`${this.testName}: Succeeded`);
         this.successCount += 1;
     }
 
@@ -213,14 +215,14 @@ class Test extends BaseLogger {
         let i = 0;
         while (i < 1000) {
             i++;
-            let adders = copyDict.findAdderWords("READ"); 
+            let adders = copyDict.findAdderWords("READ");
         }
         endTestTime = Date.now();
         this.logDebug(`dictionary findAdders in copy elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testDictIsWord() {
-        this.name = "DictIsWord";
+        this.testName = "DictIsWord";
         const tinyDict  = new WordChainDict(this.tinyList);
         this.verify((tinyDict.getSize() === 3), "size !== 3") &&
             this.verify(tinyDict.isWord("APPLE"), "APPLE is not a word") &&
@@ -230,7 +232,7 @@ class Test extends BaseLogger {
     }
 
     testDictAdders() {
-        this.name = "DictAdders";
+        this.testName = "DictAdders";
         const smallDict = new WordChainDict(this.smallList);
 
         const cadAdders = smallDict.findAdderWords("CAD");
@@ -244,7 +246,7 @@ class Test extends BaseLogger {
     }
 
     testDictRemovers() {
-        this.name = "DictRemovers";
+        this.testName = "DictRemovers";
         const smallDict = new WordChainDict(this.smallList);
 
         const ccadRemovers = smallDict.findRemoverWords("CCAD");
@@ -258,7 +260,7 @@ class Test extends BaseLogger {
     }
 
     testDictReplacements() {
-        this.name = "DictReplacements";
+        this.testName = "DictReplacements";
         const smallDict = new WordChainDict(this.smallList);
 
         const badReplacements = smallDict.findReplacementWords("BAD");
@@ -271,7 +273,7 @@ class Test extends BaseLogger {
     }
 
     testDictFull() {
-        this.name = "DictFull";
+        this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
         const expectedMinDictSize = 15989;
@@ -294,7 +296,7 @@ class Test extends BaseLogger {
     }
 
     testScrabbleDict() {
-        this.name = "ScrabbleDict";
+        this.testName = "ScrabbleDict";
         this.verify (this.scrabbleDict.isWord("aargh"), "aargh is missing in scrabble dict") &&
         this.verify (this.scrabbleDict.isWord("zzz"), "zzz is missing in scrabble dict") &&
         this.verify (!this.scrabbleDict.isWord("zzzbrother"), "zzzbrother should not be in scrabble dict") &&
@@ -320,7 +322,7 @@ class Test extends BaseLogger {
 
     testSolverIdentitySequence() {
         const startTestTime = Date.now();
-        this.name = "SolverIdentitySequence";
+        this.testName = "SolverIdentitySequence";
         const dict = new WordChainDict(["BAD", "BAT", "CAD", "CAT", "DOG"]);
         const solution = Solver.solve(dict, "BAT", "BAT");
 
@@ -330,12 +332,12 @@ class Test extends BaseLogger {
             this.verify((solution.getTarget() === 'BAT'), "last word for 'BAT' to 'BAT' is not 'BAT'") &&
             this.success();
         const endTestTime = Date.now();
-        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
+        this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
     testSolverOneStep() {
         const startTestTime = Date.now();
-        this.name = "SolverOneStep"
+        this.testName = "SolverOneStep"
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
         // Adder
@@ -348,7 +350,7 @@ class Test extends BaseLogger {
         const solutionNope = Solver.solve(smallDict, "BAT", "DOG");
 
         const endTestTime = Date.now();
-        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
+        this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
         this.verify(solutionBadBade.success(), `error on adder 'BAD' to 'BADE': ${solutionBadBade.getError()}`) &&
             this.verify(solutionBadeBad.success(), `error on remover 'BADE' to 'BAD': ${solutionBadeBad.getError()}`) &&
@@ -363,14 +365,14 @@ class Test extends BaseLogger {
 
     testSolverMultiStep() {
         const startTestTime = Date.now();
-        this.name = "SolverTwoStep"
+        this.testName = "SolverTwoStep"
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
 
         const solutionBatScad = Solver.solve(smallDict, "BAT", "SCAD");
         const solutionScadBat = Solver.solve(smallDict, "SCAD", "BAT");
 
         const endTestTime = Date.now();
-        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
+        this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
         this.verify(solutionBatScad.success(), `error on 'BAT' to 'SCAD': ${solutionBatScad.getError()}`) &&
             this.verify(solutionScadBat.success(), `error on 'SCAD' to 'BAT': ${solutionScadBat.getError()}`) &&
@@ -380,7 +382,7 @@ class Test extends BaseLogger {
     }
 
     testSolverLongChain() {
-        this.name = "SolverLongChain";
+        this.testName = "SolverLongChain";
         const startTestTime = Date.now();
 
         const solutionTacoBimbo = Solver.solve(this.fullDict, "TACO", "BIMBO");
@@ -388,7 +390,7 @@ class Test extends BaseLogger {
         const expectedWords = [ "TACO", "TAO", "TAB", "LAB", "LAMB", "LIMB", "LIMBO", "BIMBO" ];
 
         const endTestTime = Date.now();
-        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
+        this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
         this.verify(solutionTacoBimbo.success(), `error on 'TACO' to 'BIMBO': ${solutionTacoBimbo.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `foundWords: ${foundWords} is not as expected: ${expectedWords}`) &&
@@ -397,7 +399,7 @@ class Test extends BaseLogger {
 
 
     testSolverBothDirections() {
-        this.name = "SolverBothDirections";
+        this.testName = "SolverBothDirections";
         let startTestTime = Date.now();
 
         // This takes too long if the solver doesn't try to go from 'matzo'
@@ -410,8 +412,8 @@ class Test extends BaseLogger {
         endTestTime = Date.now();
         const elapsedReverseTime = endTestTime - startTestTime;
 
-        this.logDebug(`${this.name} MATZO to BALL elapsed time: ${elapsedForwardTime} ms`, "test");
-        this.logDebug(`${this.name} BALL to MATZO elapsed time: ${elapsedReverseTime} ms`, "test");
+        this.logDebug(`${this.testName} MATZO to BALL elapsed time: ${elapsedForwardTime} ms`, "test");
+        this.logDebug(`${this.testName} BALL to MATZO elapsed time: ${elapsedReverseTime} ms`, "test");
 
         this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'MATZO' TO 'BALL': ${solutionMatzoBall.getError()}`) &&
         this.verify((solutionBallMatzo.getError()=== "No solution"), `expected slow 'No solution' on 'BALL' TO 'MATZO': ${solutionBallMatzo.getError()}`) &&
@@ -421,10 +423,10 @@ class Test extends BaseLogger {
 
     testSolverSearchNoSolution() {
         const startTestTime = Date.now();
-        this.name = "SolverSearchNoSolution";
+        this.testName = "SolverSearchNoSolution";
         const triedSearchNoSolution = Solver.solve(this.fullDict, "FROG", "ECHO");
         const endTestTime = Date.now();
-        this.logDebug(`${this.name} elapsed time: ${endTestTime - startTestTime} ms`, "test");
+        this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
         this.verify(!triedSearchNoSolution.isSolved(), `expected 'No solution' on 'FROG' to 'ECHO'`) &&
         this.success();
@@ -432,8 +434,8 @@ class Test extends BaseLogger {
 
     testPuzzleFinder() {
         const startTestTime = Date.now();
-        this.name = "PuzzleFinder";
- 
+        this.testName = "PuzzleFinder";
+
         const startWord = "BLUE",
               reqWordLen1 = 3,
               reqWordLen2 = 5,
@@ -443,7 +445,7 @@ class Test extends BaseLogger {
               targetWordLen = 5,
               expectedNumberOfPuzzles = 664;
 
-        const suitablePuzzles = 
+        const suitablePuzzles =
             Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
             .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
         suitablePuzzles.sort();
@@ -483,7 +485,7 @@ class Test extends BaseLogger {
     }
 
     testGameCorrectFirstWord() {
-        this.name = "GameCorrectFirstWord";
+        this.testName = "GameCorrectFirstWord";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         const steps = [];
@@ -495,7 +497,7 @@ class Test extends BaseLogger {
     }
 
     testGameDeleteWrongLetter() {
-        this.name = "GameDeleteLetterNotAWord";
+        this.testName = "GameDeleteLetterNotAWord";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         const steps = [];
@@ -507,7 +509,7 @@ class Test extends BaseLogger {
     }
 
     testGameDeleteBadPosition() {
-        this.name = "GameDeleteBadPosition";
+        this.testName = "GameDeleteBadPosition";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         const steps = [];
@@ -520,7 +522,7 @@ class Test extends BaseLogger {
 
 
     testGameDifferentWordFromInitialSolution() {
-        this.name = "GameDifferentWordFromInitialSolution";
+        this.testName = "GameDifferentWordFromInitialSolution";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAT", "DOG", "SCAD"]);
         const origSolution = Solver.solve(smallDict, "BAD", "CAT");
@@ -529,7 +531,7 @@ class Test extends BaseLogger {
         const origWord1 = game.remainingSteps.getNthWord(0);
 
         if ( !(this.verify((origWord1 === "BAT"), "original solution should have BAT as first word") &&
-        // "bade" is not in the original solution 
+        // "bade" is not in the original solution
             this.verify(! origSolution.getSolutionWords().includes('BADE'), "Original solution should not have 'BADE'"))) return;
 
         const playAddResult = game.playAdd(3);
@@ -547,7 +549,7 @@ class Test extends BaseLogger {
     }
 
     testGameCompleteSmallDict() {
-        this.name = "GameCompleteSmallDict";
+        this.testName = "GameCompleteSmallDict";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         const solution = Solver.solve(smallDict, "BAD", "SCAD");
@@ -561,7 +563,7 @@ class Test extends BaseLogger {
     }
 
     testGameCompleteFullDict() {
-        this.name = "GameCompleteFullDict";
+        this.testName = "GameCompleteFullDict";
         const solution = Solver.solve(this.fullDict, "bad", "word");
         const isPlayed = true;
         const moveRating = Const.OK;
@@ -573,7 +575,7 @@ class Test extends BaseLogger {
     }
 
     testGameNotShortestSolutionBug() {
-        this.name = "GameNotShortestSolutionBug";
+        this.testName = "GameNotShortestSolutionBug";
         const solution = Solver.solve(this.fullDict, "BROKEN", "BAKED");
         const foundWords = solution.getSolutionSteps().map((step)=>step.word);
         const expectedWords = [ "BROKEN", "BROKE", "BRAKE", "BAKE", "BAKED" ];
@@ -583,7 +585,7 @@ class Test extends BaseLogger {
     }
 
     testGameDisplayInstructions() {
-        this.name = "GameDisplayInstructions";
+        this.testName = "GameDisplayInstructions";
         const steps = [];
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         const game = new Game("SCAD", "BAT", steps, smallDict);
@@ -622,7 +624,7 @@ class Test extends BaseLogger {
     }
 
     testGameDisplayInstructionsMistakes() {
-        this.name = "GameDisplayInstructionsMistakes";
+        this.testName = "GameDisplayInstructionsMistakes";
         const steps = [];
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD"]);
         const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
@@ -650,7 +652,7 @@ class Test extends BaseLogger {
     }
 
     testGameDisplayInstructionsDifferentPath() {
-        this.name = "GameDisplayInstructionsDifferentPath";
+        this.testName = "GameDisplayInstructionsDifferentPath";
         const steps = [];
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD"]);
         const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
@@ -669,13 +671,13 @@ class Test extends BaseLogger {
     }
 
     testGameUsingScrabbleWord() {
-        this.name = "GameUsingScrabbleWord";
+        this.testName = "GameUsingScrabbleWord";
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
         const steps = [];
-        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT 
+        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT
 
         const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
-        const scagToSagResult = game.playDelete(2); // SCAG to SAG.  
+        const scagToSagResult = game.playDelete(2); // SCAG to SAG.
         const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
         this.verify((scadToScagResult === Const.WRONG_MOVE), `playLetter(4,G) expected ${Const.WRONG_MOVE}, got ${scadToScagResult}`) &&
         this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
@@ -687,14 +689,14 @@ class Test extends BaseLogger {
     }
 
     testGameUsingGeniusMove() {
-        this.name = "GameUsingGeniusMove";
+        this.testName = "GameUsingGeniusMove";
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
         const steps = [];
         const game = new Game("SCAD", "SAG", steps, smallDict); // shortest solution is SCAD,CAD,CAT,SAT,SAG
                                                                 // but genius solution is SCAD,SCAG,SAG
 
         const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
-        const scagToSagResult = game.playDelete(2); // SCAG to SAG.  
+        const scagToSagResult = game.playDelete(2); // SCAG to SAG.
         const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
         this.verify((scadToScagResult === Const.GENIUS_MOVE), `playLetter(4,G) expected ${Const.GENIUS_MOVE}, got ${scadToScagResult}`) &&
         this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
@@ -702,7 +704,7 @@ class Test extends BaseLogger {
     }
 
     testGameFinish() {
-        this.name = "GameFinish";
+        this.testName = "GameFinish";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         const steps = [];
@@ -713,7 +715,7 @@ class Test extends BaseLogger {
         const displayInstructionsAfterFinish = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
         this.verify((playResult === Const.OK), "Word played not OK") &&
             this.verify((displayInstructionsAfterFinish.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructionsAfterFinish.length}`) &&
-            this.verify(game.isOver()) && 
+            this.verify(game.isOver()) &&
             this.success();
     }
 
@@ -722,20 +724,25 @@ class Test extends BaseLogger {
     */
 
     // ===== AppDisplay Tester =====
+    // These tests are called with a 'me' argument instead of this because they are called
+    // by waitForAppDisplayThenRunFunc(some-test-func);
 
     practiceGameTest() {
-        this.name = "PracticeGame"; 
-        
+        this.testName = "PracticeGame";
+
+        this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
+        Cookie.clearNonDebugCookies(this.getNewAppWindow());
+
         this.logDebug("Switching to practice game", "test");
-        this.theAppDisplay.switchToPracticeGame();
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
         this.logDebug("Done switching to practice game", "test");
 
-        let practiceGame = this.theAppDisplay.practiceGame;
+        let practiceGame = this.getNewAppWindow().theAppDisplay.practiceGame;
         this.logDebug("updating practice game to TEST->PILOT", "test");
         practiceGame.updateWords("TEST","PILOT");
         this.logDebug("done updating practice game to TEST->PILOT", "test");
 
-        let gameDisplay = this.theAppDisplay.currentGameDisplay;
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         let srcElement = new MockEventSrcElement(gameDisplay);
         let mockEvent = new MockEvent(srcElement);
         let unused = "";
@@ -748,7 +755,7 @@ class Test extends BaseLogger {
         // LEST -> LET
         mockEvent.srcElement.setAttribute("deletionPosition", "3");
         let resultDelete3 = gameDisplay.deletionClickCallback(mockEvent);
-        
+
         // LET -> LIT - wrong move!
         gameDisplay.letterPicker.saveLetterPosition(2);
         let resultI2Wrong = gameDisplay.letterPicker.selectionMade("I", unused);
@@ -782,14 +789,16 @@ class Test extends BaseLogger {
             this.verify((resultAddition1 === Const.OK), `playAdd(1) returns ${resultAddition1}, not ${Const.OK}`) &&
             this.verify((resultI2 === Const.OK), `playLetter(2, I) returns ${resultI2}, not ${Const.OK}`) &&
             this.success();
+        this.runNextTest();
     }
 
-    geniusMoveTest() {
-        this.name = "GeniusMoveDisplay"; // move to test method
-        
-        this.theAppDisplay.switchToDailyGame();
+    geniusMoveAndShareTest() {
+        this.testName = "GeniusMoveDisplay";
 
-        let gameDisplay = this.theAppDisplay.currentGameDisplay;
+        Cookie.clearNonDebugCookies(this.getNewAppWindow());
+        this.getNewAppWindow().theAppDisplay.switchToDailyGame();
+
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         let srcElement = new MockEventSrcElement(gameDisplay);
         let mockEvent = new MockEvent(srcElement);
@@ -805,7 +814,7 @@ class Test extends BaseLogger {
         // SHOOT -> HOOT
         mockEvent.srcElement.setAttribute("deletionPosition", "1");
         let resultDelete1 = gameDisplay.deletionClickCallback(mockEvent);
-        
+
         // HOOT -> HOOR genius move
         gameDisplay.letterPicker.saveLetterPosition(4);
         let resultR4Genius = gameDisplay.letterPicker.selectionMade("R", unused);
@@ -815,10 +824,10 @@ class Test extends BaseLogger {
         let resultP1 = gameDisplay.letterPicker.selectionMade("P", unused);
 
         // While we're here, let's look at the share ...
-        let statsDisplay = this.theAppDisplay.statsDisplay;
-        console.log("theAppDisplay", this.theAppDisplay);
-        console.log("gameDisplay", gameDisplay);
-        console.log("theAppDisplay.statsDisplay", statsDisplay);
+        let statsDisplay = this.getNewAppWindow().theAppDisplay.statsDisplay;
+        this.logDebug("theAppDisplay", this.getNewAppWindow().theAppDisplay, "test");
+        this.logDebug("gameDisplay", gameDisplay, "test");
+        this.logDebug("theAppDisplay.statsDisplay", statsDisplay, "test");
 
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
@@ -832,50 +841,153 @@ class Test extends BaseLogger {
             this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
             this.verify((shareString === expectedShareString), `sharestring: expected '${expectedShareString}', got '${shareString}'`) &&
             this.success();
+        this.runNextTest();
+    }
+
+    cookieRestartTest() {
+        this.logDebug("new window should be open; saving cookies via new window", "test");
+        var testObj = new TestClassForCookie();
+        testObj.nums.push(3);
+        testObj.nums.push(5);
+        testObj.field = "hello";
+        Cookie.saveJson("testobj", testObj, this.getNewAppWindow());
+        Cookie.save("testint", 42, this.getNewAppWindow());
+        Cookie.save("testbool", true, this.getNewAppWindow());
+
+        // now close the window,
+        this.closeNewAppWindow();
+        // and re-open it,
+        this.openTheTestAppWindow();
+        // and then wait for the window and finish the test ...
+        this.waitForAppDisplayThenRunFunc(this.finishCookieRestartTest);
+    }
+
+    finishCookieRestartTest() {
+        // need to set the test testName here for recording results
+        this.testName = "CookieRestart";
+        this.logDebug("new window should be re-opened; restoring values via cookies in new window", "test");
+        var testIntRestored = Cookie.getInt("testint", this.getNewAppWindow());
+        var testBoolRestored = Cookie.getBoolean("testbool", this.getNewAppWindow());
+        var testObjRestored = Cookie.getJsonOrElse("testobj", null, this.getNewAppWindow());
+        this.verify((testIntRestored == 42), `testIntRestored is ${testIntRestored}, not 42`) &&
+            this.verify(testBoolRestored, `testBoolRestored is ${testBoolRestored}, not true`) &&
+            this.verify((testObjRestored.nums.length == 2), `testObjRestored.length is ${testObjRestored.length}, not 2`) &&
+            this.verify((testObjRestored.nums[0] == 3), `testObjRestored[0]is ${testObjRestored[0]}, not 3`) &&
+            this.verify((testObjRestored.nums[1] == 5), `testObjRestored[1]is ${testObjRestored[1]}, not 5`) &&
+            this.verify((testObjRestored.field == "hello"), `testObjRestored.field is '${testObjRestored.field}', not hello`) &&
+            this.success();
+        this.runNextTest();
+    }
+
+    closeNewAppWindow() {
+        if (this.getNewAppWindow()) {
+            this.getNewAppWindow().close();
+            this.newWindow = null;
+        }
+    }
+
+    dailyGameRestartTest() {
+        // The newly opened URL should be showing the daily game by default;
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+
+        // when opened with ?testing in the URL, the daily game will always
+        // be SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        // play two moves, then close and try to restore ...
+        //  SHORT -> SHOOT
+        let unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("O", unused);
+
+        // SHOOT -> HOOT
+        mockEvent.srcElement.setAttribute("deletionPosition", "1");
+        gameDisplay.deletionClickCallback(mockEvent);
+
+        // close the game window
+        this.getNewAppWindow().close();
+
+        // and re-open it
+        this.openTheTestAppWindow();
+        this.waitForAppDisplayThenRunFunc(this.finishRestoreGameTest);
+    }
+
+    // called after waiting with no 'this'
+    finishRestoreGameTest() {
+        // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
+        this.testName = "DailyGameRestart";
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        let game = gameDisplay.game;
+        let di = game.getDisplayInstructions();
+        this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
+        this.verify((di[0].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[0] is ${di[0].toStr()}`) &&
+        this.verify((di[1].toStr() === "(future,word:SHOOT,changePosition:0)"), `instruction[1] is ${di[1].toStr()}`) &&
+        this.verify((di[2].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[2] is ${di[2].toStr()}`) &&
+        this.verify((di[3].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
+        this.verify((di[4].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[4] is ${di[4].toStr()}`) &&
+        this.verify((di[5].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[4] is ${di[5].toStr()}`) &&
+            this.success();
+        this.runNextTest();
+    }
+
+    openTheTestAppWindow() {
+        this.newWindow = window.open('/wordchain/docs/html/WordChain.html?testing', 'AppDisplayTest', 'width=600,height=800');
+        // pass our debug settings to the child window
+        Cookie.save(Cookie.DEBUG, Cookie.get(Cookie.DEBUG), this.getNewAppWindow());
     }
 
     runAppTests() {
-        this.newWindow = window.open('/wordchain/docs/html/WordChain.html?testing', 'AppDisplayTest', 'width=600,height=800');
-
-        // pass our debug settings to the child window
-        this.newWindow.localStorage.setItem("Debug", Cookie.get("Debug")); 
-        console.log("new window opened. Calling waitForAppDisplayThenRunTheAppTests().");
-        this.waitForAppDisplayThenRunTheAppTests();
+        this.appTestList = [
+            this.cookieRestartTest,
+            this.practiceGameTest,
+            this.geniusMoveAndShareTest,
+            this.dailyGameRestartTest
+            ];
+        this.needToWaitForAsyncResults = true;
+        this.runNextTest();
     }
 
-    getNewWindow() {
+    runNextTest() {
+        var testFunc = this.appTestList.shift();
+        this.logDebug("runNextTest() testFunc=", testFunc, "test");
+        if (testFunc) {
+            // clear our own cookies
+            Cookie.clearNonDebugCookies();
+
+            // close and re-open the test App window
+            this.closeNewAppWindow();
+            this.openTheTestAppWindow();
+
+            // and then wait for the window and begin the next test ...
+            this.waitForAppDisplayThenRunFunc(testFunc);
+        } else {
+            this.closeNewAppWindow();
+            this.needToWaitForAsyncResults = false;
+        }
+    }
+
+    getNewAppWindow() {
         return this.newWindow;
     }
 
-    waitForAppDisplayThenRunTheAppTests() {
-        if (this.getNewWindow() && this.getNewWindow().theAppDisplayIsReady) {
-            console.log("new window AppDisplay is ready; running tests now.");
-            this.runTheTests();
+    // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
+    waitForAppDisplayThenRunFunc(func) {
+        if (this.getNewAppWindow() && this.getNewAppWindow().theAppDisplayIsReady) {
+            this.logDebug("new window AppDisplay is ready; calling func now.", "test");
+            // How to call this class's member function 'func' with 'this' properly set.
+            var boundFunc = func.bind(this);
+            boundFunc();
         } else {
             const sleepTime = 1000;
-            console.log (`pausing ${sleepTime} for new window AppDisplay to be ready.`);
-            sleep(sleepTime).then( () => { this.waitForAppDisplayThenRunTheAppTests();});
+            this.logDebug("pausing ", sleepTime, " for new window AppDisplay to be ready.");
+            inTheFuture(sleepTime).then( (foo=this) => { foo.waitForAppDisplayThenRunFunc(func);});
         }
     }
-
-    runTheTests() {
-        // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
-        // It should be ready before this method is called because of the sleep in runAppTests().
-
-        this.theAppDisplay = this.getNewWindow().theAppDisplay;
-        Const.GL_DEBUG && this.logDebug("remote window's app display is ready:", this.getNewWindow().theAppDisplayIsReady, "test");
-
-        if (this.getNewWindow().theAppDisplayIsReady) {
-            this.practiceGameTest();
-            this.geniusMoveTest();
-        } else {
-            console.error("ASSERTION: trying to run the AppDisplay tests before theAppDisplayIsReady.");
-        }
-        this.resultsAreReady = true;
-    }
-
     getResultsAreReady() {
-        return this.resultsAreReady;
+        return ! this.needToWaitForAsyncResults;
     }
 
     // ===== Dictionary Tester =====
@@ -893,30 +1005,28 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "findAnswer"}, " Click the button to find the word and following words.");
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        button.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(button, this.findCallback);
+        ElementUtilities.setButtonCallback(button, this.findCallback.bind(this));
 
     }
 
     findCallback(event) {
-        const me = event.srcElement.callbackAccessor;
 
         const word = ElementUtilities.getElementValue("someWord").toUpperCase();
         var result = `${word} in common dictionary: `;
 
-        if (me.fullDict.isWord(word)) {
+        if (this.fullDict.isWord(word)) {
             result += "Y";
         } else {
             result += "N";
         }
         result += `; in scrabble dictionary: `;
-        if (me.scrabbleDict.isWord(word)) {
+        if (this.scrabbleDict.isWord(word)) {
             result += "Y";
         } else {
             result += "N";
         }
 
-        const nextWords = [...me.fullDict.findNextWords(word)];
+        const nextWords = [...this.fullDict.findNextWords(word)];
         result += `; ${nextWords.length} words from ${word}: ${nextWords.join(",")}`;
         ElementUtilities.setElementHTML("findAnswer", result);
     }
@@ -942,29 +1052,28 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "solveTiming"}, "");
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        button.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(button, this.solveCallback);
+        ElementUtilities.setButtonCallback(button, this.solveCallback.bind(this));
     }
 
     solveCallback(event) {
-        const me = event.srcElement.callbackAccessor,
-              startWord = ElementUtilities.getElementValue("solverStartWord").toUpperCase();
 
-        if (! me.fullDict.isWord(startWord)) {
+        const startWord = ElementUtilities.getElementValue("solverStartWord").toUpperCase();
+
+        if (! this.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
             return;
         }
 
         const targetWord = ElementUtilities.getElementValue("solverTargetWord").toUpperCase();
-        if (! me.fullDict.isWord(targetWord)) {
+        if (! this.fullDict.isWord(targetWord)) {
             alert("Target word is empty or not a word");
             return;
         }
 
         const start = Date.now();
-        const solution = Solver.solve(me.fullDict, startWord, targetWord);
+        const solution = Solver.solve(this.fullDict, startWord, targetWord);
         const end = Date.now();
-        solution.calculateDifficulty(me.fullDict);
+        solution.calculateDifficulty(this.fullDict);
         ElementUtilities.setElementHTML("solveAnswer", solution.toHtml());
         ElementUtilities.setElementHTML("solveTiming",  `took ${(end-start)} ms`);
     }
@@ -981,11 +1090,11 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 1: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen1", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
-        
+
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 2: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen2", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
-        
+
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "final word len: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
@@ -1008,15 +1117,13 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "puzzleFinderAnswer"}, "Click the button to see the target words.");
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        button.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(button, this.puzzleFinderFindCallback);
+        ElementUtilities.setButtonCallback(button, this.puzzleFinderFindCallback.bind(this));
     }
 
     puzzleFinderFindCallback(event) {
-        const me = event.srcElement.callbackAccessor,
-              startWord = ElementUtilities.getElementValue("puzzleFinderStartWord");
+        const startWord = ElementUtilities.getElementValue("puzzleFinderStartWord");
 
-        if (! me.fullDict.isWord(startWord)) {
+        if (! this.fullDict.isWord(startWord)) {
             alert("Starting word is empty or not a word");
             return;
         }
@@ -1028,8 +1135,8 @@ class Test extends BaseLogger {
               minDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMinDifficulty")),
               targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen"));
 
-        const goodTargetsWithDifficulty = 
-            Solver.findPuzzles(me.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
+        const goodTargetsWithDifficulty =
+            Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
             .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
         goodTargetsWithDifficulty.sort();
 

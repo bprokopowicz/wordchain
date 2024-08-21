@@ -83,7 +83,7 @@ class GameDisplay extends BaseLogger {
     }
 
     displayAdd(displayInstruction) {
-        let me = this;
+        const me = this;
 
         function getCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
@@ -96,7 +96,7 @@ class GameDisplay extends BaseLogger {
     }
 
     displayChange(displayInstruction) {
-        let me = this;
+        const me = this;
 
         function getCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
@@ -123,11 +123,9 @@ class GameDisplay extends BaseLogger {
         // Now we add an extra <tr> element for the deletion cell row.
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
+        // we need to use a copy of 'this' as 'me' in the body of this local function
         function getDeletionCell(letter, letterPosition) {
-            // Pass 'me' to DeletionCell constructor so that it can be saved as "callbackAccessor"
-            // in the button so that the callback can get back to this object
-            // (via event.srcElement.callbackAccessor).
-            return new DeletionCell(letterPosition, me, me.deletionClickCallback);
+            return new DeletionCell(letterPosition, me.deletionClickCallback.bind(me));
         }
 
         // Disable the picker (because it is not used during deletion) and then display.
@@ -266,33 +264,31 @@ class GameDisplay extends BaseLogger {
     /* ----- Callbacks ----- */
 
     additionClickCallback(event) {
-        var me = event.srcElement.callbackAccessor;
 
-        if (me.game.isOver()) {
+        if (this.game.isOver()) {
             console.error("GameDisplay.additionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
         }
 
-        Const.GL_DEBUG && me.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
+        Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
-            gameResult = me.game.playAdd(additionPosition);
+            gameResult = this.game.playAdd(additionPosition);
 
-        return (me.processGameResult(gameResult));
+        return (this.processGameResult(gameResult));
     }
 
     deletionClickCallback(event) {
-        var me = event.srcElement.callbackAccessor;
 
-        if (me.game.isOver()) {
+        if (this.game.isOver()) {
             console.error("GameDisplay.deletionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
         }
 
-        Const.GL_DEBUG && me.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
+        Const.GL_DEBUG && this.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
-            gameResult = me.game.playDelete(deletionPosition);
+            gameResult = this.game.playDelete(deletionPosition);
 
-        return (me.processGameResult(gameResult));
+        return (this.processGameResult(gameResult));
     }
 
     /* ----- Utilities ----- */
@@ -306,11 +302,9 @@ class GameDisplay extends BaseLogger {
             letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
             moveRating = displayInstruction.moveRating;
 
-        // Pass 'this' to AdditionCell constructor here and in the loop, so that it can
-        // be saved as "callbackAccessor" in the button so that the callback can get
-        // back to this object (via event.srcElement.callbackAccessor).
         tdElement = this.addTd();
-        cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+        // raw callback function needs to be bound to current 'this'
+        cell = new AdditionCell(additionPosition, hideAdditionCells, this.additionClickCallback.bind(this));
 
         ElementUtilities.addElementTo(cell.getElement(), tdElement);
         additionPosition++;
@@ -319,7 +313,7 @@ class GameDisplay extends BaseLogger {
             tdElement = this.addTd();
             cell = cellCreator(letters[letterIndex], letterIndex + 1);
             ElementUtilities.addElementTo(cell.getElement(), tdElement);
-            cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+            cell = new AdditionCell(additionPosition, hideAdditionCells, this.additionClickCallback.bind(this));
 
             tdElement = this.addTd();
 

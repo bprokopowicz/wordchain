@@ -66,22 +66,22 @@ class DailyGameDisplay extends GameDisplay {
         }
 
         // If we have a cookie for daily stats parse it; otherwise set it to initial values.
-        this.dailyStats = Cookie.getJsonOrElse("DailyStats", initialStats);
+        this.dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, initialStats);
 
         // Now, save the stats again in case this is the very first game and we never
         // had stats before. In all other cases this is redundant, but oh well!
-        Cookie.saveJson("DailyStats", this.dailyStats);
+        Cookie.saveJson(Cookie.DAILY_STATS, this.dailyStats);
 
         // Test.js will give a special argument on the HTML when it opens
         // the window to run a daily game that requires the daily game to
         // be static; check for that.
         const queryString = window.location.search;
         if (queryString.indexOf('testing') >= 0) {
-            Cookie.save("DebugStaticDaily", true);
+            Cookie.save(Cookie.DEBUG_STATIC_DAILY, true);
         }
 
         // Debug-only cookie that can be manually added to use a static daily game.
-        const debugStaticDaily = Cookie.getBoolean("DebugStaticDaily");
+        const debugStaticDaily = Cookie.getBoolean(Cookie.DEBUG_STATIC_DAILY);
         Const.GL_DEBUG && this.logDebug("debugStaticDaily:", debugStaticDaily, "daily");
 
         if (debugStaticDaily) {
@@ -92,9 +92,9 @@ class DailyGameDisplay extends GameDisplay {
             this.dailyGameNumber = 1;
             this.dailySolutionShown = false;
             this.dailyGameWordsPlayed = [];
-            Cookie.save("DailyGameNumber", 1);
-            Cookie.save("DailySolutionShown", false);
-            Cookie.saveJson("DailyGameWordsPlayed", []);
+            Cookie.save(Cookie.DAILY_GAME_NUMBER, 1);
+            Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, false);
+            Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, []);
         } else {
             // Get today's daily game; this will set this.startWord and
             // this.targetWord so that we can call the base class constructGame()
@@ -110,16 +110,16 @@ class DailyGameDisplay extends GameDisplay {
     setDailyGameData() {
         // This keeps track of whether the user clicked the Show Solution button
         // for the daily game.
-        this.dailySolutionShown = Cookie.getBoolean("DailySolutionShown");
+        this.dailySolutionShown = Cookie.getBoolean(Cookie.DAILY_SOLUTION_SHOWN);
 
         // Get the DailyGameNumber cookie; this can be manually deleted
         // to restart the daily game number determination.
-        const currentDailyGameNumber = Cookie.getInt("DailyGameNumber");
-        Const.GL_DEBUG && this.logDebug("currentDailyGameNumber:", currentDailyGameNumber, "daily");
+        const currentDailyGameNumber = Cookie.getInt(Cookie.DAILY_GAME_NUMBER);
+        Const.GL_DEBUG && this.logDebug("recovered currentDailyGameNumber:", currentDailyGameNumber, "daily");
 
         // Debug-only cookie that can be manually added to reduce a day
         // to mere minutes.
-        const debugMinPerDay = Cookie.getInt("DebugDailyMinPerDay");
+        const debugMinPerDay = Cookie.getInt(Cookie.DEBUG_DAILY_MIN_PER_DAY);
 
         // Are we debugging daily games?
         if (debugMinPerDay) {
@@ -131,15 +131,15 @@ class DailyGameDisplay extends GameDisplay {
             if (currentDailyGameNumber === null) {
                 // Yes! Set the base timestamp to now and save it in a debug-only cookie.
                 DailyGameDisplay.BaseTimestamp = (new Date()).getTime();
-                Cookie.saveInt("DebugBaseTimestamp", DailyGameDisplay.BaseTimestamp);
+                Cookie.save(Cookie.DEBUG_BASE_TIMESTAMP, DailyGameDisplay.BaseTimestamp);
                 Const.GL_DEBUG && this.logDebug("DebugDailyMinPerDay is set! Fresh start; saved DebugBaseTimestamp; BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp), "daily");
             } else {
                 // No, but we're debugging, so get get the timestamp from the cookie.
                 // If there isn't a cookie, set it to "now".
-                DailyGameDisplay.BaseTimestamp = Cookie.getInt("DebugBaseTimestamp");
+                DailyGameDisplay.BaseTimestamp = Cookie.getInt(Cookie.DEBUG_BASE_TIMESTAMP);
                 if (DailyGameDisplay.BaseTimestamp === null) {
                     DailyGameDisplay.BaseTimestamp = (new Date()).getTime();
-                    Cookie.saveInt("DebugBaseTimestamp", DailyGameDisplay.BaseTimestamp);
+                    Cookie.save(Cookie.DEBUG_BASE_TIMESTAMP, DailyGameDisplay.BaseTimestamp);
                     Const.GL_DEBUG && this.logDebug("DebugDailyMinPerDay is set! NOT fresh start; no DebugTimestamp; setting to now", "daily");
                 }
                 Const.GL_DEBUG && this.logDebug("DebugDailyMinPerDay is set! NOT fresh start; got DebugBaseTimestamp; BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp), "daily");
@@ -172,19 +172,20 @@ class DailyGameDisplay extends GameDisplay {
         // If we didn't recover a daily game number from the cookies or
         // the number we recovered isn't the game number we just calculated,
         // this is a new daily game,
+        Const.GL_DEBUG && this.logDebug("this.dailyGameNumber (calculated) is", this.dailyGameNumber, "daily");
         if ((currentDailyGameNumber === null) || (currentDailyGameNumber != this.dailyGameNumber)) {
             // New daily game!
-            Cookie.saveInt("DailyGameNumber", this.dailyGameNumber);
+            Cookie.save(Cookie.DAILY_GAME_NUMBER, this.dailyGameNumber);
 
             this.dailySolutionShown = false;
-            Cookie.save("DailySolutionShown", false);
-            Cookie.saveJson("DailyGameWordsPlayed", []);
+            Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, false);
+            Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, []);
 
             // Update stats relating to a new daily game.
             this.incrementStat("gamesPlayed");
         } else {
             // Existing daily game; recover the words played so far.
-            this.dailyGameWordsPlayed = Cookie.getJsonOrElse("DailyGameWordsPlayed", []);
+            this.dailyGameWordsPlayed = Cookie.getJsonOrElse(Cookie.DAILY_GAME_WORDS_PLAYED, []);
             Const.GL_DEBUG && this.logDebug("this.dailyGameWordsPlayed:", this.dailyGameWordsPlayed, "daily");
         }
     }
@@ -205,6 +206,7 @@ class DailyGameDisplay extends GameDisplay {
 
     // Override superclass letterPicked() to update gameState and DailyGameWordsPlayed cookie
     letterPicked(letter, letterPosition) {
+        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
         if (this.game.isOver()) {
             console.error("DailyGameDisplay.letterPicked(): game is already over");
             return Const.UNEXPECTED_ERROR;
@@ -214,7 +216,7 @@ class DailyGameDisplay extends GameDisplay {
 
         if (gameResult === Const.OK) {
             this.dailyGameWordsPlayed = this.gameState
-            Cookie.saveJson("DailyGameWordsPlayed", this.dailyGameWordsPlayed);
+            Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.dailyGameWordsPlayed);
         }
 
         return gameResult;
@@ -224,14 +226,13 @@ class DailyGameDisplay extends GameDisplay {
 
     // Override superclass callback to update DailyStats cookie.
     additionClickCallback(event) {
-        let me = event.srcElement.callbackAccessor;
 
-        if (me.game.isOver()) {
+        if (this.game.isOver()) {
             console.error("DailyGameDisplay.additionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
         }
 
-        me.updateGameStats(super.additionClickCallback(event));
+        this.updateGameStats(super.additionClickCallback(event));
 
         // NOTE: No need to save words in DailyGameWordsPlayed because an addition
         // doesn't actually provide a word; we'll pick up the new word in
@@ -242,19 +243,18 @@ class DailyGameDisplay extends GameDisplay {
 
     // Override superclass callback to update DailyStats and DailyGameWordsPlayed cookie.
     deletionClickCallback(event) {
-        let me = event.srcElement.callbackAccessor;
 
-        if (me.game.isOver()) {
+        if (this.game.isOver()) {
             console.error("DailyGameDisplay.deletionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
         }
 
         let gameResult = super.deletionClickCallback(event);
 
-        me.updateGameStats(gameResult);
+        this.updateGameStats(gameResult);
         if (gameResult === Const.OK) {
-            me.dailyGameWordsPlayed = me.gameState;
-            Cookie.saveJson("DailyGameWordsPlayed", me.dailyGameWordsPlayed);
+            this.dailyGameWordsPlayed = this.gameState;
+            Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.dailyGameWordsPlayed);
         }
         return gameResult;
     }
@@ -294,7 +294,7 @@ class DailyGameDisplay extends GameDisplay {
         // Only update stats if this is a valid daily game.
         if (this.validGame) {
             this.dailyStats[whichStat] += 1;
-            Cookie.saveJson("DailyStats", this.dailyStats);
+            Cookie.saveJson(Cookie.DAILY_STATS, this.dailyStats);
         }
     }
 
@@ -302,7 +302,7 @@ class DailyGameDisplay extends GameDisplay {
     showSolution() {
         // TODO: Add an "are you sure?"
         this.dailySolutionShown = true;
-        Cookie.save("DailySolutionShown", true);
+        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, true);
         this.incrementStat("gamesShown");
         this.game.finishGame();
 

@@ -66,10 +66,8 @@ class StatsDisplay extends AuxiliaryDisplay {
             {class: "wordchain-button game-button"},
             "Share");
 
-        // Save 'this' in the shareButton element so that we can access
-        // it (via event.srcElement.callbackAccessor) in the callback.
-        this.shareButton.callbackAccessor = this;
-        ElementUtilities.setButtonCallback(this.shareButton, this.shareCallback);
+        // Bind 'this' to the callback function for the shareButton element so that we can access ourself
+        ElementUtilities.setButtonCallback(this.shareButton, this.shareCallback.bind(this));
     }
 
     /*
@@ -92,11 +90,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
     // Callback for the Share button.
     shareCallback(event) {
-        // When the button was created we saved 'this' as callbackAccessor in the button
-        // element; use it to access other instance data.
-        const me = event.srcElement.callbackAccessor,
-              shareString = me.getShareString();
-
+        const shareString = this.getShareString();
         if (shareString)
         {
             // Are we in a *secure* environment that has a "share" button, like a smart phone?
@@ -106,16 +100,16 @@ class StatsDisplay extends AuxiliaryDisplay {
                     text: shareString,
                 })
                 .catch((error) => {
-                    me.appDisplay.showToast(Const.SHARE_FAILED);
+                    this.appDisplay.showToast(Const.SHARE_FAILED);
                     console.error("Failed to share: ", error);
                 });
             // Are we in a *secure* environment that has access to clipboard (probably on a laptop/desktop)?
             } else if (navigator.clipboard) {
                 navigator.clipboard.writeText(shareString);
-                me.appDisplay.showToast(Const.SHARE_COPIED);
+                this.appDisplay.showToast(Const.SHARE_COPIED);
             // Insecure.
             } else {
-                me.appDisplay.showToast(Const.SHARE_INSECURE);
+                this.appDisplay.showToast(Const.SHARE_INSECURE);
             }
         }
         return shareString; // used in testing only
@@ -133,7 +127,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         //  over:            true if the game is over (user has found target word or too many steps)
         //  numWrongMoves:   how many more steps it took to solve than the minimum
         //  moveSummary:     array of arrays containing for each move:
-        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius 
+        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius
         //      length of the move's word
         //  dailyGameNumber: the current game number
         const gameInfo = this.appDisplay.getDailyGameInfo();
@@ -204,7 +198,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     // Hide or show the share callback based on whether the daily game solution
     // has been shown.
     updateShare() {
-        if (Cookie.getBoolean("DailySolutionShown")) {
+        if (Cookie.getBoolean(Cookie.DAILY_SOLUTION_SHOWN)) {
             this.shareButton.style.display = "none";
         } else {
             this.shareButton.style.display = "block";
@@ -215,7 +209,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     updateStatsContent() {
         // Get the daily stats from the cookies. We should always have stats because we
         // create them on constructing the daily game, so log if we don't.
-        let dailyStats = Cookie.getJsonOrElse("DailyStats", null);
+        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
 
         if (dailyStats === null)
         {

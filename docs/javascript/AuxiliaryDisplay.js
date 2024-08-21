@@ -12,8 +12,7 @@ class AuxiliaryDisplay extends BaseLogger {
         this.saveRestoreContainers = saveRestoreContainers;
 
         // This is the button that will be clicked to display the auxiliary screen.
-        this.displayButton = this.createSvgButton(buttonContainer, "aux-button", this.openAuxiliaryCallback, buttonSvgPath);
-        this.displayButton.callbackAccessor = this;
+        this.displayButton = this.createSvgButton(buttonContainer, "aux-button", this.openAuxiliaryCallback.bind(this), buttonSvgPath);
 
         // This div is the one we style as none or flex to hide/show the div (always none at first).
         // It will be centered in its parent div because of how it is styled.
@@ -28,8 +27,7 @@ class AuxiliaryDisplay extends BaseLogger {
         // styled, but its content (the button) will be right-justified in this div because of the
         // styling of close-button-div.
         const closeButtonContainer = ElementUtilities.addElementTo("div", this.contentContainer, {class: "close-button-div",});
-        this.closeButton = this.createSvgButton(closeButtonContainer, "close-button", this.closeAuxiliaryCallback, Const.CLOSE_PATH);
-        this.closeButton.callbackAccessor = this;
+        this.closeButton = this.createSvgButton(closeButtonContainer, "close-button", this.closeAuxiliaryCallback.bind(this), Const.CLOSE_PATH);
 
         // Add a break so that the content appears below the close button.
         ElementUtilities.addElementTo("div", this.contentContainer, {class: "break"});
@@ -50,13 +48,10 @@ class AuxiliaryDisplay extends BaseLogger {
         // using the big, ugly class constants.
         const path = ElementUtilities.addElementTo("path", svg, {d: svgPath});
 
-        // Save 'this' in the button, svg, and path elements so that we can access this
-        // object in the callbacks (via event.srcElement.callbackAccessor). The event may
-        // occur on any of these elements, so we need to add the callback to all of them.
-        // This causes some unfortunate complexities in the callbacks ...
+        // Set callbacks for button, svg, and path, and Save 'this' by binding it to the callback function
+        let boundCallback = buttonCallback.bind(this);
         for (let element of [button, svg, path]) {
-            element.callbackAccessor = this;
-            ElementUtilities.setButtonCallback(element, buttonCallback);
+            ElementUtilities.setButtonCallback(element, boundCallback);
         }
 
         return button;
@@ -66,67 +61,61 @@ class AuxiliaryDisplay extends BaseLogger {
 
     // Callback for closing an Auxiliary screen.
     closeAuxiliaryCallback(event) {
-        // When the button was created with createSvgButton() we saved 'this'
-        // as callbackAccessor on the button; use it to access other instance data.
-        const me = event.srcElement.callbackAccessor;
         // TODO: Why does this bomb?
-        //Const.GL_DEBUG && this.logDebug("closeAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event, "callback");
+        Const.GL_DEBUG && this.logDebug("closeAuxiliaryCallback(): this.isOpen:", this.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
         // comprise the close button. Any combination of them may generate an event,
         // but we only want to respond to it on the first one. If the display is NOT
         // open it means this is not the first call for the user's click, so we just
         // return now.
-        if (! me.isOpen) {
+        if (! this.isOpen) {
             return;
         }
 
         // If the derived class defined a function to do additional things on closure,
         // call the function.
-        if (me.additionalCloseActions) {
-            me.additionalCloseActions();
+        if (this.additionalCloseActions) {
+            this.additionalCloseActions();
         }
 
         // Now set the flag to prevent another call from doing anything.
-        me.isOpen = false;
+        this.isOpen = false;
 
         // Hide the auxiliary screen.
-        me.auxiliaryContainer.style.display = "none";
+        this.auxiliaryContainer.style.display = "none";
 
         // Now restore the containers that we saved when the auxiliary screen was opened.
-        me.restoreHiddenContainers();
+        this.restoreHiddenContainers();
     }
 
     // Callback for opening an Auxiliary screen.
     openAuxiliaryCallback(event) {
-        // When the button was created with createSvgButton() we saved 'this'
-        // as callbackAccessor on the button; use it to access other instance data.
-        const me = event.srcElement.callbackAccessor;
         // TODO: Why does this bomb?
-        //Const.GL_DEBUG && this.logDebug("openAuxiliaryCallback(): me.isOpen:", me.isOpen, ", event:", event, "callback");
+        Const.GL_DEBUG && this.logDebug("openAuxiliaryCallback(): this.isOpen:", this.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
         // comprise the button that opens this display. Any combination of them may
         // generate an event, but we only want to respond to it on the first one.
         // If the display is ALREADY open it means this is not the first call for
         // the user's click, so we just return now.
-        if (me.isOpen) {
+        if (this.isOpen) {
             return;
         }
 
         // If the derived class defined a function to do additional things on open,
         // call the function.
-        if (me.additionalOpenActions) {
-            me.additionalOpenActions();
+        if (this.additionalOpenActions) {
+            this.additionalOpenActions();
         }
 
         // Now set the flag to prevent another call from doing anything.
-        me.isOpen = true;
+        this.isOpen = true;
 
         // Hide the containers that are currently showing and save information
         // so we can restore them, and restore this one.
-        me.hideShownContainers();
-        ElementUtilities.show(me.auxiliaryContainer);
+        this.hideShownContainers();
+        ElementUtilities.show(this.auxiliaryContainer);
     }
 
     /* ----- Utilities ----- */

@@ -5,7 +5,7 @@ class BaseLogger {
     }
 
     logDebug(...args) {
-        let debugTags = Cookie.get('Debug'),
+        let debugTags = Cookie.get(Cookie.DEBUG),
             messageTags = args[arguments.length - 1];
         
         if (typeof messageTags === "string") {
