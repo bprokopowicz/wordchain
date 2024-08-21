@@ -23,7 +23,7 @@ class Cell {
 /* ----- ActionCell Classes ----- */
 
 class ActionCell extends Cell {
-    constructor(symbol, callback, deletion) {
+    constructor(symbol, callbackObj, callbackFunc, deletion) {
         super();
         this.symbol = symbol;
 
@@ -41,14 +41,14 @@ class ActionCell extends Cell {
         ElementUtilities.addClass(addButtonTo, 'circle action-cell');
 
         this.cellContents = ElementUtilities.addElementTo("button", addButtonTo, {class: 'action-button'}, this.symbol);
-        ElementUtilities.setButtonCallback(this.cellContents, callback);
+        ElementUtilities.setButtonCallback(this.cellContents, callbackObj, callbackFunc);
         this.addContentsClass("action");
     }
 }
 
 class AdditionCell extends ActionCell {
-    constructor(additionPosition, hidden, callback) {
-        super("+", callback, false);
+    constructor(additionPosition, hidden, callbackObj, callbackFunc) {
+        super("+", callbackObj, callbackFunc, false);
 
         if (hidden) {
             this.cellContainer.style.visibility = "hidden";
@@ -61,8 +61,8 @@ class AdditionCell extends ActionCell {
 }
 
 class DeletionCell extends ActionCell {
-    constructor(deletionPosition, callback) {
-        super("-", callback, true);
+    constructor(deletionPosition, callbackObj, callbackFunc) {
+        super("-", callbackObj, callbackFunc, true);
 
         // Add to the button element so we can get it when the event comes.
         this.cellContents.setAttribute("deletionPosition", deletionPosition);

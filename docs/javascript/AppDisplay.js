@@ -133,8 +133,8 @@ class AppDisplay extends BaseLogger {
             {id: "show-solution", class: "wordchain-button header-button"},
             "Solution");
 
-        // bind 'this' to the callback for the solutionButton element so that we can access ourself.
-        ElementUtilities.setButtonCallback(this.solutionButton, this.solutionCallback.bind(this));
+        // Pass 'this' to the callback for the solutionButton element so that we can access ourself.
+        ElementUtilities.setButtonCallback(this.solutionButton, this, this.solutionCallback);
 
         // Button to switch between Daily and Practice games.
         this.switchGamesButton = ElementUtilities.addElementTo(
@@ -142,8 +142,7 @@ class AppDisplay extends BaseLogger {
             {id: "switch-games", class: "wordchain-button header-button"},
             "Practice");
 
-        // bind 'this' to the callback for the solutionButton element so that we can access ourself.
-        ElementUtilities.setButtonCallback(this.switchGamesButton, this.switchGamesCallback.bind(this));
+        ElementUtilities.setButtonCallback(this.switchGamesButton, this, this.switchGamesCallback);
     }
 
     createHeaderDiv() {

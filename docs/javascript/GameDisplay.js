@@ -125,7 +125,7 @@ class GameDisplay extends BaseLogger {
 
         // we need to use a copy of 'this' as 'me' in the body of this local function
         function getDeletionCell(letter, letterPosition) {
-            return new DeletionCell(letterPosition, me.deletionClickCallback.bind(me));
+            return new DeletionCell(letterPosition, me, me.deletionClickCallback);
         }
 
         // Disable the picker (because it is not used during deletion) and then display.
@@ -303,8 +303,8 @@ class GameDisplay extends BaseLogger {
             moveRating = displayInstruction.moveRating;
 
         tdElement = this.addTd();
-        // raw callback function needs to be bound to current 'this'
-        cell = new AdditionCell(additionPosition, hideAdditionCells, this.additionClickCallback.bind(this));
+        // callback function 
+        cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
 
         ElementUtilities.addElementTo(cell.getElement(), tdElement);
         additionPosition++;
@@ -313,7 +313,7 @@ class GameDisplay extends BaseLogger {
             tdElement = this.addTd();
             cell = cellCreator(letters[letterIndex], letterIndex + 1);
             ElementUtilities.addElementTo(cell.getElement(), tdElement);
-            cell = new AdditionCell(additionPosition, hideAdditionCells, this.additionClickCallback.bind(this));
+            cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
 
             tdElement = this.addTd();
 

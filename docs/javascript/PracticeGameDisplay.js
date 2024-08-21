@@ -99,8 +99,8 @@ class PracticeGameDisplay extends GameDisplay {
                 {id: "new-game", class: "wordchain-button game-button"},
                 "New Game");
 
-            // Save 'this' by binding it to the naked callback function
-            ElementUtilities.setButtonCallback(this.newGameButton, this.newGameCallback.bind(this));
+            // Save 'this' as the callback obj.
+            ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
         }
     }
 

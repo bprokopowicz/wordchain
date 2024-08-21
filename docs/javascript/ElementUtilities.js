@@ -111,7 +111,7 @@ class ElementUtilities {
         element.setAttribute("style", "display: none;");
     }
 
-    static setButtonCallback(buttonElement, callback) {
+    static setButtonCallback(buttonElement, callbackObj, callbackFunc) {
         // When button is clicked (in Chrome on MacOS) we get a PointerEvent. When you hit RETURN
         // after clicking a button **while the mouse is still in the button** the button retains
         // focus, and a subsequent RETURN results in BOTH a PointerEvent and a KeyboardEvent.
@@ -128,6 +128,11 @@ class ElementUtilities {
         // Define a function that we will assign to click and key events on the
         // button element. If we got PointerEvent with a non-empty pointerType
         // we'll call the "real callback" and otherwise we simply ignore the event.
+        // The "real callback" passed to us is a naked function (no this).  So
+        // we supply the object to call the function on by binding it.
+
+        var boundCallbackFunc = callbackFunc.bind(callbackObj);
+
         function localCallback(theEvent) {
             const isSafari = navigator.vendor.toLowerCase().includes("apple");
             var clickEvent;
@@ -148,7 +153,7 @@ class ElementUtilities {
             if ((isSafari && theEvent instanceof clickEvent) ||
                 ((theEvent instanceof PointerEvent) &&
                  (theEvent.pointerType.length !== 0))) {
-                callback(theEvent);
+                boundCallbackFunc(theEvent);
             }
         }
 

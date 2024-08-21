@@ -66,8 +66,8 @@ class StatsDisplay extends AuxiliaryDisplay {
             {class: "wordchain-button game-button"},
             "Share");
 
-        // Bind 'this' to the callback function for the shareButton element so that we can access ourself
-        ElementUtilities.setButtonCallback(this.shareButton, this.shareCallback.bind(this));
+        // use 'this' as the callback object to the callback function for the shareButton element so that we can access ourself
+        ElementUtilities.setButtonCallback(this.shareButton, this, this.shareCallback);
     }
 
     /*

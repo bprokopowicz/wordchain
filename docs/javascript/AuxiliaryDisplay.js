@@ -12,7 +12,7 @@ class AuxiliaryDisplay extends BaseLogger {
         this.saveRestoreContainers = saveRestoreContainers;
 
         // This is the button that will be clicked to display the auxiliary screen.
-        this.displayButton = this.createSvgButton(buttonContainer, "aux-button", this.openAuxiliaryCallback.bind(this), buttonSvgPath);
+        this.displayButton = this.createSvgButton(buttonContainer, "aux-button", this, this.openAuxiliaryCallback, buttonSvgPath);
 
         // This div is the one we style as none or flex to hide/show the div (always none at first).
         // It will be centered in its parent div because of how it is styled.
@@ -27,7 +27,7 @@ class AuxiliaryDisplay extends BaseLogger {
         // styled, but its content (the button) will be right-justified in this div because of the
         // styling of close-button-div.
         const closeButtonContainer = ElementUtilities.addElementTo("div", this.contentContainer, {class: "close-button-div",});
-        this.closeButton = this.createSvgButton(closeButtonContainer, "close-button", this.closeAuxiliaryCallback.bind(this), Const.CLOSE_PATH);
+        this.closeButton = this.createSvgButton(closeButtonContainer, "close-button", this, this.closeAuxiliaryCallback, Const.CLOSE_PATH);
 
         // Add a break so that the content appears below the close button.
         ElementUtilities.addElementTo("div", this.contentContainer, {class: "break"});
@@ -35,7 +35,7 @@ class AuxiliaryDisplay extends BaseLogger {
 
     // This is a common method for creating a button that has an SVG image
     // (as opposed to just text).
-    createSvgButton(buttonContainer, buttonClass, buttonCallback, svgPath, relatedDiv="") {
+    createSvgButton(buttonContainer, buttonClass, callbackObj, buttonCallbackFunc, svgPath, relatedDiv="") {
         // Create the button itself.
         const button = ElementUtilities.addElementTo("button", buttonContainer, {class: buttonClass});
 
@@ -48,10 +48,9 @@ class AuxiliaryDisplay extends BaseLogger {
         // using the big, ugly class constants.
         const path = ElementUtilities.addElementTo("path", svg, {d: svgPath});
 
-        // Set callbacks for button, svg, and path, and Save 'this' by binding it to the callback function
-        let boundCallback = buttonCallback.bind(this);
+        // Set callbacks for button, svg, and path
         for (let element of [button, svg, path]) {
-            ElementUtilities.setButtonCallback(element, boundCallback);
+            ElementUtilities.setButtonCallback(element, callbackObj, buttonCallbackFunc);
         }
 
         return button;

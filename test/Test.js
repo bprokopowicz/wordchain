@@ -112,7 +112,7 @@ class Test extends BaseLogger {
 
 
         for (let button of [runAll, runDict, runSolver, runGame, runApp]) {
-            ElementUtilities.setButtonCallback(button, this.runTestsCallback.bind(this));
+            ElementUtilities.setButtonCallback(button, this, this.runTestsCallback);
         }
 
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "testResults"}, "");
@@ -1005,7 +1005,7 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "findAnswer"}, " Click the button to find the word and following words.");
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.setButtonCallback(button, this.findCallback.bind(this));
+        ElementUtilities.setButtonCallback(button, this, this.findCallback);
 
     }
 
@@ -1052,7 +1052,7 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "solveTiming"}, "");
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.setButtonCallback(button, this.solveCallback.bind(this));
+        ElementUtilities.setButtonCallback(button, this, this.solveCallback);
     }
 
     solveCallback(event) {
@@ -1117,7 +1117,7 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("label", this.outerDiv, {id: "puzzleFinderAnswer"}, "Click the button to see the target words.");
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.setButtonCallback(button, this.puzzleFinderFindCallback.bind(this));
+        ElementUtilities.setButtonCallback(button, this, this.puzzleFinderFindCallback);
     }
 
     puzzleFinderFindCallback(event) {
