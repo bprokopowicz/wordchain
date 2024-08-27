@@ -61,7 +61,6 @@ class Cookie {
     static DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
     static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
     static DAILY_STATS = "DailyStats";
-    static DEBUG_STATIC_DAILY = "DebugStaticDaily";
     static DEBUG_DAILY_MIN_PER_DAY = "DebugDailyMinPerDay";
     static DEBUG_BASE_TIMESTAMP = "DebugBaseTimestamp";
     static PRACTICE_GAME_START = "PracticeGameStart";
@@ -71,6 +70,9 @@ class Cookie {
     static DEBUG_PRACTICE_MIN_PER_DAY = "DebugPracticeMinPerDay";
     static HARD_MODE = "HardMode";
     static TYPE_SAVING_MODE = "TypeSavingMode";
+    static TEST_INT = "testint";
+    static TEST_BOOL = "testbool";
+    static TEST_OBJ = "testobj";
 
     static ALL_COOKIE_NAMES = [
         Cookie.DEBUG,
@@ -80,7 +82,6 @@ class Cookie {
         Cookie.DAILY_GAME_WORDS_PLAYED,
         Cookie.DAILY_SOLUTION_SHOWN,
         Cookie.DAILY_STATS,
-        Cookie.DEBUG_STATIC_DAILY,
         Cookie.DEBUG_DAILY_MIN_PER_DAY,
         Cookie.DEBUG_BASE_TIMESTAMP,
         Cookie.PRACTICE_GAME_START,
@@ -89,7 +90,10 @@ class Cookie {
         Cookie.PRACTICE_GAME_TIMESTAMPS,
         Cookie.DEBUG_PRACTICE_MIN_PER_DAY,
         Cookie.HARD_MODE,
-        Cookie.TYPE_SAVING_MODE
+        Cookie.TYPE_SAVING_MODE,
+        Cookie.TEST_INT,
+        Cookie.TEST_BOOL,
+        Cookie.TEST_OBJ
     ];
 
     static clearAllCookies(theWindow=window) {

@@ -193,11 +193,19 @@ class GameDisplay extends BaseLogger {
         this.gameState = [];
 
         let displayInstructions = this.game.getDisplayInstructions();
+
+        // all words are played words until we hit the first future or target word:
+        let wordWasPlayed = true;
+
         for (let displayInstruction of displayInstructions) {
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
+
+            if ((displayInstruction.displayType == Const.FUTURE) || (displayInstruction.displayType == Const.TARGET)) {
+                wordWasPlayed = false;
+            }
             this.gameState.push([
                 displayInstruction.word,
-                displayInstruction.displayType == Const.PLAYED,
+                wordWasPlayed,
                 displayInstruction.moveRating
                 ]);
 
@@ -337,6 +345,7 @@ class GameDisplay extends BaseLogger {
     }
 
     processGameResult(gameResult) {
+        Const.GL_DEBUG && this.logDebug("GameDisplay.processGameResult() gameResult: ", gameResult, "callback");
         if (gameResult === Const.BAD_OPERATION || gameResult === Const.BAD_LETTER_POSITION) {
             console.error(gameResult);
             this.appDisplay.showToast(Const.UNEXPECTED_ERROR);

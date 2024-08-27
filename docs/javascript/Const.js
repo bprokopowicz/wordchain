@@ -65,6 +65,7 @@ export const STATIC_DAILY_GAME_START  = "short";
 export const STATIC_DAILY_GAME_TARGET = "poor";
 export const BACKUP_DAILY_GAME_START  = "daily";
 export const BACKUP_DAILY_GAME_TARGET = "broken";
+export const STATIC_DAILY_GAME_NUMBER = -1;
 
 // Constants for settings screen
 export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";

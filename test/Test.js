@@ -833,7 +833,7 @@ class Test extends BaseLogger {
         let statsMockEvent = new MockEvent(statsSrcElement);
         let shareString = statsDisplay.shareCallback(statsMockEvent);
 
-        let expectedShareString = "WordChain #1 ⭐\n\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🌟🌟🌟🌟\n🟩🟩🟩🟩";
+        let expectedShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🌟🌟🌟🌟\n🟩🟩🟩🟩`;
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
             this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
@@ -850,13 +850,12 @@ class Test extends BaseLogger {
         testObj.nums.push(3);
         testObj.nums.push(5);
         testObj.field = "hello";
-        Cookie.saveJson("testobj", testObj, this.getNewAppWindow());
-        Cookie.save("testint", 42, this.getNewAppWindow());
-        Cookie.save("testbool", true, this.getNewAppWindow());
+        Cookie.saveJson(Cookie.TEST_OBJ, testObj, this.getNewAppWindow());
+        Cookie.save(Cookie.TEST_INT, 42, this.getNewAppWindow());
+        Cookie.save(Cookie.TEST_BOOL, true, this.getNewAppWindow());
 
         // now close the window,
         this.closeNewAppWindow();
-        // and re-open it,
         this.openTheTestAppWindow();
         // and then wait for the window and finish the test ...
         this.waitForAppDisplayThenRunFunc(this.finishCookieRestartTest);
@@ -866,9 +865,9 @@ class Test extends BaseLogger {
         // need to set the test testName here for recording results
         this.testName = "CookieRestart";
         this.logDebug("new window should be re-opened; restoring values via cookies in new window", "test");
-        var testIntRestored = Cookie.getInt("testint", this.getNewAppWindow());
-        var testBoolRestored = Cookie.getBoolean("testbool", this.getNewAppWindow());
-        var testObjRestored = Cookie.getJsonOrElse("testobj", null, this.getNewAppWindow());
+        var testIntRestored = Cookie.getInt(Cookie.TEST_INT, this.getNewAppWindow());
+        var testBoolRestored = Cookie.getBoolean(Cookie.TEST_BOOL, this.getNewAppWindow());
+        var testObjRestored = Cookie.getJsonOrElse(Cookie.TEST_OBJ, null, this.getNewAppWindow());
         this.verify((testIntRestored == 42), `testIntRestored is ${testIntRestored}, not 42`) &&
             this.verify(testBoolRestored, `testBoolRestored is ${testBoolRestored}, not true`) &&
             this.verify((testObjRestored.nums.length == 2), `testObjRestored.length is ${testObjRestored.length}, not 2`) &&
@@ -876,6 +875,7 @@ class Test extends BaseLogger {
             this.verify((testObjRestored.nums[1] == 5), `testObjRestored[1]is ${testObjRestored[1]}, not 5`) &&
             this.verify((testObjRestored.field == "hello"), `testObjRestored.field is '${testObjRestored.field}', not hello`) &&
             this.success();
+        Cookie.clearNonDebugCookies();
         this.runNextTest();
     }
 
@@ -910,8 +910,9 @@ class Test extends BaseLogger {
         // close the game window
         this.getNewAppWindow().close();
 
-        // and re-open it
-        this.openTheTestAppWindow();
+        // and re-open it, without the testing suffix which forces a new static daily game.
+        const useTestingURL = false;
+        this.openTheTestAppWindow(useTestingURL);
         this.waitForAppDisplayThenRunFunc(this.finishRestoreGameTest);
     }
 
@@ -923,20 +924,38 @@ class Test extends BaseLogger {
         let game = gameDisplay.game;
         let di = game.getDisplayInstructions();
         this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
-        this.verify((di[0].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[0] is ${di[0].toStr()}`) &&
-        this.verify((di[1].toStr() === "(future,word:SHOOT,changePosition:0)"), `instruction[1] is ${di[1].toStr()}`) &&
-        this.verify((di[2].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[2] is ${di[2].toStr()}`) &&
-        this.verify((di[3].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
-        this.verify((di[4].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[4] is ${di[4].toStr()}`) &&
-        this.verify((di[5].toStr() === "(change,word:SHORT,changePosition:4)"), `instruction[4] is ${di[5].toStr()}`) &&
+        this.verify((di[0].toStr() === "(played,word:SHORT,moveRating:ok)"), `instruction[0] is ${di[0].toStr()}`) &&
+        this.verify((di[1].toStr() === "(played,word:SHOOT,moveRating:ok)"), `instruction[1] is ${di[1].toStr()}`) &&
+        this.verify((di[2].toStr() === "(change,word:HOOT,changePosition:1)"), `instruction[2] is ${di[2].toStr()}`) &&
+        this.verify((di[3].toStr() === "(future,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
+        this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
+        this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`) &&
             this.success();
         this.runNextTest();
     }
 
-    openTheTestAppWindow() {
-        this.newWindow = window.open('/wordchain/docs/html/WordChain.html?testing', 'AppDisplayTest', 'width=600,height=800');
+    openTheTestAppWindow(useTestingURL=true) {
+        let suffix = "";
+        if (useTestingURL) {
+            suffix = "?testing";
+        }
+        this.newWindow = window.open('/wordchain/docs/html/WordChain.html' + suffix, 'AppDisplayTest', 'width=600,height=800');
         // pass our debug settings to the child window
         Cookie.save(Cookie.DEBUG, Cookie.get(Cookie.DEBUG), this.getNewAppWindow());
+        // set the child's console to our console.
+        this.newWindow.console = console;
+        /*
+
+        TODO - this sometimes cause the browser share code to fail with console error:
+
+         NotAllowedError: Failed to execute 'share' on 'Navigator': Must be handling a user gesture to perform a share request.
+    at StatsDisplay.shareCallback (/wordchain/docs/javascript/StatsDisplay.js:99:27)
+    at Test.geniusMoveAndShareTest (Test.js:834:40)
+    at Test.waitForAppDisplayThenRunFunc (Test.js:992:13)
+
+        BUT, the share string is calculated correctly and the test passes.  What fails is putting the
+        share-string into the browser itself during testing.
+        */
     }
 
     runAppTests() {
