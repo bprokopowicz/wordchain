@@ -81,10 +81,10 @@ class Game extends BaseLogger {
     // correct moves.
     finishGame() {
         // play the remaining steps for the user
-        let isPlayed = true;
-        let moveRating = Const.OK;
+        const isPlayed = true;
+        const moveRating = Const.OK;
         for (let step of this.remainingSteps.getSolutionSteps()) {
-            this.playedSteps.addWord(step.word, isPlayed, Const.OK);
+            this.playedSteps.addWord(step.word, isPlayed, moveRating);
         }
         this.remainingSteps.removeAllSteps();
     }
@@ -121,17 +121,17 @@ class Game extends BaseLogger {
     }
 
     instructionForPlayedWord(stepIndex) {
-        let solutionStep = this.playedSteps.solutionSteps[stepIndex];
-        let changePosition = -1;
+        const solutionStep = this.playedSteps.solutionSteps[stepIndex];
+        const changePosition = -1;
         return new DisplayInstruction(solutionStep.word, Const.PLAYED, changePosition, solutionStep.moveRating);
     }
 
     instructionForFutureWord(stepIndex) {
         // we show hints in the future words that require a single letter-change to the next word
         // the step index needs to be adjusted to account for the unplayed steps 
-        let futureWord = this.remainingSteps.getNthWord(stepIndex);
-        let nextFutureWord = this.remainingSteps.getNthWord(stepIndex+1);
-        let moveRating = Const.OK;
+        const futureWord = this.remainingSteps.getNthWord(stepIndex);
+        const nextFutureWord = this.remainingSteps.getNthWord(stepIndex+1);
+        const moveRating = Const.OK;
         let displayInstruction = this.displayInstructionForPlayingFromWordToWord(futureWord, nextFutureWord, moveRating);
         displayInstruction.displayType = Const.FUTURE;
         return displayInstruction;
@@ -156,12 +156,14 @@ class Game extends BaseLogger {
         }
     }
 
-    // this method is for displaying the actual, given target unconditionally.  
+    // this method is for displaying the target, either as Const.TARGET if not played yet,
+    // or Const.PLAYED if the game is solved
     instructionForTargetWord() {
         let targetWord = this.remainingSteps.getTarget();
         let moveRating = Const.OK;
         let changePosition=-1;
-        return new DisplayInstruction(targetWord, Const.TARGET, changePosition, moveRating);
+        let displayType = this.isWinner() ? Const.PLAYED : Const.TARGET;
+        return new DisplayInstruction(targetWord, displayType, changePosition, moveRating);
     }
 
     // how to display the last word that needs to be changed to give the next word.

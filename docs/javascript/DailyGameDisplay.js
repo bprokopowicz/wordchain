@@ -122,7 +122,7 @@ class DailyGameDisplay extends GameDisplay {
                 calculateDailyGameBaseTimestampForDebugging(debugMinPerDay, recoveredDailyGameNumber);
             } else {
                 // Not debugging daily games; set the base timestamp based
-                // on our static base date -- the date at which we set the clock
+                // on our base date -- the date at which we set the clock
                 // for the very first daily game.
                 DailyGameDisplay.BaseTimestamp = DailyGameDisplay.BaseDate.getTime();
                 Const.GL_DEBUG && this.logDebug("DebugDailyMinPerDay is NOT set! BaseTimestamp:", new Date(DailyGameDisplay.BaseTimestamp), "daily");
