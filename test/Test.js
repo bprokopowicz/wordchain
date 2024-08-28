@@ -7,7 +7,7 @@ import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
-// use: inTheFuture(2000).then( (foo=this) => {foo.doSomething(arg1, arg2)}
+// use: inTheFuture(2000).then( (foo=this) => {foo.doSomething(arg1, arg2)})
 // the method will called as this.doSomething(arg1, arg2);
 
 function inTheFuture(ms) {
@@ -130,6 +130,8 @@ class Test extends BaseLogger {
         }
         this.successCount = 0;
         this.failureCount = 0;
+        this.testAssertionCount = 0;
+        this.totalAssertionCount = 0;
         this.messages = [];
         this.needToWaitForAsyncResults = false;
 
@@ -169,7 +171,8 @@ class Test extends BaseLogger {
         let results = "";
 
         results += `<br>Success count: ${this.successCount}<br>`;
-        results += `Failure count: ${this.failureCount}<p>`;
+        results += `Failure count: ${this.failureCount}<br>`;
+        results += `Total assertions verified: ${this.totalAssertionCount}<p>`;
         results += this.messages.join("<br>");
 
         ElementUtilities.setElementHTML("testResults", results);
@@ -179,12 +182,16 @@ class Test extends BaseLogger {
         if (! truthValue) {
             this.messages.push(`${this.testName}: Failed: ${message}`);
             this.failureCount += 1;
+        } else {
+            this.testAssertionCount += 1;
+            this.totalAssertionCount += 1;
         }
         return truthValue;
     }
 
     success(testName) {
-        this.messages.push(`${this.testName}: Succeeded`);
+        this.messages.push(`${this.testName} (${this.testAssertionCount}) succeeded.`);
+        this.testAssertionCount = 0;
         this.successCount += 1;
     }
 
@@ -619,7 +626,7 @@ class Test extends BaseLogger {
         this.verify((afterPlayLetterTInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after play letter T instruction[0] is ${afterPlayLetterTInstructions[0].toStr()}`) &&
         this.verify((afterPlayLetterTInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after play letter T instruction[1] is ${afterPlayLetterTInstructions[1].toStr()}`) &&
         this.verify((afterPlayLetterTInstructions[2].toStr() === `(played,word:BAD,moveRating:${Const.OK})`), `after play letter T instruction[2] is ${afterPlayLetterTInstructions[2].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[3].toStr() === "(target,word:BAT)"), `after play letter T instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[3].toStr() === `(played,word:BAT,moveRating:${Const.OK})`), `after play letter T instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
             this.success();
     }
 
@@ -913,24 +920,51 @@ class Test extends BaseLogger {
         // and re-open it, without the testing suffix which forces a new static daily game.
         const useTestingURL = false;
         this.openTheTestAppWindow(useTestingURL);
-        this.waitForAppDisplayThenRunFunc(this.finishRestoreGameTest);
+        this.waitForAppDisplayThenRunFunc(this.continueRestoreGameTest);
     }
 
-    // called after waiting with no 'this'
-    finishRestoreGameTest() {
+    // called after first restart in the middle of the game.
+    continueRestoreGameTest() {
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
         this.testName = "DailyGameRestart";
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        let game = gameDisplay.game;
-        let di = game.getDisplayInstructions();
+        const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        const game = gameDisplay.game;
+        const di = game.getDisplayInstructions();
         this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
         this.verify((di[0].toStr() === "(played,word:SHORT,moveRating:ok)"), `instruction[0] is ${di[0].toStr()}`) &&
         this.verify((di[1].toStr() === "(played,word:SHOOT,moveRating:ok)"), `instruction[1] is ${di[1].toStr()}`) &&
         this.verify((di[2].toStr() === "(change,word:HOOT,changePosition:1)"), `instruction[2] is ${di[2].toStr()}`) &&
         this.verify((di[3].toStr() === "(future,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
         this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
-        this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`) &&
+        this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
+
+        // finish the game. ( ... BOOT BOOR POOR)
+        const unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        const playedB = gameDisplay.letterPicker.selectionMade("B", unused);
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        const playedR = gameDisplay.letterPicker.selectionMade("R", unused);
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        const playedP = gameDisplay.letterPicker.selectionMade("P", unused);
+
+        this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
+        this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
+        this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK); 
+
+        // .. and close and re-open it after it is solved
+        const useTestingURL = false;
+        this.openTheTestAppWindow(useTestingURL);
+        this.waitForAppDisplayThenRunFunc(this.finishRestoreGameTest);
+    }
+
+    finishRestoreGameTest() {
+        // game should be done
+        const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        const game = gameDisplay.game;
+        Const.GL_DEBUG && this.logDebug("restored daily game after finishing it; display instructions are: ", game.getDisplayInstructions());
+        this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
             this.success();
+
         this.runNextTest();
     }
 
