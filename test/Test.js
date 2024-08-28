@@ -961,10 +961,10 @@ class Test extends BaseLogger {
         // game should be done
         const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = gameDisplay.game;
-        Const.GL_DEBUG && this.logDebug("restored daily game after finishing it; display instructions are: ", game.getDisplayInstructions());
+        Const.GL_DEBUG && this.logDebug("restored daily game after finishing it; display instructions are: ", game.getDisplayInstructions(), "test");
         this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
             this.success();
-
+        Cookie.clearNonDebugCookies();
         this.runNextTest();
     }
 

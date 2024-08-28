@@ -185,7 +185,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Set the initial clock display.
-        let msUntilNextGame = DailyGameDisplay.getMsUntilNextGame();
+        let msUntilNextGame = this.appDisplay.dailyGame.getMsUntilNextGame();
         this.countdownClock.textContent = msToDuration(msUntilNextGame);
 
         // Set a timer to change the clock and display every second.
@@ -196,7 +196,8 @@ class StatsDisplay extends AuxiliaryDisplay {
     }
 
     // Hide or show the share callback based on whether the daily game solution
-    // has been shown.
+    // has been shown.  If the solution was shown, the player is not allowed to
+    // share.
     updateShare() {
         if (Cookie.getBoolean(Cookie.DAILY_SOLUTION_SHOWN)) {
             this.shareButton.style.display = "none";

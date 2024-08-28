@@ -1,18 +1,6 @@
 Daily game on restart
-1) localstorage seems to be one behind in the words played array: In game SALTED -> FISH i played
-SATED
-SATE
-FATE
-but the localstorage array has 
-[["SALTED", true, "ok"], ["SATED", true, "ok"], ["FATED", true, "ok"], ["FATE", false, "ok"],…]
-and on restart, the game shows FATED played and the next move should be to remove D giving FATE, again.
-This problem begins before the first word played.  The start word is saved in the played words array but 
-shown as FALSE.  This is daily game number 4
-
-2) when you force debugStaticDaily using URL?testing, or if it is true from previous test, the game doesn't restore the daily game
-at all.  This is probably because that path forces the static test from the start.  Why doesn't it understand the (static) daily game in 
-progress?  I think that, on restart, the daily game number is recalculated from the days elapsed since T0, and if that number is different
-from the recovered dailygamenumber
+If a game is finished, on reloading, it seems to put you one step from finished.  When you come back to a solved daily game,
+what should you see?
 
 Implementation
 - Solution button -- add means to show WordChain's ORIGINAL solution?
