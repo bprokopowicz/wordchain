@@ -893,6 +893,55 @@ class Test extends BaseLogger {
         }
     }
 
+    dailyGameStatsTest() {
+        // The newly opened URL should be showing the daily game by default;
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+
+        // when opened with ?testing in the URL, the daily game will always
+        // be SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        // play two moves, then close and try to restore ...
+        //  SHORT -> SHOOT
+        let unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("O", unused);
+
+        // SHOOT -> HOOT
+        mockEvent.srcElement.setAttribute("deletionPosition", "1");
+        gameDisplay.deletionClickCallback(mockEvent);
+
+        // HOOT -> BOOT
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        gameDisplay.letterPicker.selectionMade("B", unused);
+
+        // BOOT -> BOOR
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("R", unused);
+
+        // BOOR -> POOR
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        gameDisplay.letterPicker.selectionMade("P", unused);
+
+        // game is done.  Let's see what the saved stats and words played are:
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const statsDisplay = appDisplay.statsDisplay;
+        this.logDebug("displayGameStatsTest: appDisplay:", appDisplay, "test");
+        this.logDebug("displayGameStatsTest: statsDisplay", statsDisplay, "test");
+
+        // open the stats window - this will trigger loading the stats from the cookie.
+        let statsSrcElement = new MockEventSrcElement(statsDisplay);
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        statsDisplay.openAuxiliaryCallback(statsMockEvent);
+
+        //Cookie.clearNonDebugCookies();
+        // this.runNextTest();
+    }
+
+
     dailyGameRestartTest() {
         // The newly opened URL should be showing the daily game by default;
         let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
@@ -958,10 +1007,11 @@ class Test extends BaseLogger {
     }
 
     finishRestoreGameTest() {
-        // game should be done
+        // game should be done; stats should be saved.
         const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = gameDisplay.game;
-        Const.GL_DEBUG && this.logDebug("restored daily game after finishing it; display instructions are: ", game.getDisplayInstructions(), "test");
+        Const.GL_DEBUG && this.logDebug("restored daily game after finishing it; display instructions are: ",
+                game.getDisplayInstructions(), "test");
         this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
             this.success();
         Cookie.clearNonDebugCookies();
@@ -994,6 +1044,7 @@ class Test extends BaseLogger {
 
     runAppTests() {
         this.appTestList = [
+            this.dailyGameStatsTest,
             this.cookieRestartTest,
             this.practiceGameTest,
             this.geniusMoveAndShareTest,

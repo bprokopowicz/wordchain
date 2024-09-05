@@ -17,7 +17,12 @@ Testing
 - Document how to run tests - js and python.
 - Update test plan (https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing)
 - Tweak for display on iPhone/iPad
-- Stats tests
+- Stats tests 
+    - normal daily game finished OK - no mistakes
+    - game finished with one mistake
+    - game finished with too many mistakes
+    - game finished on deletion
+    - game finished on letterPicked
 
 
 Before Sharing with Initial Friends
