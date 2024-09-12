@@ -1,6 +1,3 @@
-Daily game on restart
-If a game is finished, on reloading, it seems to put you one step from finished.  When you come back to a solved daily game,
-what should you see?
 
 Implementation
 - Solution button -- add means to show WordChain's ORIGINAL solution?
@@ -10,20 +7,17 @@ Implementation
 - Possible settings to tweak game difficulty:
   - Mode where future rows do not have change cells outlined thicker. (harder)
   - Mode where picker displays only letters that could result in valid words. (easier)
-- Resolve all TOODs!
-
+- Resolve all TODOs!
 
 Testing
 - Document how to run tests - js and python.
 - Update test plan (https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing)
 - Tweak for display on iPhone/iPad
-- Stats tests 
-    - normal daily game finished OK - no mistakes
-    - game finished with one mistake
-    - game finished with too many mistakes
-    - game finished on deletion
-    - game finished on letterPicked
-
+- share tests
+    - game finished on deletion.  Probably this will require a way to force the daily game using the 
+      the URL query string to set the start and target to something that finishes with a deletion.
+- stats tests
+    - after 3 daily games, with zero, one, and too many mistakes. 
 
 Before Sharing with Initial Friends
 - Review help message

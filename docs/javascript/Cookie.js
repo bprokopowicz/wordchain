@@ -13,6 +13,8 @@
 **
 **  Primarily used and set in DailyGameDisplay
 **
+**     PlayerStats
+**        PlayerStats struct: saved as JSON
 **     DailyGameNumber
 **        Integer: calculated daily game number based on current time.
 **     DailyGameWordsPlayed
@@ -57,6 +59,7 @@ class Cookie {
     static DEBUG = "Debug";
     static DARK_THEME = "DarkTheme";
     static COLORBLIND_MODE = "ColorblindMode";
+    static PLAYER_STATS = "PlayerStats";
     static DAILY_GAME_NUMBER = "DailyGameNumber";
     static DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
     static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
@@ -84,6 +87,7 @@ class Cookie {
         Cookie.DAILY_STATS,
         Cookie.DEBUG_DAILY_MIN_PER_DAY,
         Cookie.DEBUG_BASE_TIMESTAMP,
+        Cookie.PLAYER_STATS,
         Cookie.PRACTICE_GAME_START,
         Cookie.PRACTICE_GAME_TARGET,
         Cookie.PRACTICE_GAME_WORDS_PLAYED,
@@ -137,7 +141,15 @@ class Cookie {
     }
 
     static save(name, value, theWindow=window) {
-        theWindow.localStorage.setItem(name, value.toString());
+        if (name == null) {
+            console.error("trying to save cookie named null with value:", value);
+        } else {
+            if (value == null) {
+                console.error("trying to save cookie named:", name, " with null value - ignored.");
+            } else {
+                theWindow.localStorage.setItem(name, value.toString());
+            }
+        }
     }
 
     static saveJson(name, val, theWindow=window) {

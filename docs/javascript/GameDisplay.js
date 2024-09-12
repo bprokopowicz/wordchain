@@ -330,18 +330,30 @@ class GameDisplay extends BaseLogger {
         }
     }
 
+    // A list summarizing the moves of the game.   
+    // Unplayed words get a move rating of Const.FUTURE
     getMoveSummary() {
         var summary = [];
 
-        for (let [word, __wasPlayed, moveRating] of this.gameState) {
-            summary.push([moveRating, word.length]);
+        for (let [word, wasPlayed, moveRating] of this.gameState) {
+            if (wasPlayed) {
+                summary.push([moveRating, word.length]);
+            } else {
+                summary.push([Const.FUTURE, word.length]);
+            }
         }
 
         return summary;
     }
 
     getWrongMoveCount() {
-        return this.gameState.filter(state => (state.moveRating == Const.WRONG_MOVE)).length;
+        let wrongMoveCount = 0;
+        for (let [word, __wasPlayed, moveRating] of this.gameState) {
+            if (moveRating == Const.WRONG_MOVE) {
+            wrongMoveCount++;
+            }
+        }
+        return wrongMoveCount;
     }
 
     processGameResult(gameResult) {

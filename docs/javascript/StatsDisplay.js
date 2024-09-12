@@ -85,7 +85,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     additionalOpenActions() {
         this.updateStatsContent();
         this.startCountdownClock();
-        this.updateShare();
+        this.updateShareButton();
     }
 
     // Callback for the Share button.
@@ -121,16 +121,18 @@ class StatsDisplay extends AuxiliaryDisplay {
     // Note that the share graphic is not HTML, but rather just a string, containing
     // some Unicode characters to construct the graphic.
     getShareString(game) {
-        // This returns an object with 4 properties, the last 3 of which are populated only if
+
+        // getDailyGameInfo() returns an object with 4 properties, the last 3 of which are populated only if
         // over is true):
         //
         //  over:            true if the game is over (user has found target word or too many steps)
         //  numWrongMoves:   how many more steps it took to solve than the minimum
         //  moveSummary:     array of arrays containing for each move:
-        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius
+        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius/unplayed(FUTURE)
         //      length of the move's word
         //  dailyGameNumber: the current game number
         const gameInfo = this.appDisplay.getDailyGameInfo();
+        Const.GL_DEBUG && this.logDebug("getShareString() gameInfo=", gameInfo, "daily");
 
         if (! gameInfo.over) {
             this.appDisplay.showToast(Const.DAILY_NOT_OVER);
@@ -153,10 +155,29 @@ class StatsDisplay extends AuxiliaryDisplay {
         // Now, construct the graphic showing the lengths of the user's
         // played words, colored red or green to indicate whether that word
         // did or did not increase the solution length.
-        for (let [moveRating, wordLength] of gameInfo.moveSummary) {
+        // The target word (last) is shown in a separate, fixed color regardless of success or failure
+        // so we slice it off here.
+        // TODO: don't show anything if the word hasn't been played.
 
-            let colorblindMode = this.appDisplay.isColorblindMode(),
-                emoji;
+        let wordsBetweenStartAndTarget = gameInfo.moveSummary.slice(1,-1);
+        let [startRatingUnused, startLength] = gameInfo.moveSummary[0];
+        let [targetRatingUnused, targetLength] = gameInfo.moveSummary.slice(-1)[0];
+
+        // start with the start word shown in purple
+        let emoji = Const.PURPLE_SQUARE;
+        shareString += emoji.repeat(startLength) + "\n";
+
+        // show all the words played.  
+
+        for (let [moveRating, wordLength] of wordsBetweenStartAndTarget) {
+
+            // we don't include unplayed words in the share string.  This happens when there are too many wrong moves.  
+            // The moveSummary includes the correct unplayed words leading from the last wrong word to the target, but we
+            // don't want to show them.
+            if (moveRating == Const.FUTURE) {
+                break;
+            }
+            let colorblindMode = this.appDisplay.isColorblindMode();
 
             // Determine which color square to display for this word.
             if (moveRating === Const.OK) {
@@ -173,6 +194,9 @@ class StatsDisplay extends AuxiliaryDisplay {
             // creating a row that looks like the row of tiles in the game.
             shareString += emoji.repeat(wordLength) + "\n";
         }
+        // now, add the target
+        emoji = Const.PURPLE_SQUARE;
+        shareString += emoji.repeat(targetLength) + "\n";
 
         return shareString.trim();
     }
@@ -198,7 +222,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     // Hide or show the share callback based on whether the daily game solution
     // has been shown.  If the solution was shown, the player is not allowed to
     // share.
-    updateShare() {
+    updateShareButton() {
         if (Cookie.getBoolean(Cookie.DAILY_SOLUTION_SHOWN)) {
             this.shareButton.style.display = "none";
         } else {
