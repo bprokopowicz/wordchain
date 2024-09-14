@@ -311,7 +311,7 @@ class GameDisplay extends BaseLogger {
             moveRating = displayInstruction.moveRating;
 
         tdElement = this.addTd();
-        // callback function 
+        // callback function
         cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
 
         ElementUtilities.addElementTo(cell.getElement(), tdElement);
@@ -330,7 +330,7 @@ class GameDisplay extends BaseLogger {
         }
     }
 
-    // A list summarizing the moves of the game.   
+    // A list summarizing the moves of the game.
     // Unplayed words get a move rating of Const.FUTURE
     getMoveSummary() {
         var summary = [];
@@ -350,7 +350,7 @@ class GameDisplay extends BaseLogger {
         let wrongMoveCount = 0;
         for (let [word, __wasPlayed, moveRating] of this.gameState) {
             if (moveRating == Const.WRONG_MOVE) {
-            wrongMoveCount++;
+                wrongMoveCount++;
             }
         }
         return wrongMoveCount;

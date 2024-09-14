@@ -80,7 +80,7 @@ export const GOLD_STAR      = "\u{1F31F}";     // genius  moves in graphic
 export const ORANGE_SQUARE  = "\u{1F7E7}";     // Wrong moves in graphic -- colorblind
 export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves in graphic -- colorblind
 export const STAR           = "\u{2B50}";      // No wrong moves in first share line
-export const CONFOUNDED     = "\u{1F616}";     // Too many wrong movesin first share line and stats graph
+export const CONFOUNDED     = "\u{1F616}";     // Too many wrong moves in first share line and stats graph
 export const FIRE           = "\u{1F525}";     // CURRENTLY NOT USED: Hard mode in first share line
 export const ROCKET         = "\u{1F680}";     // Unused
 export const FIREWORKS      = "\u{1F386}";     // Unused
@@ -88,8 +88,8 @@ export const TROPHY         = "\u{1F3C6}";     // Unused
 export const LINK           = "\u{1F517}";     // Unused
 export const CHAINS         = "\u{26D3}";      // Unused
 export const NUMBERS        = [                // Used in first share line
-    STAR,                           // 0 
-    "\u{0031}\u{FE0F}\u{20E3}",     // 1 
+    STAR,                           // 0
+    "\u{0031}\u{FE0F}\u{20E3}",     // 1
     "\u{0032}\u{FE0F}\u{20E3}",
     "\u{0033}\u{FE0F}\u{20E3}",
     "\u{0034}\u{FE0F}\u{20E3}",
@@ -98,8 +98,8 @@ export const NUMBERS        = [                // Used in first share line
     "\u{0037}\u{FE0F}\u{20E3}",
     "\u{0038}\u{FE0F}\u{20E3}",
     "\u{0031}\u{FE0F}\u{20E3}",
-    "\u{0039}\u{FE0F}\u{20E3}",     // 9 
-];    
+    "\u{0039}\u{FE0F}\u{20E3}",     // 9
+];
 
 export const TOO_MANY_WRONG_MOVES = 5;  // Shouldn't be > 9; relates to NUMBERS array above
 

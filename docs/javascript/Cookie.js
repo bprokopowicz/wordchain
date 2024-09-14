@@ -142,7 +142,7 @@ class Cookie {
 
     static save(name, value, theWindow=window) {
         if (name == null) {
-            console.error("trying to save cookie named null with value:", value);
+            console.error("trying to save cookie named null with value:", value, " - ignored.");
         } else {
             if (value == null) {
                 console.error("trying to save cookie named:", name, " with null value - ignored.");

@@ -23,7 +23,7 @@ class TestClassForCookie {
 
 // A MockEventSrcElement just has an attributes map that we can populate during testing so that
 // when we call a callback, that callback can get the necessary elements from it.
-// The only attributes we use in this way are the AdditionPosition and DeletionPosition
+// The only attributes we use in this way are the additionPosition and deletionPosition
 class MockEventSrcElement {
     constructor() {
         this.attributes = new Map();
@@ -39,7 +39,7 @@ class MockEventSrcElement {
 }
 
 // A MockEvent acts like an Event in that it has a srcElement.  Some of the application code's callbacks use the attributes
-// of the srcElement to determine what part of the game is being operated on.  We don't use the actual GUI src elements 
+// of the srcElement to determine what part of the game is being operated on.  We don't use the actual GUI src elements
 // in testing; we send MockEventSrcElements to the callbacks via a MockEvent.
 
 class MockEvent {
@@ -88,7 +88,7 @@ class Test extends BaseLogger {
     }
 
     /*
-    ** Testing Framework
+    ** Overall Testing Framework
     */
 
     displayTestSuite() {
@@ -145,18 +145,6 @@ class Test extends BaseLogger {
         this.testingInProgress = false;
     }
 
-    waitForResultsThenShowThem() {
-        if (this.getResultsAreReady()) {
-            this.logDebug("results are ready - show them.", "test");
-            this.showResults();
-            console.log(`Testing took ${Date.now() - this.testingStartTime} ms.`);
-        }  else {
-            const sleepTime = 1000;
-            this.logDebug("pausing  ", sleepTime, " for needToWaitForAsyncResults.");
-            inTheFuture(sleepTime).then( (foo=this) => { foo.waitForResultsThenShowThem();});
-        }
-    }
-
     showResults() {
         let results = "";
 
@@ -166,6 +154,12 @@ class Test extends BaseLogger {
         results += this.messages.join("<br>");
 
         ElementUtilities.setElementHTML("testResults", results);
+    }
+
+    success(testName) {
+        this.messages.push(`${this.testName} (${this.testAssertionCount}) succeeded.`);
+        this.testAssertionCount = 0;
+        this.successCount += 1;
     }
 
     verify(truthValue, message) {
@@ -179,78 +173,95 @@ class Test extends BaseLogger {
         return truthValue;
     }
 
-    success(testName) {
-        this.messages.push(`${this.testName} (${this.testAssertionCount}) succeeded.`);
-        this.testAssertionCount = 0;
-        this.successCount += 1;
+    waitForResultsThenShowThem() {
+        if (this.getResultsAreReady()) {
+            this.logDebug("results are ready - show them.", "test");
+            this.showResults();
+            console.log(`Testing took ${Date.now() - this.testingStartTime} ms.`);
+        }  else {
+            const sleepTime = 1000;
+            this.logDebug("pausing  ", sleepTime, " for needToWaitForAsyncResults.");
+            inTheFuture(sleepTime).then( (foo=this) => { foo.waitForResultsThenShowThem();});
+        }
     }
 
-     practiceGameTest() {
-        this.testName = "PracticeGame";
+    /*
+    ** App Testing Framework
+    */
 
-        this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
-        Cookie.clearNonDebugCookies(this.getNewAppWindow());
+    closeNewAppWindow() {
+        if (this.getNewAppWindow()) {
+            this.getNewAppWindow().close();
+            this.newWindow = null;
+        }
+    }
 
-        this.logDebug("Switching to practice game", "test");
-        this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
-        this.logDebug("Done switching to practice game", "test");
+    getNewAppWindow() {
+        return this.newWindow;
+    }
 
-        let practiceGame = this.getNewAppWindow().theAppDisplay.practiceGame;
-        this.logDebug("updating practice game to TEST->PILOT", "test");
-        practiceGame.updateWords("TEST","PILOT");
-        this.logDebug("done updating practice game to TEST->PILOT", "test");
+    getResultsAreReady() {
+        return ! this.needToWaitForAsyncResults;
+    }
 
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
-        let unused = "";
+    openTheTestAppWindow(useTestingURL=true) {
+        let suffix = "";
+        if (useTestingURL) {
+            suffix = "?testing";
+        }
+        this.newWindow = window.open('/wordchain/docs/html/WordChain.html' + suffix, 'AppDisplayTest', 'width=600,height=800');
+        // pass our debug settings to the child window
+        Cookie.save(Cookie.DEBUG, Cookie.get(Cookie.DEBUG), this.getNewAppWindow());
+        // set the child's console to our console.
+        this.newWindow.console = console;
+        /*
 
-        // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
-        //  TEST -> LEST
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        let resultL1 = gameDisplay.letterPicker.selectionMade("L", unused);
+        TODO - this sometimes cause the browser share code to fail with console error:
 
-        // LEST -> LET
-        mockEvent.srcElement.setAttribute("deletionPosition", "3");
-        let resultDelete3 = gameDisplay.deletionClickCallback(mockEvent);
+         NotAllowedError: Failed to execute 'share' on 'Navigator': Must be handling a user gesture to perform a share request.
+    at StatsDisplay.shareCallback (/wordchain/docs/javascript/StatsDisplay.js:99:27)
+    at Test.geniusMoveAndShareTest (Test.js:834:40)
+    at Test.waitForAppDisplayThenRunFunc (Test.js:992:13)
 
-        // LET -> LIT - wrong move!
-        gameDisplay.letterPicker.saveLetterPosition(2);
-        let resultI2Wrong = gameDisplay.letterPicker.selectionMade("I", unused);
+        BUT, the share string is calculated correctly and the test passes.  What fails is putting the
+        share-string into the browser itself during testing.
+        */
+    }
 
-        // LIT -> LOT
-        gameDisplay.letterPicker.saveLetterPosition(2);
-        let resultO2 = gameDisplay.letterPicker.selectionMade("O", unused);
+    runNextTest() {
+        var testFunc = this.appTestList.shift();
+        this.logDebug("runNextTest() testFunc=", testFunc, "test");
+        if (testFunc) {
+            // clear our own cookies
+            Cookie.clearNonDebugCookies();
 
-        // LOT -> xLOT
-        mockEvent.srcElement.setAttribute("additionPosition", "0");
-        let resultAddition0 = gameDisplay.additionClickCallback(mockEvent);
+            // close and re-open the test App window
+            this.closeNewAppWindow();
+            this.openTheTestAppWindow();
 
-        // xLOT -> PLOT
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        let resultP1 = gameDisplay.letterPicker.selectionMade("P", unused);
+            // and then wait for the window and begin the next test ...
+            this.waitForAppDisplayThenRunFunc(testFunc);
+        } else {
+            this.closeNewAppWindow();
+            this.needToWaitForAsyncResults = false;
+        }
+    }
 
-        // PLOT -> PxLOT
-        mockEvent.srcElement.setAttribute("additionPosition", "1");
-        let resultAddition1 = gameDisplay.additionClickCallback(mockEvent);
+    // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
+    waitForAppDisplayThenRunFunc(func) {
+        if (this.getNewAppWindow() && this.getNewAppWindow().theAppDisplayIsReady) {
+            this.logDebug("new window AppDisplay is ready; calling func now.", "test");
+            // How to call this class's member function 'func' with 'this' properly set.
+            var boundFunc = func.bind(this);
+            boundFunc();
+        } else {
+            const sleepTime = 1000;
+            this.logDebug("pausing ", sleepTime, " for new window AppDisplay to be ready.");
+            inTheFuture(sleepTime).then( (foo=this) => { foo.waitForAppDisplayThenRunFunc(func);});
+        }
+    }
 
-        // PxLOT -> PILOT
-        gameDisplay.letterPicker.saveLetterPosition(2);
-        let resultI2 = gameDisplay.letterPicker.selectionMade("I", unused);
-
-        this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
-            this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
-            this.verify((resultI2Wrong === Const.WRONG_MOVE), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
-            this.verify((resultO2 === Const.OK), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
-            this.verify((resultAddition0 === Const.OK), `playAdd(0) returns ${resultAddition0}, not ${Const.OK}`) &&
-            this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
-            this.verify((resultAddition1 === Const.OK), `playAdd(1) returns ${resultAddition1}, not ${Const.OK}`) &&
-            this.verify((resultI2 === Const.OK), `playLetter(2, I) returns ${resultI2}, not ${Const.OK}`) &&
-            this.success();
-        this.runNextTest();
-     }
-
-   /*
+    /*
     ** WordChainDict tests
     */
 
@@ -364,6 +375,7 @@ class Test extends BaseLogger {
         this.verify (!this.scrabbleDict.isWord("zzzbrother"), "zzzbrother should not be in scrabble dict") &&
         this.success();
     }
+
     /*
     ** Solver tests
     */
@@ -523,7 +535,6 @@ class Test extends BaseLogger {
             this.success();
     }
 
-
     /*
     ** Game tests
     */
@@ -581,7 +592,6 @@ class Test extends BaseLogger {
         this.verify((playResult === Const.BAD_POSITION), "Delete attempted at bad position") &&
             this.success();
     }
-
 
     testGameDifferentWordFromInitialSolution() {
         this.testName = "GameDifferentWordFromInitialSolution";
@@ -782,10 +792,394 @@ class Test extends BaseLogger {
     }
 
     /*
-    ** Additional testing assets
+    ** App Tests
     */
 
-    // ===== AppDisplay Tester =====
+    runAppTests() {
+        this.appTestList = [
+            this.dailyGameNormalFinishStatsTest,
+            this.dailyGameOneMistakeShareTest,
+            this.dailyGameTooManyMistakesShareTest,
+            this.dailyGameRestartTest,
+            this.practiceGameTest,
+            this.geniusMoveAndShareTest,
+            this.cookieRestartTest,
+        ];
+        this.needToWaitForAsyncResults = true;
+        this.runNextTest();
+    }
+
+    dailyGameNormalFinishStatsTest() {
+        this.testName = "DailyGameNormalFinishStats";
+
+        // The newly opened URL should be showing the test daily game by default;
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+
+        // when opened with ?testing in the URL, the daily game will always
+        // be SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        //  SHORT -> SHOOT
+        let unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("O", unused);
+
+        // SHOOT -> HOOT
+        mockEvent.srcElement.setAttribute("deletionPosition", "1");
+        gameDisplay.deletionClickCallback(mockEvent);
+
+        // HOOT -> BOOT
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        gameDisplay.letterPicker.selectionMade("B", unused);
+
+        // BOOT -> BOOR
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("R", unused);
+
+        // BOOR -> POOR
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        gameDisplay.letterPicker.selectionMade("P", unused);
+
+        // game is done.  Let's see what the saved stats and words played are:
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const statsDisplay = appDisplay.statsDisplay;
+
+        // check the saved stats cookie
+        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
+
+        let expGP=1, actGP=dailyStats.gamesPlayed;
+        let expGS=0, actGS=dailyStats.gamesShown;
+
+        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
+        let statsSrcElement = new MockEventSrcElement(statsDisplay);
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        statsDisplay.openAuxiliaryCallback(statsMockEvent);
+
+        // the statsContainer is a GUI element with at least 3 children: Played, Completion %, and Shown
+        let statsContainer = statsDisplay.statsContainer;
+
+        // When statsContainer is logged, it sometimes logs as an object with 3 children, but other times as
+        // something that looks like formatted HTML.  This test relies on the object with children form.  The
+        // children have a field called innerText that is set to value\nlabel.  We verify this against the expected
+        // inner text.
+
+        this.logDebug("displayGameStatsTest: appDisplay:", appDisplay, "test");
+        this.logDebug("displayGameStatsTest: statsDisplay", statsDisplay, "test");
+        this.logDebug("displayGameStatsTest: dailyStats", dailyStats, "test");
+        this.logDebug("displayGameStatsTest: statsContainer", statsContainer, "test");
+
+        let expCL = 3;
+        let actCL = statsContainer.children.length;
+
+        let expPlayed = '1\nPlayed';
+        let actPlayed = statsContainer.children[0].innerText;
+
+        let expCompletion = '0.0\nCompletion %';
+        let actCompletion = statsContainer.children[1].innerText;
+
+        let expShown = '0\nShown';
+        let actShown = statsContainer.children[2].innerText;
+
+        // now, get the share string:
+        let actShareString = statsDisplay.shareCallback(mockEvent);
+        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
+
+        this.verify(expGP==actGP, `expected dailyStats.gamesPlayed==${expGP}1, got ${actGP}`) &&
+            this.verify(expGS==actGS, `expected dailyStats.gamesShown==${expGS}1, got ${actGS}`) &&
+            this.verify(actCL==expCL, `expected statsContainer.children.length==${expCL}, got ${actCL}`) &&
+            this.verify(actPlayed==expPlayed, `expected statsContainer.children.0.innerText==${expPlayed}, got ${actPlayed}`) &&
+            this.verify(actCompletion==expCompletion, `expected statsContainer.children.1.innerText=='${expCompletion}', got '${actCompletion}'`) &&
+            this.verify(actShown==expShown, `expected statsContainer.children.2.innerText=='${expShown}', got '${actShown}'`) &&
+            this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+            this.success();
+
+        this.runNextTest();
+    }
+
+    dailyGameOneMistakeShareTest() {
+        this.testName = "DailyGameOneMistakeShare";
+
+        // The newly opened URL should be showing the test daily game by default;
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+
+        // when opened with ?testing in the URL, the daily game will always
+        // be SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        //  SHORT -> SHOOT
+        let unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("O", unused);
+
+        // SHOOT -> HOOT
+        mockEvent.srcElement.setAttribute("deletionPosition", "1");
+        gameDisplay.deletionClickCallback(mockEvent);
+
+        // HOOT -> BOOT
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        gameDisplay.letterPicker.selectionMade("B", unused);
+
+        // BOOT -> BOOK  D'OH wrong move
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("K", unused);
+
+        // BOOK -> BOOR
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("R", unused);
+
+        // BOOR -> POOR
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        gameDisplay.letterPicker.selectionMade("P", unused);
+
+        // game is done.  Let's see what the saved stats and words played are:
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const statsDisplay = appDisplay.statsDisplay;
+
+        let statsSrcElement = new MockEventSrcElement(statsDisplay);
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        statsDisplay.openAuxiliaryCallback(statsMockEvent);
+
+        //  get the share string:
+        let actShareString = statsDisplay.shareCallback(mockEvent);
+        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 1️⃣\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
+
+        this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+            this.success();
+
+        this.runNextTest();
+    }
+
+    dailyGameTooManyMistakesShareTest() {
+        this.testName = "DailyGameTooManyMistakesShare";
+
+        // The newly opened URL should be showing the test daily game by default;
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        let game = gameDisplay.game;
+
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+
+        // when opened with ?testing in the URL, the daily game will always
+        // be SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        //  SHORT -> SHOOT
+        let unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("O", unused);
+
+        // SHOOT -> HOOT
+        mockEvent.srcElement.setAttribute("deletionPosition", "1");
+        gameDisplay.deletionClickCallback(mockEvent);
+
+        // HOOT -> BOOT
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        gameDisplay.letterPicker.selectionMade("B", unused);
+
+        // BOOT -> BOOK  D'OH wrong move 1
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("K", unused);
+
+        // BOOK -> BOOB  D'OH wrong move 2
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("B", unused);
+
+        // BOOB -> BOOT  D'OH wrong move 3
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("T", unused);
+
+        // BOOT -> BOOK  D'OH wrong move 4
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("K", unused);
+
+        this.verify(!game.isOver(), "after 4 wrong moves, game should not be over!");
+
+        // BOOK -> BOOT  D'OH wrong move 5
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("T", unused);
+
+        // game should be over if Const.TOO_MANY_WRONG_MOVES is 5
+        this.verify(game.isOver(), "after 5 wrong moves, game is not over!");
+
+/*
+TODO - what if these are played after the game is over?  They should not be adding to the share or game state.
+        // BOOT -> BOOR
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("R", unused);
+
+        // BOOR -> POOR
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        gameDisplay.letterPicker.selectionMade("P", unused);
+
+*/
+        // game is done.  Let's see what the saved stats and words played are:
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const statsDisplay = appDisplay.statsDisplay;
+
+        // check the saved stats cookie
+        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
+
+        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
+        let statsSrcElement = new MockEventSrcElement(statsDisplay);
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        statsDisplay.openAuxiliaryCallback(statsMockEvent);
+
+        //  get the share string.  Note that after the final mistake, no more words are shown (unplayed) leading to the target.
+        let actShareString = statsDisplay.shareCallback(mockEvent);
+        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 😖\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
+
+        this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+            this.success();
+
+        this.runNextTest();
+    }
+
+    dailyGameRestartTest() {
+        // The newly opened URL should be showing the daily game by default;
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+
+        // when opened with ?testing in the URL, the daily game will always
+        // be SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        // play two moves, then close and try to restore ...
+        //  SHORT -> SHOOT
+        let unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        gameDisplay.letterPicker.selectionMade("O", unused);
+
+        // SHOOT -> HOOT
+        mockEvent.srcElement.setAttribute("deletionPosition", "1");
+        gameDisplay.deletionClickCallback(mockEvent);
+
+        // close the game window
+        this.getNewAppWindow().close();
+
+        // and re-open it, without the testing suffix which forces a new static daily game.
+        const useTestingURL = false;
+        this.openTheTestAppWindow(useTestingURL);
+        this.waitForAppDisplayThenRunFunc(this.continueRestoreGameTest);
+    }
+
+    // called after first restart in the middle of the game.
+    continueRestoreGameTest() {
+        // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
+        this.testName = "DailyGameRestart";
+        const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        const game = gameDisplay.game;
+        const di = game.getDisplayInstructions();
+        this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
+        this.verify((di[0].toStr() === "(played,word:SHORT,moveRating:ok)"), `instruction[0] is ${di[0].toStr()}`) &&
+        this.verify((di[1].toStr() === "(played,word:SHOOT,moveRating:ok)"), `instruction[1] is ${di[1].toStr()}`) &&
+        this.verify((di[2].toStr() === "(change,word:HOOT,changePosition:1)"), `instruction[2] is ${di[2].toStr()}`) &&
+        this.verify((di[3].toStr() === "(future,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
+        this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
+        this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
+
+        // finish the game. ( ... BOOT BOOR POOR)
+        const unused = "";
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        const playedB = gameDisplay.letterPicker.selectionMade("B", unused);
+        gameDisplay.letterPicker.saveLetterPosition(4);
+        const playedR = gameDisplay.letterPicker.selectionMade("R", unused);
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        const playedP = gameDisplay.letterPicker.selectionMade("P", unused);
+
+        this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
+        this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
+        this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK);
+
+        // ... and close and re-open it after it is solved
+        const useTestingURL = false;
+        this.openTheTestAppWindow(useTestingURL);
+        this.waitForAppDisplayThenRunFunc(this.finishRestoreGameTest);
+    }
+
+    finishRestoreGameTest() {
+        // game should be done; stats should be saved.
+        const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        const game = gameDisplay.game;
+        Const.GL_DEBUG && this.logDebug("restored daily game after finishing it; display instructions are: ",
+                game.getDisplayInstructions(), "test");
+        this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
+            this.success();
+        Cookie.clearNonDebugCookies();
+        this.runNextTest();
+    }
+
+    practiceGameTest() {
+        this.testName = "PracticeGame";
+
+        this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
+        Cookie.clearNonDebugCookies(this.getNewAppWindow());
+
+        this.logDebug("Switching to practice game", "test");
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
+        this.logDebug("Done switching to practice game", "test");
+
+        let practiceGame = this.getNewAppWindow().theAppDisplay.practiceGame;
+        this.logDebug("updating practice game to TEST->PILOT", "test");
+        practiceGame.updateWords("TEST","PILOT");
+        this.logDebug("done updating practice game to TEST->PILOT", "test");
+
+        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        let srcElement = new MockEventSrcElement(gameDisplay);
+        let mockEvent = new MockEvent(srcElement);
+        let unused = "";
+
+        // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
+        //  TEST -> LEST
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        let resultL1 = gameDisplay.letterPicker.selectionMade("L", unused);
+
+        // LEST -> LET
+        mockEvent.srcElement.setAttribute("deletionPosition", "3");
+        let resultDelete3 = gameDisplay.deletionClickCallback(mockEvent);
+
+        // LET -> LIT - wrong move!
+        gameDisplay.letterPicker.saveLetterPosition(2);
+        let resultI2Wrong = gameDisplay.letterPicker.selectionMade("I", unused);
+
+        // LIT -> LOT
+        gameDisplay.letterPicker.saveLetterPosition(2);
+        let resultO2 = gameDisplay.letterPicker.selectionMade("O", unused);
+
+        // LOT -> xLOT
+        mockEvent.srcElement.setAttribute("additionPosition", "0");
+        let resultAddition0 = gameDisplay.additionClickCallback(mockEvent);
+
+        // xLOT -> PLOT
+        gameDisplay.letterPicker.saveLetterPosition(1);
+        let resultP1 = gameDisplay.letterPicker.selectionMade("P", unused);
+
+        // PLOT -> PxLOT
+        mockEvent.srcElement.setAttribute("additionPosition", "1");
+        let resultAddition1 = gameDisplay.additionClickCallback(mockEvent);
+
+        // PxLOT -> PILOT
+        gameDisplay.letterPicker.saveLetterPosition(2);
+        let resultI2 = gameDisplay.letterPicker.selectionMade("I", unused);
+
+        this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
+            this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
+            this.verify((resultI2Wrong === Const.WRONG_MOVE), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
+            this.verify((resultO2 === Const.OK), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
+            this.verify((resultAddition0 === Const.OK), `playAdd(0) returns ${resultAddition0}, not ${Const.OK}`) &&
+            this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
+            this.verify((resultAddition1 === Const.OK), `playAdd(1) returns ${resultAddition1}, not ${Const.OK}`) &&
+            this.verify((resultI2 === Const.OK), `playLetter(2, I) returns ${resultI2}, not ${Const.OK}`) &&
+            this.success();
+        this.runNextTest();
+    }
 
     geniusMoveAndShareTest() {
         this.testName = "GeniusMoveDisplay";
@@ -872,399 +1266,6 @@ class Test extends BaseLogger {
             this.success();
         Cookie.clearNonDebugCookies();
         this.runNextTest();
-    }
-
-    closeNewAppWindow() {
-        if (this.getNewAppWindow()) {
-            this.getNewAppWindow().close();
-            this.newWindow = null;
-        }
-    }
-
-    dailyGameNormalFinishStatsTest() {
-        this.testName = "DailyGameNormalFinishStats";
-
-        // The newly opened URL should be showing the test daily game by default;
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
-
-        // when opened with ?testing in the URL, the daily game will always
-        // be SHORT -> POOR
-        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
-
-        //  SHORT -> SHOOT
-        let unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("O", unused);
-
-        // SHOOT -> HOOT
-        mockEvent.srcElement.setAttribute("deletionPosition", "1");
-        gameDisplay.deletionClickCallback(mockEvent);
-
-        // HOOT -> BOOT
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("B", unused);
-
-        // BOOT -> BOOR
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("R", unused);
-
-        // BOOR -> POOR
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("P", unused);
-
-        // game is done.  Let's see what the saved stats and words played are:
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
-        const statsDisplay = appDisplay.statsDisplay;
-
-        // check the saved stats cookie
-        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
-
-        let expGP=1, actGP=dailyStats.gamesPlayed;
-        let expGS=0, actGS=dailyStats.gamesShown;
-
-        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
-        let statsSrcElement = new MockEventSrcElement(statsDisplay);
-        let statsMockEvent = new MockEvent(statsSrcElement);
-        statsDisplay.openAuxiliaryCallback(statsMockEvent);
-        
-        // the statsContainer is a GUI element with at least 3 children: Played, Completion %, and Shown
-        let statsContainer = statsDisplay.statsContainer;
-
-        // When statsContainer is logged, it sometimes logs as an object with 3 children, but other times as 
-        // something that looks like formatted HTML.  This test relies on the object with children form.  The 
-        // children have a field called innerText that is set to value\nlabel.  We verify this against the expected
-        // inner text.
-
-        this.logDebug("displayGameStatsTest: appDisplay:", appDisplay, "test");
-        this.logDebug("displayGameStatsTest: statsDisplay", statsDisplay, "test");
-        this.logDebug("displayGameStatsTest: dailyStats", dailyStats, "test");
-        this.logDebug("displayGameStatsTest: statsContainer", statsContainer, "test");
-
-        let expCL = 3;
-        let actCL = statsContainer.children.length;
-
-        let expPlayed = '1\nPlayed';
-        let actPlayed = statsContainer.children[0].innerText;
-
-        let expCompletion = '0.0\nCompletion %';
-        let actCompletion = statsContainer.children[1].innerText;
-
-        let expShown = '0\nShown';
-        let actShown = statsContainer.children[2].innerText;
-
-        // now, get the share string:
-        let actShareString = statsDisplay.shareCallback(mockEvent);
-        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
-
-        this.verify(expGP==actGP, `expected dailyStats.gamesPlayed==${expGP}1, got ${actGP}`) &&
-            this.verify(expGS==actGS, `expected dailyStats.gamesShown==${expGS}1, got ${actGS}`) &&
-            this.verify(actCL==expCL, `expected statsContainer.children.length==${expCL}, got ${actCL}`) &&
-            this.verify(actPlayed==expPlayed, `expected statsContainer.children.0.innerText==${expPlayed}, got ${actPlayed}`) &&
-            this.verify(actCompletion==expCompletion, `expected statsContainer.children.1.innerText=='${expCompletion}', got '${actCompletion}'`) &&
-            this.verify(actShown==expShown, `expected statsContainer.children.2.innerText=='${expShown}', got '${actShown}'`) &&
-            this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
-            this.success();
-
-        this.runNextTest();
-    }
-
-    dailyGameOneMistakeShareTest() {
-        this.testName = "DailyGameOneMistakeShare";
-
-        // The newly opened URL should be showing the test daily game by default;
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
-
-        // when opened with ?testing in the URL, the daily game will always
-        // be SHORT -> POOR
-        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
-
-        //  SHORT -> SHOOT
-        let unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("O", unused);
-
-        // SHOOT -> HOOT
-        mockEvent.srcElement.setAttribute("deletionPosition", "1");
-        gameDisplay.deletionClickCallback(mockEvent);
-
-        // HOOT -> BOOT
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("B", unused);
-
-        // BOOT -> BOOK  D'OH wrong move
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("K", unused);
-
-        // BOOK -> BOOR
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("R", unused);
-
-        // BOOR -> POOR
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("P", unused);
-
-        // game is done.  Let's see what the saved stats and words played are:
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
-        const statsDisplay = appDisplay.statsDisplay;
-
-        let statsSrcElement = new MockEventSrcElement(statsDisplay);
-        let statsMockEvent = new MockEvent(statsSrcElement);
-        statsDisplay.openAuxiliaryCallback(statsMockEvent);
-        
-        //  get the share string:
-        let actShareString = statsDisplay.shareCallback(mockEvent);
-        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 1️⃣\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
-
-        this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
-            this.success();
-
-        this.runNextTest();
-    }
-
-    dailyGameTooManyMistakesShareTest() {
-        this.testName = "DailyGameTooManyMistakesShare";
-
-        // The newly opened URL should be showing the test daily game by default;
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        let game = gameDisplay.game;
-
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
-
-        // when opened with ?testing in the URL, the daily game will always
-        // be SHORT -> POOR
-        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
-
-        //  SHORT -> SHOOT
-        let unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("O", unused);
-
-        // SHOOT -> HOOT
-        mockEvent.srcElement.setAttribute("deletionPosition", "1");
-        gameDisplay.deletionClickCallback(mockEvent);
-
-        // HOOT -> BOOT
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("B", unused);
-
-        // BOOT -> BOOK  D'OH wrong move 1
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("K", unused);
-
-        // BOOK -> BOOB  D'OH wrong move 2
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("B", unused);
-
-        // BOOB -> BOOT  D'OH wrong move 3
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("T", unused);
-
-        // BOOT -> BOOK  D'OH wrong move 4
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("K", unused);
-
-        this.verify(!game.isOver(), "after 4 wrong moves, game should not be over!");
-
-        // BOOK -> BOOT  D'OH wrong move 5
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("T", unused);
-
-        // game should be over if Const.TOO_MANY_WRONG_MOVES is 5
-        this.verify(game.isOver(), "after 5 wrong moves, game is not over!");
-
-/*
-TODO - what if these are played after the game is over?  They should not be adding to the share or game state.
-        // BOOT -> BOOR
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("R", unused);
-
-        // BOOR -> POOR
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("P", unused);
-
-*/
-        // game is done.  Let's see what the saved stats and words played are:
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
-        const statsDisplay = appDisplay.statsDisplay;
-
-        // check the saved stats cookie
-        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
-
-        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
-        let statsSrcElement = new MockEventSrcElement(statsDisplay);
-        let statsMockEvent = new MockEvent(statsSrcElement);
-        statsDisplay.openAuxiliaryCallback(statsMockEvent);
-        
-        //  get the share string.  Note that after the final mistake, no more words are shown (unplayed) leading to the target.
-        let actShareString = statsDisplay.shareCallback(mockEvent);
-        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 😖\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
-
-        this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
-            this.success();
-
-        this.runNextTest();
-    }
-
-    dailyGameRestartTest() {
-        // The newly opened URL should be showing the daily game by default;
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
-
-        // when opened with ?testing in the URL, the daily game will always
-        // be SHORT -> POOR
-        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
-
-        // play two moves, then close and try to restore ...
-        //  SHORT -> SHOOT
-        let unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("O", unused);
-
-        // SHOOT -> HOOT
-        mockEvent.srcElement.setAttribute("deletionPosition", "1");
-        gameDisplay.deletionClickCallback(mockEvent);
-
-        // close the game window
-        this.getNewAppWindow().close();
-
-        // and re-open it, without the testing suffix which forces a new static daily game.
-        const useTestingURL = false;
-        this.openTheTestAppWindow(useTestingURL);
-        this.waitForAppDisplayThenRunFunc(this.continueRestoreGameTest);
-    }
-
-    // called after first restart in the middle of the game.
-    continueRestoreGameTest() {
-        // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
-        this.testName = "DailyGameRestart";
-        const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        const game = gameDisplay.game;
-        const di = game.getDisplayInstructions();
-        this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
-        this.verify((di[0].toStr() === "(played,word:SHORT,moveRating:ok)"), `instruction[0] is ${di[0].toStr()}`) &&
-        this.verify((di[1].toStr() === "(played,word:SHOOT,moveRating:ok)"), `instruction[1] is ${di[1].toStr()}`) &&
-        this.verify((di[2].toStr() === "(change,word:HOOT,changePosition:1)"), `instruction[2] is ${di[2].toStr()}`) &&
-        this.verify((di[3].toStr() === "(future,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
-        this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
-        this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
-
-        // finish the game. ( ... BOOT BOOR POOR)
-        const unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        const playedB = gameDisplay.letterPicker.selectionMade("B", unused);
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        const playedR = gameDisplay.letterPicker.selectionMade("R", unused);
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        const playedP = gameDisplay.letterPicker.selectionMade("P", unused);
-
-        this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
-        this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
-        this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK); 
-
-        // .. and close and re-open it after it is solved
-        const useTestingURL = false;
-        this.openTheTestAppWindow(useTestingURL);
-        this.waitForAppDisplayThenRunFunc(this.finishRestoreGameTest);
-    }
-
-    finishRestoreGameTest() {
-        // game should be done; stats should be saved.
-        const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        const game = gameDisplay.game;
-        Const.GL_DEBUG && this.logDebug("restored daily game after finishing it; display instructions are: ",
-                game.getDisplayInstructions(), "test");
-        this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
-            this.success();
-        Cookie.clearNonDebugCookies();
-        this.runNextTest();
-    }
-
-    openTheTestAppWindow(useTestingURL=true) {
-        let suffix = "";
-        if (useTestingURL) {
-            suffix = "?testing";
-        }
-        this.newWindow = window.open('/wordchain/docs/html/WordChain.html' + suffix, 'AppDisplayTest', 'width=600,height=800');
-        // pass our debug settings to the child window
-        Cookie.save(Cookie.DEBUG, Cookie.get(Cookie.DEBUG), this.getNewAppWindow());
-        // set the child's console to our console.
-        this.newWindow.console = console;
-        /*
-
-        TODO - this sometimes cause the browser share code to fail with console error:
-
-         NotAllowedError: Failed to execute 'share' on 'Navigator': Must be handling a user gesture to perform a share request.
-    at StatsDisplay.shareCallback (/wordchain/docs/javascript/StatsDisplay.js:99:27)
-    at Test.geniusMoveAndShareTest (Test.js:834:40)
-    at Test.waitForAppDisplayThenRunFunc (Test.js:992:13)
-
-        BUT, the share string is calculated correctly and the test passes.  What fails is putting the
-        share-string into the browser itself during testing.
-        */
-    }
-
-    runAppTests() {
-        this.appTestList = [
-            this.dailyGameNormalFinishStatsTest,
-            this.dailyGameOneMistakeShareTest,
-            this.dailyGameTooManyMistakesShareTest,
-            this.geniusMoveAndShareTest,
-            this.cookieRestartTest,
-            this.dailyGameRestartTest,
-            this.practiceGameTest,
-        ];
-        this.needToWaitForAsyncResults = true;
-        this.runNextTest();
-    }
-
-    runNextTest() {
-        var testFunc = this.appTestList.shift();
-        this.logDebug("runNextTest() testFunc=", testFunc, "test");
-        if (testFunc) {
-            // clear our own cookies
-            Cookie.clearNonDebugCookies();
-
-            // close and re-open the test App window
-            this.closeNewAppWindow();
-            this.openTheTestAppWindow();
-
-            // and then wait for the window and begin the next test ...
-            this.waitForAppDisplayThenRunFunc(testFunc);
-        } else {
-            this.closeNewAppWindow();
-            this.needToWaitForAsyncResults = false;
-        }
-    }
-
-    getNewAppWindow() {
-        return this.newWindow;
-    }
-
-    // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
-    waitForAppDisplayThenRunFunc(func) {
-        if (this.getNewAppWindow() && this.getNewAppWindow().theAppDisplayIsReady) {
-            this.logDebug("new window AppDisplay is ready; calling func now.", "test");
-            // How to call this class's member function 'func' with 'this' properly set.
-            var boundFunc = func.bind(this);
-            boundFunc();
-        } else {
-            const sleepTime = 1000;
-            this.logDebug("pausing ", sleepTime, " for new window AppDisplay to be ready.");
-            inTheFuture(sleepTime).then( (foo=this) => { foo.waitForAppDisplayThenRunFunc(func);});
-        }
-    }
-
-    getResultsAreReady() {
-        return ! this.needToWaitForAsyncResults;
     }
 
     // ===== Dictionary Tester =====

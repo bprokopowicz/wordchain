@@ -167,17 +167,17 @@ class StatsDisplay extends AuxiliaryDisplay {
         let emoji = Const.PURPLE_SQUARE;
         shareString += emoji.repeat(startLength) + "\n";
 
-        // show all the words played.  
+        // show all the words played.
 
+        let colorblindMode = this.appDisplay.isColorblindMode();
         for (let [moveRating, wordLength] of wordsBetweenStartAndTarget) {
 
-            // we don't include unplayed words in the share string.  This happens when there are too many wrong moves.  
+            // we don't include unplayed words in the share string.  This happens when there are too many wrong moves.
             // The moveSummary includes the correct unplayed words leading from the last wrong word to the target, but we
             // don't want to show them.
             if (moveRating == Const.FUTURE) {
                 break;
             }
-            let colorblindMode = this.appDisplay.isColorblindMode();
 
             // Determine which color square to display for this word.
             if (moveRating === Const.OK) {
