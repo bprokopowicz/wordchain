@@ -238,6 +238,8 @@ class DailyGameDisplay extends GameDisplay {
 
         let gameResult = super.letterPicked(letter, letterPosition);
 
+        this.updateDailyGameStats(gameResult);
+
         Const.GL_DEBUG && this.logDebug("DailyGameDisplay.letterPicked() gameState: ", this.gameState, "daily");
         if (gameResult === Const.OK) {
             this.dailyGameWordsPlayed = this.gameState

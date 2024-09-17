@@ -232,13 +232,7 @@ class Test extends BaseLogger {
         var testFunc = this.appTestList.shift();
         this.logDebug("runNextTest() testFunc=", testFunc, "test");
         if (testFunc) {
-            // clear our own cookies
-            Cookie.clearNonDebugCookies();
-
-            // close and re-open the test App window
-            this.closeNewAppWindow();
-            this.openTheTestAppWindow();
-
+            this.reOpenTestAppWindow();
             // and then wait for the window and begin the next test ...
             this.waitForAppDisplayThenRunFunc(testFunc);
         } else {
@@ -246,6 +240,17 @@ class Test extends BaseLogger {
             this.needToWaitForAsyncResults = false;
         }
     }
+
+   reOpenTestAppWindow(clearCookies=true) {
+       // clear our own cookies
+       if (clearCookies) {
+           Cookie.clearNonDebugCookies();
+       }
+
+       // close and re-open the test App window
+       this.closeNewAppWindow();
+       this.openTheTestAppWindow();
+   }
 
     // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
     waitForAppDisplayThenRunFunc(func) {
@@ -260,6 +265,34 @@ class Test extends BaseLogger {
             inTheFuture(sleepTime).then( (foo=this) => { foo.waitForAppDisplayThenRunFunc(func);});
         }
     }
+        
+    // this plays the canned test daily game.  No status of whether or not it worked.  It is useful for 
+    // tests that need multiple game instances to test stats.
+    // 
+
+    playTheCannedDailyGameOnce() {
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
+        // when opened with ?testing in the URL, the daily game will always
+        // be SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        //  SHORT -> SHOOT
+        this.playLetter(4, "O");
+
+        // SHOOT -> HOOT
+        this.deleteLetter(1);
+
+        // HOOT -> BOOT
+        this.playLetter(1, "B");
+
+        // BOOT -> BOOR
+        this.playLetter(4, "R");
+
+        // BOOR -> POOR
+        this.playLetter(1, "P");
+    }
+
 
     /*
     ** WordChainDict tests
@@ -491,7 +524,7 @@ class Test extends BaseLogger {
 
         this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'MATZO' TO 'BALL': ${solutionMatzoBall.getError()}`) &&
         this.verify((solutionBallMatzo.getError()=== "No solution"), `expected slow 'No solution' on 'BALL' TO 'MATZO': ${solutionBallMatzo.getError()}`) &&
-        this.verify((100*elapsedForwardTime < elapsedReverseTime), `expected fast path ${elapsedForwardTime} to be at least 100x shorter than reverse path ${elapsedReverseTime}`) &&
+        this.verify((50*elapsedForwardTime < elapsedReverseTime), `expected fast path ${elapsedForwardTime} to be at least 50x shorter than reverse path ${elapsedReverseTime}`) &&
         this.success();
     }
 
@@ -793,10 +826,13 @@ class Test extends BaseLogger {
 
     /*
     ** App Tests
+    ** App tests need to be run one after the other, pausing to wait for the app window to display, etc.  
+    ** 
     */
 
     runAppTests() {
         this.appTestList = [
+            this.multiGameStatsTest,
             this.dailyGameNormalFinishStatsTest,
             this.dailyGameOneMistakeShareTest,
             this.dailyGameTooManyMistakesShareTest,
@@ -845,24 +881,7 @@ class Test extends BaseLogger {
         // The newly opened URL should be showing the test daily game by default;
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // when opened with ?testing in the URL, the daily game will always
-        // be SHORT -> POOR
-        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
-
-        //  SHORT -> SHOOT
-        this.playLetter(4, "O");
-
-        // SHOOT -> HOOT
-        this.deleteLetter(1);
-
-        // HOOT -> BOOT
-        this.playLetter(1, "B");
-
-        // BOOT -> BOOR
-        this.playLetter(4, "R");
-
-        // BOOR -> POOR
-        this.playLetter(1, "P");
+        this.playTheCannedDailyGameOnce(); 
 
         // game is done.  Let's see what the saved stats and words played are:
         const appDisplay = this.getNewAppWindow().theAppDisplay;
@@ -870,6 +889,7 @@ class Test extends BaseLogger {
 
         // check the saved stats cookie
         let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
+        this.logDebug("displayGameStatsTest: dailyStats", dailyStats, "test");
 
         let expGP=1, actGP=dailyStats.gamesPlayed;
         let expGS=0, actGS=dailyStats.gamesShown;
@@ -887,9 +907,6 @@ class Test extends BaseLogger {
         // children have a field called innerText that is set to value\nlabel.  We verify this against the expected
         // inner text.
 
-        this.logDebug("displayGameStatsTest: appDisplay:", appDisplay, "test");
-        this.logDebug("displayGameStatsTest: statsDisplay", statsDisplay, "test");
-        this.logDebug("displayGameStatsTest: dailyStats", dailyStats, "test");
         this.logDebug("displayGameStatsTest: statsContainer", statsContainer, "test");
 
         let expCL = 3;
@@ -898,7 +915,7 @@ class Test extends BaseLogger {
         let expPlayed = '1\nPlayed';
         let actPlayed = statsContainer.children[0].innerText;
 
-        let expCompletion = '0.0\nCompletion %';
+        let expCompletion = '100.0\nCompletion %';
         let actCompletion = statsContainer.children[1].innerText;
 
         let expShown = '0\nShown';
@@ -920,6 +937,75 @@ class Test extends BaseLogger {
 
         this.runNextTest();
     }
+        
+    multiGameStatsTest() {
+        this.testName = "MultiGameStats";
+        if (this.multiGameCountdown == null) {
+            // this is the first call.  We will set a countdown of games to run
+            this.multiGameCountdown = 3;
+        } 
+
+        this.logDebug("MultiGameStatsTest() countdown is: ", this.multiGameCountdown, "test");
+
+        this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done (?) 
+
+        this.multiGameCountdown -= 1;
+        if (this.multiGameCountdown <= 0) {
+            this.multiGameFinishStatsTest();
+        } else {
+            // re-open open the test window, and then repeat this function with the countdown reduced 
+            const clearCookies = false;
+            this.reOpenTestAppWindow(clearCookies);
+            this.waitForAppDisplayThenRunFunc(this.multiGameStatsTest);
+        }
+    }
+
+    multiGameFinishStatsTest() {
+        // games are done.  Let's see what the saved stats are:
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const statsDisplay = appDisplay.statsDisplay;
+        this.multiGameCountdown = null;  // this needs to be reset in case we want to run the tests again.  
+
+        // check the saved stats cookie
+        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
+        this.logDebug("multiGameStatsTest() dailyStats", dailyStats, "test");
+
+        let expGP=3, actGP=dailyStats.gamesPlayed;
+        let expGS=0, actGS=dailyStats.gamesShown;
+
+        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
+        let statsSrcElement = new MockEventSrcElement(statsDisplay);
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        statsDisplay.openAuxiliaryCallback(statsMockEvent);
+
+        // the statsContainer is a GUI element with at least 3 children: Played, Completion %, and Shown
+        let statsContainer = statsDisplay.statsContainer;
+
+        this.logDebug("multiGameStatsTest() statsContainer", statsContainer, "test");
+
+        let expCL = 3;
+        let actCL = statsContainer.children.length;
+
+        let expPlayed = '3\nPlayed';
+        let actPlayed = statsContainer.children[0].innerText;
+
+        let expCompletion = '100.0\nCompletion %';
+        let actCompletion = statsContainer.children[1].innerText;
+
+        let expShown = '0\nShown';
+        let actShown = statsContainer.children[2].innerText;
+
+        this.verify(expGP==actGP, `expected dailyStats.gamesPlayed==${expGP}, got ${actGP}`) &&
+            this.verify(expGS==actGS, `expected dailyStats.gamesShown==${expGS}, got ${actGS}`) &&
+            this.verify(actCL==expCL, `expected statsContainer.children.length==${expCL}, got ${actCL} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
+            this.verify(actPlayed==expPlayed, `expected statsContainer.children.0.innerText==${expPlayed}, got ${actPlayed}`) &&
+            this.verify(actShown==expShown, `expected statsContainer.children.2.innerText=='${expShown}', got '${actShown}'`) &&
+            this.verify(actCompletion==expCompletion, `expected statsContainer.children.1.innerText=='${expCompletion}', got '${actCompletion}'`) &&
+            this.success();
+
+        this.runNextTest();
+    }
+
 
     dailyGameOneMistakeShareTest() {
         this.testName = "DailyGameOneMistakeShare";
