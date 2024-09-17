@@ -809,39 +809,60 @@ class Test extends BaseLogger {
         this.runNextTest();
     }
 
+    // playLettter, deleteLetter, and insertLetter all require the attribute this.gameDisplay to be set to
+    // the active GameDisplay (Practice or Daily).
+
+    playLetter(position, letter) {
+        const unused = "";
+        this.gameDisplay.letterPicker.saveLetterPosition(position);
+        let rc = this.gameDisplay.letterPicker.selectionMade(letter, unused);
+        this.logDebug("playLetter(", position, ",", letter, ") returns: ", rc, "test");
+        return rc;
+    }
+
+    deleteLetter(position) {
+        const srcElement = new MockEventSrcElement(this.gameDisplay);
+        const mockEvent = new MockEvent(srcElement);
+        mockEvent.srcElement.setAttribute("deletionPosition", position.toString());
+        let rc = this.gameDisplay.deletionClickCallback(mockEvent);
+        this.logDebug("deleteLetter(", position, ") returns: ", rc, "test");
+        return rc;
+    }
+
+    insertLetter(position, letter) {
+        const srcElement = new MockEventSrcElement(this.gameDisplay);
+        const mockEvent = new MockEvent(srcElement);
+        mockEvent.srcElement.setAttribute("additionPosition", position.toString());
+        let clickResult = this.gameDisplay.additionClickCallback(mockEvent);
+        let playResult = this.playLetter(position+1, letter);
+        this.logDebug("insertLetter(", position, ",", letter, ") returns: ", clickResult, " then ", playResult,  "test");
+        return playResult;
+    }
+        
     dailyGameNormalFinishStatsTest() {
         this.testName = "DailyGameNormalFinishStats";
 
         // The newly opened URL should be showing the test daily game by default;
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // when opened with ?testing in the URL, the daily game will always
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         //  SHORT -> SHOOT
-        let unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("O", unused);
+        this.playLetter(4, "O");
 
         // SHOOT -> HOOT
-        mockEvent.srcElement.setAttribute("deletionPosition", "1");
-        gameDisplay.deletionClickCallback(mockEvent);
+        this.deleteLetter(1);
 
         // HOOT -> BOOT
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("B", unused);
+        this.playLetter(1, "B");
 
         // BOOT -> BOOR
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("R", unused);
+        this.playLetter(4, "R");
 
         // BOOR -> POOR
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("P", unused);
+        this.playLetter(1, "P");
 
         // game is done.  Let's see what the saved stats and words played are:
         const appDisplay = this.getNewAppWindow().theAppDisplay;
@@ -884,12 +905,13 @@ class Test extends BaseLogger {
         let actShown = statsContainer.children[2].innerText;
 
         // now, get the share string:
-        let actShareString = statsDisplay.shareCallback(mockEvent);
+
+        let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
 
-        this.verify(expGP==actGP, `expected dailyStats.gamesPlayed==${expGP}1, got ${actGP}`) &&
-            this.verify(expGS==actGS, `expected dailyStats.gamesShown==${expGS}1, got ${actGS}`) &&
-            this.verify(actCL==expCL, `expected statsContainer.children.length==${expCL}, got ${actCL}`) &&
+        this.verify(expGP==actGP, `expected dailyStats.gamesPlayed==${expGP}, got ${actGP}`) &&
+            this.verify(expGS==actGS, `expected dailyStats.gamesShown==${expGS}, got ${actGS}`) &&
+            this.verify(actCL==expCL, `expected statsContainer.children.length==${expCL}, got ${actCL} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
             this.verify(actPlayed==expPlayed, `expected statsContainer.children.0.innerText==${expPlayed}, got ${actPlayed}`) &&
             this.verify(actCompletion==expCompletion, `expected statsContainer.children.1.innerText=='${expCompletion}', got '${actCompletion}'`) &&
             this.verify(actShown==expShown, `expected statsContainer.children.2.innerText=='${expShown}', got '${actShown}'`) &&
@@ -903,39 +925,29 @@ class Test extends BaseLogger {
         this.testName = "DailyGameOneMistakeShare";
 
         // The newly opened URL should be showing the test daily game by default;
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // when opened with ?testing in the URL, the daily game will always
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         //  SHORT -> SHOOT
-        let unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("O", unused);
+        this.playLetter(4, "O");
 
         // SHOOT -> HOOT
-        mockEvent.srcElement.setAttribute("deletionPosition", "1");
-        gameDisplay.deletionClickCallback(mockEvent);
+        this.deleteLetter(1);
 
         // HOOT -> BOOT
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("B", unused);
+        this.playLetter(1, "B");
 
         // BOOT -> BOOK  D'OH wrong move
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("K", unused);
+        this.playLetter(4, "K");
 
         // BOOK -> BOOR
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("R", unused);
+        this.playLetter(4, "R");
 
         // BOOR -> POOR
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("P", unused);
+        this.playLetter(1, "P");
 
         // game is done.  Let's see what the saved stats and words played are:
         const appDisplay = this.getNewAppWindow().theAppDisplay;
@@ -946,7 +958,7 @@ class Test extends BaseLogger {
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
 
         //  get the share string:
-        let actShareString = statsDisplay.shareCallback(mockEvent);
+        let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 1️⃣\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
 
         this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
@@ -959,50 +971,38 @@ class Test extends BaseLogger {
         this.testName = "DailyGameTooManyMistakesShare";
 
         // The newly opened URL should be showing the test daily game by default;
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        let game = gameDisplay.game;
-
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        let game = this.gameDisplay.game;
 
         // when opened with ?testing in the URL, the daily game will always
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         //  SHORT -> SHOOT
-        let unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("O", unused);
+        this.playLetter(4, "O");
 
         // SHOOT -> HOOT
-        mockEvent.srcElement.setAttribute("deletionPosition", "1");
-        gameDisplay.deletionClickCallback(mockEvent);
+        this.deleteLetter(1);
 
         // HOOT -> BOOT
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("B", unused);
+        this.playLetter(1, "B");
 
         // BOOT -> BOOK  D'OH wrong move 1
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("K", unused);
+        this.playLetter(4, "K");
 
         // BOOK -> BOOB  D'OH wrong move 2
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("B", unused);
+        this.playLetter(4, "B");
 
         // BOOB -> BOOT  D'OH wrong move 3
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("T", unused);
+        this.playLetter(4, "T");
 
         // BOOT -> BOOK  D'OH wrong move 4
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("K", unused);
+        this.playLetter(4, "K");
 
         this.verify(!game.isOver(), "after 4 wrong moves, game should not be over!");
 
         // BOOK -> BOOT  D'OH wrong move 5
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("T", unused);
+        this.playLetter(4, "T");
 
         // game should be over if Const.TOO_MANY_WRONG_MOVES is 5
         this.verify(game.isOver(), "after 5 wrong moves, game is not over!");
@@ -1010,12 +1010,10 @@ class Test extends BaseLogger {
 /*
 TODO - what if these are played after the game is over?  They should not be adding to the share or game state.
         // BOOT -> BOOR
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("R", unused);
+        this.playLetter(4, "R");
 
         // BOOR -> POOR
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        gameDisplay.letterPicker.selectionMade("P", unused);
+        this.playLetter(1, "P");
 
 */
         // game is done.  Let's see what the saved stats and words played are:
@@ -1031,7 +1029,7 @@ TODO - what if these are played after the game is over?  They should not be addi
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
 
         //  get the share string.  Note that after the final mistake, no more words are shown (unplayed) leading to the target.
-        let actShareString = statsDisplay.shareCallback(mockEvent);
+        let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 😖\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
 
         this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
@@ -1042,10 +1040,7 @@ TODO - what if these are played after the game is over?  They should not be addi
 
     dailyGameRestartTest() {
         // The newly opened URL should be showing the daily game by default;
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // when opened with ?testing in the URL, the daily game will always
         // be SHORT -> POOR
@@ -1053,13 +1048,10 @@ TODO - what if these are played after the game is over?  They should not be addi
 
         // play two moves, then close and try to restore ...
         //  SHORT -> SHOOT
-        let unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        gameDisplay.letterPicker.selectionMade("O", unused);
+        this.playLetter(4, "O");
 
         // SHOOT -> HOOT
-        mockEvent.srcElement.setAttribute("deletionPosition", "1");
-        gameDisplay.deletionClickCallback(mockEvent);
+        this.deleteLetter(1);
 
         // close the game window
         this.getNewAppWindow().close();
@@ -1074,8 +1066,8 @@ TODO - what if these are played after the game is over?  They should not be addi
     continueRestoreGameTest() {
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
         this.testName = "DailyGameRestart";
-        const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        const game = gameDisplay.game;
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        const game = this.gameDisplay.game;
         const di = game.getDisplayInstructions();
         this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
         this.verify((di[0].toStr() === "(played,word:SHORT,moveRating:ok)"), `instruction[0] is ${di[0].toStr()}`) &&
@@ -1086,13 +1078,10 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
 
         // finish the game. ( ... BOOT BOOR POOR)
-        const unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        const playedB = gameDisplay.letterPicker.selectionMade("B", unused);
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        const playedR = gameDisplay.letterPicker.selectionMade("R", unused);
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        const playedP = gameDisplay.letterPicker.selectionMade("P", unused);
+
+        const playedB = this.playLetter(1, "B");
+        const playedR = this.playLetter(4, "R");
+        const playedP = this.playLetter(1, "P");
 
         this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
         this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
@@ -1106,8 +1095,8 @@ TODO - what if these are played after the game is over?  They should not be addi
 
     finishRestoreGameTest() {
         // game should be done; stats should be saved.
-        const gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        const game = gameDisplay.game;
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        const game = this.gameDisplay.game;
         Const.GL_DEBUG && this.logDebug("restored daily game after finishing it; display instructions are: ",
                 game.getDisplayInstructions(), "test");
         this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
@@ -1131,52 +1120,33 @@ TODO - what if these are played after the game is over?  They should not be addi
         practiceGame.updateWords("TEST","PILOT");
         this.logDebug("done updating practice game to TEST->PILOT", "test");
 
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
-        let unused = "";
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
         //  TEST -> LEST
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        let resultL1 = gameDisplay.letterPicker.selectionMade("L", unused);
+        let resultL1 = this.playLetter(1, "L");
 
         // LEST -> LET
-        mockEvent.srcElement.setAttribute("deletionPosition", "3");
-        let resultDelete3 = gameDisplay.deletionClickCallback(mockEvent);
+        let resultDelete3 = this.deleteLetter(3); 
 
         // LET -> LIT - wrong move!
-        gameDisplay.letterPicker.saveLetterPosition(2);
-        let resultI2Wrong = gameDisplay.letterPicker.selectionMade("I", unused);
+        let resultI2Wrong = this.playLetter(2, "I");
 
         // LIT -> LOT
-        gameDisplay.letterPicker.saveLetterPosition(2);
-        let resultO2 = gameDisplay.letterPicker.selectionMade("O", unused);
+        let resultO2 = this.playLetter(2, "O");
 
-        // LOT -> xLOT
-        mockEvent.srcElement.setAttribute("additionPosition", "0");
-        let resultAddition0 = gameDisplay.additionClickCallback(mockEvent);
-
-        // xLOT -> PLOT
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        let resultP1 = gameDisplay.letterPicker.selectionMade("P", unused);
+        // LOT -> PLOT
+        let resultInsertP0 = this.insertLetter(0, "P" ); 
 
         // PLOT -> PxLOT
-        mockEvent.srcElement.setAttribute("additionPosition", "1");
-        let resultAddition1 = gameDisplay.additionClickCallback(mockEvent);
-
-        // PxLOT -> PILOT
-        gameDisplay.letterPicker.saveLetterPosition(2);
-        let resultI2 = gameDisplay.letterPicker.selectionMade("I", unused);
+        let resultInsertI1 = this.insertLetter(1, "I"); 
 
         this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
             this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
             this.verify((resultI2Wrong === Const.WRONG_MOVE), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
             this.verify((resultO2 === Const.OK), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
-            this.verify((resultAddition0 === Const.OK), `playAdd(0) returns ${resultAddition0}, not ${Const.OK}`) &&
-            this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
-            this.verify((resultAddition1 === Const.OK), `playAdd(1) returns ${resultAddition1}, not ${Const.OK}`) &&
-            this.verify((resultI2 === Const.OK), `playLetter(2, I) returns ${resultI2}, not ${Const.OK}`) &&
+            this.verify((resultInsertP0 === Const.OK), `insert P@0 returns ${resultInsertP0}, not ${Const.OK}`) &&
+            this.verify((resultInsertI1 === Const.OK), `insert I@1 returns ${resultInsertI1}, not ${Const.OK}`) &&
             this.success();
         this.runNextTest();
     }
@@ -1187,35 +1157,27 @@ TODO - what if these are played after the game is over?  They should not be addi
         Cookie.clearNonDebugCookies(this.getNewAppWindow());
         this.getNewAppWindow().theAppDisplay.switchToDailyGame();
 
-        let gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-
-        let srcElement = new MockEventSrcElement(gameDisplay);
-        let mockEvent = new MockEvent(srcElement);
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // regular solution:                SHORT SHOOT HOOT BOOT BOOR POOR
         // solve the puzzle like a genius:  SHORT SHOOT HOOT HOOR POOR
 
         //  SHORT -> SHOOT
-        let unused = "";
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        let resultO4 = gameDisplay.letterPicker.selectionMade("O", unused);
+        let resultO4 = this.playLetter(4, "O");
 
         // SHOOT -> HOOT
-        mockEvent.srcElement.setAttribute("deletionPosition", "1");
-        let resultDelete1 = gameDisplay.deletionClickCallback(mockEvent);
+        let resultDelete1 = this.deleteLetter(1);
 
         // HOOT -> HOOR genius move
-        gameDisplay.letterPicker.saveLetterPosition(4);
-        let resultR4Genius = gameDisplay.letterPicker.selectionMade("R", unused);
+        let resultR4Genius = this.playLetter(4, "R");
 
         // HOOR -> POOR  we are skipping this - it's enough that we saw the genius move
-        gameDisplay.letterPicker.saveLetterPosition(1);
-        let resultP1 = gameDisplay.letterPicker.selectionMade("P", unused);
+        let resultP1 = this.playLetter(1, "P");
 
         // While we're here, let's look at the share ...
         let statsDisplay = this.getNewAppWindow().theAppDisplay.statsDisplay;
         this.logDebug("theAppDisplay", this.getNewAppWindow().theAppDisplay, "test");
-        this.logDebug("gameDisplay", gameDisplay, "test");
+        this.logDebug("gameDisplay", this.gameDisplay, "test");
         this.logDebug("theAppDisplay.statsDisplay", statsDisplay, "test");
 
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
