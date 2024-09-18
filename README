@@ -3,13 +3,13 @@ Start web server:
     cd /Users/bonnie/Projects/
     python3 wordchain/python/simple-https-server.py
 
-Navagate to in Chrome:
+Navigate in Chrome:
 
     https://localhost/wordchain/docs/html/WordChain.html
 
 =======================================================
 
-I created the url 
+I created the url
 git@github.com:bprokopowicz/wordchain.git
 
 looks like to access it via command line we need github's CLI called gh
@@ -17,7 +17,7 @@ looks like to access it via command line we need github's CLI called gh
 brew install gh
 
 then authorize your shell session with
-gh auth login -w 
+gh auth login -w
 
 USE HTTPS
 To switch between 'prokopowicz' and 'bprokopowicz' github accounts
@@ -37,3 +37,36 @@ git remote -v (to list)
 git push --set-upstream origin master
 
 =======================================================
+
+TESTING - How to run the browser-based tests:
+
+    - Disable logging (Const.GL_DEBUG) in Const.js for initial testing.  If Const.GL_DEBUG is true, the tests take much longer to run, even
+      if the Debug local-storage-key is not set.  You may need to edit Test.js to limit which tests will run if you're going to
+      run them with logging enabled.
+
+    - Start the web server as described above.
+
+    - Navigate in browser (local or remote) to:
+
+        https://localhost/wordchain/docs/html/test.html   (browser running locally)
+        https://ip-addr/docs/html/test.html   (browser running remotely)
+
+        You may be warned about opening an unsafe site.  This is because our https certificate is not official.  You need to
+
+    - Optional: Open the browser's javascript console
+
+    - click on "Run All Tests"
+        You may be warned by the browser about pop-ups.  You need to allow them.
+
+    - The tests will produce logging if you set the Debug local-storage key's value to include the label: test
+         The test logging doesn't use Const.GL_DEBUG to enable itself.  It is always on if the Debug local-storage key's
+         value includes test.
+
+TROUBLESHOOTING
+    - Enable logging with Const.GL_DEBUG = true;
+    - Each js file uses the logDebug(msg, tag) feature to log progress.  The Debug local-storage key is a comma-separated list of tags; for example:
+      game,picker,callback,solver,dictionary-details,test
+      Set the Debug key's value in the browser (Application/Storage/Local storage/https://localhost tab in Chrome's dev tool window).
+    - The pop-up windows have their own console.  You can view them in Chrome by clicking on the window and typing Option-Command-I
+      If the windows disappear before you can see their console, you need to edit the particular app test and comment out "this.runNextTest()" in the test
+      you want to pause with the window open.

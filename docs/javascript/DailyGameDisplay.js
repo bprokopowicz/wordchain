@@ -83,11 +83,12 @@ class DailyGameDisplay extends GameDisplay {
         // the window to run a daily game that requires the daily game to
         // be static; check for that.
         const queryString = window.location.search;
-        const debugStaticDaily = (queryString.indexOf('testing') >= 0);
+        const queryVars = DailyGameDisplay.parseQuery(queryString);
+        const debugStaticDaily = queryVars.has("testing");
         Const.GL_DEBUG && this.logDebug("debugStaticDaily:", debugStaticDaily, "daily");
 
         if (debugStaticDaily) {
-            this.setStaticDailyGameSettings();
+            this.setStaticDailyGameSettings(queryVars);
         } else {
             // Get today's daily game; this will set this.startWord and
             // this.targetWord so that we can call the base class constructGame()
@@ -98,8 +99,18 @@ class DailyGameDisplay extends GameDisplay {
         this.constructGame(this.startWord, this.targetWord, this.dailyGameWordsPlayed);
     }
 
-    /* ----- Determination of Daily Game Information ----- */
+    // returns a map[key] = val parsed from the URL query string.
+    static parseQuery(queryString) {
+        var query = new Map();
+        var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+        for (let pair of pairs) {
+            var keyVal = pair.split('=');
+            query.set(keyVal[0], keyVal[1] || '');
+        }
+        return query;
+    }
 
+    /* ----- Determination of Daily Game Information ----- */
     setDailyGameData() {
         // This keeps track of whether the user clicked the Show Solution button
         // for the daily game.
@@ -206,10 +217,10 @@ class DailyGameDisplay extends GameDisplay {
         }
     }
 
-    setStaticDailyGameSettings() {
+    setStaticDailyGameSettings(queryVars){
         Const.GL_DEBUG && this.logDebug("initializing the static daily game", "daily");
-        this.startWord = Const.STATIC_DAILY_GAME_START;
-        this.targetWord = Const.STATIC_DAILY_GAME_TARGET;
+        this.startWord = queryVars.has("start") ?  queryVars.get("start") : Const.STATIC_DAILY_GAME_START;
+        this.targetWord = queryVars.has("target") ? queryVars.get("target") : Const.STATIC_DAILY_GAME_TARGET;
         this.validGame = true;
         this.incrementStat("gamesPlayed");
         this.dailyGameNumber = Const.STATIC_DAILY_GAME_NUMBER;

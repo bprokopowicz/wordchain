@@ -190,6 +190,11 @@ class Test extends BaseLogger {
     ** App Testing Framework
     */
 
+    // This map should be passed to openTheTestAppWindow or reOpenTheTestAppWindow
+    // if we want the app to run with a canned version of the daily game.
+
+    static TestingOn = new Map([["testing", ""]]);
+
     closeNewAppWindow() {
         if (this.getNewAppWindow()) {
             this.getNewAppWindow().close();
@@ -205,19 +210,31 @@ class Test extends BaseLogger {
         return ! this.needToWaitForAsyncResults;
     }
 
-    openTheTestAppWindow(useTestingURL=true) {
+    openTheTestAppWindow(queryVars=new Map()) {
         let suffix = "";
-        if (useTestingURL) {
-            suffix = "?testing";
+        function appendKeyVal(val, key, map) {
+            if (suffix == "") {
+                suffix="?";
+            } else {
+                suffix += "&";
+            }
+            if (val.length > 0) {
+                suffix += `${key}=${val}`;
+            } else {
+                suffix += key;
+            }
         }
-        this.newWindow = window.open('/wordchain/docs/html/WordChain.html' + suffix, 'AppDisplayTest', 'width=600,height=800');
+        queryVars.forEach( appendKeyVal );
+        let url = '/wordchain/docs/html/WordChain.html' + suffix;
+        this.logDebug("Opening window at ", url, "test");
+
+        this.newWindow = window.open(url, 'AppDisplayTest', 'width=600,height=800');
         // pass our debug settings to the child window
         Cookie.save(Cookie.DEBUG, Cookie.get(Cookie.DEBUG), this.getNewAppWindow());
-        // set the child's console to our console.
+        // set the child's console to our console. This doesn't work reliably, especially when the child window has a crashing bug.
         this.newWindow.console = console;
-        /*
 
-        TODO - this sometimes cause the browser share code to fail with console error:
+        /* TODO - this sometimes cause the browser share code to fail with console error:
 
          NotAllowedError: Failed to execute 'share' on 'Navigator': Must be handling a user gesture to perform a share request.
     at StatsDisplay.shareCallback (/wordchain/docs/javascript/StatsDisplay.js:99:27)
@@ -234,7 +251,9 @@ class Test extends BaseLogger {
         var testFunc = this.appTestList.shift();
         this.logDebug("runNextTest() testFunc=", testFunc, "test");
         if (testFunc) {
-            this.reOpenTestAppWindow();
+            // clear cookies and reopen the window in testing mode (static daily game).
+            const clearCookies = true;
+            this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
             // and then wait for the window and begin the next test ...
             this.waitForAppDisplayThenRunFunc(testFunc);
         } else {
@@ -243,7 +262,7 @@ class Test extends BaseLogger {
         }
     }
 
-   reOpenTestAppWindow(clearCookies=true) {
+   reOpenTheTestAppWindow(clearCookies, queryVars) {
        // clear our own cookies
        if (clearCookies) {
            Cookie.clearNonDebugCookies();
@@ -251,7 +270,7 @@ class Test extends BaseLogger {
 
        // close and re-open the test App window
        this.closeNewAppWindow();
-       this.openTheTestAppWindow();
+       this.openTheTestAppWindow(queryVars);
    }
 
     // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
@@ -305,7 +324,7 @@ class Test extends BaseLogger {
     playTheCannedDailyGameOnce() {
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // when opened with ?testing in the URL, the daily game will always
+        // when opened with ?testing=true in the URL, the daily game will always
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
@@ -320,7 +339,7 @@ class Test extends BaseLogger {
     // compares the current stats cookie and stats screen content with expected and calculated values.
 
     verifyStats(expDailyStats) {
-        // games are done.  Let's see what the saved stats are:
+
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const statsDisplay = appDisplay.statsDisplay;
 
@@ -328,13 +347,14 @@ class Test extends BaseLogger {
         let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
         this.logDebug("verifyStats() dailyStats", dailyStats, "test");
 
-        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
+        // open the stats window.  This should compute the shareString and start the countdown clock 
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
 
         // the statsContainer is a GUI element with at least 3 children: Played, Completion %, and Shown
         let statsContainer = statsDisplay.statsContainer;
+
         // the statsDistribution is a GUI element with one bar for each possible number of wrong moves: 0 .. Const.TOO_MANY_WRONG_MOVES
         let statsDistribution = statsDisplay.statsDistribution;
 
@@ -934,6 +954,7 @@ class Test extends BaseLogger {
             this.dailyGameNormalFinishStatsTest,
             this.dailyGameOneMistakeShareTest,
             this.dailyGameTooManyMistakesShareTest,
+            this.dailyGameEndsOnDeleteShareTest,
             this.dailyGameRestartTest,
             this.practiceGameTest,
             this.geniusMoveAndShareTest,
@@ -955,11 +976,7 @@ class Test extends BaseLogger {
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const statsDisplay = appDisplay.statsDisplay;
 
-        // check the saved stats cookie
-        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
-        this.logDebug("displayGameStatsTest: dailyStats", dailyStats, "test");
-
-        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
+        // open the stats window.  This should compute the shareString, start the countdown clock 
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
@@ -1009,7 +1026,7 @@ class Test extends BaseLogger {
         } else {
             // re-open open the test window, and then repeat this function with the countdown reduced 
             const clearCookies = false;
-            this.reOpenTestAppWindow(clearCookies);
+            this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
             this.waitForAppDisplayThenRunFunc(this.multiGameStatsTest);
         }
     }
@@ -1052,7 +1069,7 @@ class Test extends BaseLogger {
         } else {
             // re-open open the test window, and then repeat this function with the countdown reduced 
             const clearCookies = false;
-            this.reOpenTestAppWindow(clearCookies);
+            this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
             this.waitForAppDisplayThenRunFunc(this.multiGameMixedResultsStatsTest);
         }
     }
@@ -1108,7 +1125,7 @@ class Test extends BaseLogger {
         // move on to the next game
         this.multiGameCountdown -= 1;
         const clearCookies = false;
-        this.reOpenTestAppWindow(clearCookies);
+        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
         this.waitForAppDisplayThenRunFunc(this.multiIncompleteGameStatsTest);
    }
 
@@ -1119,7 +1136,7 @@ class Test extends BaseLogger {
         // The newly opened URL should be showing the test daily game by default;
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // when opened with ?testing in the URL, the daily game will always
+        // when opened with ?testing=true in the URL, the daily game will always
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
@@ -1155,7 +1172,7 @@ class Test extends BaseLogger {
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         let game = this.gameDisplay.game;
 
-        // when opened with ?testing in the URL, the daily game will always
+        // when opened with ?testing=true in the URL, the daily game will always
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
@@ -1184,10 +1201,7 @@ TODO - what if these are played after the game is over?  They should not be addi
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const statsDisplay = appDisplay.statsDisplay;
 
-        // check the saved stats cookie
-        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
-
-        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
+        // open the stats window.  This should compute the shareString, start the countdown clock 
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
@@ -1202,11 +1216,58 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.runNextTest();
     }
 
+    dailyGameEndsOnDeleteShareTest() {
+        this.testName = "DailyGameEndsOnDeleteShare";
+
+        // We need to re-open the test window with a known daily game, not the default.
+        const clearCookies = true;
+        let queryVars = new Map([["testing",""],["start","START"],["target","END"]]);
+        this.reOpenTheTestAppWindow(clearCookies, queryVars);
+        this.waitForAppDisplayThenRunFunc(this.finishDailyGameEndsOnDeleteShareTest);
+    }
+
+    finishDailyGameEndsOnDeleteShareTest() {
+
+        // The newly re-opened URL should be showing the daily game START -> END
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        this.gameDisplay = appDisplay.currentGameDisplay;
+        const game = this.gameDisplay.game;
+
+        // START -> END
+        // solution: START STAT SEAT SENT SEND END
+
+        this.deleteLetter(4);    // START -> STAT
+        this.playLetter(2, "E"); // STAT -> SEAT
+        this.playLetter(3, "N"); // SEAT -> SENT
+        this.playLetter(4, "D"); // SENT -> SEND
+        this.deleteLetter(1);    // SEND -> END
+
+        this.logDebug("finishDailyGameEndsOnDeleteShareTest(): game:", game, "test");
+        this.verify(game.isOver(), "game should be over!");
+
+        // game is done.  Let's see what the saved stats and words played are:
+        const statsDisplay = appDisplay.statsDisplay;
+
+        // open the stats window.  This should compute the shareString, start the countdown clock 
+        let statsSrcElement = new MockEventSrcElement(statsDisplay);
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        statsDisplay.openAuxiliaryCallback(statsMockEvent);
+
+        //  get the share string.  use-case: the last play is a Delete
+        let actShareString = statsDisplay.shareCallback(statsMockEvent);
+        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪`;
+
+        this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+            this.success();
+
+        this.runNextTest();
+    }
+
     dailyGameRestartTest() {
         // The newly opened URL should be showing the daily game by default;
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // when opened with ?testing in the URL, the daily game will always
+        // when opened with ?testing=true in the URL, the daily game will always
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
@@ -1217,9 +1278,8 @@ TODO - what if these are played after the game is over?  They should not be addi
         // close the game window
         this.getNewAppWindow().close();
 
-        // and re-open it, without the testing suffix which forces a new static daily game.
-        const useTestingURL = false;
-        this.openTheTestAppWindow(useTestingURL);
+        // and re-open it, without the testing=true query which forces a new static daily game.
+        this.openTheTestAppWindow();
         this.waitForAppDisplayThenRunFunc(this.continueRestoreGameTest);
     }
 
@@ -1249,8 +1309,7 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK);
 
         // ... and close and re-open it after it is solved
-        const useTestingURL = false;
-        this.openTheTestAppWindow(useTestingURL);
+        this.openTheTestAppWindow();
         this.waitForAppDisplayThenRunFunc(this.finishRestoreGameTest);
     }
 
@@ -1349,8 +1408,8 @@ TODO - what if these are played after the game is over?  They should not be addi
         Cookie.save(Cookie.TEST_BOOL, true, this.getNewAppWindow());
 
         // now close the window,
-        this.closeNewAppWindow();
-        this.openTheTestAppWindow();
+        const clearCookies = false;
+        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
         // and then wait for the window and finish the test ...
         this.waitForAppDisplayThenRunFunc(this.finishCookieRestartTest);
     }
