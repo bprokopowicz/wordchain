@@ -278,7 +278,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Is the number of failed games even larger than the max so far?
-        // If so, update our max.
+        // If so, update our max.  // TODO - what is this doing?
         if (dailyStats.gamesFailed > maxWrongWordsValue) {
             maxWrongWordsValue = dailyStats.gamesFailed;
         }

@@ -45,6 +45,23 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Construction ----- */
 
+    // Construct initial stats to be used if we don't have a cookie for daily stats.
+    static NewDailyStatsBlob() {
+        let initialStats = {
+            gamesPlayed:     0,
+            gamesCompleted:  0,
+            gamesShown:      0,
+            gamesFailed:     0
+        }
+        
+        // Now create a stat for each allowed number of wrong moves, and initialize
+        // their values to 0. The stat properties for these is 0..TOO_MANY_WRONG_MOVES.
+        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
+            initialStats[wrongMoves] = 0;
+        }
+        return initialStats;
+    }
+
     constructor(appDisplay, gameDiv, pickerDiv) {
         super(appDisplay, gameDiv, pickerDiv, "daily-picker");
 
@@ -53,23 +70,12 @@ class DailyGameDisplay extends GameDisplay {
         this.dateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
         // Construct initial stats to be used if we don't have a cookie for daily stats.
-        let initialStats = {
-            gamesPlayed:     0,
-            gamesCompleted:  0,
-            gamesShown:      0,
-            gamesFailed:     0,
-        }
 
-        // Now create a stat for each allowed number of wrong moves, and initialize
-        // their values to 0. The stat properties for these is 0..TOO_MANY_WRONG_MOVES.
-        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
-            initialStats[wrongMoves] = 0;
-        }
+        let initialStats = DailyGameDisplay.NewDailyStatsBlob();
 
         // If we have a cookie for daily stats parse it; otherwise set it to initial values.
         this.dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, initialStats);
 
-        // Now, save the stats again in case this is the very first game and we never
         // had stats before. In all other cases this is redundant, but oh well!
         Cookie.saveJson(Cookie.DAILY_STATS, this.dailyStats);
 
@@ -288,13 +294,17 @@ class DailyGameDisplay extends GameDisplay {
         return gameResult;
     }
 
+    //TODO daily game stats are only updated on games that are done?
     updateDailyGameStats(gameResult) {
-        if (gameResult === Const.OK && this.game.isOver()) {
-            this.incrementStat("gamesCompleted");
-
-            if (this.getWrongMoveCount() >= Const.TOO_MANY_WRONG_MOVES) {
+        if (this.game.isOver()) {
+            if (gameResult == Const.OK) {
+                this.incrementStat("gamesCompleted");
+            }
+            let wrongMoveCount = this.getWrongMoveCount();
+            if (wrongMoveCount >= Const.TOO_MANY_WRONG_MOVES) {
                 this.incrementStat("gamesFailed");
             }
+            this.incrementStat(wrongMoveCount);
         }
     }
 

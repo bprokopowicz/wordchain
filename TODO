@@ -16,11 +16,6 @@ Testing
 - share tests
     - game finished on deletion.  Probably this will require a way to force the daily game using the 
       the URL query string to set the start and target to something that finishes with a deletion.
-- stats tests
-    - after 3 perfect daily games complete
-    - after 3 games - one perfect, one with 1 mistake, one with 2 mistakes
-    - after one perfect, and one failed and shown
-    - after 2 complete, third in progress
 
 Before Sharing with Initial Friends
 - Review help message

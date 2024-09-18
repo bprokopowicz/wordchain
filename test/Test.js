@@ -3,6 +3,7 @@ import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascr
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
 import { Cookie } from '../docs/javascript/Cookie.js';
+import { DailyGameDisplay } from '../docs/javaScript/DailyGameDisplay.js'
 import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
@@ -229,6 +230,7 @@ class Test extends BaseLogger {
     }
 
     runNextTest() {
+        this.multiGameCountdown = null; // before running any test, which might be multi-game, clear the multi-game counter
         var testFunc = this.appTestList.shift();
         this.logDebug("runNextTest() testFunc=", testFunc, "test");
         if (testFunc) {
@@ -265,7 +267,37 @@ class Test extends BaseLogger {
             inTheFuture(sleepTime).then( (foo=this) => { foo.waitForAppDisplayThenRunFunc(func);});
         }
     }
-        
+
+    // playLettter, deleteLetter, and insertLetter all require the attribute this.gameDisplay to be set to
+    // the active GameDisplay (Practice or Daily).
+
+    playLetter(position, letter) {
+        const unused = "";
+        this.gameDisplay.letterPicker.saveLetterPosition(position);
+        let rc = this.gameDisplay.letterPicker.selectionMade(letter, unused);
+        this.logDebug("playLetter(", position, ",", letter, ") returns: ", rc, "test");
+        return rc;
+    }
+
+    deleteLetter(position) {
+        const srcElement = new MockEventSrcElement(this.gameDisplay);
+        const mockEvent = new MockEvent(srcElement);
+        mockEvent.srcElement.setAttribute("deletionPosition", position.toString());
+        let rc = this.gameDisplay.deletionClickCallback(mockEvent);
+        this.logDebug("deleteLetter(", position, ") returns: ", rc, "test");
+        return rc;
+    }
+
+    insertLetter(position, letter) {
+        const srcElement = new MockEventSrcElement(this.gameDisplay);
+        const mockEvent = new MockEvent(srcElement);
+        mockEvent.srcElement.setAttribute("additionPosition", position.toString());
+        let clickResult = this.gameDisplay.additionClickCallback(mockEvent);
+        let playResult = this.playLetter(position+1, letter);
+        this.logDebug("insertLetter(", position, ",", letter, ") returns: ", clickResult, " then ", playResult,  "test");
+        return playResult;
+    }
+         
     // this plays the canned test daily game.  No status of whether or not it worked.  It is useful for 
     // tests that need multiple game instances to test stats.
     // 
@@ -277,20 +309,83 @@ class Test extends BaseLogger {
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
-        //  SHORT -> SHOOT
-        this.playLetter(4, "O");
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.deleteLetter(1);    // SHOOT -> HOOT
+        this.playLetter(1, "B"); // HOOT -> BOOT
+        this.playLetter(4, "R"); // BOOT -> BOOR
+        this.playLetter(1, "P"); // BOOR -> POOR
+    }
 
-        // SHOOT -> HOOT
-        this.deleteLetter(1);
+ 
+    // compares the current stats cookie and stats screen content with expected and calculated values.
 
-        // HOOT -> BOOT
-        this.playLetter(1, "B");
+    verifyStats(expDailyStats) {
+        // games are done.  Let's see what the saved stats are:
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const statsDisplay = appDisplay.statsDisplay;
 
-        // BOOT -> BOOR
-        this.playLetter(4, "R");
+        // get the saved stats cookie
+        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
+        this.logDebug("verifyStats() dailyStats", dailyStats, "test");
 
-        // BOOR -> POOR
-        this.playLetter(1, "P");
+        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
+        let statsSrcElement = new MockEventSrcElement(statsDisplay);
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        statsDisplay.openAuxiliaryCallback(statsMockEvent);
+
+        // the statsContainer is a GUI element with at least 3 children: Played, Completion %, and Shown
+        let statsContainer = statsDisplay.statsContainer;
+        // the statsDistribution is a GUI element with one bar for each possible number of wrong moves: 0 .. Const.TOO_MANY_WRONG_MOVES
+        let statsDistribution = statsDisplay.statsDistribution;
+
+        this.logDebug("verifyStats() statsContainer", statsContainer, "test");
+        this.logDebug("verifyStats() statsDistribution", statsDistribution, "test");
+
+        let expContainerLen = 3;
+        let actContainerLen = statsContainer.children.length;
+
+        let expDistributionLen = Const.TOO_MANY_WRONG_MOVES + 1;
+        let actDistributionLen = statsDistribution.children.length;
+
+        // three calculated text values we expect to find on the stats screen:
+        let expPlayedText = `${expDailyStats.gamesPlayed}\nPlayed`;
+        let actPlayedText = statsContainer.children[0].innerText;
+
+        let completionPercent = 0;
+        if (dailyStats.gamesPlayed > 0) {
+            completionPercent = ((dailyStats.gamesCompleted / dailyStats.gamesPlayed) * 100).toFixed(1);
+        }
+
+        let expCompletionText = `${completionPercent}\nCompletion %`; 
+        let actCompletionText = statsContainer.children[1].innerText;
+
+        let expShownText = `${expDailyStats.gamesShown}\nShown`;
+        let actShownText = statsContainer.children[2].innerText;
+
+        let testRes = 
+            this.verify(actContainerLen==expContainerLen, `expected statsContainer.children.length==${expContainerLen}, got ${actContainerLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
+            this.verify(actDistributionLen==expDistributionLen, `expected statsDistribution.children.length==${expDistributionLen}, got ${actDistributionLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
+            this.verify(dailyStats.gamesPlayed==expDailyStats.gamesPlayed, `expected dailyStats.gamesPlayed==${expDailyStats.gamesPlayed}, got ${dailyStats.gamesPlayed}`) &&
+            this.verify(dailyStats.gamesCompleted==expDailyStats.gamesCompleted, `expected dailyStats.gamesCompleted==${expDailyStats.gamesCompleted}, got ${dailyStats.gamesCompleted}`) &&
+            this.verify(dailyStats.gamesShown==expDailyStats.gamesShown, `expected dailyStats.gamesShown==${expDailyStats.gamesShown}, got ${dailyStats.gamesShown}`) &&
+            this.verify(dailyStats.gamesFailed==expDailyStats.gamesFailed, `expected dailyStats.gamesFailed==${expDailyStats.gamesFailed}, got ${dailyStats.gamesFailed}`) &&
+            this.verify(actPlayedText==expPlayedText, `expected statsContainer.children.0.innerText==${expPlayedText}, got ${actPlayedText}`) &&
+            this.verify(actCompletionText==expCompletionText, `expected statsContainer.children.1.innerText=='${expCompletionText}', got '${actCompletionText}'`) &&
+            this.verify(actShownText=Text=expShownText, `expected statsContainer.children.2.innerText=='${expShownText}', got '${actShownText}'`);
+
+        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
+            // check the stats blob
+            testRes = testRes && 
+                this.verify(dailyStats[wrongMoves]==expDailyStats[wrongMoves], `expected dailyStats.${wrongMoves}==${expDailyStats[wrongMoves]}, got ${dailyStats[wrongMoves]}`);
+
+            // check the DOM contents
+            let actDistributionText = statsDistribution.children[wrongMoves].innerText;
+            let expDistributionText = Const.NUMBERS[wrongMoves] + "\n" + expDailyStats[wrongMoves];
+            testRes = testRes && 
+                this.verify(actDistributionText==expDistributionText, `expected statsDistribution.children.${wrongMoves}.innerText=='${expDistributionText}', got '${actDistributionText}'`);
+        }
+                
+        return testRes;
     }
 
 
@@ -827,12 +922,15 @@ class Test extends BaseLogger {
     /*
     ** App Tests
     ** App tests need to be run one after the other, pausing to wait for the app window to display, etc.  
+    ** These tests use the utilities in the App Testing Framework section, above.
     ** 
     */
 
     runAppTests() {
         this.appTestList = [
             this.multiGameStatsTest,
+            this.multiGameMixedResultsStatsTest,
+            this.multiIncompleteGameStatsTest,
             this.dailyGameNormalFinishStatsTest,
             this.dailyGameOneMistakeShareTest,
             this.dailyGameTooManyMistakesShareTest,
@@ -845,36 +943,6 @@ class Test extends BaseLogger {
         this.runNextTest();
     }
 
-    // playLettter, deleteLetter, and insertLetter all require the attribute this.gameDisplay to be set to
-    // the active GameDisplay (Practice or Daily).
-
-    playLetter(position, letter) {
-        const unused = "";
-        this.gameDisplay.letterPicker.saveLetterPosition(position);
-        let rc = this.gameDisplay.letterPicker.selectionMade(letter, unused);
-        this.logDebug("playLetter(", position, ",", letter, ") returns: ", rc, "test");
-        return rc;
-    }
-
-    deleteLetter(position) {
-        const srcElement = new MockEventSrcElement(this.gameDisplay);
-        const mockEvent = new MockEvent(srcElement);
-        mockEvent.srcElement.setAttribute("deletionPosition", position.toString());
-        let rc = this.gameDisplay.deletionClickCallback(mockEvent);
-        this.logDebug("deleteLetter(", position, ") returns: ", rc, "test");
-        return rc;
-    }
-
-    insertLetter(position, letter) {
-        const srcElement = new MockEventSrcElement(this.gameDisplay);
-        const mockEvent = new MockEvent(srcElement);
-        mockEvent.srcElement.setAttribute("additionPosition", position.toString());
-        let clickResult = this.gameDisplay.additionClickCallback(mockEvent);
-        let playResult = this.playLetter(position+1, letter);
-        this.logDebug("insertLetter(", position, ",", letter, ") returns: ", clickResult, " then ", playResult,  "test");
-        return playResult;
-    }
-        
     dailyGameNormalFinishStatsTest() {
         this.testName = "DailyGameNormalFinishStats";
 
@@ -891,53 +959,33 @@ class Test extends BaseLogger {
         let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
         this.logDebug("displayGameStatsTest: dailyStats", dailyStats, "test");
 
-        let expGP=1, actGP=dailyStats.gamesPlayed;
-        let expGS=0, actGS=dailyStats.gamesShown;
-
         // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
 
-        // the statsContainer is a GUI element with at least 3 children: Played, Completion %, and Shown
-        let statsContainer = statsDisplay.statsContainer;
+        // create an expected DailyStats blob
+        let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
+        expDailyStats.gamesPlayed = 1;
+        expDailyStats.gamesCompleted = 1;
+        expDailyStats[0] = 1;  // the only completed game has 0 errors
 
-        // When statsContainer is logged, it sometimes logs as an object with 3 children, but other times as
-        // something that looks like formatted HTML.  This test relies on the object with children form.  The
-        // children have a field called innerText that is set to value\nlabel.  We verify this against the expected
-        // inner text.
+        let testResults = this.verifyStats(expDailyStats);
 
-        this.logDebug("displayGameStatsTest: statsContainer", statsContainer, "test");
-
-        let expCL = 3;
-        let actCL = statsContainer.children.length;
-
-        let expPlayed = '1\nPlayed';
-        let actPlayed = statsContainer.children[0].innerText;
-
-        let expCompletion = '100.0\nCompletion %';
-        let actCompletion = statsContainer.children[1].innerText;
-
-        let expShown = '0\nShown';
-        let actShown = statsContainer.children[2].innerText;
-
-        // now, get the share string:
+        // now, get and check the share string:
 
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
-
-        this.verify(expGP==actGP, `expected dailyStats.gamesPlayed==${expGP}, got ${actGP}`) &&
-            this.verify(expGS==actGS, `expected dailyStats.gamesShown==${expGS}, got ${actGS}`) &&
-            this.verify(actCL==expCL, `expected statsContainer.children.length==${expCL}, got ${actCL} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
-            this.verify(actPlayed==expPlayed, `expected statsContainer.children.0.innerText==${expPlayed}, got ${actPlayed}`) &&
-            this.verify(actCompletion==expCompletion, `expected statsContainer.children.1.innerText=='${expCompletion}', got '${actCompletion}'`) &&
-            this.verify(actShown==expShown, `expected statsContainer.children.2.innerText=='${expShown}', got '${actShown}'`) &&
+        testResults &&
             this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
 
         this.runNextTest();
     }
         
+    // multiGameStatsTest plays the daily game 3 times (multiGameCountdown) and
+    // the checks both the stats cookie, and the elements in the StatsContainer.
+
     multiGameStatsTest() {
         this.testName = "MultiGameStats";
         if (this.multiGameCountdown == null) {
@@ -951,7 +999,13 @@ class Test extends BaseLogger {
 
         this.multiGameCountdown -= 1;
         if (this.multiGameCountdown <= 0) {
-            this.multiGameFinishStatsTest();
+            // create an expected DailyStats blob
+            let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
+            expDailyStats.gamesPlayed = 3;
+            expDailyStats.gamesCompleted = 3;
+            expDailyStats[0] = 3;  // all 3 games have 0 errors
+            this.verifyStats(expDailyStats) && this.success();
+            this.runNextTest();
         } else {
             // re-open open the test window, and then repeat this function with the countdown reduced 
             const clearCookies = false;
@@ -960,51 +1014,103 @@ class Test extends BaseLogger {
         }
     }
 
-    multiGameFinishStatsTest() {
-        // games are done.  Let's see what the saved stats are:
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
-        const statsDisplay = appDisplay.statsDisplay;
-        this.multiGameCountdown = null;  // this needs to be reset in case we want to run the tests again.  
+    // a recursive test that makes 0, 1, or 2 errors depending on which iteration
 
-        // check the saved stats cookie
-        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
-        this.logDebug("multiGameStatsTest() dailyStats", dailyStats, "test");
+    multiGameMixedResultsStatsTest() {
+        this.testName = "MultiGameMixedResultsStats";
+        if (this.multiGameCountdown == null) {
+            this.multiGameCountdown = 2;
+        }
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        let expGP=3, actGP=dailyStats.gamesPlayed;
-        let expGS=0, actGS=dailyStats.gamesShown;
+        // game: SHORT -> POOR
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.deleteLetter(1);    // SHOOT -> HOOT
+        this.playLetter(1, "B"); // HOOT -> BOOT
+        // optionally add one or two wrong moves on the last letter
+        if (this.multiGameCountdown >=2) {
+            this.playLetter(4, "K"); // BOOT -> BOOK  mistake
+        }
+        if (this.multiGameCountdown >=1) {
+            this.playLetter(4, "B"); // BOO? -> BOOB mistake
+        }
+        this.playLetter(4, "R"); // BOO? -> BOOR
+        this.playLetter(1, "P"); // BOO? -> POOR
 
-        // open the stats window.  This should compute the shareString, start the countdown clock and update the dailyStats variable
-        let statsSrcElement = new MockEventSrcElement(statsDisplay);
-        let statsMockEvent = new MockEvent(statsSrcElement);
-        statsDisplay.openAuxiliaryCallback(statsMockEvent);
-
-        // the statsContainer is a GUI element with at least 3 children: Played, Completion %, and Shown
-        let statsContainer = statsDisplay.statsContainer;
-
-        this.logDebug("multiGameStatsTest() statsContainer", statsContainer, "test");
-
-        let expCL = 3;
-        let actCL = statsContainer.children.length;
-
-        let expPlayed = '3\nPlayed';
-        let actPlayed = statsContainer.children[0].innerText;
-
-        let expCompletion = '100.0\nCompletion %';
-        let actCompletion = statsContainer.children[1].innerText;
-
-        let expShown = '0\nShown';
-        let actShown = statsContainer.children[2].innerText;
-
-        this.verify(expGP==actGP, `expected dailyStats.gamesPlayed==${expGP}, got ${actGP}`) &&
-            this.verify(expGS==actGS, `expected dailyStats.gamesShown==${expGS}, got ${actGS}`) &&
-            this.verify(actCL==expCL, `expected statsContainer.children.length==${expCL}, got ${actCL} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
-            this.verify(actPlayed==expPlayed, `expected statsContainer.children.0.innerText==${expPlayed}, got ${actPlayed}`) &&
-            this.verify(actShown==expShown, `expected statsContainer.children.2.innerText=='${expShown}', got '${actShown}'`) &&
-            this.verify(actCompletion==expCompletion, `expected statsContainer.children.1.innerText=='${expCompletion}', got '${actCompletion}'`) &&
-            this.success();
-
-        this.runNextTest();
+        this.multiGameCountdown -= 1;
+        // this count needs to include case '0', and stops at -1 errors.
+        if (this.multiGameCountdown < 0) {
+            // create the expected daily stats blob
+            let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
+            expDailyStats.gamesPlayed = 3;
+            expDailyStats.gamesCompleted = 3;
+            expDailyStats[0] = 1;
+            expDailyStats[1] = 1;
+            expDailyStats[2] = 1;
+            this.verifyStats(expDailyStats) && this.success();
+            this.runNextTest();
+        } else {
+            // re-open open the test window, and then repeat this function with the countdown reduced 
+            const clearCookies = false;
+            this.reOpenTestAppWindow(clearCookies);
+            this.waitForAppDisplayThenRunFunc(this.multiGameMixedResultsStatsTest);
+        }
     }
+        
+    // multiIncompleteGameStatsTest plays the daily game 2 times 
+    // one failed, one incomplete and the solution shown
+    // the checks both the stats cookie, and the elements in the StatsContainer.
+
+    multiIncompleteGameStatsTest() {
+        this.testName = "MultiIncompleteGameStats";
+        if (this.multiGameCountdown == null) {
+            // this is the first call.  We will set a countdown of games to run
+            this.multiGameCountdown = 3;
+        } 
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        this.logDebug("multiIncompleteGameStatsTest() countdown is: ", this.multiGameCountdown, "test");
+        if (this.multiGameCountdown == 1) {
+            // play a failed game and then verify
+            this.playLetter(4, "O"); // SHORT -> SHOOT
+            this.deleteLetter(1);    // SHOOT -> HOOT
+            this.playLetter(1, "B"); // HOOT -> BOOT
+            this.playLetter(1, "S"); // BOOT -> SOOT error
+            this.playLetter(1, "T"); // SOOT -> TOOT error
+            this.playLetter(1, "R"); // TOOT -> ROOT error
+            this.playLetter(1, "L"); // ROOT -> LOOT error
+            this.playLetter(1, "R"); // LOOT -> ROOT error
+
+            // create and verify an expected DailyStats blob
+            let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
+            expDailyStats.gamesPlayed = 3;
+            expDailyStats.gamesShown = 1;
+            expDailyStats.gamesFailed = 1;
+            expDailyStats.gamesCompleted = 1; 
+            expDailyStats[0] = 1;  // complete game has 0 errors
+            expDailyStats[Const.TOO_MANY_WRONG_MOVES] = 1;  // failed game has TOO_MANY_WRONG_MOVE errors
+            this.verifyStats(expDailyStats) && this.success();
+            this.runNextTest();
+            return;
+        } 
+
+        // play a full game, then an incomplete game
+        if (this.multiGameCountdown == 3) {
+            this.playTheCannedDailyGameOnce();
+        } else if (this.multiGameCountdown == 2) {
+            // play an incomplete game and request the solution 
+            // game: SHORT -> POOR
+            this.playLetter(4, "O"); // SHORT -> SHOOT
+            this.deleteLetter(1);    // SHOOT -> HOOT
+            this.playLetter(1, "B"); // HOOT -> BOOT
+                                     // give up - show the solution
+            this.gameDisplay.showSolution();
+        }
+        // move on to the next game
+        this.multiGameCountdown -= 1;
+        const clearCookies = false;
+        this.reOpenTestAppWindow(clearCookies);
+        this.waitForAppDisplayThenRunFunc(this.multiIncompleteGameStatsTest);
+   }
 
 
     dailyGameOneMistakeShareTest() {
@@ -1017,23 +1123,12 @@ class Test extends BaseLogger {
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
-        //  SHORT -> SHOOT
-        this.playLetter(4, "O");
-
-        // SHOOT -> HOOT
-        this.deleteLetter(1);
-
-        // HOOT -> BOOT
-        this.playLetter(1, "B");
-
-        // BOOT -> BOOK  D'OH wrong move
-        this.playLetter(4, "K");
-
-        // BOOK -> BOOR
-        this.playLetter(4, "R");
-
-        // BOOR -> POOR
-        this.playLetter(1, "P");
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.deleteLetter(1);    // SHOOT -> HOOT
+        this.playLetter(1, "B"); // HOOT -> BOOT
+        this.playLetter(4, "K"); // BOOT -> BOOK  D'OH wrong move
+        this.playLetter(4, "R"); // BOOK -> BOOR
+        this.playLetter(1, "P"); // BOOR -> POOR
 
         // game is done.  Let's see what the saved stats and words played are:
         const appDisplay = this.getNewAppWindow().theAppDisplay;
@@ -1064,42 +1159,25 @@ class Test extends BaseLogger {
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
-        //  SHORT -> SHOOT
-        this.playLetter(4, "O");
-
-        // SHOOT -> HOOT
-        this.deleteLetter(1);
-
-        // HOOT -> BOOT
-        this.playLetter(1, "B");
-
-        // BOOT -> BOOK  D'OH wrong move 1
-        this.playLetter(4, "K");
-
-        // BOOK -> BOOB  D'OH wrong move 2
-        this.playLetter(4, "B");
-
-        // BOOB -> BOOT  D'OH wrong move 3
-        this.playLetter(4, "T");
-
-        // BOOT -> BOOK  D'OH wrong move 4
-        this.playLetter(4, "K");
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.deleteLetter(1);    // SHOOT -> HOOT
+        this.playLetter(1, "B"); // HOOT -> BOOT
+        this.playLetter(4, "K"); // BOOT -> BOOK  D'OH wrong move 1
+        this.playLetter(4, "B"); // BOOK -> BOOB  D'OH wrong move 2
+        this.playLetter(4, "T"); // BOOB -> BOOT  D'OH wrong move 3
+        this.playLetter(4, "K"); // BOOT -> BOOK  D'OH wrong move 4
 
         this.verify(!game.isOver(), "after 4 wrong moves, game should not be over!");
 
-        // BOOK -> BOOT  D'OH wrong move 5
-        this.playLetter(4, "T");
+        this.playLetter(4, "T"); // BOOK -> BOOT  D'OH wrong move 5
 
         // game should be over if Const.TOO_MANY_WRONG_MOVES is 5
         this.verify(game.isOver(), "after 5 wrong moves, game is not over!");
 
 /*
 TODO - what if these are played after the game is over?  They should not be adding to the share or game state.
-        // BOOT -> BOOR
-        this.playLetter(4, "R");
-
-        // BOOR -> POOR
-        this.playLetter(1, "P");
+        this.playLetter(4, "R"); // BOOT -> BOOR
+        this.playLetter(1, "P"); // BOOR -> POOR
 
 */
         // game is done.  Let's see what the saved stats and words played are:
@@ -1133,11 +1211,8 @@ TODO - what if these are played after the game is over?  They should not be addi
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         // play two moves, then close and try to restore ...
-        //  SHORT -> SHOOT
-        this.playLetter(4, "O");
-
-        // SHOOT -> HOOT
-        this.deleteLetter(1);
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.deleteLetter(1);    // SHOOT -> HOOT
 
         // close the game window
         this.getNewAppWindow().close();
@@ -1165,9 +1240,9 @@ TODO - what if these are played after the game is over?  They should not be addi
 
         // finish the game. ( ... BOOT BOOR POOR)
 
-        const playedB = this.playLetter(1, "B");
-        const playedR = this.playLetter(4, "R");
-        const playedP = this.playLetter(1, "P");
+        const playedB = this.playLetter(1, "B"); // HOOT -> BOOT
+        const playedR = this.playLetter(4, "R"); // BOOT -> BOOR
+        const playedP = this.playLetter(1, "P"); // BOOR -> POOR
 
         this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
         this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
@@ -1209,23 +1284,12 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
-        //  TEST -> LEST
-        let resultL1 = this.playLetter(1, "L");
-
-        // LEST -> LET
-        let resultDelete3 = this.deleteLetter(3); 
-
-        // LET -> LIT - wrong move!
-        let resultI2Wrong = this.playLetter(2, "I");
-
-        // LIT -> LOT
-        let resultO2 = this.playLetter(2, "O");
-
-        // LOT -> PLOT
-        let resultInsertP0 = this.insertLetter(0, "P" ); 
-
-        // PLOT -> PxLOT
-        let resultInsertI1 = this.insertLetter(1, "I"); 
+        let resultL1 = this.playLetter(1, "L");          // TEST -> LEST
+        let resultDelete3 = this.deleteLetter(3);        // LEST -> LET
+        let resultI2Wrong = this.playLetter(2, "I");     // LET -> LIT - wrong move!
+        let resultO2 = this.playLetter(2, "O");          // LIT -> LOT
+        let resultInsertP0 = this.insertLetter(0, "P" ); // LOT -> PLOT
+        let resultInsertI1 = this.insertLetter(1, "I");  // PLOT -> PxLOT
 
         this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
             this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
@@ -1248,19 +1312,12 @@ TODO - what if these are played after the game is over?  They should not be addi
         // regular solution:                SHORT SHOOT HOOT BOOT BOOR POOR
         // solve the puzzle like a genius:  SHORT SHOOT HOOT HOOR POOR
 
-        //  SHORT -> SHOOT
-        let resultO4 = this.playLetter(4, "O");
+        let resultO4 = this.playLetter(4, "O");       // SHORT -> SHOOT
+        let resultDelete1 = this.deleteLetter(1);     // SHOOT -> HOOT
+        let resultR4Genius = this.playLetter(4, "R"); // HOOT -> HOOR genius move
+        let resultP1 = this.playLetter(1, "P");       // HOOR -> POOR  
 
-        // SHOOT -> HOOT
-        let resultDelete1 = this.deleteLetter(1);
-
-        // HOOT -> HOOR genius move
-        let resultR4Genius = this.playLetter(4, "R");
-
-        // HOOR -> POOR  we are skipping this - it's enough that we saw the genius move
-        let resultP1 = this.playLetter(1, "P");
-
-        // While we're here, let's look at the share ...
+        // let's look at the share ...
         let statsDisplay = this.getNewAppWindow().theAppDisplay.statsDisplay;
         this.logDebug("theAppDisplay", this.getNewAppWindow().theAppDisplay, "test");
         this.logDebug("gameDisplay", this.gameDisplay, "test");
