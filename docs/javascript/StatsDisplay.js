@@ -228,6 +228,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         } else {
             this.shareButton.style.display = "block";
         }
+        this.logDebug("share button style.display set to: ", this.shareButton.style.display, "daily");
     }
 
     // Update the statistics and distribution graph.

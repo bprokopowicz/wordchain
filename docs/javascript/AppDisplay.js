@@ -46,9 +46,9 @@ class AppDisplay extends BaseLogger {
         this.pickerDiv        = null;
 
         // Objects that hold AuxiliaryDisplay derived class objects for the Help, Settings, Stats screens.
-        this.helpDisplay = null;
-        this.settingsDiv = null;
-        this.statsDiv    = null;
+        this.helpDisplay     = null;
+        this.settingsDisplay = null;
+        this.statsDisplay    = null;
 
         // Div for toast pop-ups; child of root-div.
         this.toastDiv    = null;

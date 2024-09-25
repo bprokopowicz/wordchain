@@ -19,11 +19,10 @@
 **        Integer: calculated daily game number based on current time.
 **     DailyGameWordsPlayed
 **        List: words played including start word (and target if game is over).
-**     DailySolutionShown (also used in StatsDisplay)
-**        Boolean: whether user has opted to show the daily solution (in which case
-**        there will be no option to share).
 **     DailyStats (also used in StatsDisplay)
 **        Object: see explanation of properties in DailyStats.
+**     DailySolutionShown:
+**        Boolean: saved to true when user clicks 'Solution'.  Applies to the current game number only.
 **     DebugStaticDaily
 **        Boolean: Set to True to avoid standard daily game calculations and use a statc start/target.
 **     DebugDailyMinPerDay
@@ -62,8 +61,8 @@ class Cookie {
     static PLAYER_STATS = "PlayerStats";
     static DAILY_GAME_NUMBER = "DailyGameNumber";
     static DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
-    static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
     static DAILY_STATS = "DailyStats";
+    static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
     static DEBUG_DAILY_MIN_PER_DAY = "DebugDailyMinPerDay";
     static DEBUG_BASE_TIMESTAMP = "DebugBaseTimestamp";
     static PRACTICE_GAME_START = "PracticeGameStart";
@@ -83,8 +82,8 @@ class Cookie {
         Cookie.COLORBLIND_MODE,
         Cookie.DAILY_GAME_NUMBER,
         Cookie.DAILY_GAME_WORDS_PLAYED,
-        Cookie.DAILY_SOLUTION_SHOWN,
         Cookie.DAILY_STATS,
+        Cookie.DAILY_SOLUTION_SHOWN,
         Cookie.DEBUG_DAILY_MIN_PER_DAY,
         Cookie.DEBUG_BASE_TIMESTAMP,
         Cookie.PLAYER_STATS,

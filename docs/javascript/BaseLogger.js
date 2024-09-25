@@ -16,9 +16,8 @@ class BaseLogger {
                     tagsTurnedOn = debugTags.split(','),
                     tagsForMessage = messageTags.split(',');
 
-                //const intersection = new Set(Array.from(tagsTurnedOn).filter(x => tagsForMessage.has(x)));
                 for (const tagTurnedOn of tagsTurnedOn) {
-                    if (tagsForMessage.includes(tagTurnedOn)) {
+                    if ((tagTurnedOn == "all") || tagsForMessage.includes(tagTurnedOn)) {
                         console.log(...itemsToLog);
                         break;
                     }

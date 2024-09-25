@@ -141,7 +141,7 @@ class Test extends BaseLogger {
             this.runAppTests();
         }
 
-        // we may need to pause before checking results because App Tess run separately
+        // we may need to pause before checking results because App Tests run separately
         this.waitForResultsThenShowThem();
         this.testingInProgress = false;
     }
@@ -174,6 +174,8 @@ class Test extends BaseLogger {
         return truthValue;
     }
 
+    // this function re-executes itself every 'sleepTime' milliseconds from the beginning 
+    // of testing until the results are ready.
     waitForResultsThenShowThem() {
         if (this.getResultsAreReady()) {
             this.logDebug("results are ready - show them.", "test");
@@ -181,7 +183,7 @@ class Test extends BaseLogger {
             console.log(`Testing took ${Date.now() - this.testingStartTime} ms.`);
         }  else {
             const sleepTime = 1000;
-            this.logDebug("pausing  ", sleepTime, " for needToWaitForAsyncResults.");
+            this.logDebug("pausing  ", sleepTime, " for needToWaitForAsyncResults.", "test");
             inTheFuture(sleepTime).then( (foo=this) => { foo.waitForResultsThenShowThem();});
         }
     }
@@ -194,6 +196,7 @@ class Test extends BaseLogger {
     // if we want the app to run with a canned version of the daily game.
 
     static TestingOn = new Map([["testing", ""]]);
+    static TestingOff = new Map();
 
     closeNewAppWindow() {
         if (this.getNewAppWindow()) {
@@ -246,10 +249,10 @@ class Test extends BaseLogger {
         */
     }
 
-    runNextTest() {
+    runNextAppTest() {
         this.multiGameCountdown = null; // before running any test, which might be multi-game, clear the multi-game counter
         var testFunc = this.appTestList.shift();
-        this.logDebug("runNextTest() testFunc=", testFunc, "test");
+        this.logDebug("runNextAppTest() testFunc=", testFunc, "test");
         if (testFunc) {
             // clear cookies and reopen the window in testing mode (static daily game).
             const clearCookies = true;
@@ -281,8 +284,8 @@ class Test extends BaseLogger {
             var boundFunc = func.bind(this);
             boundFunc();
         } else {
-            const sleepTime = 1000;
-            this.logDebug("pausing ", sleepTime, " for new window AppDisplay to be ready.");
+            const sleepTime = 500;
+            this.logDebug("pausing ", sleepTime, " for new window AppDisplay to be ready.", "test");
             inTheFuture(sleepTime).then( (foo=this) => { foo.waitForAppDisplayThenRunFunc(func);});
         }
     }
@@ -337,6 +340,7 @@ class Test extends BaseLogger {
 
  
     // compares the current stats cookie and stats screen content with expected and calculated values.
+    // Also, asserts that gamesPlayed >= gamesCompleted+gamesShown+gamesFailed
 
     verifyStats(expDailyStats) {
 
@@ -369,7 +373,7 @@ class Test extends BaseLogger {
 
         // three calculated text values we expect to find on the stats screen:
         let expPlayedText = `${expDailyStats.gamesPlayed}\nPlayed`;
-        let actPlayedText = statsContainer.children[0].innerText;
+        let actPlayedText = statsContainer.children[0].innerText.trim();
 
         let completionPercent = 0;
         if (dailyStats.gamesPlayed > 0) {
@@ -377,10 +381,10 @@ class Test extends BaseLogger {
         }
 
         let expCompletionText = `${completionPercent}\nCompletion %`; 
-        let actCompletionText = statsContainer.children[1].innerText;
+        let actCompletionText = statsContainer.children[1].innerText.trim();
 
         let expShownText = `${expDailyStats.gamesShown}\nShown`;
-        let actShownText = statsContainer.children[2].innerText;
+        let actShownText = statsContainer.children[2].innerText.trim();
 
         let testRes = 
             this.verify(actContainerLen==expContainerLen, `expected statsContainer.children.length==${expContainerLen}, got ${actContainerLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
@@ -391,7 +395,8 @@ class Test extends BaseLogger {
             this.verify(dailyStats.gamesFailed==expDailyStats.gamesFailed, `expected dailyStats.gamesFailed==${expDailyStats.gamesFailed}, got ${dailyStats.gamesFailed}`) &&
             this.verify(actPlayedText==expPlayedText, `expected statsContainer.children.0.innerText==${expPlayedText}, got ${actPlayedText}`) &&
             this.verify(actCompletionText==expCompletionText, `expected statsContainer.children.1.innerText=='${expCompletionText}', got '${actCompletionText}'`) &&
-            this.verify(actShownText=Text=expShownText, `expected statsContainer.children.2.innerText=='${expShownText}', got '${actShownText}'`);
+            this.verify(actShownText=Text=expShownText, `expected statsContainer.children.2.innerText=='${expShownText}', got '${actShownText}'`) &&
+            this.verify(dailyStats.gamesPlayed >= dailyStats.gamesCompleted + dailyStats.gamesShown + dailyStats.gamesFailed, `assertion failed: played not >= completed+shown+failed`);
 
         for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
             // check the stats blob
@@ -399,7 +404,7 @@ class Test extends BaseLogger {
                 this.verify(dailyStats[wrongMoves]==expDailyStats[wrongMoves], `expected dailyStats.${wrongMoves}==${expDailyStats[wrongMoves]}, got ${dailyStats[wrongMoves]}`);
 
             // check the DOM contents
-            let actDistributionText = statsDistribution.children[wrongMoves].innerText;
+            let actDistributionText = statsDistribution.children[wrongMoves].innerText.trim();
             let expDistributionText = Const.NUMBERS[wrongMoves] + "\n" + expDailyStats[wrongMoves];
             testRes = testRes && 
                 this.verify(actDistributionText==expDistributionText, `expected statsDistribution.children.${wrongMoves}.innerText=='${expDistributionText}', got '${actDistributionText}'`);
@@ -956,12 +961,13 @@ class Test extends BaseLogger {
             this.dailyGameTooManyMistakesShareTest,
             this.dailyGameEndsOnDeleteShareTest,
             this.dailyGameRestartTest,
+            this.dailyGameShowSolutionTest,
             this.practiceGameTest,
             this.geniusMoveAndShareTest,
             this.cookieRestartTest,
         ];
         this.needToWaitForAsyncResults = true;
-        this.runNextTest();
+        this.runNextAppTest();
     }
 
     dailyGameNormalFinishStatsTest() {
@@ -997,7 +1003,7 @@ class Test extends BaseLogger {
             this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
 
-        this.runNextTest();
+        this.runNextAppTest();
     }
         
     // multiGameStatsTest plays the daily game 3 times (multiGameCountdown) and
@@ -1022,7 +1028,7 @@ class Test extends BaseLogger {
             expDailyStats.gamesCompleted = 3;
             expDailyStats[0] = 3;  // all 3 games have 0 errors
             this.verifyStats(expDailyStats) && this.success();
-            this.runNextTest();
+            this.runNextAppTest();
         } else {
             // re-open open the test window, and then repeat this function with the countdown reduced 
             const clearCookies = false;
@@ -1065,7 +1071,7 @@ class Test extends BaseLogger {
             expDailyStats[1] = 1;
             expDailyStats[2] = 1;
             this.verifyStats(expDailyStats) && this.success();
-            this.runNextTest();
+            this.runNextAppTest();
         } else {
             // re-open open the test window, and then repeat this function with the countdown reduced 
             const clearCookies = false;
@@ -1106,7 +1112,7 @@ class Test extends BaseLogger {
             expDailyStats[0] = 1;  // complete game has 0 errors
             expDailyStats[Const.TOO_MANY_WRONG_MOVES] = 1;  // failed game has TOO_MANY_WRONG_MOVE errors
             this.verifyStats(expDailyStats) && this.success();
-            this.runNextTest();
+            this.runNextAppTest();
             return;
         } 
 
@@ -1129,6 +1135,54 @@ class Test extends BaseLogger {
         this.waitForAppDisplayThenRunFunc(this.multiIncompleteGameStatsTest);
    }
 
+    dailyGameShowSolutionTest() {
+        // we verify the following
+        // DailyStats has 1 played, 0 completed, 1 shown, 0 failed
+        // You can't play the daily game again if cookies are not cleared.
+        this.testName = "DailyGameShowSolution";
+         // The newly opened URL should be showing the test daily game by default;
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
+        // when opened with ?testing=true in the URL, the daily game will always
+        // be SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.gameDisplay.showSolution();
+        const clearCookies = false;
+        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
+        this.waitForAppDisplayThenRunFunc(this.finishDailyGameShowSolutionTest);
+    }
+
+    finishDailyGameShowSolutionTest() {
+        // create an expected DailyStats blob
+        let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
+        // stats are zero by default
+        expDailyStats.gamesPlayed = 1;
+        expDailyStats.gamesShown = 1;
+        let testResults = this.verifyStats(expDailyStats);
+
+        if (testResults) {
+            // the new game should be in a solved state
+            const game = this.gameDisplay.game;
+            this.logDebug("finishDailyGameShowSolutionTest() game:", game, "test");
+            const gameIsWinner = game.isWinner();
+
+            const appDisplay = this.getNewAppWindow().theAppDisplay;
+            const statsDisplay = appDisplay.statsDisplay;
+            // open the stats window.  The share button should not be shown
+            const statsSrcElement = new MockEventSrcElement(statsDisplay);
+            const statsMockEvent = new MockEvent(statsSrcElement);
+            statsDisplay.openAuxiliaryCallback(statsMockEvent);
+            const actualShareButtonDisplayStyle = statsDisplay.shareButton.style.display;
+            const expShareButtonDisplayStyle = "none";
+
+            this.verify(gameIsWinner, "game not recovered in solved state after showing solution.") &&
+                this.verify(actualShareButtonDisplayStyle == expShareButtonDisplayStyle, "expected share button display style: ", expShareButtonDisplayStyle, ", got: ", actualShareButtonDisplayStyle) &&
+                this.success();
+        }
+        this.runNextAppTest();
+    }
 
     dailyGameOneMistakeShareTest() {
         this.testName = "DailyGameOneMistakeShare";
@@ -1162,7 +1216,7 @@ class Test extends BaseLogger {
         this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
 
-        this.runNextTest();
+        this.runNextAppTest();
     }
 
     dailyGameTooManyMistakesShareTest() {
@@ -1170,7 +1224,7 @@ class Test extends BaseLogger {
 
         // The newly opened URL should be showing the test daily game by default;
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        let game = this.gameDisplay.game;
+        const game = this.gameDisplay.game;
 
         // when opened with ?testing=true in the URL, the daily game will always
         // be SHORT -> POOR
@@ -1213,7 +1267,7 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
 
-        this.runNextTest();
+        this.runNextAppTest();
     }
 
     dailyGameEndsOnDeleteShareTest() {
@@ -1260,7 +1314,7 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
 
-        this.runNextTest();
+        this.runNextAppTest();
     }
 
     dailyGameRestartTest() {
@@ -1275,11 +1329,9 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
 
-        // close the game window
-        this.getNewAppWindow().close();
-
-        // and re-open it, without the testing=true query which forces a new static daily game.
-        this.openTheTestAppWindow();
+        // re-open the app window, without the testing=true query which forces a new static daily game.
+        const clearCookies = false;
+        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
         this.waitForAppDisplayThenRunFunc(this.continueRestoreGameTest);
     }
 
@@ -1309,6 +1361,9 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK);
 
         // ... and close and re-open it after it is solved
+
+        const clearCookies = false;
+        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
         this.openTheTestAppWindow();
         this.waitForAppDisplayThenRunFunc(this.finishRestoreGameTest);
     }
@@ -1317,12 +1372,12 @@ TODO - what if these are played after the game is over?  They should not be addi
         // game should be done; stats should be saved.
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = this.gameDisplay.game;
-        Const.GL_DEBUG && this.logDebug("restored daily game after finishing it; display instructions are: ",
+        this.logDebug("restored daily game after finishing it; display instructions are: ",
                 game.getDisplayInstructions(), "test");
         this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
             this.success();
         Cookie.clearNonDebugCookies();
-        this.runNextTest();
+        this.runNextAppTest();
     }
 
     practiceGameTest() {
@@ -1357,7 +1412,7 @@ TODO - what if these are played after the game is over?  They should not be addi
             this.verify((resultInsertP0 === Const.OK), `insert P@0 returns ${resultInsertP0}, not ${Const.OK}`) &&
             this.verify((resultInsertI1 === Const.OK), `insert I@1 returns ${resultInsertI1}, not ${Const.OK}`) &&
             this.success();
-        this.runNextTest();
+        this.runNextAppTest();
     }
 
     geniusMoveAndShareTest() {
@@ -1394,7 +1449,7 @@ TODO - what if these are played after the game is over?  They should not be addi
             this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
             this.verify((shareString === expectedShareString), `sharestring: expected '${expectedShareString}', got '${shareString}'`) &&
             this.success();
-        this.runNextTest();
+        this.runNextAppTest();
     }
 
     cookieRestartTest() {
@@ -1429,7 +1484,7 @@ TODO - what if these are played after the game is over?  They should not be addi
             this.verify((testObjRestored.field == "hello"), `testObjRestored.field is '${testObjRestored.field}', not hello`) &&
             this.success();
         Cookie.clearNonDebugCookies();
-        this.runNextTest();
+        this.runNextAppTest();
     }
 
     // ===== Dictionary Tester =====

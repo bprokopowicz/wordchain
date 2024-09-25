@@ -27,3 +27,20 @@ Deployment
 - Testing on various browsers/devices
 - Cookies: make secure? Obfuscate? Save in back-end DB?
 - Logo/favicon.ico
+
+Notes on recovery of daily game
+
+use cases:
+1) no recovered game number - calculate current game and initialize it
+2) recovered game number - calculate today's game number and compare:
+   a) not the same: initialize today's game number
+   b) the same: recover played moves and 'shown' flag
+      i) shown is false, played moves are complete
+          recover the game as solved
+      ii) shown is false, played moves are incomplete
+          recover the game in progress
+      iii) shown is true, played moves are complete
+           recover the game as finished, leave shown flag as true
+      iv) shown is true, played moves are incomplete: 
+          this is a bug.  finish playing the game, save the solved state, leave 'shown' flag as true
+         

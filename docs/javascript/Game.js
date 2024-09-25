@@ -44,10 +44,8 @@ class Game extends BaseLogger {
             this.remainingSteps = new Solution(justTheUnplayedSteps, targetWord);
 
         }
-        Const.GL_DEBUG && this.logDebug("Game constructed: played steps: ", this.playedSteps.toStr(), "game");
-        Const.GL_DEBUG && this.logDebug("Game constructed: remaining steps: ", this.remainingSteps.toStr(), "game");
+        Const.GL_DEBUG && this.logDebug("Game constructed: ", this, "game");
     }
-
 
     // Choose a random start/target that has a solution between
     // Const.PRACTICE_STEPS_MINIMUM and Const.PRACTICE_STEPS_MAXIMUM
@@ -300,10 +298,10 @@ class Game extends BaseLogger {
     }
 
     // Return true if the game has been won; false otherwise.
-    // If over() would return false this should return false.
     isWinner() {
-        Const.GL_DEBUG && this.logDebug("winner() - returning", this.playedSteps.isSolved(), "game");
-        return this.playedSteps.isSolved();
+        const ret = this.playedSteps.isSolved();
+        Const.GL_DEBUG && this.logDebug("winner() - returning", ret, "game");
+        return ret;
     }
 }
 
