@@ -13,8 +13,6 @@
 **
 **  Primarily used and set in DailyGameDisplay
 **
-**     PlayerStats
-**        PlayerStats struct: saved as JSON
 **     DailyGameNumber
 **        Integer: calculated daily game number based on current time.
 **     DailyGameWordsPlayed
@@ -23,12 +21,8 @@
 **        Object: see explanation of properties in DailyStats.
 **     DailySolutionShown:
 **        Boolean: saved to true when user clicks 'Solution'.  Applies to the current game number only.
-**     DebugStaticDaily
-**        Boolean: Set to True to avoid standard daily game calculations and use a statc start/target.
-**     DebugDailyMinPerDay
-**        Integer: Number of minutes to consider one day when debugging daily games.
 **     DebugBaseTimestamp
-**        Integer: Epoch timestamp used when DebugDateIncrementMin is not zero or null
+**        Integer: Epoch timestamp used when we override the minutes per day. 
 **        (Code will set this; doesn't need to be set manually)
 **
 **  Used and set in PracticeGameDisplay
@@ -42,8 +36,6 @@
 **     PracticeGameTimestamps
 **        List: Epoch timestamps of when practice words were started, used to limit the
 **        number of practice games allowed in a day.
-**     DebugPracticeMinPerDay
-**        Integer: Number of minutes to consider one day when debugging practice games.
 **
 **   Obsolete
 **     HardMode, TypeSavingMode
@@ -58,18 +50,15 @@ class Cookie {
     static DEBUG = "Debug";
     static DARK_THEME = "DarkTheme";
     static COLORBLIND_MODE = "ColorblindMode";
-    static PLAYER_STATS = "PlayerStats";
     static DAILY_GAME_NUMBER = "DailyGameNumber";
     static DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
     static DAILY_STATS = "DailyStats";
     static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
-    static DEBUG_DAILY_MIN_PER_DAY = "DebugDailyMinPerDay";
     static DEBUG_BASE_TIMESTAMP = "DebugBaseTimestamp";
     static PRACTICE_GAME_START = "PracticeGameStart";
     static PRACTICE_GAME_TARGET = "PracticeGameTarget";
     static PRACTICE_GAME_WORDS_PLAYED = "PracticeGameWordsPlayed";
     static PRACTICE_GAME_TIMESTAMPS = "PracticeGameTimestamps";
-    static DEBUG_PRACTICE_MIN_PER_DAY = "DebugPracticeMinPerDay";
     static HARD_MODE = "HardMode";
     static TYPE_SAVING_MODE = "TypeSavingMode";
     static TEST_INT = "testint";
@@ -84,14 +73,11 @@ class Cookie {
         Cookie.DAILY_GAME_WORDS_PLAYED,
         Cookie.DAILY_STATS,
         Cookie.DAILY_SOLUTION_SHOWN,
-        Cookie.DEBUG_DAILY_MIN_PER_DAY,
         Cookie.DEBUG_BASE_TIMESTAMP,
-        Cookie.PLAYER_STATS,
         Cookie.PRACTICE_GAME_START,
         Cookie.PRACTICE_GAME_TARGET,
         Cookie.PRACTICE_GAME_WORDS_PLAYED,
         Cookie.PRACTICE_GAME_TIMESTAMPS,
-        Cookie.DEBUG_PRACTICE_MIN_PER_DAY,
         Cookie.HARD_MODE,
         Cookie.TYPE_SAVING_MODE,
         Cookie.TEST_INT,
@@ -142,12 +128,12 @@ class Cookie {
     static save(name, value, theWindow=window) {
         if (name == null) {
             console.error("trying to save cookie named null with value:", value, " - ignored.");
+        } else if (value == null) {
+            console.error("trying to save cookie named:", name, " with null value - ignored.");
+        } else if (!Cookie.ALL_COOKIE_NAMES.includes(name)) {
+            console.error("trying to save cookie with unrecognized cookie name:", name, " - ignored.");
         } else {
-            if (value == null) {
-                console.error("trying to save cookie named:", name, " with null value - ignored.");
-            } else {
-                theWindow.localStorage.setItem(name, value.toString());
-            }
+            theWindow.localStorage.setItem(name, value.toString());
         }
     }
 
