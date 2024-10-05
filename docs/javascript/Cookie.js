@@ -85,35 +85,35 @@ class Cookie {
         Cookie.TEST_OBJ
     ];
 
-    static clearAllCookies(theWindow=window) {
+    static clearAllCookies() {
         for (const cookieName of Cookie.ALL_COOKIE_NAMES) {
-            Cookie.remove(cookieName, theWindow);
+            Cookie.remove(cookieName);
         }
     }
 
-    static clearNonDebugCookies(theWindow=window) {
+    static clearNonDebugCookies() {
         for (const cookieName of Cookie.ALL_COOKIE_NAMES) {
             if (cookieName.indexOf("Debug") < 0) {
-                Cookie.remove(cookieName, theWindow);
+                Cookie.remove(cookieName);
             }
         }
     }
 
-    static get(name, theWindow=window) {
-        return theWindow.localStorage.getItem(name);
+    static get(name) {
+        return window.localStorage.getItem(name);
     }
 
-    static getBoolean(name, theWindow=window) {
-        return Cookie.get(name, theWindow) === "true";
+    static getBoolean(name) {
+        return Cookie.get(name) === "true";
     }
 
-    static getInt(name, theWindow=window) {
-        const strVal = Cookie.get(name, theWindow);
+    static getInt(name) {
+        const strVal = Cookie.get(name);
         return strVal ? parseInt(strVal) : null;
     }
 
-    static getJsonOrElse(name, defaultVal, theWindow=window) {
-        const strVal = Cookie.get(name, theWindow);
+    static getJsonOrElse(name, defaultVal) {
+        const strVal = Cookie.get(name);
         if (strVal) {
             return JSON.parse(strVal);
         } else {
@@ -121,11 +121,11 @@ class Cookie {
         }
     }
 
-    static remove(name, theWindow=window) {
-        theWindow.localStorage.removeItem(name);
+    static remove(name) {
+        window.localStorage.removeItem(name);
     }
 
-    static save(name, value, theWindow=window) {
+    static save(name, value) {
         if (name == null) {
             console.error("trying to save cookie named null with value:", value, " - ignored.");
         } else if (value == null) {
@@ -133,12 +133,12 @@ class Cookie {
         } else if (!Cookie.ALL_COOKIE_NAMES.includes(name)) {
             console.error("trying to save cookie with unrecognized cookie name:", name, " - ignored.");
         } else {
-            theWindow.localStorage.setItem(name, value.toString());
+            window.localStorage.setItem(name, value.toString());
         }
     }
 
-    static saveJson(name, val, theWindow=window) {
-        Cookie.save(name, JSON.stringify(val), theWindow);
+    static saveJson(name, val) {
+        Cookie.save(name, JSON.stringify(val));
     }
 }
 

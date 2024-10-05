@@ -244,6 +244,12 @@ class Game extends BaseLogger {
         return Game.locationOfHole(word) >= 0;
     }
     
+    // the GUI needs to know if a played word was acceptable (OK, GENIUS_MOVE, or WRONG_MOVE) vs invalid (NOT_A_WORD or technical
+    // problems like BAD_POSITION)
+    static moveIsValid(moveRating) {
+        return (moveRating == Const.OK) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.WRONG_MOVE);
+    }
+
     // addPosition is from 0 to last word played's length
     // This adds a word-with-a-hole-in-it to the played steps so far.
     // Then, when displaying the last word given (the action word)
@@ -300,7 +306,7 @@ class Game extends BaseLogger {
     // Return true if the game has been won; false otherwise.
     isWinner() {
         const ret = this.playedSteps.isSolved();
-        Const.GL_DEBUG && this.logDebug("winner() - returning", ret, "game");
+        Const.GL_DEBUG && this.logDebug("Game.isWinner() - returning", ret, "game");
         return ret;
     }
 }

@@ -13,10 +13,16 @@ export function SET_GL_DEBUG(value) {
 export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
 export const DICT_URL = `${URL_ROOT}/resources/dict/WordChainDict`;
 
+// query-string consts
+export const QUERY_STRING_TESTING = "testing";
+export const QUERY_STRING_DEBUG_MINUTES_PER_DAY = "minutes_per_day";
+export const QUERY_STRING_START_WORD = "start";
+export const QUERY_STRING_TARGET_WORD = "target";
+
 // Constants for practice game word selection screen
 // TODO: UNCOMMENT
-//export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
-export const PRACTICE_GAMES_PER_DAY = 300;     // For testing
+export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
+//export const PRACTICE_GAMES_PER_DAY = 300;     // For testing
 export const PRACTICE_STEPS_MINIMUM = 5;
 export const PRACTICE_STEPS_MAXIMUM = 7;
 export const PRACTICE_DIFFICULTY_MINIMUM = 30;

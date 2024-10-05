@@ -1,6 +1,7 @@
 import { Cookie } from './Cookie.js';
 
 import { ElementUtilities } from './ElementUtilities.js';
+import { Game } from './Game.js';
 import { GameDisplay } from './GameDisplay.js';
 import * as Const from './Const.js';
 
@@ -82,13 +83,11 @@ class DailyGameDisplay extends GameDisplay {
         // Test.js will give a 'testing' argument on the URL when it opens
         // the window to run a daily game that requires the daily game to
         // be static; check for that.
-        const queryString = window.location.search;
-        const queryVars = DailyGameDisplay.parseQuery(queryString);
-        const debugStaticDaily = queryVars.has("testing");
+        const debugStaticDaily = this.queryVars.has(Const.QUERY_STRING_TESTING);
         Const.GL_DEBUG && this.logDebug("debugStaticDaily:", debugStaticDaily, "daily");
 
         if (debugStaticDaily) {
-            this.setStaticDailyGameSettings(queryVars);
+            this.setStaticDailyGameData();
         } else {
             // Get today's daily game; this will set this.startWord and
             // this.targetWord so that we can call the base class constructGame()
@@ -99,17 +98,6 @@ class DailyGameDisplay extends GameDisplay {
         this.constructGame(this.startWord, this.targetWord, this.recoveredDailyGameWordsPlayed);
     }
 
-    // returns a map[key] = val parsed from the URL query string.
-    static parseQuery(queryString) {
-        var query = new Map();
-        var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-        for (let pair of pairs) {
-            var keyVal = pair.split('=');
-            query.set(keyVal[0], keyVal[1] || '');
-        }
-        return query;
-    }
-
     /* ----- Determination of Daily Game Information ----- */
       // determines validGame, startWord, targetWord, recoveredDailyGameNumber, recoveredDailyGameWordsPlayed
     setDailyGameData() {
@@ -118,6 +106,7 @@ class DailyGameDisplay extends GameDisplay {
         // to replay today's daily game instead of recovering it as played
         const recoveredDailyGameNumber = Cookie.getInt(Cookie.DAILY_GAME_NUMBER);
         Const.GL_DEBUG && this.logDebug("recoveredDailyGameNumber:", recoveredDailyGameNumber, "daily");
+        this.setBaseTimestamp(); 
         if (recoveredDailyGameNumber == Const.STATIC_DAILY_GAME_NUMBER) {
             // we are recovering the static daily game in mid-play.  
             this.dailyGameNumber = Const.STATIC_DAILY_GAME_NUMBER;
@@ -125,9 +114,9 @@ class DailyGameDisplay extends GameDisplay {
             this.targetWord = Const.STATIC_DAILY_GAME_TARGET;
             this.validGame = true;
             this.recoveredDailyGameWordsPlayed = Cookie.getJsonOrElse(Cookie.DAILY_GAME_WORDS_PLAYED, []);
-            Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameWordsPlayed (static recovered):", this.recoveredDailyGameWordsPlayed, "daily");
+            Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameWordsPlayed (static recovered):",
+                    this.recoveredDailyGameWordsPlayed, "daily");
         } else {
-            this.setBaseTimestamp(); 
             // Now, determine the game number and get the game data from the GameWords object.
             this.dailyGameNumber = this.calculateGameNumber();
 
@@ -160,22 +149,21 @@ class DailyGameDisplay extends GameDisplay {
     }
 
     // baseTimestamp is the world-wide starting point determining for Wordchain games.  It is hardcoded as this.baseDate but can
-    // be over-ridden by setting the DEBUG_DAILY_MIN_PER_DAY cookie.  
+    // be over-ridden by setting the query string parameter QUERY_STRING_DEBUG_MINUTES_PER_DAY
 
     setBaseTimestamp() {
-        // Debug-only cookie that can be manually added to reduce a day to mere minutes.
-        const debugMinPerDay = Cookie.getInt(Cookie.DEBUG_DAILY_MIN_PER_DAY);
 
         // Are we debugging daily games?
-        if (debugMinPerDay) {
+        if (this.queryVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY)) {
             // Yes, we're debugging, so override the standard one day increment.
-            calculateDailyGameBaseTimestampForDebugging(debugMinPerDay);
+            calculateDailyGameBaseTimestampForDebugging(this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY));
         } else {
             // Not debugging daily games; set the base timestamp based
             // on our base date -- the date at which we set the clock
             // for the very first daily game.
             this.baseTimestamp = this.baseDate.getTime();
-            Const.GL_DEBUG && this.logDebug("DebugDailyMinPerDay is NOT set! baseTimestamp:", new Date(this.baseTimestamp), "daily");
+            Const.GL_DEBUG && this.logDebug(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY, " is NOT set! baseTimestamp:",
+                    new Date(this.baseTimestamp), "daily");
         }
     }
 
@@ -195,9 +183,11 @@ class DailyGameDisplay extends GameDisplay {
     calculateDailyGameBaseTimestampForDebugging(debugMinPerDay) {
         // we're debugging, so override the standard one day increment.
         this.dateIncrementMs = debugMinPerDay * 60 * 1000;
-        Const.GL_DEBUG && this.logDebug("DebugDailyMinPerDay is set! dateIncrementMs:", this.dateIncrementMs, "daily");
+        Const.GL_DEBUG && this.logDebug(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY, " is set! dateIncrementMs:", this.dateIncrementMs, "daily");
 
-        // If there isn't a cookie, set it to "now".
+        // if we are debugging the daily game, we override the beginning of WordChain's epoch to be now on the first run,
+        // and then subsequent runs will use that as the beginning of the WordChain epoch for calculating the 
+        // daily game number.
         this.baseTimestamp = Cookie.getInt(Cookie.DEBUG_BASE_TIMESTAMP);
         if (this.baseTimestamp === null) {
             this.baseTimestamp = (new Date()).getTime();
@@ -208,10 +198,12 @@ class DailyGameDisplay extends GameDisplay {
         }
     }
 
-    setStaticDailyGameSettings(queryVars){
+    setStaticDailyGameData() {
         Const.GL_DEBUG && this.logDebug("initializing the static daily game", "daily");
-        this.startWord = queryVars.has("start") ?  queryVars.get("start") : Const.STATIC_DAILY_GAME_START;
-        this.targetWord = queryVars.has("target") ? queryVars.get("target") : Const.STATIC_DAILY_GAME_TARGET;
+        this.startWord = this.queryVars.has(Const.QUERY_STRING_START_WORD) ?  
+            this.queryVars.get(Const.QUERY_STRING_START_WORD) : Const.STATIC_DAILY_GAME_START;
+        this.targetWord = this.queryVars.has(Const.QUERY_STRING_TARGET_WORD) ?
+            this.queryVars.get(Const.QUERY_STRING_TARGET_WORD) : Const.STATIC_DAILY_GAME_TARGET;
         this.validGame = true;
         this.incrementStat("gamesPlayed");
         this.dailyGameNumber = Const.STATIC_DAILY_GAME_NUMBER;
@@ -237,20 +229,16 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Pseudo Callbacks ----- */
 
-    // Override superclass letterPicked() to update gameState and DailyGameWordsPlayed cookie
+    // Override superclass letterPicked() to update DailyGameStats and DailyGameWordsPlayed cookie
     letterPicked(letter, letterPosition) {
         Const.GL_DEBUG && this.logDebug("DailyGameDisplay.letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
-        if (this.game.isOver()) {
-            console.error("DailyGameDisplay.letterPicked(): game is already over");
-            return Const.UNEXPECTED_ERROR;
-        }
 
         let gameResult = super.letterPicked(letter, letterPosition);
 
-        this.updateDailyGameStats(gameResult);
+        this.updateDailyGameStatsIfDone(gameResult);
 
         Const.GL_DEBUG && this.logDebug("DailyGameDisplay.letterPicked() gameState: ", this.gameState, "daily");
-        if (gameResult === Const.OK) {
+        if (Game.moveIsValid(gameResult)) {
             Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.gameState);
         }
 
@@ -259,22 +247,6 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Callbacks ----- */
 
-    // Override superclass callback to update DailyStats cookie.
-    additionClickCallback(event) {
-
-        if (this.game.isOver()) {
-            console.error("DailyGameDisplay.additionClickCallback(): game is already over");
-            return Const.UNEXPECTED_ERROR;
-        }
-
-        this.updateDailyGameStats(super.additionClickCallback(event));
-
-        // NOTE: No need to save words in DailyGameWordsPlayed because an addition
-        // doesn't actually provide a word; we'll pick up the new word in
-        // pickerChangeCallback().
-
-        return Const.OK;
-    }
 
     // Override superclass callback to update DailyStats and DailyGameWordsPlayed cookie.
     deletionClickCallback(event) {
@@ -287,16 +259,17 @@ class DailyGameDisplay extends GameDisplay {
         let gameResult = super.deletionClickCallback(event);
         Const.GL_DEBUG && this.logDebug("DailyGameDisplay.deletionClickCallback() result: ", gameResult, "daily");
 
-        this.updateDailyGameStats(gameResult);
+        this.updateDailyGameStatsIfDone(gameResult);
         Const.GL_DEBUG && this.logDebug("DailyGameDisplay.deletionClickCallback() Game state: ", this.gameState, "daily");
-        if (gameResult === Const.OK) {
+        if (Game.moveIsValid(gameResult)) {
             Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.gameState);
         }
         return gameResult;
     }
 
-    //TODO daily game stats are only updated on games that are done?
-    updateDailyGameStats(gameResult) {
+    // when a game is finished, we update persistent counters of games played, failed, and
+    // a counter of the number of wrong moves (e.g. another 2-wrong-move game was just played)
+    updateDailyGameStatsIfDone(gameResult) {
         if (this.game.isOver()) {
             if (gameResult == Const.OK) {
                 this.incrementStat("gamesCompleted");
@@ -305,6 +278,7 @@ class DailyGameDisplay extends GameDisplay {
             if (wrongMoveCount >= Const.TOO_MANY_WRONG_MOVES) {
                 this.incrementStat("gamesFailed");
             }
+            // wrong moves 
             this.incrementStat(wrongMoveCount);
         }
     }

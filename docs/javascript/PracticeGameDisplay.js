@@ -19,12 +19,9 @@ class PracticeGameDisplay extends GameDisplay {
     constructor(appDisplay, gameDiv, pickerDiv) {
         super(appDisplay, gameDiv, pickerDiv, "practice-picker");
 
-        // Debug-only cookie that can be manually added to the time period.
-        this.debugMinPerDay = Cookie.getInt(Cookie.DEBUG_PRACTICE_MIN_PER_DAY);
-
-        // Are we debugging limiting practice games?
-        if (this.debugMinPerDay) {
-            PracticeGameDisplay.MaxGamesIntervalMs = debugMinPerDay * 60 * 1000;
+        // Are we debugging the number of practice games allowed?
+        if (this.queryVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) ) {
+            PracticeGameDisplay.MaxGamesIntervalMs = this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) * 60 * 1000;
         }
 
         // We use timestamps to ensure the user doesn't play more than the maximum
@@ -41,16 +38,10 @@ class PracticeGameDisplay extends GameDisplay {
 
     // Override superclass letterPicked() to update gameState and PracticeGameWordsPlayed cookie.
     letterPicked(letter, letterPosition) {
-        if (this.game.isOver()) {
-            console.error("PracticeGameDisplay.letterPicked(): game is already over");
-            return Const.UNEXPECTED_ERROR;
-        } 
-
         let gameResult = super.letterPicked(letter, letterPosition);
 
-        if (gameResult === Const.OK) {
-            this.practiceGameWordsPlayed = this.gameState;
-            Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, this.practiceGameWordsPlayed);
+        if (Game.moveIsValid(gameResult)) {
+            Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, this.gameState);
         } 
         return gameResult;
     } 
@@ -68,16 +59,10 @@ class PracticeGameDisplay extends GameDisplay {
     // Override superclass callback to update PracticeGameWordsPlayed cookie.
     deletionClickCallback(event) {
 
-        if (this.game.isOver()) {
-            console.error("PracticeGameDisplay.deletionClickCallback(): game is already over");
-            return Const.UNEXPECTED_ERROR;
-        }
-
         let gameResult = super.deletionClickCallback(event);
 
-        if (gameResult === Const.OK) {
-            this.practiceGameWordsPlayed = this.gameState;
-            Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, this.practiceGameWordsPlayed);
+        if (Game.moveIsValid(gameResult)) {
+            Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, this.gameState);
         }
         return gameResult;
     }
@@ -86,6 +71,7 @@ class PracticeGameDisplay extends GameDisplay {
 
     // This will be called in GameDisplay when the game is determined to be over.
     additionalGameOverActions() {
+        this.logDebug("PracticeGameDisplay.additionalGameOverActions() called", "practice");
         // Clear out the practice game words in the cookies.
         Cookie.remove(Cookie.PRACTICE_GAME_START);
         Cookie.remove(Cookie.PRACTICE_GAME_TARGET);
@@ -118,73 +104,66 @@ class PracticeGameDisplay extends GameDisplay {
         this.showMove(true);
     }
 
+    // updateTimestamps() cleans up the saved list of recently played games' timestamps.
+    // It removes ones that are more than 24 hours old, and then determines how many are
+    // left compared to the allowed number per day and sets this.anyGamesRemaining.
+
     updateTimestamps() {
         this.updateTime = (new Date()).getTime();
 
-        this.practiceGameTimestamps = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_TIMESTAMPS, []);
+        let practiceGameTimestamps = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_TIMESTAMPS, []);
 
-        // Make sure the user hasn't used up their practice games for the day.
-        if (this.practiceGameTimestamps.length >= Const.PRACTICE_GAMES_PER_DAY) {
-            let popped = false;
+        // remove any any games that have aged out. 
 
-            // See whether any games have aged out. The list is a queue, with the
-            // first item being the oldest.
-            while (this.practiceGameTimestamps.length != 0) {
-                const timeSinceLastGame = this.updateTime - this.practiceGameTimestamps[0];
-                if (timeSinceLastGame > PracticeGameDisplay.MaxGamesIntervalMs) {
-                    // This one has aged out; pop it and note that we popped one,
-                    // i.e. that the user can play a game.
-                    this.practiceGameTimestamps.shift();
-                    popped = true;
-                } else {
-                    // This hasn't aged out, and anything on the list is newer,
-                    // so we're done.
-                    break;
-                }
-            }
+        practiceGameTimestamps = practiceGameTimestamps
+            .filter(timestamp => (this.updateTime-timestamp) < PracticeGameDisplay.MaxGamesIntervalMs);
 
-            // If we didn't pop anything, all games are too new.
-            if (! popped) {
-                this.anyGamesRemaining = false;
-                return;
-            }
-        }
+        // update the cookie now that we have removed any expired timestamps
+        Cookie.save(Cookie.PRACTICE_GAME_TIMESTAMPS, JSON.stringify(practiceGameTimestamps));
 
-        this.anyGamesRemaining = true;
+        // set anyGamesRemaining if there are any practice games left today.
+        this.anyGamesRemaining = (practiceGameTimestamps.length < Const.PRACTICE_GAMES_PER_DAY);
+        this.logDebug("updateTimestamps(): anyGamesRemaining=", this.anyGamesRemaining, "practice");
     }
 
+    addTimestamp() {
+        // Save the timestamp of this game in the instance and cookies.
+        let practiceGameTimestamps = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_TIMESTAMPS, []);
+        practiceGameTimestamps.push(this.updateTime);
+        Cookie.save(Cookie.PRACTICE_GAME_TIMESTAMPS, JSON.stringify(practiceGameTimestamps));
+    }
+
+    // updateWords starts a new game.  It should not be possible to call it if there are no more games left.
+    // startWord and targetWord are parameters for testing only.
     updateWords(startWord=null, targetWord=null) {
 
+        let wordsPlayed = [];
         if (startWord && targetWord) {
             this.startWord = startWord;
             this.targetWord = targetWord;
-            this.practiceGameWordsPlayed = [];
+            this.addTimestamp();
         } else {
-            // Save the timestamp of this game in the instance and cookies.
-            this.practiceGameTimestamps.push(this.updateTime);
-            Cookie.save(Cookie.PRACTICE_GAME_TIMESTAMPS, JSON.stringify(this.practiceGameTimestamps));
-
             // See if we have words in the cookie.
             this.startWord  = Cookie.get(Cookie.PRACTICE_GAME_START);
             this.targetWord = Cookie.get(Cookie.PRACTICE_GAME_TARGET);
 
             if (!this.startWord || this.startWord.length === 0) {
                 // No words in the cookie; get new ones from the Game class and save them.
+                this.addTimestamp();
                 [this.startWord, this.targetWord] = Game.getPracticePuzzle();
                 //this.startWord = "FATE";
                 //this.targetWord = "CAT";
                 Cookie.save(Cookie.PRACTICE_GAME_START, this.startWord);
                 Cookie.save(Cookie.PRACTICE_GAME_TARGET, this.targetWord);
                 Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
-                this.practiceGameWordsPlayed = [];
             } else {
                 // We did have start/target words; get any words already played.
-                this.practiceGameWordsPlayed = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
+                wordsPlayed = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
             }
         }
 
         // Now we're ready to construct (and display) the game.
-        this.constructGame(this.startWord, this.targetWord, this.practiceGameWordsPlayed);
+        this.constructGame(this.startWord, this.targetWord, wordsPlayed);
     }
 }
 

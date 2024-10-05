@@ -7,6 +7,11 @@ Implementation
 - Possible settings to tweak game difficulty:
   - Mode where future rows do not have change cells outlined thicker. (harder)
   - Mode where picker displays only letters that could result in valid words. (easier)
+- Practice game bugs
+  - restarting an existing practice game counts as another play.  It creates another timestamp.  Timestamps should only happen
+    on new games.
+- It looks like "cookies" local storage works across windows automatically.  Probably we can remove the per-window cookie saving stuff.
+
 - Resolve all TODOs!
 
 Testing

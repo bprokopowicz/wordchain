@@ -233,7 +233,7 @@ class Test extends BaseLogger {
 
         this.newWindow = window.open(url, 'AppDisplayTest', 'width=600,height=800');
         // pass our debug settings to the child window
-        Cookie.save(Cookie.DEBUG, Cookie.get(Cookie.DEBUG), this.getNewAppWindow());
+        Cookie.save(Cookie.DEBUG, Cookie.get(Cookie.DEBUG));
         // set the child's console to our console. This doesn't work reliably, especially when the child window has a crashing bug.
         this.newWindow.console = console;
 
@@ -348,7 +348,7 @@ class Test extends BaseLogger {
         const statsDisplay = appDisplay.statsDisplay;
 
         // get the saved stats cookie
-        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
+        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS);
         this.logDebug("verifyStats() dailyStats", dailyStats, "test");
 
         // open the stats window.  This should compute the shareString and start the countdown clock 
@@ -961,8 +961,10 @@ class Test extends BaseLogger {
             this.dailyGameTooManyMistakesShareTest,
             this.dailyGameEndsOnDeleteShareTest,
             this.dailyGameRestartTest,
+            this.dailyGameRestartAfterDohTest,
             this.dailyGameShowSolutionTest,
             this.practiceGameTest,
+            this.practiceGameLimitTest,
             this.geniusMoveAndShareTest,
             this.cookieRestartTest,
         ];
@@ -1329,26 +1331,26 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
 
-        // re-open the app window, without the testing=true query which forces a new static daily game.
+        // re-open the app window, without the testing=true query which would force a new static daily game.
         const clearCookies = false;
         this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
-        this.waitForAppDisplayThenRunFunc(this.continueRestoreGameTest);
+        this.waitForAppDisplayThenRunFunc(this.continueDailyGameRestartTest);
     }
 
     // called after first restart in the middle of the game.
-    continueRestoreGameTest() {
+    continueDailyGameRestartTest() {
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
         this.testName = "DailyGameRestart";
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = this.gameDisplay.game;
         const di = game.getDisplayInstructions();
         this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
-        this.verify((di[0].toStr() === "(played,word:SHORT,moveRating:ok)"), `instruction[0] is ${di[0].toStr()}`) &&
-        this.verify((di[1].toStr() === "(played,word:SHOOT,moveRating:ok)"), `instruction[1] is ${di[1].toStr()}`) &&
-        this.verify((di[2].toStr() === "(change,word:HOOT,changePosition:1)"), `instruction[2] is ${di[2].toStr()}`) &&
-        this.verify((di[3].toStr() === "(future,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
-        this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
-        this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
+            this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `instruction[0] is ${di[0].toStr()}`) &&
+            this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `instruction[1] is ${di[1].toStr()}`) &&
+            this.verify((di[2].toStr() === "(change,word:HOOT,changePosition:1)"), `instruction[2] is ${di[2].toStr()}`) &&
+            this.verify((di[3].toStr() === "(future,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
+            this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
+            this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
 
         // finish the game. ( ... BOOT BOOR POOR)
 
@@ -1357,18 +1359,18 @@ TODO - what if these are played after the game is over?  They should not be addi
         const playedP = this.playLetter(1, "P"); // BOOR -> POOR
 
         this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
-        this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
-        this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK);
+            this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
+            this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK);
 
         // ... and close and re-open it after it is solved
 
         const clearCookies = false;
         this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
         this.openTheTestAppWindow();
-        this.waitForAppDisplayThenRunFunc(this.finishRestoreGameTest);
+        this.waitForAppDisplayThenRunFunc(this.finishDailyGameRestartTest);
     }
 
-    finishRestoreGameTest() {
+    finishDailyGameRestartTest() {
         // game should be done; stats should be saved.
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = this.gameDisplay.game;
@@ -1380,11 +1382,70 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.runNextAppTest();
     }
 
+    dailyGameRestartAfterDohTest() {
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
+        // when opened with ?testing=true in the URL, the daily game will always
+        // be SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        // play two moves, then close and try to restore ...
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.deleteLetter(1);    // SHOOT -> HOOT
+        this.playLetter(1, "S"); // HOOT -> SOOT D'OH!!!
+
+        // re-open the app window, without the testing=true query which would force a new static daily game.
+        const clearCookies = false;
+        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
+        this.waitForAppDisplayThenRunFunc(this.continueDailyGameRestartAfterDohTest);
+    }
+
+    // called after first restart in the middle of the game.
+    continueDailyGameRestartAfterDohTest() {
+        // we should be running the daily game SHORT -> POOR with SHOOT, HOOT, SOOT (D'OH) already played.
+        this.testName = "DailyGameRestartAfterDoh";
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        const game = this.gameDisplay.game;
+        let di = game.getDisplayInstructions();
+        this.verify((di.length == 7), `expected 7 display instructions after restore, got ${di.length}`) &&
+            this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `instruction[0] is ${di[0].toStr()}`) &&
+            this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `instruction[1] is ${di[1].toStr()}`) &&
+            this.verify((di[2].toStr() === `(played,word:HOOT,moveRating:${Const.OK})`), `instruction[2] is ${di[2].toStr()}`) &&
+            this.verify((di[3].toStr() === `(change,word:SOOT,changePosition:1)`), `instruction[3] is ${di[3].toStr()}`) &&
+            this.verify((di[4].toStr() === "(future,word:BOOT,changePosition:4)"), `instruction[4] is ${di[4].toStr()}`) &&
+            this.verify((di[5].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[5] is ${di[5].toStr()}`) &&
+            this.verify((di[6].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
+
+        // finish the game. ( ... BOOT BOOR POOR)
+
+        const playedB = this.playLetter(1, "B"); // HOOT -> BOOT
+        const playedR = this.playLetter(4, "R"); // BOOT -> BOOR
+        const playedP = this.playLetter(1, "P"); // BOOR -> POOR
+
+        this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
+            this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
+            this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK);
+
+        di = game.getDisplayInstructions();
+        this.verify((di.length == 7), `expected 7 display instructions after finishing game, got ${di.length}`) &&
+            this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `di[0] is ${di[0].toStr()}`) &&
+            this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `di[1] is ${di[1].toStr()}`) &&
+            this.verify((di[2].toStr() === `(played,word:HOOT,moveRating:${Const.OK})`), `di[2] is ${di[2].toStr()}`) &&
+            this.verify((di[3].toStr() === `(played,word:SOOT,moveRating:${Const.WRONG_MOVE})`), `di[3] is ${di[3].toStr()}`) &&
+            this.verify((di[4].toStr() === `(played,word:BOOT,moveRating:${Const.OK})`), `di[4] is ${di[4].toStr()}`) &&
+            this.verify((di[5].toStr() === `(played,word:BOOR,moveRating:${Const.OK})`), `di[5] is ${di[5].toStr()}`) &&
+            this.verify((di[6].toStr() === `(played,word:POOR,moveRating:${Const.OK})`), `di[6] is ${di[6].toStr()}`) &&
+            this.success();
+        Cookie.clearNonDebugCookies();
+        this.runNextAppTest();
+    }
+
+
     practiceGameTest() {
         this.testName = "PracticeGame";
 
         this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
-        Cookie.clearNonDebugCookies(this.getNewAppWindow());
+        Cookie.clearNonDebugCookies();
 
         this.logDebug("Switching to practice game", "test");
         this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
@@ -1415,10 +1476,56 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.runNextAppTest();
     }
 
+    practiceGameLimitTest() {
+        this.testName = "PracticeGameLimit";
+        Cookie.clearNonDebugCookies();
+        this.logDebug("Switching to practice game", "test");
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
+        this.logDebug("Done switching to practice game", "test");
+
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        // play and solve N practice games in a row.
+        // showSolution calls showMove(userRequestedSolution=true), and this rebuilds the whole game GUI, including
+        // the post-game-div to hold a 'new game' button if there are any more practice games allowed.
+        this.gameDisplay.showSolution();
+
+        const srcElement = new MockEventSrcElement(this.gameDisplay);
+        const mockEvent = new MockEvent(srcElement);
+        let soFarSoGood = true;
+        for (let gamesPlayed=1; gamesPlayed < Const.PRACTICE_GAMES_PER_DAY; gamesPlayed++) {
+            // New Game button should be there.  The postGameDiv is reconstructed on every refresh of the display after a move
+            // or solution. 
+            const postGameDiv = this.gameDisplay.postGameDiv;
+
+            if ( this.verify(postGameDiv.children.length == 1, "expected 1 children, got: ", postGameDiv.children.length) &&
+                    this.verify( (postGameDiv.children[0].textContent == "New Game"),
+                        "expected textContent=New Game, got: ", postGameDiv.children[0].textContent) && 
+                    this.verify(this.gameDisplay.anyGamesRemaining, "After showing ", gamesPlayed, " games, anyGamesRemaining should still be true")
+                    )
+            {
+                // pretend to click the new game button
+                this.gameDisplay.newGameCallback(mockEvent);
+                //do we need to wait a while? No, that callback handler runs synchronously.
+                this.gameDisplay.showSolution();
+            } else {
+                soFarSoGood = false;
+                break; // stop testing on the first failure
+            }
+        }
+        // now there should be no New Game button
+        if (soFarSoGood) {
+            const postGameDiv = this.gameDisplay.postGameDiv;
+            this.verify(!this.gameDisplay.anyGamesRemaining, "After showing too many games, anyGamesRemaining should be false") &&
+                this.verify(postGameDiv.children.length == 0, "After showing too many games, expected 0 children, got: ", postGameDiv.children.length) &&
+                this.success();
+        }
+        this.runNextAppTest();
+    }
+
     geniusMoveAndShareTest() {
         this.testName = "GeniusMoveDisplay";
 
-        Cookie.clearNonDebugCookies(this.getNewAppWindow());
+        Cookie.clearNonDebugCookies();
         this.getNewAppWindow().theAppDisplay.switchToDailyGame();
 
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
@@ -1458,9 +1565,9 @@ TODO - what if these are played after the game is over?  They should not be addi
         testObj.nums.push(3);
         testObj.nums.push(5);
         testObj.field = "hello";
-        Cookie.saveJson(Cookie.TEST_OBJ, testObj, this.getNewAppWindow());
-        Cookie.save(Cookie.TEST_INT, 42, this.getNewAppWindow());
-        Cookie.save(Cookie.TEST_BOOL, true, this.getNewAppWindow());
+        Cookie.saveJson(Cookie.TEST_OBJ, testObj);
+        Cookie.save(Cookie.TEST_INT, 42);
+        Cookie.save(Cookie.TEST_BOOL, true);
 
         // now close the window,
         const clearCookies = false;
@@ -1473,9 +1580,9 @@ TODO - what if these are played after the game is over?  They should not be addi
         // need to set the test testName here for recording results
         this.testName = "CookieRestart";
         this.logDebug("new window should be re-opened; restoring values via cookies in new window", "test");
-        var testIntRestored = Cookie.getInt(Cookie.TEST_INT, this.getNewAppWindow());
-        var testBoolRestored = Cookie.getBoolean(Cookie.TEST_BOOL, this.getNewAppWindow());
-        var testObjRestored = Cookie.getJsonOrElse(Cookie.TEST_OBJ, null, this.getNewAppWindow());
+        var testIntRestored = Cookie.getInt(Cookie.TEST_INT);
+        var testBoolRestored = Cookie.getBoolean(Cookie.TEST_BOOL);
+        var testObjRestored = Cookie.getJsonOrElse(Cookie.TEST_OBJ, null);
         this.verify((testIntRestored == 42), `testIntRestored is ${testIntRestored}, not 42`) &&
             this.verify(testBoolRestored, `testBoolRestored is ${testBoolRestored}, not true`) &&
             this.verify((testObjRestored.nums.length == 2), `testObjRestored.length is ${testObjRestored.length}, not 2`) &&

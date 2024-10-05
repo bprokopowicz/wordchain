@@ -30,7 +30,23 @@ class GameDisplay extends BaseLogger {
         // only if it was played).
         this.gameState = [];
 
+        // parse any URL query-string variables and save them as this.queryVars[]
+        this.parseQueryString();
+
+
         // Derived class constructor must call constructGame().
+    }
+
+    /* ----- Query string variable parsing */
+
+    parseQueryString() {
+        const queryString = window.location.search;
+        this.queryVars = new Map();
+        var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+        for (let pair of pairs) {
+            var keyVal = pair.split('=');
+            this.queryVars.set(keyVal[0], keyVal[1] || '');
+        }
     }
 
     /* ----- Picker ----- */
@@ -363,7 +379,7 @@ class GameDisplay extends BaseLogger {
             this.appDisplay.showToast(Const.UNEXPECTED_ERROR);
             // TODO: Should end the game or some such ...
         } else if (gameResult !== Const.OK) {
-            this.appDisplay.showToast(gameResult);
+            this.appDisplay.showToast(gameResult); // D'OH, Genius move are possible results as of Oct 2024.
         }
 
         this.showMove();
