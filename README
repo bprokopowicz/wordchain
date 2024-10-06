@@ -48,8 +48,8 @@ TESTING - How to run the browser-based tests:
 
     - Navigate in browser (local or remote) to:
 
-        https://localhost/wordchain/docs/html/test.html   (browser running locally)
-        https://ip-addr/docs/html/test.html   (browser running remotely)
+        https://localhost/wordchain/docs/html/Test.html   (browser running locally)
+        https://ip-addr/docs/html/Test.html   (browser running remotely)
 
         You may be warned about opening an unsafe site.  This is because our https certificate is not official.  You need to
 

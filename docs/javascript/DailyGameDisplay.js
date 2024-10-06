@@ -55,9 +55,9 @@ class DailyGameDisplay extends GameDisplay {
             gamesFailed:     0
         }
         
-        // Now create a stat for each allowed number of wrong moves, and initialize
+        // Now create a stat for each number of wrong moves, and initialize
         // their values to 0. The stat properties for these is 0..TOO_MANY_WRONG_MOVES.
-        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
+        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
             initialStats[wrongMoves] = 0;
         }
         return initialStats;

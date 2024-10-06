@@ -398,7 +398,7 @@ class Test extends BaseLogger {
             this.verify(actShownText=Text=expShownText, `expected statsContainer.children.2.innerText=='${expShownText}', got '${actShownText}'`) &&
             this.verify(dailyStats.gamesPlayed >= dailyStats.gamesCompleted + dailyStats.gamesShown + dailyStats.gamesFailed, `assertion failed: played not >= completed+shown+failed`);
 
-        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
+        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
             // check the stats blob
             testRes = testRes && 
                 this.verify(dailyStats[wrongMoves]==expDailyStats[wrongMoves], `expected dailyStats.${wrongMoves}==${expDailyStats[wrongMoves]}, got ${dailyStats[wrongMoves]}`);

@@ -144,6 +144,7 @@
 */
 :root {
     --cell-size: 25px;
+    --action-cell-size: 15px;
     --picker-font-size: 1.3rem;
 
     --custom-menu-scroll-height: 20rem;
@@ -416,7 +417,7 @@ button.action-button {
 
 .action-outer-cell {
     width: var(--cell-size);    /* Must have same width as .letter-cell */
-    height: 15px;
+    height: var(--action-cell-size);
     border: solid;
     border-width: .10rem;
     border-color: transparent;
@@ -428,8 +429,8 @@ button.action-button {
 }
 
 .action-cell {
-    width: 15px;
-    height: 15px;
+    width: var(--action-cell-size);
+    height: var(--action-cell-size);
     border: solid;
     border-width: .10rem;
     display: flex;
@@ -920,6 +921,16 @@ input.setting-radio {
         font-size: 1.25rem;
         padding: .3rem;
         margin: .5rem;
+    }
+
+    
+    :root {
+        --cell-size: 35px;
+        --action-cell-size: 20px;
+    }
+
+    .letter-cell {
+        font-size: 1.5rem;
     }
 
     /* TODO: May need to add cell classes here */

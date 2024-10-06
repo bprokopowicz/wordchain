@@ -16,7 +16,7 @@ import * as Const from './Const.js';
 **    Integer: number of games for which the 'Solution' button was clicked.
 ** gamesFailed
 **    Integer: number of games that ended because of too many wrong moves.
-** 0 .. <Const.TOO_MANY_WRONG_MOVES - 1>
+** 0 .. <Const.TOO_MANY_WRONG_MOVES>
 **    Integer: Number of games that had 0, 1, ... wrong moves.
 */
 
@@ -268,20 +268,14 @@ class StatsDisplay extends AuxiliaryDisplay {
         addStat(dailyStats.gamesShown, "Shown", this.statsContainer);
 
         // Next we'll display a bar graph showing how many games there were at each "wrong moves value",
-        // i.e. 0 .. <Const.TOO_MANY_WRONG_MOVES - 1> *and* "games that ended because of too many
+        // i.e. 0 .. <Const.TOO_MANY_WRONG_MOVES> *and* "games that ended because of too many
         // wrong moves". First, determine the maximum value among all the "wrong moves values"
         // to use to in calculating the length of the bars.
         let maxWrongWordsValue = 0;
-        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
+        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
             if (dailyStats[wrongMoves] > maxWrongWordsValue) {
                 maxWrongWordsValue = dailyStats[wrongMoves];
             }
-        }
-
-        // Is the number of failed games even larger than the max so far?
-        // If so, update our max.  // TODO - what is this doing?
-        if (dailyStats.gamesFailed > maxWrongWordsValue) {
-            maxWrongWordsValue = dailyStats.gamesFailed;
         }
 
         // Local function to add a bar.
@@ -303,14 +297,11 @@ class StatsDisplay extends AuxiliaryDisplay {
             ElementUtilities.addElementTo("div", bar, {class: "one-bar-value"}, barValue);
         }
 
-        // Add a bar for each of the "regular" values; the emojis for these are in Const.NUMBERS.
-        for (let wrongMoves = 0; wrongMoves < Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
+        // Add a bar for each of the possible values; the emojis for these are in Const.NUMBERS.
+        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
             const barValue = dailyStats[wrongMoves];
             addBar(barValue, Const.NUMBERS[wrongMoves], this.statsDistribution);
         }
-
-        // Add a bar for too many wrong moves. The emoji for this is Const.CONFOUNDED.
-        addBar(dailyStats.gamesFailed, Const.CONFOUNDED, this.statsDistribution);
     }
 }
 

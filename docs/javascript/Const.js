@@ -101,7 +101,9 @@ export const FIREWORKS      = "\u{1F386}";     // Unused
 export const TROPHY         = "\u{1F3C6}";     // Unused
 export const LINK           = "\u{1F517}";     // Unused
 export const CHAINS         = "\u{26D3}";      // Unused
-export const NUMBERS        = [                // Used in first share line
+// Not technically a const, but we are going to overwrite it at
+// <TOO_MANY_WRONG_MOVES> to change the symbol to CONFOUNDED.
+export var NUMBERS        = [                // Used in first share line
     STAR,                           // 0
     "\u{0031}\u{FE0F}\u{20E3}",     // 1
     "\u{0032}\u{FE0F}\u{20E3}",
@@ -115,7 +117,10 @@ export const NUMBERS        = [                // Used in first share line
     "\u{0039}\u{FE0F}\u{20E3}",     // 9
 ];
 
+// Instead of a number, if the user has had too many wrong moves
+// use the CONFOUNDED emoji.
 export const TOO_MANY_WRONG_MOVES = 5;  // Shouldn't be > 9; relates to NUMBERS array above
+NUMBERS[TOO_MANY_WRONG_MOVES] = CONFOUNDED
 
 // SVG (Scalable Vector Graphics) paths for icons.
 export const CLOSE_PATH = "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
