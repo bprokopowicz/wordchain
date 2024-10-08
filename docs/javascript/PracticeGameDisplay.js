@@ -32,38 +32,21 @@ class PracticeGameDisplay extends GameDisplay {
         }
     }
 
-    /* ----- Pseudo Callbacks ----- */
+    // this is a virtual function of the base class.  It is called after any play that adds a new 
+    // word to the solution (delete or letter picked).  
 
-    // Override superclass letterPicked() to update PracticeGameWordsPlayed cookie.
-    letterPicked(letter, letterPosition) {
-        let gameResult = super.letterPicked(letter, letterPosition);
-
+    updateGamePersistence(gameResult) {
         if (Game.moveIsValid(gameResult)) {
             Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, this.gameState);
         } 
-        return gameResult;
-    } 
+    }
+
 
     /* ----- Callbacks ----- */
 
     // newGameCallback() should only be exposed to the user if we already know that there are practice games remaining.
     newGameCallback(event) {
         this.updateWords();
-    }
-
-    // NOTE: No need to override additionClickCallback() an addition doesn't actually provide
-    // a word and therefore we have no need to update the PracticeGameWordsPlayed cookie;
-    // we'll pick up the new word in pickerChangeCallback().
-
-    // Override superclass callback to update PracticeGameWordsPlayed cookie.
-    deletionClickCallback(event) {
-
-        let gameResult = super.deletionClickCallback(event);
-
-        if (Game.moveIsValid(gameResult)) {
-            Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, this.gameState);
-        }
-        return gameResult;
     }
 
     /* ----- Utilities ----- */
@@ -85,10 +68,6 @@ class PracticeGameDisplay extends GameDisplay {
             // Save 'this' as the callback obj.
             ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
         }
-    }
-
-    isValid() {
-        return this.anyGamesRemaining();
     }
 
     // Called from AppDisplay when "Solution" button is clicked.

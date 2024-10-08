@@ -227,45 +227,19 @@ class DailyGameDisplay extends GameDisplay {
         return nextGameTimestamp - (new Date()).getTime();
     }
 
-    /* ----- Pseudo Callbacks ----- */
+    // this is a virtual function of the base class.  It is called when the base class adds a new word
+    // to a solution (delete or letter picked).
 
-    // Override superclass letterPicked() to update DailyGameStats and DailyGameWordsPlayed cookie
-    letterPicked(letter, letterPosition) {
-        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
-
-        let gameResult = super.letterPicked(letter, letterPosition);
-
+    updateGamePersistence(gameResult) {
         this.updateDailyGameStatsIfDone(gameResult);
 
-        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.letterPicked() gameState: ", this.gameState, "daily");
         if (Game.moveIsValid(gameResult)) {
             Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.gameState);
         }
-
-        return gameResult;
     }
 
     /* ----- Callbacks ----- */
 
-
-    // Override superclass callback to update DailyStats and DailyGameWordsPlayed cookie.
-    deletionClickCallback(event) {
-
-        if (this.game.isOver()) {
-            console.error("DailyGameDisplay.deletionClickCallback(): game is already over");
-            return Const.UNEXPECTED_ERROR;
-        }
-
-        let gameResult = super.deletionClickCallback(event);
-        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.deletionClickCallback() result: ", gameResult, "daily");
-
-        this.updateDailyGameStatsIfDone(gameResult);
-        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.deletionClickCallback() Game state: ", this.gameState, "daily");
-        if (Game.moveIsValid(gameResult)) {
-            Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.gameState);
-        }
-        return gameResult;
-    }
 
     // when a game is finished, we update persistent counters of games played, failed, and
     // a counter of the number of wrong moves (e.g. another 2-wrong-move game was just played)
@@ -278,7 +252,7 @@ class DailyGameDisplay extends GameDisplay {
             if (wrongMoveCount >= Const.TOO_MANY_WRONG_MOVES) {
                 this.incrementStat("gamesFailed");
             }
-            // wrong moves 
+            // increment the specific-number-of-wrong-moves counter
             this.incrementStat(wrongMoveCount);
         }
     }

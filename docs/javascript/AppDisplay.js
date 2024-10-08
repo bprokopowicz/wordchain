@@ -305,8 +305,8 @@ class AppDisplay extends BaseLogger {
             this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
         }
 
-        // If the game isn't valid, the user has already played the maximum number of games.
-        if (! this.practiceGame.isValid()) {
+        // If the user has already played the maximum number of games, we disallow any more.
+        if (! this.practiceGame.anyGamesRemaining()) {
             this.showToast(Const.TOO_MANY_GAMES);
             return;
         }

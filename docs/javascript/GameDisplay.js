@@ -81,8 +81,10 @@ class GameDisplay extends BaseLogger {
         }
 
         let gameResult = this.game.playLetter(letterPosition, letter);
-
-        return (this.processGameResult(gameResult));
+        this.processGameResult(gameResult);
+        // if the sub-class wants to persist anything after a letter is picked, it should do it by overriding this "pure-virtual" call.
+        this.updateGamePersistence(gameResult);
+        return gameResult;
     }
 
     /* ----- Game ----- */
@@ -298,7 +300,8 @@ class GameDisplay extends BaseLogger {
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
             gameResult = this.game.playAdd(additionPosition);
 
-        return (this.processGameResult(gameResult));
+        this.processGameResult(gameResult);
+        return gameResult;
     }
 
     deletionClickCallback(event) {
@@ -312,7 +315,9 @@ class GameDisplay extends BaseLogger {
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
             gameResult = this.game.playDelete(deletionPosition);
 
-        return (this.processGameResult(gameResult));
+        this.processGameResult(gameResult);
+        this.updateGamePersistence(gameResult);
+        return gameResult;
     }
 
     /* ----- Utilities ----- */
@@ -383,7 +388,6 @@ class GameDisplay extends BaseLogger {
         }
 
         this.showGameAfterMove();
-        return gameResult;
     }
 }
 
