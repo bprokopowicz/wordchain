@@ -94,7 +94,8 @@ class StatsDisplay extends AuxiliaryDisplay {
         if (shareString)
         {
             // Are we in a *secure* environment that has a "share" button, like a smart phone?
-            if (navigator.share) {
+            console.log("shareCallback() navigator: ", navigator);
+            if (navigator.canShare()) {
                 // Yes -- use the button to share the shareString.
                 navigator.share({
                     text: shareString,
