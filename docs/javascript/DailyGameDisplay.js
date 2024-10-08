@@ -315,15 +315,16 @@ class DailyGameDisplay extends GameDisplay {
     // Called from AppDisplay when "Solution" button is clicked.
     showSolution() {
         // TODO: Add an "are you sure?"
-        this.incrementStat("gamesShown");
         this.game.finishGame();
-        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, true);
 
-        // Pass "true" to showMove() to indicate the user has elected to show the
-        // solution so that the happy "game won" toast is not shown.
-        const userRequestedSolution = true;
-        this.showMove(userRequestedSolution);
+        // update persistent storage about the daily game.
+        this.incrementStat("gamesShown");
+        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, true);
         Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.gameState);
+
+        // Pass "true" to showGameAfterMove() to indicate the user has elected to show the
+        // solution so that the happy "game won" toast is not shown.
+        this.showGameAfterMove(true);
     }
 }
 

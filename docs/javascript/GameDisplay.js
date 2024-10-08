@@ -24,7 +24,7 @@ class GameDisplay extends BaseLogger {
 
         this.createPicker();
 
-        // This will be (re)populated in showMove().
+        // This will be (re)populated in showGameAfterMove().
         // This is an array of three-element arrays, which act like a Python tuple:
         // the word, whether it was played, and whether it was correct(relevant
         // only if it was played).
@@ -94,7 +94,7 @@ class GameDisplay extends BaseLogger {
     // Called from derived class!
     constructGame(start, target, wordsPlayedSoFar=[]) {
         this.game = new Game(start, target, wordsPlayedSoFar);
-        this.showMove();
+        this.showGameAfterMove();
         this.wrongMoves = 0;
     }
 
@@ -192,7 +192,7 @@ class GameDisplay extends BaseLogger {
         return this.game;
     }
 
-    showMove(userRequestedSolution=false) {
+    showGameAfterMove(userRequestedSolution=false) {
         const container = ElementUtilities.addElementTo("div", this.gameDiv, {class: "game-container"}),
               tableDiv = ElementUtilities.addElementTo("div", container, {class: "table-div"}),
               tableElement = ElementUtilities.addElementTo("table", tableDiv, {class: "table-game"});
@@ -382,7 +382,7 @@ class GameDisplay extends BaseLogger {
             this.appDisplay.showToast(gameResult); // D'OH, Genius move are possible results as of Oct 2024.
         }
 
-        this.showMove();
+        this.showGameAfterMove();
         return gameResult;
     }
 }

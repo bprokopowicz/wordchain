@@ -1500,7 +1500,7 @@ TODO - what if these are played after the game is over?  They should not be addi
             if ( this.verify(postGameDiv.children.length == 1, "expected 1 children, got: ", postGameDiv.children.length) &&
                     this.verify( (postGameDiv.children[0].textContent == "New Game"),
                         "expected textContent=New Game, got: ", postGameDiv.children[0].textContent) && 
-                    this.verify(this.gameDisplay.anyGamesRemaining, "After showing ", gamesPlayed, " games, anyGamesRemaining should still be true")
+                    this.verify(this.gameDisplay.anyGamesRemaining(), "After showing ", gamesPlayed, " games, anyGamesRemaining should still be true")
                     )
             {
                 // pretend to click the new game button
@@ -1515,7 +1515,7 @@ TODO - what if these are played after the game is over?  They should not be addi
         // now there should be no New Game button
         if (soFarSoGood) {
             const postGameDiv = this.gameDisplay.postGameDiv;
-            this.verify(!this.gameDisplay.anyGamesRemaining, "After showing too many games, anyGamesRemaining should be false") &&
+            this.verify(!this.gameDisplay.anyGamesRemaining(), "After showing too many games, anyGamesRemaining should be false") &&
                 this.verify(postGameDiv.children.length == 0, "After showing too many games, expected 0 children, got: ", postGameDiv.children.length) &&
                 this.success();
         }

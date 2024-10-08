@@ -268,7 +268,7 @@ class AppDisplay extends BaseLogger {
         }
 
         // Re-show the moves to make the color changes take effect.
-        this.currentGameDisplay && this.currentGameDisplay.showMove();
+        this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove();
     }
 
     // Set the given CSS property to the specified value.
