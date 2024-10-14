@@ -1,5 +1,5 @@
 import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
-import { Cookie } from './Cookie.js';
+import { Persistence } from './Persistence.js';
 import { DailyGameDisplay } from './DailyGameDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
@@ -224,7 +224,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     // has been shown.  If the solution was shown, the player is not allowed to
     // share.
     updateShareButton() {
-        if (Cookie.getBoolean(Cookie.DAILY_SOLUTION_SHOWN)) {
+        if (Persistence.getDailySolutionShown()) {
             this.shareButton.style.display = "none";
         } else {
             this.shareButton.style.display = "block";
@@ -236,7 +236,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     updateStatsContent() {
         // Get the daily stats from the cookies. We should always have stats because we
         // create them on constructing the daily game, so log if we don't.
-        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, null);
+        let dailyStats = Persistence.getDailyStatsOrElse(null);
 
         if (dailyStats === null)
         {

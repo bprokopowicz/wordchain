@@ -3,6 +3,7 @@ import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascr
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
 import { Cookie } from '../docs/javascript/Cookie.js';
+import { Persistence } from '../docs/javascript/Persistence.js';
 import { DailyGameDisplay } from '../docs/javaScript/DailyGameDisplay.js'
 import * as Const from '../docs/javascript/Const.js';
 
@@ -232,7 +233,7 @@ class Test extends BaseLogger {
         this.logDebug("Opening window at ", url, "test");
 
         this.newWindow = window.open(url, 'AppDisplayTest', 'width=600,height=800');
-        // pass our debug settings to the child window
+        // pass our debug settings to the child window.  I don't think this is necessary. 
         Cookie.save(Cookie.DEBUG, Cookie.get(Cookie.DEBUG));
         // set the child's console to our console. This doesn't work reliably, especially when the child window has a crashing bug.
         this.newWindow.console = console;
@@ -348,7 +349,7 @@ class Test extends BaseLogger {
         const statsDisplay = appDisplay.statsDisplay;
 
         // get the saved stats cookie
-        let dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS);
+        let dailyStats = Persistence.getDailyStatsOrElse(null);
         this.logDebug("verifyStats() dailyStats", dailyStats, "test");
 
         // open the stats window.  This should compute the shareString and start the countdown clock 

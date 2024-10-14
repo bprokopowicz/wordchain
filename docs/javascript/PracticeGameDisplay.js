@@ -1,12 +1,8 @@
-import { Cookie } from './Cookie.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { Game } from './Game.js';
 import { GameDisplay } from './GameDisplay.js';
+import { Persistence } from './Persistence.js';
 import * as Const from './Const.js';
-
-/*
-** See the Cookie class for a description of the cookies that this class uses.
-*/
 
 class PracticeGameDisplay extends GameDisplay {
 
@@ -35,12 +31,11 @@ class PracticeGameDisplay extends GameDisplay {
     // this is a virtual function of the base class.  It is called after any play that adds a new 
     // word to the solution (delete or letter picked).  
 
-    updateGamePersistence(gameResult) {
+    updateGameInProgressPersistence(gameResult) {
         if (Game.moveIsValid(gameResult)) {
-            Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, this.gameState);
+            Persistence.savePracticeGameState(this.gameState);
         } 
     }
-
 
     /* ----- Callbacks ----- */
 
@@ -55,8 +50,7 @@ class PracticeGameDisplay extends GameDisplay {
     additionalGameOverActions() {
         this.logDebug("PracticeGameDisplay.additionalGameOverActions() called", "practice");
         // Clear out the practice game words in the cookies.
-        Cookie.remove(Cookie.PRACTICE_GAME_START);
-        Cookie.remove(Cookie.PRACTICE_GAME_TARGET);
+        Persistence.clearPracticeGameDef();
 
         // If we have games remaining, add a button to the "post game div" to start a new game.`
         if (this.anyGamesRemaining()) {
@@ -87,7 +81,7 @@ class PracticeGameDisplay extends GameDisplay {
     anyGamesRemaining() {
         let now = (new Date()).getTime();
 
-        let practiceGameTimestamps = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_TIMESTAMPS, []);
+        let practiceGameTimestamps = Persistence.getPracticeTimestamps();
 
         // remove any any games that have aged out. 
 
@@ -95,7 +89,7 @@ class PracticeGameDisplay extends GameDisplay {
             .filter(timestamp => (now-timestamp) < PracticeGameDisplay.MaxGamesIntervalMs);
 
         // update the cookie now that we have removed any expired timestamps
-        Cookie.save(Cookie.PRACTICE_GAME_TIMESTAMPS, JSON.stringify(practiceGameTimestamps));
+        Persistence.savePracticeTimestamps(practiceGameTimestamps);
 
         // return value indicates if there are any practice games left today.
         let ret = (practiceGameTimestamps.length < Const.PRACTICE_GAMES_PER_DAY);
@@ -103,48 +97,46 @@ class PracticeGameDisplay extends GameDisplay {
         return ret;
     }
 
-    addTimestamp() {
+    addNewPracticeGameTimestamp() {
         // Save the timestamp of this game in the instance and cookies.
         let updateTime = (new Date()).getTime();
-        let practiceGameTimestamps = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_TIMESTAMPS, []);
+        let practiceGameTimestamps = Persistence.getPracticeTimestamps();
         practiceGameTimestamps.push(updateTime);
         if (practiceGameTimestamps.length > Const.PRACTICE_GAMES_PER_DAY) {
             console.error("should not be trying to start a practice game after ", Const.PRACTICE_GAMES_PER_DAY, " games played");
         }
-        Cookie.save(Cookie.PRACTICE_GAME_TIMESTAMPS, JSON.stringify(practiceGameTimestamps));
+        Persistence.savePracticeTimestamps(practiceGameTimestamps);
     }
 
     // updateWords starts a new game.  It should not be possible to call it if there are no more games left.
     // startWord and targetWord are parameters for testing only.
     updateWords(startWord=null, targetWord=null) {
 
-        let wordsPlayed = [];
+        let gameState = [];
         if (startWord && targetWord) {
             this.startWord = startWord;
             this.targetWord = targetWord;
-            this.addTimestamp();
+            this.addNewPracticeGameTimestamp();
         } else {
             // See if we have words in the cookie.
-            this.startWord  = Cookie.get(Cookie.PRACTICE_GAME_START);
-            this.targetWord = Cookie.get(Cookie.PRACTICE_GAME_TARGET);
+            [this.startWord, this.targetWord] = Persistence.getPracticeGameDef();
 
             if (!this.startWord || this.startWord.length === 0) {
                 // No words in the cookie; get new ones from the Game class and save them.
-                this.addTimestamp();
                 [this.startWord, this.targetWord] = Game.getPracticePuzzle();
                 //[this.startWord, this.targetWord] = ["FATE", "CAT"];
-                Cookie.save(Cookie.PRACTICE_GAME_START, this.startWord);
-                Cookie.save(Cookie.PRACTICE_GAME_TARGET, this.targetWord);
-                Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
+                this.addNewPracticeGameTimestamp();
+                Persistence.savePracticeGameDef(this.startWord, this.targetWord);
+                Persistence.clearPracticeGameState();
             } else {
                 // We did have start/target words; get any words already played.
                 // Don't add a timestamp for this recovered game-in-progress.
-                wordsPlayed = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
+                gameState = Persistence.getPracticeGameState();
             }
         }
 
         // Now we're ready to construct (and display) the game.
-        this.constructGame(this.startWord, this.targetWord, wordsPlayed);
+        this.constructGame(this.startWord, this.targetWord, gameState);
     }
 }
 

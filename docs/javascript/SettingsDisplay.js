@@ -1,5 +1,5 @@
 import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
-import { Cookie } from './Cookie.js';
+import { Persistence } from './Persistence.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
 
@@ -134,17 +134,18 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // checkbox's id according to that.
         if (checkboxId === "dark") {
             this.appDisplay.darkTheme = event.srcElement.checked ? true : false;
-            Cookie.save(Cookie.DARK_THEME, this.appDisplay.darkTheme);
+            Persistence.saveDarkTheme(this.appDisplay.darkTheme);
             this.appDisplay.setColors();
 
         } else if (checkboxId === "colorblind") {
             this.appDisplay.colorblindMode = event.srcElement.checked ? true : false;
-            Cookie.save(Cookie.COLORBLIND_MODE, this.appDisplay.colorblindMode);
+            Persistence.saveColorblindMode(this.appDisplay.colorblindMode);
             this.appDisplay.setColors();
         }
     }
 
     /*
+    deprecated - no modes as of Oct 2024.
     // Callback for Settings radio button changes.
     radioCallback(event) {
 

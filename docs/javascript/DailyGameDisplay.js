@@ -1,15 +1,12 @@
-import { Cookie } from './Cookie.js';
-
+import { Persistence } from './Persistence.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { Game } from './Game.js';
 import { GameDisplay } from './GameDisplay.js';
 import * as Const from './Const.js';
 
 /*
-** This class reads and updates a DailyStats cookie, which is stored in
-** this class as instance variable dailyStats. See the StatsDisplay class
-** for a description of the contents of the cookie. See the Cookie class
-** for a description of the other cookies that this class uses.
+**  long-term state is saved and recovered in Persistence.js.  This includes the state of any game in progress (game number and words played)
+**  and user stats.  
 */
 
 class DailyGameDisplay extends GameDisplay {
@@ -70,15 +67,11 @@ class DailyGameDisplay extends GameDisplay {
         this.baseTimestamp = null;
         this.dateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
-        // Construct initial stats to be used if we don't have a cookie for daily stats.
-
-        let initialStats = DailyGameDisplay.NewDailyStatsBlob();
-
         // If we have a cookie for daily stats parse it; otherwise set it to initial values.
-        this.dailyStats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, initialStats);
+        let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
 
         // had stats before. In all other cases this is redundant, but oh well!
-        Cookie.saveJson(Cookie.DAILY_STATS, this.dailyStats);
+        Persistence.saveDailyStats(dailyStats);
 
         // Test.js will give a 'testing' argument on the URL when it opens
         // the window to run a daily game that requires the daily game to
@@ -95,16 +88,18 @@ class DailyGameDisplay extends GameDisplay {
             this.setDailyGameData();
         }
 
-        this.constructGame(this.startWord, this.targetWord, this.recoveredDailyGameWordsPlayed);
+        this.constructGame(this.startWord, this.targetWord, this.recoveredDailyGameStateIfAny);
     }
 
     /* ----- Determination of Daily Game Information ----- */
-      // determines validGame, startWord, targetWord, recoveredDailyGameNumber, recoveredDailyGameWordsPlayed
+
+    // setDailyGameData determines validGame, startWord, targetWord, recoveredDailyGameNumber, recoveredDailyGameStateIfAny
+
     setDailyGameData() {
 
         // Get the DailyGameNumber cookie; this can be manually deleted
         // to replay today's daily game instead of recovering it as played
-        const recoveredDailyGameNumber = Cookie.getInt(Cookie.DAILY_GAME_NUMBER);
+        const recoveredDailyGameNumber = Persistence.getDailyGameNumber();
         Const.GL_DEBUG && this.logDebug("recoveredDailyGameNumber:", recoveredDailyGameNumber, "daily");
         this.setBaseTimestamp(); 
         if (recoveredDailyGameNumber == Const.STATIC_DAILY_GAME_NUMBER) {
@@ -113,9 +108,9 @@ class DailyGameDisplay extends GameDisplay {
             this.startWord  = Const.STATIC_DAILY_GAME_START;
             this.targetWord = Const.STATIC_DAILY_GAME_TARGET;
             this.validGame = true;
-            this.recoveredDailyGameWordsPlayed = Cookie.getJsonOrElse(Cookie.DAILY_GAME_WORDS_PLAYED, []);
-            Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameWordsPlayed (static recovered):",
-                    this.recoveredDailyGameWordsPlayed, "daily");
+            this.recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
+            Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameStateIfAny (static recovered):",
+                    this.recoveredDailyGameStateIfAny, "daily");
         } else {
             // Now, determine the game number and get the game data from the GameWords object.
             this.dailyGameNumber = this.calculateGameNumber();
@@ -133,17 +128,17 @@ class DailyGameDisplay extends GameDisplay {
             Const.GL_DEBUG && this.logDebug("this.dailyGameNumber (calculated) is", this.dailyGameNumber, "daily");
             if ((recoveredDailyGameNumber === null) || (recoveredDailyGameNumber != this.dailyGameNumber)) {
                 // New daily game!
-                Cookie.save(Cookie.DAILY_GAME_NUMBER, this.dailyGameNumber);
-                Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, []);
-                Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, false);
+                Persistence.saveDailyGameNumber(this.dailyGameNumber);
+                Persistence.clearDailyGameState();
+                Persistence.clearDailySolutionShown();
 
                 // Update stats relating to a new daily game.
                 this.incrementStat("gamesPlayed");
             } else {
                 // Existing daily game; recover the words played so far.  The recovered words determine if the 
                 // game is solved or not.
-                this.recoveredDailyGameWordsPlayed = Cookie.getJsonOrElse(Cookie.DAILY_GAME_WORDS_PLAYED, []);
-                Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameWordsPlayed:", this.recoveredDailyGameWordsPlayed, "daily");
+                this.recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
+                Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameStateIfAny:", this.recoveredDailyGameStateIfAny, "daily");
             }
         }
     }
@@ -167,6 +162,11 @@ class DailyGameDisplay extends GameDisplay {
         }
     }
 
+    //
+    // The daily games start and target are never recovered directly.  They are determined by the dailyGameNumber, which
+    // might be recovered if in progress, or calculated based on the date.  See calculateGameNumber()
+    //
+
     setGameWordsFromGameNumber() {
         Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber(): this.dailyGameNumber: ", this.dailyGameNumber, "daily");
         if (this.dailyGameNumber in DailyGameDisplay.GameWords) {
@@ -176,6 +176,7 @@ class DailyGameDisplay extends GameDisplay {
             // No daily game? Something went awry; use the backup.
             this.startWord  = Const.BACKUP_DAILY_GAME_START;
             this.targetWord = Const.BACKUP_DAILY_GAME_TARGET;
+            this.validGame = false;
             this.appDisplay.showToast(Const.NO_DAILY);
         }
     }
@@ -183,15 +184,16 @@ class DailyGameDisplay extends GameDisplay {
     calculateDailyGameBaseTimestampForDebugging(debugMinPerDay) {
         // we're debugging, so override the standard one day increment.
         this.dateIncrementMs = debugMinPerDay * 60 * 1000;
-        Const.GL_DEBUG && this.logDebug(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY, " is set! dateIncrementMs:", this.dateIncrementMs, "daily");
+        Const.GL_DEBUG && this.logDebug(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY,
+                " is set! dateIncrementMs:", this.dateIncrementMs, "daily");
 
         // if we are debugging the daily game, we override the beginning of WordChain's epoch to be now on the first run,
         // and then subsequent runs will use that as the beginning of the WordChain epoch for calculating the 
         // daily game number.
-        this.baseTimestamp = Cookie.getInt(Cookie.DEBUG_BASE_TIMESTAMP);
+        this.baseTimestamp = Persistence.getDebugBaseTimestamp();
         if (this.baseTimestamp === null) {
             this.baseTimestamp = (new Date()).getTime();
-            Cookie.save(Cookie.DEBUG_BASE_TIMESTAMP, this.baseTimestamp);
+            Persistence.saveebugBaseTimestamp(this.baseTimestamp);
             Const.GL_DEBUG && this.logDebug("no recovered DebugBaseTimestamp; setting to now", "daily");
         } else {
             Const.GL_DEBUG && this.logDebug("got DebugBaseTimestamp; baseTimestamp:", new Date(this.baseTimestamp), "daily");
@@ -207,9 +209,9 @@ class DailyGameDisplay extends GameDisplay {
         this.validGame = true;
         this.incrementStat("gamesPlayed");
         this.dailyGameNumber = Const.STATIC_DAILY_GAME_NUMBER;
-        this.recoveredDailyGameWordsPlayed = [];
-        Cookie.save(Cookie.DAILY_GAME_NUMBER, this.dailyGameNumber);
-        Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.recoveredDailyGameWordsPlayed);
+        this.recoveredDailyGameStateIfAny = [];
+        Persistence.saveDailyGameNumber(this.dailyGameNumber);
+        Persistence.clearDailyGameState(); // empty at this point
     }
 
     calculateGameNumber() {
@@ -230,11 +232,11 @@ class DailyGameDisplay extends GameDisplay {
     // this is a virtual function of the base class.  It is called when the base class adds a new word
     // to a solution (delete or letter picked).
 
-    updateGamePersistence(gameResult) {
+    updateGameInProgressPersistence(gameResult) {
         this.updateDailyGameStatsIfDone(gameResult);
 
         if (Game.moveIsValid(gameResult)) {
-            Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.gameState);
+            Persistence.saveDailyGameState(this.gameState);
         }
     }
 
@@ -281,8 +283,9 @@ class DailyGameDisplay extends GameDisplay {
     incrementStat(whichStat) {
         // Only update stats if this is a valid daily game.
         if (this.validGame) {
-            this.dailyStats[whichStat] += 1;
-            Cookie.saveJson(Cookie.DAILY_STATS, this.dailyStats);
+            let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
+            dailyStats[whichStat] += 1;
+            Persistence.saveDailyStats(dailyStats);
         }
     }
 
@@ -293,8 +296,8 @@ class DailyGameDisplay extends GameDisplay {
 
         // update persistent storage about the daily game.
         this.incrementStat("gamesShown");
-        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, true);
-        Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, this.gameState);
+        Persistence.saveDailySolutionShown();
+        Persistence.saveDailyGameState(this.gameState);
 
         // Pass "true" to showGameAfterMove() to indicate the user has elected to show the
         // solution so that the happy "game won" toast is not shown.

@@ -1,5 +1,4 @@
 import { BaseLogger } from './BaseLogger.js';
-import { Cookie } from './Cookie.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { Game } from './Game.js';
 import { Picker } from './Picker.js';
@@ -83,7 +82,7 @@ class GameDisplay extends BaseLogger {
         let gameResult = this.game.playLetter(letterPosition, letter);
         this.processGameResult(gameResult);
         // if the sub-class wants to persist anything after a letter is picked, it should do it by overriding this "pure-virtual" call.
-        this.updateGamePersistence(gameResult);
+        this.updateGameInProgressPersistence(gameResult);
         return gameResult;
     }
 
@@ -94,8 +93,8 @@ class GameDisplay extends BaseLogger {
     }
 
     // Called from derived class!
-    constructGame(start, target, wordsPlayedSoFar=[]) {
-        this.game = new Game(start, target, wordsPlayedSoFar);
+    constructGame(start, target, gameState=[]) {
+        this.game = new Game(start, target, gameState);
         this.showGameAfterMove();
         this.wrongMoves = 0;
     }
@@ -316,7 +315,7 @@ class GameDisplay extends BaseLogger {
             gameResult = this.game.playDelete(deletionPosition);
 
         this.processGameResult(gameResult);
-        this.updateGamePersistence(gameResult);
+        this.updateGameInProgressPersistence(gameResult);
         return gameResult;
     }
 
@@ -389,6 +388,7 @@ class GameDisplay extends BaseLogger {
 
         this.showGameAfterMove();
     }
+
 }
 
 export { GameDisplay };
