@@ -196,6 +196,16 @@ class Solution extends BaseLogger {
         return this.solutionSteps.filter((solutionStep)=>solutionStep.moveRating == Const.WRONG_MOVE).length;
     }
 
+    findChangedLetterLocation(word1, word2) {
+        for (let i=0; i < word1.length; i++) {
+            if (word1[i] != word2[i]) {
+                return i;
+            }
+        }
+        console.error("can't find difference between ", word1, " and ", word2);
+        return -1;
+    }
+
     calculateDifficulty(dictionary) {
         let i = 0;
         let nChoices = 0;
@@ -204,7 +214,14 @@ class Solution extends BaseLogger {
             let thisWord = this.getNthWord(i)
             let nextWord = this.getNthWord(i+1)
             if (thisWord.length == nextWord.length) {
-                nChoices += dictionary.findReplacementWords(thisWord).size;
+                // we tell the user which letter to change, so only the changes of that letter
+                // should count towards difficulty
+                let replacementWords = Array.from(dictionary.findReplacementWords(thisWord));
+                let replacementLocation = this.findChangedLetterLocation(thisWord, nextWord);
+                if (replacementLocation >= 0) {
+                    replacementWords = replacementWords.filter((replacementWord)=>replacementWord[replacementLocation] != thisWord[replacementLocation]);
+                }
+                nChoices += replacementWords.length;
             } else if (thisWord.length < nextWord.length ){
                 nChoices += dictionary.findRemoverWords(thisWord).size;
             } else {

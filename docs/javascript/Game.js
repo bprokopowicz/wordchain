@@ -58,7 +58,6 @@ class Game extends BaseLogger {
         let logger = new BaseLogger();
 
         let startWord = Const.PRACTICE_START_WORDS[rand];
-            //findPuzzles(origDictionary, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty) {
         let puzzles = Solver.findPuzzles(dictionary, startWord,
               Const.PRACTICE_TARGET_WORD_LEN,
               Const.PRACTICE_REQ_WORD_LEN_1, Const.PRACTICE_REQ_WORD_LEN_2,

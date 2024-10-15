@@ -39,6 +39,7 @@ class DailyGameDisplay extends GameDisplay {
          23: ['jaunty', 'name'],
          24: ['bouncy', 'house'],
          25: ['mind', 'hugger'],
+         26: ['house', 'ablaze'],
     }
 
     /* ----- Construction ----- */

@@ -668,14 +668,18 @@ class Test extends BaseLogger {
               reqWordLen2 = 5,
               minSteps = 7,
               maxSteps = 9,
-              minDifficulty = 45,
+              minDifficulty = 30,
               targetWordLen = 5,
-              expectedNumberOfPuzzles = 664;
+              expectedNumberOfPuzzles = 2;
 
         const suitablePuzzles =
             Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
             .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
         suitablePuzzles.sort();
+        // short-circuit the test if no puzzles found.
+        if (!this.verify(suitablePuzzles.length > 0, "no suitable puzzles found")) {
+            return;  
+        }
 
         const [targetWord, difficulty] = suitablePuzzles[0].split(":");
         const solution = Solver.solve(this.fullDict, startWord, targetWord);
