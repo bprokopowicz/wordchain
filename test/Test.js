@@ -4,7 +4,7 @@ import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
 import { Cookie } from '../docs/javascript/Cookie.js';
 import { Persistence } from '../docs/javascript/Persistence.js';
-import { DailyGameDisplay } from '../docs/javaScript/DailyGameDisplay.js'
+import { DailyGameDisplay } from '../docs/javascript/DailyGameDisplay.js'
 import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
