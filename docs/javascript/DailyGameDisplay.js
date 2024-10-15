@@ -6,7 +6,7 @@ import * as Const from './Const.js';
 
 /*
 **  long-term state is saved and recovered in Persistence.js.  This includes the state of any game in progress (game number and words played)
-**  and user stats.  
+**  and non-game-specific user stats.  
 */
 
 class DailyGameDisplay extends GameDisplay {
@@ -63,7 +63,7 @@ class DailyGameDisplay extends GameDisplay {
     constructor(appDisplay, gameDiv, pickerDiv) {
         super(appDisplay, gameDiv, pickerDiv, "daily-picker");
 
-        this.baseDate = new Date("2024-09-22T00:00:00.000+00:00");
+        this.baseDate = new Date("2024-10-15T00:00:00.000+00:00");
         this.baseTimestamp = null;
         this.dateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
