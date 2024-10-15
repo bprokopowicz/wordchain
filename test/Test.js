@@ -233,9 +233,8 @@ class Test extends BaseLogger {
         this.logDebug("Opening window at ", url, "test");
 
         this.newWindow = window.open(url, 'AppDisplayTest', 'width=600,height=800');
-        // pass our debug settings to the child window.  I don't think this is necessary. 
-        Cookie.save(Cookie.DEBUG, Cookie.get(Cookie.DEBUG));
         // set the child's console to our console. This doesn't work reliably, especially when the child window has a crashing bug.
+        this.logDebug("openTheTestAppWindow(): this.newWindow=", this.newWindow, "test");
         this.newWindow.console = console;
 
         /* TODO - this sometimes cause the browser share code to fail with console error:

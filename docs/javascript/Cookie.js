@@ -100,6 +100,7 @@ class Cookie {
     }
 
     static get(name) {
+        // console.log("Cookie.get(): name:", name, "window: ", window, "window.localStorage: ", window.localStorage);
         return window.localStorage.getItem(name);
     }
 

@@ -1,13 +1,27 @@
+How to run locally
 Start web server:
 
     cd /Users/bonnie/Projects/
     python3 wordchain/python/simple-https-server.py
 
-Navigate in Chrome:
+Navigate in Chrome or Safari to:
 
     https://localhost/wordchain/docs/html/WordChain.html
+    https://localhost/wordchain/docs/html/Test.html
 
 =======================================================
+How to run at github pages
+
+After each push, github will republish the repo.  The game and tests are 
+available at
+
+https://bprokopowicz.github.io/wordchain/docs/html/WordChain.html
+https://bprokopowicz.github.io/wordchain/docs/html/Test.html
+
+You will need to enable pop-ups from that site.  Chrome will ask you on the first attempt.
+
+=======================================================
+Source code control (github)
 
 I created the url
 git@github.com:bprokopowicz/wordchain.git
@@ -44,19 +58,21 @@ TESTING - How to run the browser-based tests:
       if the Debug local-storage-key is not set.  You may need to edit Test.js to limit which tests will run if you're going to
       run them with logging enabled.
 
-    - Start the web server as described above.
+    - Start the local web server as described above, or you can test against the github pages deployed site.
 
     - Navigate in browser (local or remote) to:
 
         https://localhost/wordchain/docs/html/Test.html   (browser running locally)
-        https://ip-addr/docs/html/Test.html   (browser running remotely)
+        https://ip-addr/wordchain/docs/html/Test.html   (browser running remotely from server; e.g. on your phone)
+        https://bprokopowicz.github.io/wordchain/docs/html/Test.html (code hosted at github pages)
 
-        You may be warned about opening an unsafe site.  This is because our https certificate is not official.  You need to
+        You may be warned about opening an unsafe site.  This is because our https certificate is not official.
+        You need to read the warning and allow access.  Chrome and safari have different screens for doing this.
 
-    - Optional: Open the browser's javascript console
+    - Optional: Open the browser's javascript console.  Chrome: Option-Command-I.  Navigator: Option-Command-C
 
     - click on "Run All Tests"
-        You may be warned by the browser about pop-ups.  You need to allow them.
+        You may be warned by the browser about pop-ups.  You need to allow them and re-run the tests.
 
     - The tests will produce logging if you set the Debug local-storage key's value to include the label: test
          The test logging doesn't use Const.GL_DEBUG to enable itself.  It is always on if the Debug local-storage key's
@@ -66,6 +82,8 @@ TROUBLESHOOTING
     - Enable logging with Const.GL_DEBUG = true;
     - Each js file uses the logDebug(msg, tag) feature to log progress.  The Debug local-storage key is a comma-separated list of tags; for example:
       game,picker,callback,solver,dictionary-details,test
+      or
+      all (to see all debugging output)
       Set the Debug key's value in the browser (Application/Storage/Local storage/https://localhost tab in Chrome's dev tool window).
     - The pop-up windows have their own console.  You can view them in Chrome by clicking on the window and typing Option-Command-I
       If the windows disappear before you can see their console, you need to edit the particular app test and comment out "this.runNextTest()" in the test

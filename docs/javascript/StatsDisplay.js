@@ -94,6 +94,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         if (shareString)
         {
             // Are we in a *secure* environment that has a "share" button, like a smart phone?
+            Const.GL_DEBUG && this.logDebug("shareCallback() navigator: ", navigator, "daily");
             if (navigator.canShare()) {
                 // Yes -- use the button to share the shareString.
                 navigator.share({
@@ -228,7 +229,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         } else {
             this.shareButton.style.display = "block";
         }
-        this.logDebug("share button style.display set to: ", this.shareButton.style.display, "daily");
+        Const.GL_DEBUG && this.logDebug("share button style.display set to: ", this.shareButton.style.display, "daily");
     }
 
     // Update the statistics and distribution graph.
