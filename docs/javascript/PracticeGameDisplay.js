@@ -37,6 +37,11 @@ class PracticeGameDisplay extends GameDisplay {
         } 
     }
 
+    // this is a virtual function that tells the display if the user requested the solution for the (practice) game in progress
+    getSolutionShown() {
+        return Persistence.getPracticeSolutionShown();
+    }
+
     /* ----- Callbacks ----- */
 
     // newGameCallback() should only be exposed to the user if we already know that there are practice games remaining.
@@ -48,7 +53,7 @@ class PracticeGameDisplay extends GameDisplay {
 
     // This will be called from GameDisplay when the game is determined to be over.
     additionalGameOverActions() {
-        this.logDebug("PracticeGameDisplay.additionalGameOverActions() called", "practice");
+        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.additionalGameOverActions() called", "practice");
         // Clear out the practice game words in the cookies.
         Persistence.clearPracticeGameDef();
 
@@ -68,10 +73,8 @@ class PracticeGameDisplay extends GameDisplay {
     showSolution() {
         // TODO: Add an "are you sure?"
         this.game.finishGame();
-
-        // Pass "true" to showGameAfterMove() to indicate the user has elected to show the
-        // solution so that the happy "game won" toast is not shown.
-        this.showGameAfterMove(true);
+        Persistence.savePracticeSolutionShown();
+        this.showGameAfterMove();
     }
 
     // anyGamesRemaining() cleans up the saved list of recently played games' timestamps.
@@ -93,7 +96,7 @@ class PracticeGameDisplay extends GameDisplay {
 
         // return value indicates if there are any practice games left today.
         let ret = (practiceGameTimestamps.length < Const.PRACTICE_GAMES_PER_DAY);
-        this.logDebug("anyGamesRemaining(): ", ret, "practice");
+        Const.GL_DEBUG && this.logDebug("anyGamesRemaining(): ", ret, "practice");
         return ret;
     }
 
@@ -112,6 +115,7 @@ class PracticeGameDisplay extends GameDisplay {
     // startWord and targetWord are parameters for testing only.
     updateWords(startWord=null, targetWord=null) {
 
+        Persistence.clearPracticeSolutionShown();
         let gameState = [];
         if (startWord && targetWord) {
             this.startWord = startWord;
@@ -135,7 +139,7 @@ class PracticeGameDisplay extends GameDisplay {
             }
         }
 
-        // Now we're ready to construct (and display) the game.
+        // Now we're ready to construct (and display) the game.  
         this.constructGame(this.startWord, this.targetWord, gameState);
     }
 }

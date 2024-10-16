@@ -59,6 +59,7 @@ class Cookie {
     static PRACTICE_GAME_TARGET = "PracticeGameTarget";
     static PRACTICE_GAME_WORDS_PLAYED = "PracticeGameWordsPlayed";
     static PRACTICE_GAME_TIMESTAMPS = "PracticeGameTimestamps";
+    static PRACTICE_SOLUTION_SHOWN = "PracticeSolutionShown";
     static HARD_MODE = "HardMode";
     static TYPE_SAVING_MODE = "TypeSavingMode";
     static TEST_INT = "testint";
@@ -78,6 +79,7 @@ class Cookie {
         Cookie.PRACTICE_GAME_TARGET,
         Cookie.PRACTICE_GAME_WORDS_PLAYED,
         Cookie.PRACTICE_GAME_TIMESTAMPS,
+        Cookie.PRACTICE_SOLUTION_SHOWN,
         Cookie.HARD_MODE,
         Cookie.TYPE_SAVING_MODE,
         Cookie.TEST_INT,

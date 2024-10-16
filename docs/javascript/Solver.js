@@ -214,12 +214,12 @@ class Solution extends BaseLogger {
             let thisWord = this.getNthWord(i)
             let nextWord = this.getNthWord(i+1)
             if (thisWord.length == nextWord.length) {
-                // we tell the user which letter to change, so only the changes of that letter
-                // should count towards difficulty
+                // we tell the user which letter location to change, so only the changes of that 
+                // location should count towards difficulty
+                let loc = this.findChangedLetterLocation(thisWord, nextWord);
                 let replacementWords = Array.from(dictionary.findReplacementWords(thisWord));
-                let replacementLocation = this.findChangedLetterLocation(thisWord, nextWord);
-                if (replacementLocation >= 0) {
-                    replacementWords = replacementWords.filter((replacementWord)=>replacementWord[replacementLocation] != thisWord[replacementLocation]);
+                if (loc >= 0) {
+                    replacementWords = replacementWords.filter((word)=>word[loc] != thisWord[loc]);
                 }
                 nChoices += replacementWords.length;
             } else if (thisWord.length < nextWord.length ){

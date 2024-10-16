@@ -72,6 +72,19 @@ class Persistence {
         Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, false);
     }
 
+    static getPracticeSolutionShown() {
+        return Cookie.getBoolean(Cookie.PRACTICE_SOLUTION_SHOWN);
+    }
+
+    static savePracticeSolutionShown() {
+        Cookie.save(Cookie.PRACTICE_SOLUTION_SHOWN, true);
+    }
+
+    static clearPracticeSolutionShown() {
+        Cookie.save(Cookie.PRACTICE_SOLUTION_SHOWN, false);
+    }
+
+
     static getDailyGameNumber() {
         return Cookie.getInt(Cookie.DAILY_GAME_NUMBER);
     }

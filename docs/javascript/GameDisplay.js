@@ -93,7 +93,8 @@ class GameDisplay extends BaseLogger {
     }
 
     // Called from derived class!
-    constructGame(start, target, gameState=[]) {
+    constructGame(start, target, gameState) {
+        Const.GL_DEBUG && this.logDebug ("GameDisplay.constructGame(): start: ", start, " target: ", target, " gameState: ", gameState, "game");
         this.game = new Game(start, target, gameState);
         this.showGameAfterMove();
         this.wrongMoves = 0;
@@ -193,11 +194,15 @@ class GameDisplay extends BaseLogger {
         return this.game;
     }
 
-    showGameAfterMove(userRequestedSolution=false) {
+    showGameAfterMove() {
         const container = ElementUtilities.addElementTo("div", this.gameDiv, {class: "game-container"}),
               tableDiv = ElementUtilities.addElementTo("div", container, {class: "table-div"}),
               tableElement = ElementUtilities.addElementTo("table", tableDiv, {class: "table-game"});
 
+        // see if the user requested the solution.  Daily and Practice subclasses manage this separately in a pure
+        // virtual function getSolutionShown()
+        let userRequestedSolution = this.getSolutionShown();
+        Const.GL_DEBUG && this.logDebug("showGameAfterMove() userRequestedSolution=", userRequestedSolution, "game");
         // Create an element that can be used to add buttons (or whatever) after the display of
         // elements for the game.
         this.postGameDiv = ElementUtilities.addElementTo("div", container, {class: "break post-game-div"});

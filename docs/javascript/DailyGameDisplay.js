@@ -132,6 +132,7 @@ class DailyGameDisplay extends GameDisplay {
                 Persistence.saveDailyGameNumber(this.dailyGameNumber);
                 Persistence.clearDailyGameState();
                 Persistence.clearDailySolutionShown();
+                this.recoveredDailyGameStateIfAny = [];  // nothing recovered
 
                 // Update stats relating to a new daily game.
                 this.incrementStat("gamesPlayed");
@@ -241,6 +242,10 @@ class DailyGameDisplay extends GameDisplay {
         }
     }
 
+    getSolutionShown() {
+        return Persistence.getDailySolutionShown();
+    }
+
     /* ----- Callbacks ----- */
 
 
@@ -294,15 +299,12 @@ class DailyGameDisplay extends GameDisplay {
     showSolution() {
         // TODO: Add an "are you sure?"
         this.game.finishGame();
+        Persistence.saveDailySolutionShown();
+        this.showGameAfterMove();
 
         // update persistent storage about the daily game.
         this.incrementStat("gamesShown");
-        Persistence.saveDailySolutionShown();
         Persistence.saveDailyGameState(this.gameState);
-
-        // Pass "true" to showGameAfterMove() to indicate the user has elected to show the
-        // solution so that the happy "game won" toast is not shown.
-        this.showGameAfterMove(true);
     }
 }
 

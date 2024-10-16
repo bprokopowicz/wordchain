@@ -3,12 +3,17 @@ Bugs
 
 Implementation
 - Solution button -- add means to show WordChain's ORIGINAL solution?
+  don't show solution button in Daily Game if the puzzle is either solved or shown
 - After a game fails should the solution be shown?
   If so from the point of failure onward?
   Or by the same means to show WordChain's solution?
+
+Practice Games
+- practice start words don't generate many games.  Make the list bigger and test each word to see it generates at least 10 games.
 - Possible settings to tweak game difficulty:
   - Mode where future rows do not have change cells outlined thicker. (harder)
   - Mode where picker displays only letters that could result in valid words. (easier)
+
 - Resolve all TODOs!
 
 Testing

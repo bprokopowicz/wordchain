@@ -64,13 +64,17 @@ class Game extends BaseLogger {
               Const.PRACTICE_STEPS_MINIMUM, Const.PRACTICE_STEPS_MAXIMUM,
               Const.PRACTICE_DIFFICULTY_MINIMUM);
         
-        rand = Math.floor(Math.random() * puzzles.length); 
-        Const.GL_DEBUG && logger.logDebug(`found ${puzzles.length} puzzles starting with ${startWord}.  Choosing #${rand}`, "game");
-        let puzzle = puzzles[rand];
-        Const.GL_DEBUG && logger.logDebug("selected random puzzle: " + puzzle.toStr(), "game");
+        if (puzzles.length > 0) {
+            rand = Math.floor(Math.random() * puzzles.length); 
+            Const.GL_DEBUG && logger.logDebug(`found ${puzzles.length} puzzles starting with ${startWord}.  Choosing #${rand}`, "game");
+            let puzzle = puzzles[rand];
+            Const.GL_DEBUG && logger.logDebug("selected random puzzle: " + puzzle.toStr(), "game");
+            return [puzzle.getStart(), puzzle.getLastWord()];
+        } else {
+            console.error("no practice puzzles found with start word", startWord);
+            return ["dog", "bite"];
+        }
 
-        return [puzzle.getStart(), puzzle.getLastWord()];
-        return ["dog", "bite"];
     }
 
     // Finishes the game. When getNextDisplayInstruction() is called after this,
