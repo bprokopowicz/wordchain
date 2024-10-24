@@ -502,7 +502,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15989;
+        const expectedMinDictSize = 15977;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -542,6 +542,7 @@ class Test extends BaseLogger {
         this.testGameNotShortestSolutionBug();
         this.testSolverBothDirections();
         this.testSolverSearchNoSolution();
+        this.testDifficultyCalcs();
         this.testPuzzleFinder();
         const endTestTime = Date.now();
         this.logDebug(`solver tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
@@ -624,6 +625,32 @@ class Test extends BaseLogger {
             this.success();
     }
 
+    testDifficultyCalcs() {
+        this.testName = "SolverDifficultyCalcs";
+        const startTestTime = Date.now();
+        const solution = Solver.solve(this.fullDict, "BLUE", "BAGGY");
+        const expectedEasiestStepNumber = 1;
+        const expectedNumberChoices = 2;
+        /*
+        BLUE, FLUE, FLOE, FLOG, FOG, FOGY, FOGGY, BOGGY, BAGGY difficulty: 20 easiest step, from FLUE has choices: 2
+        3 BLUE  -> xLUE CLUE,FLUE,GLUE
+        2 FLUE  -> FLxE   FLEE,FLOE
+        3 FLOE  -> FLOx   FLOG,FLOP,FLOW
+        2 FLOG  -> FOG -  FOG,LOG
+        3 FOG   -> FOGY +  FLOG,FOGS,FOGY,FROG - FLOG
+        2 FOGY  -> FOGY + FOGEY,FOGGY
+        3 FOGGY -> xOGGY BOGGY,DOGGY,SOGGY
+        2 BOGGY -> BxGGY  BAGGY,BUGGY
+        20 total choices
+        */
+
+        solution.calculateDifficulty(this.fullDict);
+        this.verify(solution.success(), `error on 'BLUE' to 'BAGGY': ${solution.getError()}`) &&
+            this.verify(solution.difficulty == 20, `expected difficulty 20, got ${solution.difficulty}`) &&
+            this.verify(solution.easiestStepNumber == expectedEasiestStepNumber, `expected easiest step number ${expectedEasiestStepNumber}, got ${solution.easiestStepNumber}`) &&
+            this.verify(solution.nChoicesEasiestStep == expectedNumberChoices, `expected easiest step number ${expectedNumberChoices}2, got ${solution.nChoicesEasiestStep}`) &&
+            this.success();
+    }
 
     testSolverBothDirections() {
         this.testName = "SolverBothDirections";
@@ -669,11 +696,12 @@ class Test extends BaseLogger {
               minSteps = 7,
               maxSteps = 9,
               minDifficulty = 30,
-              targetWordLen = 5,
-              expectedNumberOfPuzzles = 2;
+              targetWordLen = 6,
+              expectedNumberOfPuzzles = 4,
+              minChoicesPerStep = 2;
 
-        const suitablePuzzles =
-            Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
+        const suitablePuzzles = Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2,
+                minSteps, maxSteps, minDifficulty, minChoicesPerStep)
             .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
         suitablePuzzles.sort();
         // short-circuit the test if no puzzles found.
@@ -683,12 +711,14 @@ class Test extends BaseLogger {
 
         const [targetWord, difficulty] = suitablePuzzles[0].split(":");
         const solution = Solver.solve(this.fullDict, startWord, targetWord);
+        solution.calcDifficulty(this.fullDict);
         this.verify(suitablePuzzles.length == expectedNumberOfPuzzles, `expected ${expectedNumberOfPuzzles}, got ${suitablePuzzles.length}`) &&
             this.verify(solution.numSteps() >= minSteps, `solution too short ${solution.numSteps()} not ${minSteps}`) &&
             this.verify(solution.numSteps() <= maxSteps, `solution too long ${solution.numSteps()} not ${maxSteps}`) &&
             this.verify(solution.hasWordOfLength(reqWordLen1), `solution missing word of length ${reqWordLen1}`) &&
             this.verify(solution.hasWordOfLength(reqWordLen2), `solution missing word of length ${reqWordLen2}`) &&
-            this.verify(difficulty >= minDifficulty, `solution to easy: ${difficulty} is not at least ${minDifficulty}`) &&
+            this.verify(solution.difficulty >= minDifficulty, `solution to easy: ${difficulty} is not at least ${minDifficulty}`) &&
+            this.verify(solution.nChoicesEasiestStep >= minChoicesPerStep, `solution's easiest step should be >= ${minChoicesPerStep}, not ${solution.nChoicesEasiestStep}`) &&
             this.success();
     }
 
@@ -1703,8 +1733,8 @@ TODO - what if these are played after the game is over?  They should not be addi
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen2", type: "text"});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "final word len: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text"});
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "final word len (0 for any): ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text", value: "0"});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "min words: ");
@@ -1712,11 +1742,15 @@ TODO - what if these are played after the game is over?  They should not be addi
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "max words: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxWords", type: "text", value: "1000"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxWords", type: "text", value: "10"});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "min difficulty: ");
         ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinDifficulty", type: "text", value: "1" });
+        ElementUtilities.addElementTo("p", this.outerDiv);
+
+        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min choices per step (>=1): ");
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinChoicesPerStep", type: "text", value: "1" });
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         var button = ElementUtilities.addElementTo("button", this.outerDiv, {id: "puzzleFinderFind"}, "Find!");
@@ -1741,10 +1775,11 @@ TODO - what if these are played after the game is over?  They should not be addi
               minSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMinWords")),
               maxSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxWords")),
               minDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMinDifficulty")),
-              targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen"));
+              targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen")),
+              minChoicesPerStep = parseInt(ElementUtilities.getElementValue("puzzleFinderMinChoicesPerStep"));
 
-        const goodTargetsWithDifficulty =
-            Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty)
+        const goodTargetsWithDifficulty = Solver
+            .findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty, minChoicesPerStep)
             .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
         goodTargetsWithDifficulty.sort();
 

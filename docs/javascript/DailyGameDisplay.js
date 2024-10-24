@@ -13,33 +13,31 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Class Variables ----- */
 
+    //TODO - remove index - it should be calculated
     static GameWords = {
-          1: ['broken', 'cone'],
           2: ['flue', 'trance'],
           3: ['fish', 'grater'],
           4: ['salted', 'fish'],
           5: ['tasty', 'owl'],
-          6: ['rum', 'runner'],
-          7: ['funny', 'slur'],
-          8: ['tough', 'punch'],
+          6: ['harm', 'bikini'],
+          8: ['play', 'ahead'],
           9: ['really', 'solve'],
          10: ['hard', 'kicker'],
-         11: ['leaky', 'spoons'],
-         12: ['brother', 'curse'],
-         13: ['float', 'jockey'],
+         11: ['leaky', 'spoon'],
          14: ['tasty', 'mascot'],
          15: ['free', 'sample'],
-         16: ['main', 'avenue'],
-         17: ['smelly', 'date'],
          18: ['smelly', 'gym'],
-         19: ['rice', 'arenas'],
+         19: ['rice', 'arena'],
          20: ['hard', 'sinker'],
          21: ['loud', 'momma'],
          22: ['forgot', 'how'],
          23: ['jaunty', 'name'],
          24: ['bouncy', 'house'],
          25: ['mind', 'hugger'],
-         26: ['house', 'ablaze'],
+         26: ['beach', 'house'],
+         26: ['plate', 'acorns'],
+         17: ['smelly', 'date'],
+         26: ['shock', 'bagger'],
     }
 
     /* ----- Construction ----- */

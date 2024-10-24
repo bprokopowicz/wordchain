@@ -86,11 +86,11 @@ class Solver {
         return startingSolution;
     }
 
-    static findPuzzles(origDictionary, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty) {
+    static findPuzzles(dict, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty, minChoicesPerStep) {
 
         startWord = startWord.toUpperCase();
         Const.GL_DEBUG && Solver.logger.logDebug("looking for puzzles starting with ", startWord, " ending with a ", targetWordLen, "-length word", "solver");
-        let localDictionary = origDictionary.copy();
+        let localDictionary = dict.copy();
         let desiredPuzzles = [];
         if (!localDictionary.isWord(startWord)) {
             Const.GL_DEBUG && Solver.logger.logDebug(startWord + " is not a word.", "solver");
@@ -104,7 +104,8 @@ class Solver {
             let puzzle = listOfPossiblePuzzles.shift();
             Const.GL_DEBUG && Solver.logger.logDebug("looking at puzzle ", puzzle, "solver-details");
             puzzle.target=puzzle.getLastWord();
-            if (Solver.isDesired(origDictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty)) {
+            // must use dict, not local copy, since we are deleting words as we search the tree of solutions
+            if (Solver.isDesired(dict, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoicesPerStep)) {
 	            Const.GL_DEBUG && Solver.logger.logDebug("found suitable puzzle ", puzzle, "solver");
                 desiredPuzzles.push(puzzle);
             }
@@ -124,7 +125,7 @@ class Solver {
        return desiredPuzzles;
     }
 
-    static isDesired(dictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty) {
+    static isDesired(dictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoices) {
         if (puzzle.numWords() < minWords) {
             return false;
         }
@@ -142,6 +143,9 @@ class Solver {
         }
         puzzle.calculateDifficulty(dictionary);
         if (puzzle.difficulty < minDifficulty) {
+            return false;
+        }
+        if (puzzle.nChoicesEasiestStep < minChoices) {
             return false;
         }
         return true;
@@ -171,7 +175,9 @@ class Solution extends BaseLogger {
         this.solutionSteps = solutionSteps;
         this.target = target;
         this.errorMessage = "";
-        this.difficulty = -1;  // call calculateDifficulty(dictionary) to set this
+        // call calculateDifficulty(dictionary) to set these two fields:
+        this.difficulty = -1;  
+        this.nChoicesEasiestStep = 1000;
     }
 
     static newEmptySolution(start, target) {
@@ -206,30 +212,58 @@ class Solution extends BaseLogger {
         return -1;
     }
 
+    // side effect: sets this.difficulty, this.easiestStepNumber, and this.easiestStepNumChoices
+    // Difficulty is the number of choices encountered at each step of the actual solution.
+    // The number of choices depends on the dictionary and also on how the next step of the puzzle is
+    // displayed.  As of Oct 2024, the user knows either which letter to replace, or that a letter needs
+    // to be added, or removed.  We don't consider replaying an existing word of the solution so far to be
+    // a choice.
     calculateDifficulty(dictionary) {
         let i = 0;
-        let nChoices = 0;
+        // these three fields will be updated as we travel the solution
+        this.difficulty = 0;
+        this.easiestStepNumber = -1;
+        this.nChoicesEasiestStep = 1000;
         // difficulty is defined by choices between successive words.
         while (i < this.numWords() - 1) {
             let thisWord = this.getNthWord(i)
             let nextWord = this.getNthWord(i+1)
+            let replacementWords = new Set();
             if (thisWord.length == nextWord.length) {
                 // we tell the user which letter location to change, so only the changes of that 
                 // location should count towards difficulty
+                replacementWords = dictionary.findReplacementWords(thisWord);
                 let loc = this.findChangedLetterLocation(thisWord, nextWord);
-                let replacementWords = Array.from(dictionary.findReplacementWords(thisWord));
                 if (loc >= 0) {
-                    replacementWords = replacementWords.filter((word)=>word[loc] != thisWord[loc]);
+                    // remove any possible replacements that have the same letter at the replacement location.
+                    for (const replacementWord of replacementWords) {
+                        if (thisWord[loc] == replacementWord[loc]) {
+                            // this replacement word doesn't differ at the known replacement point.
+                            replacementWords.delete(replacementWord);
+                        }
+                    }
+                } else {
+                    console.error("can't find location of changed letter from ", thisWord, " to ", nextWord);
                 }
-                nChoices += replacementWords.length;
-            } else if (thisWord.length < nextWord.length ){
-                nChoices += dictionary.findRemoverWords(thisWord).size;
+            } else if (thisWord.length > nextWord.length ){
+                replacementWords = dictionary.findRemoverWords(thisWord);
             } else {
-                nChoices += dictionary.findAdderWords(thisWord).size;
+                replacementWords = dictionary.findAdderWords(thisWord);
+            }
+            // now, remove any already played words from the replacement choices.
+
+            for (let j=0; j<i; j++) {
+                replacementWords.delete(this.getNthWord(j));
+            }
+            let nChoicesThisStep = replacementWords.size;
+            this.difficulty += nChoicesThisStep;
+            if (nChoicesThisStep < this.nChoicesEasiestStep) {
+                this.nChoicesEasiestStep = nChoicesThisStep;
+                this.easiestStepNumber = i;
             }
             i+=1;
         }
-        this.difficulty = nChoices;
+        Const.GL_DEBUG && Solver.logger.logDebug("easiest step from : ", this.getNthWord(this.easiestStepNumber), " has ", this.nChoicesEasiestStep, " choices.", "solver");
     }
 
     copy() {
@@ -345,7 +379,13 @@ class Solution extends BaseLogger {
     toStr(toHtml=false) {
         if (this.errorMessage.length !== 0) {
             return this.errorMessage;
+        } else if (toHtml) {
+            // display just the words and the stats
+            return this.solutionSteps.map(step => step.word).join(", ") 
+                + " difficulty: " +  this.difficulty 
+                + " easiest step, from " + this.getNthWord(this.easiestStepNumber) + ", has " + this.nChoicesEasiestStep + " choices.";
         } else {
+            // display the words and details about the step (correct, played)
             const separator = " ";
             const words = this.solutionSteps.join(", ");
             return `${words}${separator}[${this.numSteps()} steps toward ${this.target}]${separator}difficulty: ${this.difficulty}`;
