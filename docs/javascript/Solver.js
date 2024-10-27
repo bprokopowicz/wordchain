@@ -175,9 +175,10 @@ class Solution extends BaseLogger {
         this.solutionSteps = solutionSteps;
         this.target = target;
         this.errorMessage = "";
-        // call calculateDifficulty(dictionary) to set these two fields:
+        // call calculateDifficulty(dictionary) to set these three fields:
         this.difficulty = -1;  
         this.nChoicesEasiestStep = 1000;
+        this.nChoicesOnStep = new Array();
     }
 
     static newEmptySolution(start, target) {
@@ -212,7 +213,7 @@ class Solution extends BaseLogger {
         return -1;
     }
 
-    // side effect: sets this.difficulty, this.easiestStepNumber, and this.easiestStepNumChoices
+    // side effect: sets this.difficulty, this.nChoicesEasiestStep, and this.nChoicesOnStep (array)
     // Difficulty is the number of choices encountered at each step of the actual solution.
     // The number of choices depends on the dictionary and also on how the next step of the puzzle is
     // displayed.  As of Oct 2024, the user knows either which letter to replace, or that a letter needs
@@ -222,8 +223,8 @@ class Solution extends BaseLogger {
         let i = 0;
         // these three fields will be updated as we travel the solution
         this.difficulty = 0;
-        this.easiestStepNumber = -1;
         this.nChoicesEasiestStep = 1000;
+        this.nChoicesOnStep = new Array();
         // difficulty is defined by choices between successive words.
         while (i < this.numWords() - 1) {
             let thisWord = this.getNthWord(i)
@@ -256,14 +257,14 @@ class Solution extends BaseLogger {
                 replacementWords.delete(this.getNthWord(j));
             }
             let nChoicesThisStep = replacementWords.size;
+            this.nChoicesOnStep.push(nChoicesThisStep);
             this.difficulty += nChoicesThisStep;
             if (nChoicesThisStep < this.nChoicesEasiestStep) {
                 this.nChoicesEasiestStep = nChoicesThisStep;
-                this.easiestStepNumber = i;
             }
             i+=1;
         }
-        Const.GL_DEBUG && Solver.logger.logDebug("easiest step from : ", this.getNthWord(this.easiestStepNumber), " has ", this.nChoicesEasiestStep, " choices.", "solver");
+        Const.GL_DEBUG && Solver.logger.logDebug("easiest step has ", this.nChoicesEasiestStep, " choices.", "solver");
     }
 
     copy() {
@@ -380,10 +381,10 @@ class Solution extends BaseLogger {
         if (this.errorMessage.length !== 0) {
             return this.errorMessage;
         } else if (toHtml) {
-            // display just the words and the stats
+            // display the words and the choice stats
             return this.solutionSteps.map(step => step.word).join(", ") 
                 + " difficulty: " +  this.difficulty 
-                + " easiest step, from " + this.getNthWord(this.easiestStepNumber) + ", has " + this.nChoicesEasiestStep + " choices.";
+                + " choices at each step: " + this.nChoicesOnStep.join(",");
         } else {
             // display the words and details about the step (correct, played)
             const separator = " ";

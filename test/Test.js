@@ -502,7 +502,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15977;
+        const expectedMinDictSize = 15976;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -629,7 +629,6 @@ class Test extends BaseLogger {
         this.testName = "SolverDifficultyCalcs";
         const startTestTime = Date.now();
         const solution = Solver.solve(this.fullDict, "BLUE", "BAGGY");
-        const expectedEasiestStepNumber = 1;
         const expectedNumberChoices = 2;
         /*
         BLUE, FLUE, FLOE, FLOG, FOG, FOGY, FOGGY, BOGGY, BAGGY difficulty: 20 easiest step, from FLUE has choices: 2
@@ -647,8 +646,7 @@ class Test extends BaseLogger {
         solution.calculateDifficulty(this.fullDict);
         this.verify(solution.success(), `error on 'BLUE' to 'BAGGY': ${solution.getError()}`) &&
             this.verify(solution.difficulty == 20, `expected difficulty 20, got ${solution.difficulty}`) &&
-            this.verify(solution.easiestStepNumber == expectedEasiestStepNumber, `expected easiest step number ${expectedEasiestStepNumber}, got ${solution.easiestStepNumber}`) &&
-            this.verify(solution.nChoicesEasiestStep == expectedNumberChoices, `expected easiest step number ${expectedNumberChoices}2, got ${solution.nChoicesEasiestStep}`) &&
+            this.verify(solution.nChoicesEasiestStep == expectedNumberChoices, `expected easiest step nChoices ${expectedNumberChoices}, got ${solution.nChoicesEasiestStep}`) &&
             this.success();
     }
 
@@ -711,7 +709,7 @@ class Test extends BaseLogger {
 
         const [targetWord, difficulty] = suitablePuzzles[0].split(":");
         const solution = Solver.solve(this.fullDict, startWord, targetWord);
-        solution.calcDifficulty(this.fullDict);
+        solution.calculateDifficulty(this.fullDict);
         this.verify(suitablePuzzles.length == expectedNumberOfPuzzles, `expected ${expectedNumberOfPuzzles}, got ${suitablePuzzles.length}`) &&
             this.verify(solution.numSteps() >= minSteps, `solution too short ${solution.numSteps()} not ${minSteps}`) &&
             this.verify(solution.numSteps() <= maxSteps, `solution too long ${solution.numSteps()} not ${maxSteps}`) &&

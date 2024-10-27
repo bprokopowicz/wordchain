@@ -62,7 +62,7 @@ class Game extends BaseLogger {
               Const.PRACTICE_TARGET_WORD_LEN,
               Const.PRACTICE_REQ_WORD_LEN_1, Const.PRACTICE_REQ_WORD_LEN_2,
               Const.PRACTICE_STEPS_MINIMUM, Const.PRACTICE_STEPS_MAXIMUM,
-              Const.PRACTICE_DIFFICULTY_MINIMUM);
+              Const.PRACTICE_DIFFICULTY_MINIMUM, Const.PRACTICE_MIN_CHOICES_PER_STEP);
         
         if (puzzles.length > 0) {
             rand = Math.floor(Math.random() * puzzles.length); 

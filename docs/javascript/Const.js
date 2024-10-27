@@ -25,11 +25,12 @@ export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
 //export const PRACTICE_GAMES_PER_DAY = 300;     // For testing
 export const PRACTICE_STEPS_MINIMUM = 5;
 export const PRACTICE_STEPS_MAXIMUM = 7;
-export const PRACTICE_DIFFICULTY_MINIMUM = 10;
-export const PRACTICE_TARGET_WORD_LEN = 5;
+export const PRACTICE_DIFFICULTY_MINIMUM = 20;
+export const PRACTICE_TARGET_WORD_LEN = 0; // 0 means any target word length is OK
 export const PRACTICE_REQ_WORD_LEN_1 = 4;
 export const PRACTICE_REQ_WORD_LEN_2 = 6;
-export const PRACTICE_START_WORDS = ["FACE", "TRUST", "GRASP", "TROPE", "SPACE", "PLATE", "TRAIL"];
+export const PRACTIVE_MIN_CHOICES_PER_STEP = 2;
+export const PRACTICE_START_WORDS = ["FACE", "GRASP", "SPACE", "PLATE", "TRAIL", "PLANT"];
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
