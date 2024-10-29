@@ -206,7 +206,14 @@ class Game extends BaseLogger {
     addWordIfExists(word) {
         if (this.dictionary.isWord(word) || this.scrabbleDictionary.isWord(word)) {
             Const.GL_DEBUG && this.logDebug(`Trying to play word ${word}`, "game");
-            const isScrabbleWord = !this.dictionary.isWord(word);
+            const isScrabbleOnlyWord = !this.dictionary.isWord(word);
+            // special case: if the user plays a scrabbleOnlyWord, we add that word to the normal dictionary, so that
+            // the game solver can play that word if the best solution involves back-tracking out of it
+            if (isScrabbleOnlyWord) {
+                this.logDebug("user played scrabble-only word: ", word, ", adding it to regular dictionary in case it is needed for backtracking", "game");
+                // TODO after writing a test 
+                this.dictionary.addWord(word);
+            }
             if (word == this.remainingSteps.getNthWord(0)) {
                 // user is adding the same word we found
                 let isPlayed = true;

@@ -737,6 +737,8 @@ class Test extends BaseLogger {
         this.testGameDisplayInstructionsDifferentPath();
         this.testGameUsingScrabbleWord();
         this.testGameUsingGeniusMove();
+        this.testGameRequiringWordReplay();
+        this.testGameRequiringScrabbleWordReplay();
         this.testGameFinish();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
@@ -959,6 +961,52 @@ class Test extends BaseLogger {
         this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
             this.success();
     }
+
+    testGameRequiringWordReplay() {
+        this.testName = "GameRequiringWordReplay";
+        const steps = [];
+        const game = new Game("BLISS", "LEST", steps);
+        // BLISS,BLIPS (D'OH) should now display as BLISS BLIPS BLISS BLESS LESS LEST (6) not
+        // BLISS BLIPS LIPS LAPS LASS LAST LEST (7)
+
+        const expectedDisplayLength = 6;
+        const blissToBlipsResult = game.playLetter(4,"P"); 
+        const displayInstructions = game.getDisplayInstructions(); // Solution should now be BLISS, BLIPS, BLISS, BLESS, LESS, LEST
+        this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
+        this.verify((blissToBlipsResult === Const.WRONG_MOVE), `playLetter(4,P) expected ${Const.WRONG_MOVE}, got ${blissToBlipsResult}`) &&
+        this.verify((displayInstructions.length === expectedDisplayLength),
+                `expected display instructions length=${expectedDisplayLength}, got ${displayInstructions.length}`) &&
+        this.success();
+    }
+
+    testGameRequiringScrabbleWordReplay() {
+        this.testName = "GameRequiringScrabbleWordReplay";
+        const steps = [];
+        const game = new Game("FREE", "SAMPLE", steps);
+        // FREE, FEE, FIE, FILE, MILE, SMILE, SIMILE, SIMPLE, SAMPLE 9 instructions
+        // playing FREE FEE FIE FILE SILE SIDLE (wrong) should give display instructions: 
+        // FREE FEE FIE FILE SILE SIDLE SILE            SMILE SIMILE SIMPLE SAMPLE length 11 
+        // not
+        // FREE FEE FIE FILE SILE SIDLE SIDE SITE SMITE SMILE SIMILE SIMPLE SAMPLE  length 13
+
+        const expectedDisplayLength = 11;
+        let result  = game.playDelete(2); // -> FEE
+        result = game.playLetter(2, "I"); // -> FIE
+        result = game.playAdd(2);         // -> FIxE
+        result = game.playLetter(3, "L"); // -> FILE
+        result = game.playLetter(1, "S"); // -> SILE 
+        result = game.playAdd(2);         // -> SIxLE
+        result = game.playLetter(3, "D"); // -> SIDLE  wrong move
+        // Solution should now be FREE FEE FIE FILE SILE SIDLE SILE SMILE SIMILE SIMPLE SAMPLE
+        const displayInstructions = game.getDisplayInstructions();
+        this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
+        this.verify((result === Const.WRONG_MOVE), `playing add 'D' at 2 expected: ${Const.WRONG_MOVE}, got: ${result}`) &&
+        this.verify((displayInstructions.length === expectedDisplayLength),
+                `expected display instructions length==${expectedDisplayLength}, got: ${displayInstructions.length}`) &&
+        this.success();
+    }
+
+
 
     testGameFinish() {
         this.testName = "GameFinish";
