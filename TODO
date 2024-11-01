@@ -1,38 +1,42 @@
 Bugs
 - 'Solved!' toast pops up when changing settings (colorblind or dark modes)
+- don't show solution button in Daily Game if the puzzle is either solved or shown
 
-
-Implementation
+Implementation Ideas (Future)
 - Solution button -- add means to show WordChain's ORIGINAL solution?
-  don't show solution button in Daily Game if the puzzle is either solved or shown
 - After a game fails should the solution be shown?
   If so from the point of failure onward?
-  Or by the same means to show WordChain's solution?
-
-
-Practice Games
+  Or by the same means to show WordChain's original solution?
 - Possible settings to tweak game difficulty:
   - Mode where future rows do not have change cells outlined thicker. (harder)
   - Mode where picker displays only letters that could result in valid words. (easier)
 
-- Resolve all TODOs!
-
 Testing
-- Update test plan (https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing)
-- Query parameters for practice games: start, target, games_per_day
+- Update Manual UI Testing Use Cases doc
+  (https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing)
+- Update Testing How-To doc
+  (https://docs.google.com/document/d/1b8b2sDs3SFpffsEPO70uufia7UOJBccSUclHI4u9u8Y/edit?usp=sharing)
+  - query parameters for practice games: start, target, minutes_per_day, whatever else
+  - red sections
 
-Before Sharing with Initial Friends
-- Review help message
-- 30 days of daily games
-- Execute test plan on iPhone/iPad (Safari) and desk/laptop (Safari/Chrome)
+Beta (Before Sharing with Initial Friends)
+- Finish testing code work-in-progress [Pete]
+- Fix bugs [Bonnie]
+- TODOs in code:
+  - add BETA/PRODUCTION tags [Pete/Bonnie] <===================================
+  - decide who will address BETAs
+- Review help message and FAQ [Bonnie]
+- 30 days of (good, tested) daily games [Pete]
+- Update Manual UI Testing Use Cases document [Pete]
+- Execute Manual UI Testing Use Cases in these environments:
+  - Safari (iPhone, iPad, Mac) [Pete]
+  - Chrome (Mac, Android phone -- using debugging environment) [Pete]
 
-
-Deployment
+Production
 - How to create/minify/obscure one big js file
 - Buy domain wordchain.com?
 - Where to host?
 - How to manage daily game words long-term?
-- Testing on various browsers/devices
 - Cookies: make secure? Obfuscate? Save in back-end DB?
 - Logo/favicon.ico
 
