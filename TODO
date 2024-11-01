@@ -11,7 +11,6 @@ Implementation
 
 
 Practice Games
-- practice start words don't generate many games.  Make the list bigger and test each word to see it generates at least 10 games.
 - Possible settings to tweak game difficulty:
   - Mode where future rows do not have change cells outlined thicker. (harder)
   - Mode where picker displays only letters that could result in valid words. (easier)
@@ -52,4 +51,15 @@ use cases:
            recover the game as finished, leave shown flag as true
       iv) shown is true, played moves are incomplete: 
           this is a bug.  finish playing the game, save the solved state, leave 'shown' flag as true
-         
+
+For testing, the test script needs to fix the puzzle number in advance.  Right now we do this using
+?testing URL flag that sets the game number to -1.  But this causes problems for recovery testing,
+because ?testing forces a brand new game instead of recovering.  
+For testing, we should control only the beginning of the epoch and 'now'.  DailyGameNumber depends
+only on the difference of these.  'now' can be automatic, and the epoch can be adjusted in Test.js
+to arrive at the desired daily game number.  For now, we can leave SHORT .. POOR as a known
+daily game and test against it.  This means SHORT POOR will be a daily puzzle.  But is it a good game?
+Yes - difficulty 24, choices per step are 2,4,9,6,3.  
+The overriding in Test.js should be in CODE, not a QueryVar.  Just override the static epoch value before
+a test and restore it after.  
+
