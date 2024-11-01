@@ -193,11 +193,10 @@ class Test extends BaseLogger {
     ** App Testing Framework
     */
 
-    // This map should be passed to openTheTestAppWindow or reOpenTheTestAppWindow
-    // if we want the app to run with a canned version of the daily game.
+    // This map can be passed to openTheTestAppWindow or reOpenTheTestAppWindow to set the 
+    // WordChain epoch manually.
 
-    static TestingOn = new Map([["testing", ""]]);
-    static TestingOff = new Map();
+    static EpochTwoDaysAgo = new Map([ [Const.QUERY_STRING_EPOCH_DAYS_AGO, "2"] ]);
 
     closeNewAppWindow() {
         if (this.getNewAppWindow()) {
@@ -254,9 +253,9 @@ class Test extends BaseLogger {
         var testFunc = this.appTestList.shift();
         this.logDebug("runNextAppTest() testFunc=", testFunc, "test");
         if (testFunc) {
-            // clear cookies and reopen the window in testing mode (static daily game).
+            // clear cookies and reopen the window in testing mode 
             const clearCookies = true;
-            this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
+            this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
             // and then wait for the window and begin the next test ...
             this.waitForAppDisplayThenRunFunc(testFunc);
         } else {
@@ -265,16 +264,16 @@ class Test extends BaseLogger {
         }
     }
 
-   reOpenTheTestAppWindow(clearCookies, queryVars) {
-       // clear our own cookies
-       if (clearCookies) {
-           Cookie.clearNonDebugCookies();
-       }
+    reOpenTheTestAppWindow(clearCookies, queryVars) {
+        // clear our own cookies
+        if (clearCookies) {
+            Cookie.clearNonDebugCookies();
+        }
 
-       // close and re-open the test App window
-       this.closeNewAppWindow();
-       this.openTheTestAppWindow(queryVars);
-   }
+        // close and re-open the test App window
+        this.closeNewAppWindow();
+        this.openTheTestAppWindow(queryVars);
+    }
 
     // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
     waitForAppDisplayThenRunFunc(func) {
@@ -320,15 +319,14 @@ class Test extends BaseLogger {
         return playResult;
     }
          
-    // this plays the canned test daily game.  No status of whether or not it worked.  It is useful for 
+    // this plays the known daily game for day 2.  No status of whether or not it worked.  It is useful for 
     // tests that need multiple game instances to test stats.
     // 
 
     playTheCannedDailyGameOnce() {
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // when opened with ?testing=true in the URL, the daily game will always
-        // be SHORT -> POOR
+        // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
@@ -338,7 +336,6 @@ class Test extends BaseLogger {
         this.playLetter(1, "P"); // BOOR -> POOR
     }
 
- 
     // compares the current stats cookie and stats screen content with expected and calculated values.
     // Also, asserts that gamesPlayed >= gamesCompleted+gamesShown+gamesFailed
 
@@ -1112,9 +1109,11 @@ class Test extends BaseLogger {
             this.verifyStats(expDailyStats) && this.success();
             this.runNextAppTest();
         } else {
+            // don't let the game pick up where it left off (a finished game). 
+            Persistence.clearDailyGameNumber(); 
             // re-open open the test window, and then repeat this function with the countdown reduced 
             const clearCookies = false;
-            this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
+            this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
             this.waitForAppDisplayThenRunFunc(this.multiGameStatsTest);
         }
     }
@@ -1155,9 +1154,11 @@ class Test extends BaseLogger {
             this.verifyStats(expDailyStats) && this.success();
             this.runNextAppTest();
         } else {
+            // don't let the game pick up where it left off (a finished game). 
+            Persistence.clearDailyGameNumber(); 
             // re-open open the test window, and then repeat this function with the countdown reduced 
             const clearCookies = false;
-            this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
+            this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
             this.waitForAppDisplayThenRunFunc(this.multiGameMixedResultsStatsTest);
         }
     }
@@ -1212,8 +1213,10 @@ class Test extends BaseLogger {
         }
         // move on to the next game
         this.multiGameCountdown -= 1;
+        // don't let the game pick up where it left off (a finished game). 
+        Persistence.clearDailyGameNumber(); 
         const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
+        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
         this.waitForAppDisplayThenRunFunc(this.multiIncompleteGameStatsTest);
    }
 
@@ -1225,14 +1228,13 @@ class Test extends BaseLogger {
          // The newly opened URL should be showing the test daily game by default;
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // when opened with ?testing=true in the URL, the daily game will always
-        // be SHORT -> POOR
+        // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.gameDisplay.showSolution();
         const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
+        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
         this.waitForAppDisplayThenRunFunc(this.finishDailyGameShowSolutionTest);
     }
 
@@ -1272,9 +1274,7 @@ class Test extends BaseLogger {
         // The newly opened URL should be showing the test daily game by default;
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // when opened with ?testing=true in the URL, the daily game will always
-        // be SHORT -> POOR
-        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+        // SHORT -> POOR solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
@@ -1308,8 +1308,7 @@ class Test extends BaseLogger {
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = this.gameDisplay.game;
 
-        // when opened with ?testing=true in the URL, the daily game will always
-        // be SHORT -> POOR
+        // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
@@ -1357,7 +1356,9 @@ TODO - what if these are played after the game is over?  They should not be addi
 
         // We need to re-open the test window with a known daily game, not the default.
         const clearCookies = true;
-        let queryVars = new Map([["testing",""],["start","START"],["target","END"]]);
+        let queryVars = new Map(Test.EpochTwoDaysAgo);
+        queryVars.set( Const.QUERY_STRING_START_WORD, "START" );
+        queryVars.set( Const.QUERY_STRING_TARGET_WORD, "END" );
         this.reOpenTheTestAppWindow(clearCookies, queryVars);
         this.waitForAppDisplayThenRunFunc(this.finishDailyGameEndsOnDeleteShareTest);
     }
@@ -1403,17 +1404,16 @@ TODO - what if these are played after the game is over?  They should not be addi
         // The newly opened URL should be showing the daily game by default;
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // when opened with ?testing=true in the URL, the daily game will always
-        // be SHORT -> POOR
+        // known game should be SHORT -> POOR, the game number will be 2.
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         // play two moves, then close and try to restore ...
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
 
-        // re-open the app window, without the testing=true query which would force a new static daily game.
+        // re-open the app window
         const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
+        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
         this.waitForAppDisplayThenRunFunc(this.continueDailyGameRestartTest);
     }
 
@@ -1445,8 +1445,8 @@ TODO - what if these are played after the game is over?  They should not be addi
         // ... and close and re-open it after it is solved
 
         const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
-        this.openTheTestAppWindow();
+        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
+        // this.openTheTestAppWindow();
         this.waitForAppDisplayThenRunFunc(this.finishDailyGameRestartTest);
     }
 
@@ -1465,7 +1465,7 @@ TODO - what if these are played after the game is over?  They should not be addi
     dailyGameRestartAfterDohTest() {
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // when opened with ?testing=true in the URL, the daily game will always
+        // when opened with epoch two days ago, the daily game will always
         // be SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
@@ -1474,9 +1474,9 @@ TODO - what if these are played after the game is over?  They should not be addi
         this.deleteLetter(1);    // SHOOT -> HOOT
         this.playLetter(1, "S"); // HOOT -> SOOT D'OH!!!
 
-        // re-open the app window, without the testing=true query which would force a new static daily game.
+        // re-open the app window, with the same daily game number
         const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOff);
+        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
         this.waitForAppDisplayThenRunFunc(this.continueDailyGameRestartAfterDohTest);
     }
 
@@ -1640,6 +1640,7 @@ TODO - what if these are played after the game is over?  They should not be addi
     }
 
     cookieRestartTest() {
+        this.testName = "CookieRestart";
         this.logDebug("new window should be open; saving cookies via new window", "test");
         var testObj = new TestClassForCookie();
         testObj.nums.push(3);
@@ -1651,14 +1652,12 @@ TODO - what if these are played after the game is over?  They should not be addi
 
         // now close the window,
         const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.TestingOn);
+        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
         // and then wait for the window and finish the test ...
         this.waitForAppDisplayThenRunFunc(this.finishCookieRestartTest);
     }
 
     finishCookieRestartTest() {
-        // need to set the test testName here for recording results
-        this.testName = "CookieRestart";
         this.logDebug("new window should be re-opened; restoring values via cookies in new window", "test");
         var testIntRestored = Cookie.getInt(Cookie.TEST_INT);
         var testBoolRestored = Cookie.getBoolean(Cookie.TEST_BOOL);
@@ -1772,31 +1771,31 @@ TODO - what if these are played after the game is over?  They should not be addi
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 1: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen1", type: "text"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen1", type: "text", value: Const.PRACTICE_REQ_WORD_LEN_1.toString()});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 2: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen2", type: "text"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen2", type: "text", value: Const.PRACTICE_REQ_WORD_LEN_2.toString()});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "final word len (0 for any): ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text", value: "0"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text", value: Const.PRACTICE_TARGET_WORD_LEN.toString()});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "min words: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinWords", type: "text", value: "1"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinWords", type: "text", value: Const.PRACTICE_STEPS_MINIMUM.toString()});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "max words: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxWords", type: "text", value: "10"});
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxWords", type: "text", value: Const.PRACTICE_STEPS_MAXIMUM.toString()});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "min difficulty: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinDifficulty", type: "text", value: "1" });
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinDifficulty", type: "text", value: Const.PRACTICE_DIFFICULTY_MINIMUM.toString()});
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         ElementUtilities.addElementTo("label", this.outerDiv, {}, "min choices per step (>=1): ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinChoicesPerStep", type: "text", value: "1" });
+        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinChoicesPerStep", type: "text", value: Const.PRACTICE_MIN_CHOICES_PER_STEP.toString() });
         ElementUtilities.addElementTo("p", this.outerDiv);
 
         var button = ElementUtilities.addElementTo("button", this.outerDiv, {id: "puzzleFinderFind"}, "Find!");

@@ -44,6 +44,7 @@ class GameDisplay extends BaseLogger {
         var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
         for (let pair of pairs) {
             var keyVal = pair.split('=');
+            // use empty string as the value for query variables with no '...=val' value.
             this.queryVars.set(keyVal[0], keyVal[1] || '');
         }
     }

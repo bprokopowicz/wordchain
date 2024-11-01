@@ -11,11 +11,13 @@ export function SET_GL_DEBUG(value) {
 
 // Constants for URLs. (CURRENTLY UNUSED)
 export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
-export const DICT_URL = `${URL_ROOT}/resources/dict/WordChainDict`;
+export const DICT_URL = "https:/wordchain/docs/resources/WordChainDict";
+export const SCRABBLE_DICT_URL = "https:/wordchain/docs/resources/Scrabble3-6";
 
 // query-string consts
-export const QUERY_STRING_TESTING = "testing";
 export const QUERY_STRING_DEBUG_MINUTES_PER_DAY = "minutes_per_day";
+export const QUERY_STRING_PRACTICE_GAMES_PER_DAY = "practice_games_per_day";
+export const QUERY_STRING_EPOCH_DAYS_AGO = "epoch_days_ago";
 export const QUERY_STRING_START_WORD = "start";
 export const QUERY_STRING_TARGET_WORD = "target";
 
@@ -29,7 +31,7 @@ export const PRACTICE_DIFFICULTY_MINIMUM = 20;
 export const PRACTICE_TARGET_WORD_LEN = 0; // 0 means any target word length is OK
 export const PRACTICE_REQ_WORD_LEN_1 = 4;
 export const PRACTICE_REQ_WORD_LEN_2 = 6;
-export const PRACTIVE_MIN_CHOICES_PER_STEP = 2;
+export const PRACTICE_MIN_CHOICES_PER_STEP = 2;
 export const PRACTICE_START_WORDS = ["FACE", "GRASP", "SPACE", "PLATE", "TRAIL", "PLANT"];
 
 // Constants for game play toast notifications.
@@ -80,7 +82,7 @@ export const STATIC_DAILY_GAME_START  = "short";
 export const STATIC_DAILY_GAME_TARGET = "poor";
 export const BACKUP_DAILY_GAME_START  = "daily";
 export const BACKUP_DAILY_GAME_TARGET = "broken";
-export const STATIC_DAILY_GAME_NUMBER = -1;
+export const STATIC_DAILY_GAME_NUMBER = 2;
 
 // Constants for settings screen
 export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";

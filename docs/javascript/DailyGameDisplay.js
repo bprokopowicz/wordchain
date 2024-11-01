@@ -13,32 +13,38 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Class Variables ----- */
 
-    //TODO - remove index - it should be calculated
-    static GameWords = {
-          2: ['flue', 'trance'],
-          3: ['fish', 'grater'],
-          4: ['salted', 'fish'],
-          5: ['tasty', 'owl'],
-          6: ['harm', 'bikini'],
-          8: ['play', 'ahead'],
-          9: ['really', 'solve'],
-         10: ['hard', 'kicker'],
-         11: ['leaky', 'spoon'],
-         14: ['tasty', 'mascot'],
-         15: ['free', 'sample'],
-         18: ['smelly', 'gym'],
-         19: ['rice', 'arena'],
-         20: ['hard', 'sinker'],
-         21: ['loud', 'momma'],
-         22: ['forgot', 'how'],
-         23: ['jaunty', 'name'],
-         24: ['bouncy', 'house'],
-         25: ['mind', 'hugger'],
-         26: ['beach', 'house'],
-         26: ['plate', 'acorns'],
-         17: ['smelly', 'date'],
-         26: ['shock', 'bagger'],
-    }
+    static GameWords = [
+          ['fish', 'grater'],
+          ['space', 'statin'],
+          ['short', 'poor'], // MUST BE AT INDEX 2 FOR TESTING
+          ['flue', 'trance'],
+          ['salted', 'fish'],
+          ['tasty', 'owl'],
+          ['harm', 'bikini'],
+          ['play', 'ahead'],
+          ['really', 'solve'],
+          ['hard', 'kicker'], //10
+          ['leaky', 'spoon'],
+          ['tasty', 'mascot'],
+          ['free', 'sample'],
+          ['smelly', 'gym'],
+          ['rice', 'arena'],
+          ['hard', 'sinker'],
+          ['loud', 'momma'],
+          ['forgot', 'how'],
+          ['jaunty', 'name'],
+          ['bouncy', 'house'], //20
+          ['mind', 'hugger'],
+          ['beach', 'house'],
+          ['plate', 'acorns'],
+          ['smelly', 'date'],
+          ['wish', 'corner'],
+          ['case', 'sewing'],
+          ['word', 'chase'],
+          ['braid', 'rafter'],
+          ['poke', 'fumble'],
+          ['shock', 'bagger'], //30
+    ];
 
     /* ----- Construction ----- */
 
@@ -72,21 +78,10 @@ class DailyGameDisplay extends GameDisplay {
         // had stats before. In all other cases this is redundant, but oh well!
         Persistence.saveDailyStats(dailyStats);
 
-        // Test.js will give a 'testing' argument on the URL when it opens
-        // the window to run a daily game that requires the daily game to
-        // be static; check for that.
-        const debugStaticDaily = this.queryVars.has(Const.QUERY_STRING_TESTING);
-        Const.GL_DEBUG && this.logDebug("debugStaticDaily:", debugStaticDaily, "daily");
-
-        if (debugStaticDaily) {
-            this.setStaticDailyGameData();
-        } else {
-            // Get today's daily game; this will set this.startWord and
-            // this.targetWord so that we can call the base class constructGame()
-            // and display the game.  This also recovers the words played so far if any.
-            this.setDailyGameData();
-        }
-
+        // Get today's daily game; this will set this.startWord and
+        // this.targetWord so that we can call the base class constructGame()
+        // and display the game.  This also recovers the words played so far if any.
+        this.setDailyGameData();
         this.constructGame(this.startWord, this.targetWord, this.recoveredDailyGameStateIfAny);
     }
 
@@ -96,70 +91,68 @@ class DailyGameDisplay extends GameDisplay {
 
     setDailyGameData() {
 
-        // Get the DailyGameNumber cookie; this can be manually deleted
+        // Get the saved DailyGameNumber; this can be manually deleted
         // to replay today's daily game instead of recovering it as played
+
         const recoveredDailyGameNumber = Persistence.getDailyGameNumber();
         Const.GL_DEBUG && this.logDebug("recoveredDailyGameNumber:", recoveredDailyGameNumber, "daily");
+
+        // set the base timestamp (epoch) which is either hard-coded or calculated from URL query vars.
         this.setBaseTimestamp(); 
-        if (recoveredDailyGameNumber == Const.STATIC_DAILY_GAME_NUMBER) {
-            // we are recovering the static daily game in mid-play.  
-            this.dailyGameNumber = Const.STATIC_DAILY_GAME_NUMBER;
-            this.startWord  = Const.STATIC_DAILY_GAME_START;
-            this.targetWord = Const.STATIC_DAILY_GAME_TARGET;
-            this.validGame = true;
-            this.recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
-            Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameStateIfAny (static recovered):",
-                    this.recoveredDailyGameStateIfAny, "daily");
+
+        // Now, determine the game number and get the game data from the GameWords object.
+        this.dailyGameNumber = this.calculateGameNumber();
+
+        this.validGame = false;
+        this.setGameWordsFromGameNumber();  
+        if (!this.validGame) {
+            // Return now; don't consider this a new game.
+            return;
+        }
+
+        // If we didn't recover a daily game number from the cookies or
+        // the number we recovered isn't the game number we just calculated,
+        // then this is a new daily game,
+        Const.GL_DEBUG && this.logDebug("this.dailyGameNumber (calculated) is", this.dailyGameNumber, "daily");
+        if ((recoveredDailyGameNumber === null) || (recoveredDailyGameNumber != this.dailyGameNumber)) {
+            // New daily game!
+            Persistence.saveDailyGameNumber(this.dailyGameNumber);
+            Persistence.clearDailyGameState();
+            Persistence.clearDailySolutionShown();
+            this.recoveredDailyGameStateIfAny = [];  // nothing recovered
+
+            // Update stats relating to a new daily game.
+            this.incrementStat("gamesPlayed");
         } else {
-            // Now, determine the game number and get the game data from the GameWords object.
-            this.dailyGameNumber = this.calculateGameNumber();
-
-            this.validGame = false;
-            this.setGameWordsFromGameNumber();  
-            if (!this.validGame) {
-                // Return now; don't consider this a new game.
-                return;
-            }
-                
-            // If we didn't recover a daily game number from the cookies or
-            // the number we recovered isn't the game number we just calculated,
-            // then this is a new daily game,
-            Const.GL_DEBUG && this.logDebug("this.dailyGameNumber (calculated) is", this.dailyGameNumber, "daily");
-            if ((recoveredDailyGameNumber === null) || (recoveredDailyGameNumber != this.dailyGameNumber)) {
-                // New daily game!
-                Persistence.saveDailyGameNumber(this.dailyGameNumber);
-                Persistence.clearDailyGameState();
-                Persistence.clearDailySolutionShown();
-                this.recoveredDailyGameStateIfAny = [];  // nothing recovered
-
-                // Update stats relating to a new daily game.
-                this.incrementStat("gamesPlayed");
-            } else {
-                // Existing daily game; recover the words played so far.  The recovered words determine if the 
-                // game is solved or not.
-                this.recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
-                Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameStateIfAny:", this.recoveredDailyGameStateIfAny, "daily");
-            }
+            // Existing daily game; recover the words played so far.  The recovered words determine if the 
+            // game is solved or not.
+            this.recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
+            Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameStateIfAny:", this.recoveredDailyGameStateIfAny, "daily");
         }
     }
 
     // baseTimestamp is the world-wide starting point determining for Wordchain games.  It is hardcoded as this.baseDate but can
-    // be over-ridden by setting the query string parameter QUERY_STRING_DEBUG_MINUTES_PER_DAY
+    // be over-ridden by setting the query string parameter QUERY_STRING_EPOCH_DAYS_AGO=n
 
     setBaseTimestamp() {
 
         // Are we debugging daily games?
         if (this.queryVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY)) {
             // Yes, we're debugging, so override the standard one day increment.
-            calculateDailyGameBaseTimestampForDebugging(this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY));
-        } else {
-            // Not debugging daily games; set the base timestamp based
-            // on our base date -- the date at which we set the clock
-            // for the very first daily game.
-            this.baseTimestamp = this.baseDate.getTime();
-            Const.GL_DEBUG && this.logDebug(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY, " is NOT set! baseTimestamp:",
-                    new Date(this.baseTimestamp), "daily");
+            const debugMinPerDay = parseInt(this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY));
+            Const.GL_DEBUG && this.logDebug("Setting minutes per day from query vars to ", debugMinPerDay, "daily");
+            this.dateIncrementMs = debugMinPerDay * 60 * 1000;
+            this.baseDate = new Date(); // today will be used as the first day of the daily game epoch
         }
+        if (this.queryVars.has(Const.QUERY_STRING_EPOCH_DAYS_AGO)) {
+            let newEpoch = new Date();
+            const daysAgo = parseInt(this.queryVars.get(Const.QUERY_STRING_EPOCH_DAYS_AGO));
+            newEpoch.setDate(newEpoch.getDate() - daysAgo);
+            this.baseDate = newEpoch;
+            Const.GL_DEBUG && this.logDebug("Setting epoch to ", daysAgo, " days ago as ", newEpoch.toString(), "daily");
+        }
+        this.baseTimestamp = this.baseDate.getTime();
+        Const.GL_DEBUG && this.logDebug("epoch timestamp is set to: ", new Date(this.baseTimestamp), "daily");
     }
 
     //
@@ -169,55 +162,28 @@ class DailyGameDisplay extends GameDisplay {
 
     setGameWordsFromGameNumber() {
         Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber(): this.dailyGameNumber: ", this.dailyGameNumber, "daily");
-        if (this.dailyGameNumber in DailyGameDisplay.GameWords) {
+        if (this.queryVars.has(Const.QUERY_STRING_START_WORD) && this.queryVars.has(Const.QUERY_STRING_TARGET_WORD)) {
+            [this.startWord, this.targetWord] = [this.queryVars.get(Const.QUERY_STRING_START_WORD), this.queryVars.get(Const.QUERY_STRING_TARGET_WORD)];
+            this.validGame = true;
+        } else if (this.dailyGameNumber >= 1 && this.dailyGameNumber <= DailyGameDisplay.GameWords.length) {
             [this.startWord, this.targetWord] = DailyGameDisplay.GameWords[this.dailyGameNumber];
             this.validGame = true;
         } else {
             // No daily game? Something went awry; use the backup.
-            this.startWord  = Const.BACKUP_DAILY_GAME_START;
-            this.targetWord = Const.BACKUP_DAILY_GAME_TARGET;
+            [this.startWord, this.targetWord]  = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
             this.validGame = false;
             this.appDisplay.showToast(Const.NO_DAILY);
         }
+        Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber() start: ", this.startWord, " target: ", this.targetWord, "daily");
     }
 
-    calculateDailyGameBaseTimestampForDebugging(debugMinPerDay) {
-        // we're debugging, so override the standard one day increment.
-        this.dateIncrementMs = debugMinPerDay * 60 * 1000;
-        Const.GL_DEBUG && this.logDebug(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY,
-                " is set! dateIncrementMs:", this.dateIncrementMs, "daily");
-
-        // if we are debugging the daily game, we override the beginning of WordChain's epoch to be now on the first run,
-        // and then subsequent runs will use that as the beginning of the WordChain epoch for calculating the 
-        // daily game number.
-        this.baseTimestamp = Persistence.getDebugBaseTimestamp();
-        if (this.baseTimestamp === null) {
-            this.baseTimestamp = (new Date()).getTime();
-            Persistence.saveebugBaseTimestamp(this.baseTimestamp);
-            Const.GL_DEBUG && this.logDebug("no recovered DebugBaseTimestamp; setting to now", "daily");
-        } else {
-            Const.GL_DEBUG && this.logDebug("got DebugBaseTimestamp; baseTimestamp:", new Date(this.baseTimestamp), "daily");
-        }
-    }
-
-    setStaticDailyGameData() {
-        Const.GL_DEBUG && this.logDebug("initializing the static daily game", "daily");
-        this.startWord = this.queryVars.has(Const.QUERY_STRING_START_WORD) ?  
-            this.queryVars.get(Const.QUERY_STRING_START_WORD) : Const.STATIC_DAILY_GAME_START;
-        this.targetWord = this.queryVars.has(Const.QUERY_STRING_TARGET_WORD) ?
-            this.queryVars.get(Const.QUERY_STRING_TARGET_WORD) : Const.STATIC_DAILY_GAME_TARGET;
-        this.validGame = true;
-        this.incrementStat("gamesPlayed");
-        this.dailyGameNumber = Const.STATIC_DAILY_GAME_NUMBER;
-        this.recoveredDailyGameStateIfAny = [];
-        Persistence.saveDailyGameNumber(this.dailyGameNumber);
-        Persistence.clearDailyGameState(); // empty at this point
-    }
+    // valid daily game numbers run from 0 to GameWords.length-1.  If the calculated value is outside that range,
+    // a place-holder game is used.  
 
     calculateGameNumber() {
         const nowTimestamp = (new Date()).getTime();
         const msElapsed = nowTimestamp - this.baseTimestamp;
-        const gameNumber = Math.floor(msElapsed / this.dateIncrementMs) + 1;
+        const gameNumber = Math.floor(msElapsed / this.dateIncrementMs);
         Const.GL_DEBUG && this.logDebug("calculateGameNumber(): now: ", nowTimestamp, ", elapsed since base: ",
                 msElapsed, ", gameNumber: ", gameNumber, "daily");
         return gameNumber;

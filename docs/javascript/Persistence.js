@@ -93,16 +93,9 @@ class Persistence {
         Cookie.save(Cookie.DAILY_GAME_NUMBER, gameNumber);
     }
 
-    // debugging features
-
-    static getDebugBaseTimestamp() {
-        return Cookie.getInt(Cookie.DEBUG_BASE_TIMESTAMP);
+    static clearDailyGameNumber() {
+        Cookie.remove(Cookie.DAILY_GAME_NUMBER);
     }
-
-    static saveDebugBaseTimestamp(timestamp) {
-        Cookie.save(Cookie.DEBUG_BASE_TIMESTAMP, timestamp);
-    }
-
     // GUI settings
 
     static saveDarkTheme (darkTheme) {

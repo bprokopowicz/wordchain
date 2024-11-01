@@ -9,6 +9,7 @@ class PracticeGameDisplay extends GameDisplay {
     /* ----- Class Variables ----- */
 
     static MaxGamesIntervalMs = 24 * 60 *60 * 1000; // one day in ms
+    static PracticeGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using URL query vars
 
     /* ----- Construction ----- */
 
@@ -20,6 +21,9 @@ class PracticeGameDisplay extends GameDisplay {
             PracticeGameDisplay.MaxGamesIntervalMs = this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) * 60 * 1000;
         }
 
+        if (this.queryVars.has(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY) ) {
+            PracticeGameDisplay.PracticeGamesPerDay= this.queryVars.get(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY);
+        }
         // We use timestamps to ensure the user doesn't play more than the maximum
         // number of timestamps per day; 
 
@@ -95,7 +99,7 @@ class PracticeGameDisplay extends GameDisplay {
         Persistence.savePracticeTimestamps(practiceGameTimestamps);
 
         // return value indicates if there are any practice games left today.
-        let ret = (practiceGameTimestamps.length < Const.PRACTICE_GAMES_PER_DAY);
+        let ret = (practiceGameTimestamps.length < PracticeGameDisplay.PracticeGamesPerDay);
         Const.GL_DEBUG && this.logDebug("anyGamesRemaining(): ", ret, "practice");
         return ret;
     }
@@ -105,8 +109,8 @@ class PracticeGameDisplay extends GameDisplay {
         let updateTime = (new Date()).getTime();
         let practiceGameTimestamps = Persistence.getPracticeTimestamps();
         practiceGameTimestamps.push(updateTime);
-        if (practiceGameTimestamps.length > Const.PRACTICE_GAMES_PER_DAY) {
-            console.error("should not be trying to start a practice game after ", Const.PRACTICE_GAMES_PER_DAY, " games played");
+        if (practiceGameTimestamps.length > PracticeGameDisplay.PracticeGamesPerDay) {
+            console.error("should not be trying to start a practice game after ", PracticeGameDisplay.PracticeGamesPerDay, " games played");
         }
         Persistence.savePracticeTimestamps(practiceGameTimestamps);
     }

@@ -4,15 +4,14 @@ import * as Const from './Const.js';
 // Synchronously wait for the word list to download.
 // This code runs before any other code
 // Pop the last entry which is always an empty string following the last new-line.
-// TODO: This should use Const.DICT_URL.
 
-const globalWordList = await fetch("https:/wordchain/docs/resources/WordChainDict")
+const globalWordList = await fetch(Const.DICT_URL)
     .then(resp => resp.text())
     .then(text => text.split("\n"))
     .then(words => words.map((x)=>x.toUpperCase()))
     .then(words => words.slice(0,-1));
 
-const scrabbleWordList = await fetch("https:/wordchain/docs/resources/Scrabble3-6")
+const scrabbleWordList = await fetch(Const.SCRABBLE_DICT_URL)
     .then(resp => resp.text())
     .then(text => text.split("\n"))
     .then(words => words.map((x)=>x.toUpperCase()))

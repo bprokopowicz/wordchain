@@ -10,6 +10,7 @@ Implementation Ideas (Future)
 - Possible settings to tweak game difficulty:
   - Mode where future rows do not have change cells outlined thicker. (harder)
   - Mode where picker displays only letters that could result in valid words. (easier)
+- Don't make the player select the last letter when there is only one step left? This prevents fat-fingering the last letter choice.
 
 Testing
 - Update Manual UI Testing Use Cases doc

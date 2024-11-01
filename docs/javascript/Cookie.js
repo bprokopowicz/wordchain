@@ -21,9 +21,6 @@
 **        Object: see explanation of properties in DailyStats.
 **     DailySolutionShown:
 **        Boolean: saved to true when user clicks 'Solution'.  Applies to the current game number only.
-**     DebugBaseTimestamp
-**        Integer: Epoch timestamp used when we override the minutes per day. 
-**        (Code will set this; doesn't need to be set manually)
 **
 **  Used and set in PracticeGameDisplay
 **
@@ -102,7 +99,10 @@ class Cookie {
     }
 
     static get(name) {
-        // console.log("Cookie.get(): name:", name, "window: ", window, "window.localStorage: ", window.localStorage);
+        if ((window.localStorage == null) ) {
+            console.error(" ERROR: Cookie.get(): name:", name, "has null local storage for window: ", window);
+            return null;
+        }
         return window.localStorage.getItem(name);
     }
 
