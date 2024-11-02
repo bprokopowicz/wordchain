@@ -236,9 +236,12 @@ class Test extends BaseLogger {
         let url = '/wordchain/docs/html/WordChain.html' + suffix;
         this.logDebug("Opening window at ", url, "test");
 
-        this.newWindow = window.open(url, 'AppDisplayTest', 'width=600,height=800');
+        // _blank as the second arg of 'open()' is needed for safari on iPhone?
+        // this.newWindow = window.open('', '_blank');
+        // this.newWindow.location.href = url;
+        this.newWindow = window.open(url, '_blank', 'width=600,height=800');
+        this.logDebug("openTheTestAppWindow(): empty new window this.newWindow=", this.newWindow, "test");
         // set the child's console to our console. This doesn't work reliably, especially when the child window has a crashing bug.
-        this.logDebug("openTheTestAppWindow(): this.newWindow=", this.newWindow, "test");
         this.newWindow.console = console;
 
         /* TODO - this sometimes cause the browser share code to fail with console error:
@@ -282,7 +285,12 @@ class Test extends BaseLogger {
 
     // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
     waitForAppDisplayThenRunFunc(func) {
-        if (this.getNewAppWindow() && this.getNewAppWindow().theAppDisplayIsReady) {
+
+        if (!this.getNewAppWindow()) {
+            console.error("new app window is null - tests can not continue.");
+            return;
+        }
+        if (this.getNewAppWindow().theAppDisplayIsReady) {
             this.logDebug("new window AppDisplay is ready; calling func now.", "test");
             // How to call this class's member function 'func' with 'this' properly set.
             var boundFunc = func.bind(this);
@@ -1451,7 +1459,6 @@ TODO - what if these are played after the game is over?  They should not be addi
 
         const clearCookies = false;
         this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-        // this.openTheTestAppWindow();
         this.waitForAppDisplayThenRunFunc(this.finishDailyGameRestartTest);
     }
 
