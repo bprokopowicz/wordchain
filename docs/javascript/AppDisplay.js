@@ -154,7 +154,7 @@ class AppDisplay extends BaseLogger {
         this.gameButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "game-button-div"});
         this.createGameButtons();
 
-        // TODO: Add a logo icon.
+        // TODO-PRODUCTION: Add a logo icon.
         const titleDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "title-div"});
         ElementUtilities.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
 

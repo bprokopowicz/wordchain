@@ -100,7 +100,8 @@ class Cookie {
 
     static get(name) {
         if ((window.localStorage == null) ) {
-            console.error(" ERROR: Cookie.get(): name:", name, "has null local storage for window: ", window);
+            // TODO-BETA: may relate to TODO-BETA in AuxiliaryDisplay.js
+            console.error("ERROR: Cookie.get(): name:", name, "has null local storage for window: ", window);
             return null;
         }
         return window.localStorage.getItem(name);

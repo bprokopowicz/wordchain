@@ -261,7 +261,7 @@ class DailyGameDisplay extends GameDisplay {
 
     // Called from AppDisplay when "Solution" button is clicked.
     showSolution() {
-        // TODO: Add an "are you sure?"
+        // TODO-PRODUCTION: Add an "are you sure?"
         this.game.finishGame();
         Persistence.saveDailySolutionShown();
         this.showGameAfterMove();

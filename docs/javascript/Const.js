@@ -22,13 +22,13 @@ export const QUERY_STRING_START_WORD = "start";
 export const QUERY_STRING_TARGET_WORD = "target";
 
 // Constants for practice game word selection screen
-// TODO: UNCOMMENT
-export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
-//export const PRACTICE_GAMES_PER_DAY = 300;     // For testing
+// TODO-PRODUCTION: Uncomment
+//export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
+export const PRACTICE_GAMES_PER_DAY = 1000;    // For beta testing
 export const PRACTICE_STEPS_MINIMUM = 5;
 export const PRACTICE_STEPS_MAXIMUM = 7;
 export const PRACTICE_DIFFICULTY_MINIMUM = 20;
-export const PRACTICE_TARGET_WORD_LEN = 0; // 0 means any target word length is OK
+export const PRACTICE_TARGET_WORD_LEN = 0;     // 0 means any target word length is OK
 export const PRACTICE_REQ_WORD_LEN_1 = 4;
 export const PRACTICE_REQ_WORD_LEN_2 = 6;
 export const PRACTICE_MIN_CHOICES_PER_STEP = 2;

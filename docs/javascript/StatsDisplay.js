@@ -156,9 +156,8 @@ class StatsDisplay extends AuxiliaryDisplay {
         // Now, construct the graphic showing the lengths of the user's
         // played words, colored red or green to indicate whether that word
         // did or did not increase the solution length.
-        // The target word (last) is shown in a separate, fixed color regardless of success or failure
-        // so we slice it off here.
-        // TODO: don't show anything if the word hasn't been played.
+        // The target word (last) is shown in a separate, fixed color regardless
+        // of success or failure so we slice it off here.
 
         let wordsBetweenStartAndTarget = gameInfo.moveSummary.slice(1,-1);
         let [startRatingUnused, startLength] = gameInfo.moveSummary[0];
@@ -168,12 +167,11 @@ class StatsDisplay extends AuxiliaryDisplay {
         let emoji = Const.PURPLE_SQUARE;
         shareString += emoji.repeat(startLength) + "\n";
 
-        // show all the words played.
-
+        // Show all the words played.
         let colorblindMode = this.appDisplay.isColorblindMode();
         for (let [moveRating, wordLength] of wordsBetweenStartAndTarget) {
 
-            // we don't include unplayed words in the share string.  This happens when there are too many wrong moves.
+            // We don't include unplayed words in the share string.  This happens when there are too many wrong moves.
             // The moveSummary includes the correct unplayed words leading from the last wrong word to the target, but we
             // don't want to show them.
             if (moveRating == Const.FUTURE) {

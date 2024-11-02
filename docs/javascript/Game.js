@@ -211,7 +211,6 @@ class Game extends BaseLogger {
             // the game solver can play that word if the best solution involves back-tracking out of it
             if (isScrabbleOnlyWord) {
                 this.logDebug("user played scrabble-only word: ", word, ", adding it to regular dictionary in case it is needed for backtracking", "game");
-                // TODO after writing a test 
                 this.dictionary.addWord(word);
             }
             if (word == this.remainingSteps.getNthWord(0)) {

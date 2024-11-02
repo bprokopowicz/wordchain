@@ -40,7 +40,7 @@ class AuxiliaryDisplay extends BaseLogger {
         const button = ElementUtilities.addElementTo("button", buttonContainer, {class: buttonClass});
 
         // Now, the create the svg element.
-        // TODO: Should make the width controllable.
+        // TODO-PRODUCTION: Should make the width controllable.
         const svg = ElementUtilities.addElementTo("svg", button,
             {viewBox: "0 0 24 24", style: "width: 24; height: 24;", stroke: "None",});
 
@@ -60,7 +60,7 @@ class AuxiliaryDisplay extends BaseLogger {
 
     // Callback for closing an Auxiliary screen.
     closeAuxiliaryCallback(event) {
-        // TODO: Why does this bomb?
+        // TODO-BETA [Bonnie]: Why does this bomb?
         Const.GL_DEBUG && this.logDebug("closeAuxiliaryCallback(): this.isOpen:", this.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
@@ -90,7 +90,7 @@ class AuxiliaryDisplay extends BaseLogger {
 
     // Callback for opening an Auxiliary screen.
     openAuxiliaryCallback(event) {
-        // TODO: Why does this bomb?
+        // TODO-BETA [Bonnie]: Why does this bomb?
         Const.GL_DEBUG && this.logDebug("openAuxiliaryCallback(): this.isOpen:", this.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
