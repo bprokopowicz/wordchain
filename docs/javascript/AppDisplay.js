@@ -127,6 +127,14 @@ class AppDisplay extends BaseLogger {
     }
 
     createGameButtons() {
+        // Button to switch between Daily and Practice games.
+        this.switchGamesButton = ElementUtilities.addElementTo(
+            "button", this.gameButtonDiv,
+            {id: "switch-games", class: "wordchain-button header-button"},
+            "Practice");
+
+        ElementUtilities.setButtonCallback(this.switchGamesButton, this, this.switchGamesCallback);
+
         // Button to show the solution.
         this.solutionButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
@@ -135,14 +143,6 @@ class AppDisplay extends BaseLogger {
 
         // Pass 'this' to the callback for the solutionButton element so that we can access ourself.
         ElementUtilities.setButtonCallback(this.solutionButton, this, this.solutionCallback);
-
-        // Button to switch between Daily and Practice games.
-        this.switchGamesButton = ElementUtilities.addElementTo(
-            "button", this.gameButtonDiv,
-            {id: "switch-games", class: "wordchain-button header-button"},
-            "Practice");
-
-        ElementUtilities.setButtonCallback(this.switchGamesButton, this, this.switchGamesCallback);
     }
 
     createHeaderDiv() {
@@ -191,7 +191,9 @@ class AppDisplay extends BaseLogger {
 
     // Callback for the Solution button.
     solutionCallback(event) {
-        this.currentGameDisplay.showSolution();
+        if (this.solutionButton.enabled) {
+            this.currentGameDisplay.showSolution();
+        }
     }
 
     // Callback for the Switch Games button.
@@ -205,6 +207,18 @@ class AppDisplay extends BaseLogger {
     }
 
     /* ----- Utilities ----- */
+
+    disableSolutionButton()
+    {
+        ElementUtilities.addClass(this.solutionButton, "header-button-disabled");
+        this.solutionButton.enabled = false;
+    }
+
+    enableSolutionButton()
+    {
+        ElementUtilities.removeClass(this.solutionButton, "header-button-disabled");
+        this.solutionButton.enabled = true;
+    }
 
     // Return the given CSS property value.
     static getCssProperty(property) {
@@ -268,12 +282,23 @@ class AppDisplay extends BaseLogger {
         }
 
         // Re-show the moves to make the color changes take effect.
-        this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove();
+        // Pass true to indicate that toast display should be skipped.
+        this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove(true);
     }
 
     // Set the given CSS property to the specified value.
     setCssProperty(property, value) {
         document.documentElement.style.setProperty(`--${property}`, value);
+    }
+
+    setSolutionStatus() {
+        // Enable or disable the solution button.
+        if (this.currentGameDisplay && this.currentGameDisplay.canShowSolution())
+        {
+            this.enableSolutionButton();
+        } else {
+            this.disableSolutionButton();
+        }
     }
 
     // Show a "toast" pop-up (typically an error message).
@@ -296,6 +321,7 @@ class AppDisplay extends BaseLogger {
         this.switchGamesButton.innerHTML = "Practice";
 
         this.currentGameDisplay = this.dailyGame;
+        this.setSolutionStatus();
     }
 
     switchToPracticeGame() {
@@ -321,6 +347,7 @@ class AppDisplay extends BaseLogger {
         this.switchGamesButton.innerHTML = "Daily";
 
         this.currentGameDisplay = this.practiceGame;
+        this.setSolutionStatus();
     }
 }
 

@@ -60,7 +60,6 @@ class AuxiliaryDisplay extends BaseLogger {
 
     // Callback for closing an Auxiliary screen.
     closeAuxiliaryCallback(event) {
-        // TODO-BETA [Bonnie]: Why does this bomb?
         Const.GL_DEBUG && this.logDebug("closeAuxiliaryCallback(): this.isOpen:", this.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
@@ -90,7 +89,6 @@ class AuxiliaryDisplay extends BaseLogger {
 
     // Callback for opening an Auxiliary screen.
     openAuxiliaryCallback(event) {
-        // TODO-BETA [Bonnie]: Why does this bomb?
         Const.GL_DEBUG && this.logDebug("openAuxiliaryCallback(): this.isOpen:", this.isOpen, ", event:", event, "callback");
 
         // By necessity, we have attached this callback to multiple elements that

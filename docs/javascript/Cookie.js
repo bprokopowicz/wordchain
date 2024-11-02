@@ -100,7 +100,7 @@ class Cookie {
 
     static get(name) {
         if ((window.localStorage == null) ) {
-            // TODO-BETA: may relate to TODO-BETA in AuxiliaryDisplay.js
+            // TODO-PRODUCTION: Why does this occur sometimes?
             console.error("ERROR: Cookie.get(): name:", name, "has null local storage for window: ", window);
             return null;
         }

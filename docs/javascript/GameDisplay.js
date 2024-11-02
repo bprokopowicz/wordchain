@@ -195,15 +195,21 @@ class GameDisplay extends BaseLogger {
         return this.game;
     }
 
-    showGameAfterMove() {
+    canShowSolution() {
+        // We can only show the solution if it isn't already shown or if the game is not won.
+        return !(this.getSolutionShown() || this.game.isWinner())
+    }
+
+    showGameAfterMove(skipToast=false) {
         const container = ElementUtilities.addElementTo("div", this.gameDiv, {class: "game-container"}),
               tableDiv = ElementUtilities.addElementTo("div", container, {class: "table-div"}),
               tableElement = ElementUtilities.addElementTo("table", tableDiv, {class: "table-game"});
 
-        // see if the user requested the solution.  Daily and Practice subclasses manage this separately in a pure
-        // virtual function getSolutionShown()
+        // See whether the user requested the solution.
+        // Daily and Practice subclasses manage this separately in a pure virtual function getSolutionShown()
         let userRequestedSolution = this.getSolutionShown();
         Const.GL_DEBUG && this.logDebug("showGameAfterMove() userRequestedSolution=", userRequestedSolution, "game");
+
         // Create an element that can be used to add buttons (or whatever) after the display of
         // elements for the game.
         this.postGameDiv = ElementUtilities.addElementTo("div", container, {class: "break post-game-div"});
@@ -260,7 +266,10 @@ class GameDisplay extends BaseLogger {
         // If so, we need to show a toast message.
         const wrongMoveCount = this.getWrongMoveCount()
         if (wrongMoveCount > this.wrongMoves) {
-            this.appDisplay.showToast(Const.WRONG_MOVE);
+            if (! skipToast)
+            {
+                this.appDisplay.showToast(Const.WRONG_MOVE);
+            }
             this.wrongMoves = wrongMoveCount;
         }
 
@@ -275,7 +284,7 @@ class GameDisplay extends BaseLogger {
         }
 
         if (this.game.isOver()) {
-            if (!userRequestedSolution) {
+            if (!userRequestedSolution && !skipToast) {
                 if (this.game.isWinner()) {
                     this.appDisplay.showToast(Const.GAME_WON);
                 } else {
@@ -290,6 +299,9 @@ class GameDisplay extends BaseLogger {
                 this.additionalGameOverActions();
             }
         }
+
+        // Enable or disable the Solution button.
+        this.appDisplay.setSolutionStatus();
     }
 
     /* ----- Callbacks ----- */

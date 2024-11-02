@@ -96,6 +96,7 @@ class Persistence {
     static clearDailyGameNumber() {
         Cookie.remove(Cookie.DAILY_GAME_NUMBER);
     }
+
     // GUI settings
 
     static saveDarkTheme (darkTheme) {

@@ -76,6 +76,7 @@
 
     /* ===== Header ===== */
     --header-button-bg:         LightGray;
+    --header-button-fg-disabled:#9c9ea0;
     --header-bg:                #97b2d5;    /* slate blue */
 
     /* Currently not used in v2 */
@@ -279,6 +280,10 @@ hr {
 .header-button {
     font-weight: bold;
     background: var(--header-button-bg);
+}
+
+.header-button-disabled {
+    color: var(--header-button-fg-disabled);
 }
 
 #title-div {

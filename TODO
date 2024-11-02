@@ -16,14 +16,7 @@ Testing
   - query parameters for practice games: start, target, minutes_per_day, whatever else
   - red sections
 
-Bugs
-- 'Solved!' toast pops up when changing settings (colorblind or dark modes)
-- don't show solution button in Daily Game if the puzzle is either solved or shown
-- TODO-BETA in AuxiliaryDisplay.js -- log the value of window
-
-Beta (for sharing with initial friends)
-- Fix bugs [Bonnie - 11/3]
-- Review help message and FAQ [Bonnie - 11/3]
+Beta (for sharing with "Core Word Nerds" mailing list -- 10 people)
 - Update Manual UI Testing Use Cases document [Pete - 11/5]
 - Write automated tests for daily game use cases described below [Pete - 11/4]
 - Execute automated tests in these environments:
@@ -39,13 +32,26 @@ Beta (for sharing with initial friends)
   - Chrome/Android phone -- using debugging environment [Bonnie - 11/23]
   - Chrome/Mac [Pete - 11/12]
 
+Questions of Beta Users
+- Is it a fun game?
+- Is it too hard or too easy?
+- Is it easy to understand/use?
+- Anything unintuitive in the user interface?
+- Any bugs?
+- Any suggested enhancements?
+- Especially interested in these environments:
+  - Android phone
+  - Edge browser
+
 Production
 - How to create/minify/obscure one big js file
 - Buy domain wordchain.com?
 - Where to host?
+- Create a back-end that delivers the daily and practice games
 - How to manage daily game words long-term?
 - Cookies: make secure? Obfuscate? Save in back-end DB?
 - Logo/favicon.ico
+- Consider removing words that are in both dictionaries from the Scrabble dictionary
 
 daily game use cases:
 1) no recovered game number - calculate current game and initialize it

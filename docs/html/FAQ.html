@@ -12,41 +12,67 @@
         The score of the game is how many more steps than the best solution were made.
         If there were no extra steps, that is depicted with a star.
         If there were more than 5 extra steps, that is depicted with a confounded emoji.
-        If you played in Hard Mode, a fire emoji is added.
-        The red/green squares (orange/blue in Colorblind Mode) mimic the game tiles
-        at the end of the game.
+        The squares show the progression of the game:
         </p>
-        <h2>Why do the game tiles seem so large when I use my laptop or desktop computer?</h2>
+            <ul>
+            <li>
+            The purple squares depict the start and target words.
+            </li>
+            <li>
+            The red/green squares (orange/blue in Colorblind Mode) mimic the letter cell
+            colors at the end of the game.
+            </li>
+            <li>
+            The gold stars indicate a GENIUS MOVE!
+            </li>
+            </ul>
         <p>
-        WordChain defines the sizes of the words and tiles it displays
-        relative to the standard size that your browser uses.
-        The web unit for this standard size is a rem (which stands for "root element's font size" - wonky!).
-        Most browsers default to 12 point font (which is 16 pixels) -- which would be 1 rem.,
-        However, you are able to adjust the font size to one that is comfortable for you.
+        Note that only the Daily game can be shared.
+        </p>
+        <h2>What's this about a Genius Move?</h2>
+        <p>
+        WordChain draws its start and target words from a "common dictionary" of everyday words,
+        and it uses that dictionary to determine the shortest solution, indicated with
+        the uncolored letter cells at the start of the game.
+        There is also an "advanced dictionary" that includes all the words in the common dictionary
+        and many more.
         </p>
         <p>
-        If you have adjusted your browser to a larger font, the tiles will be larger as well.
-        You can adjust it smaller in the WordChain tab if you'd like.
-        In a MacOS environment, you use the Command key and the plus or minus key to do that.
-        In a Windows10 environment you use the Control key and plus or minus
-        (or you can use the mouse wheel instead of using plus or minus in Windows).
+        When you make a move (i.e. add, delete, or change a letter),
+        the <i>advanced</i> dictionary is used to determine whether the resulting word is valid. 
+        If so, the <i>common</i> dictionary is used to determine the layout of the
+        subsequent letter cells required to get to the target word.
+        A Genius Move occurs when you play a word that is <i>only</i> in the <i>advanced</i> dictionary
+        <b>and</b> it leads to solving the game in fewer steps than WordChain's solution
+        using only the <i>common</i> dictionary.
         </p>
         <h2>What led you to create this game?</h2>
         <p>
-        Bonnie created a word game as a learning project in early 2014, in the interregnum between when she
-        retired from Alcatel-Lucent and started her current position at CACI (which was then LGS Innovations).
-        When Wordle became all the rage it got us to thinking about that old game and whether
-        we could resurrect and modernize it.
-        WordChain has its roots in the original game, but it is very different because
-        the web of 2022 is quite a bit different from the web of 2014!
+        Well, it's a bit of a story.
         </p>
+            <ul>
+            <li>
+            Bonnie created Version 1, called Word2Word,
+            as a learning project in early 2014, in the interregnum between when she
+            retired from Alcatel-Lucent and started her current position at CACI (which was then LGS Innovations).
+            </li>
+            <li>
+            When Wordle became all the rage in late 2021/early 2022 it got us to thinking about
+            that old game and whether we could resurrect and modernize it.
+            We jointly did that and had Version 2 in playable form by the summer of 2022, but our enthusiasm fizzled.
+            </li>
+            <li>
+            We completely reworked the user interface of the game in 2024, so you are playing Version 3.
+            WordChain has its roots in the original game,
+            but it is very different because the web of 2024 is quite a bit different from the web of 2014!
+            </li>
+            </ul>
         <h2>Is the original game still available?</h2>
         <p>
-        In fact, it is! It is hosted with a free account on Heroku, one of the earliest cloud platforms.
-        Because it is a free account, when the game is not being played it goes dormant so when you first access it,
-        <a href="http://word2word.herokuapp.com/" target="_blank">WordToWord</a>
-        it is slow to start up.
-        The Word2Word software has not been touched since 2014 so it is around 90 in human years.
+        Sadly, it is not. We have the Word2Word software,
+        but that version partially ran on Heroku, one of the earliest cloud platforms. 
+        Our account on Heroku was deleted for inactivity somewhere along the way.
+        The Word2Word software from 2014 would be around 90 in human years.
         </p>
     </body>
 </html>

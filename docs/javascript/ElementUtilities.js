@@ -6,15 +6,15 @@ class ElementUtilities {
 
         let elementClass = element.getAttribute('class'),
             className,
-            classes;
+            classesToAdd;
 
         if (typeof classNameOrList === 'string') {
-            classes = [classNameOrList];
+            classesToAdd = [classNameOrList];
         } else {
-            classes = classNameOrList;
+            classesToAdd = classNameOrList;
         }
 
-        for (className of classes)
+        for (className of classesToAdd)
         {
             if (elementClass === null) {
                 elementClass = className;
@@ -109,6 +109,36 @@ class ElementUtilities {
 
     static hide(element) {
         element.setAttribute("style", "display: none;");
+    }
+
+    static removeClass(element, classNameOrList) {
+
+        let elementClasses = element.getAttribute('class').split(' '),
+            newElementClass = null,
+            className,
+            classesToRemove;
+
+        if (typeof classNameOrList === 'string') {
+            classesToRemove = [classNameOrList];
+        } else {
+            classesToRemove = classNameOrList;
+        }
+
+        for (className of elementClasses)
+        {
+            // If we don't find this class in the classes to remove,
+            // added it to the new element class.
+            if (classesToRemove.indexOf(className) < 0)
+            {
+                if (newElementClass === null) {
+                    newElementClass = className;
+                } else {
+                    newElementClass += ` ${className}`;
+                }
+            }
+        }
+
+        element.setAttribute('class', newElementClass);
     }
 
     static setButtonCallback(buttonElement, callbackObj, callbackFunc) {
