@@ -6,23 +6,20 @@ import * as Const from './Const.js';
 
 class PracticeGameDisplay extends GameDisplay {
 
-    /* ----- Class Variables ----- */
-
-    static MaxGamesIntervalMs = 24 * 60 *60 * 1000; // one day in ms
-    static PracticeGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using URL query vars
-
     /* ----- Construction ----- */
 
     constructor(appDisplay, gameDiv, pickerDiv) {
         super(appDisplay, gameDiv, pickerDiv, "practice-picker");
 
+        this.practiceGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using URL query vars or the setter func
         // Are we debugging the number of practice games allowed?
+        this.maxGamesIntervalMs = 24 * 60 *60 * 1000; // one day in ms
         if (this.queryVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) ) {
-            PracticeGameDisplay.MaxGamesIntervalMs = this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) * 60 * 1000;
+            this.maxGamesIntervalMs = this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) * 60 * 1000;
         }
 
         if (this.queryVars.has(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY) ) {
-            PracticeGameDisplay.PracticeGamesPerDay= this.queryVars.get(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY);
+            this.practiceGamesPerDay = this.queryVars.get(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY);
         }
         // We use timestamps to ensure the user doesn't play more than the maximum
         // number of timestamps per day; 
@@ -30,6 +27,10 @@ class PracticeGameDisplay extends GameDisplay {
         if (this.anyGamesRemaining()) {
             this.updateWords();
         }
+    }
+
+    setPracticeGamesPerDay(n) {
+        this.practiceGamesPerDay = n;
     }
 
     // this is a virtual function of the base class.  It is called after any play that adds a new 
@@ -93,13 +94,13 @@ class PracticeGameDisplay extends GameDisplay {
         // remove any any games that have aged out. 
 
         practiceGameTimestamps = practiceGameTimestamps
-            .filter(timestamp => (now-timestamp) < PracticeGameDisplay.MaxGamesIntervalMs);
+            .filter(timestamp => (now-timestamp) < this.maxGamesIntervalMs);
 
         // update the cookie now that we have removed any expired timestamps
         Persistence.savePracticeTimestamps(practiceGameTimestamps);
 
         // return value indicates if there are any practice games left today.
-        let ret = (practiceGameTimestamps.length < PracticeGameDisplay.PracticeGamesPerDay);
+        let ret = (practiceGameTimestamps.length < this.practiceGamesPerDay);
         Const.GL_DEBUG && this.logDebug("anyGamesRemaining(): ", ret, "practice");
         return ret;
     }
@@ -109,8 +110,8 @@ class PracticeGameDisplay extends GameDisplay {
         let updateTime = (new Date()).getTime();
         let practiceGameTimestamps = Persistence.getPracticeTimestamps();
         practiceGameTimestamps.push(updateTime);
-        if (practiceGameTimestamps.length > PracticeGameDisplay.PracticeGamesPerDay) {
-            console.error("should not be trying to start a practice game after ", PracticeGameDisplay.PracticeGamesPerDay, " games played");
+        if (practiceGameTimestamps.length > this.practiceGamesPerDay) {
+            console.error("should not be trying to start a practice game after ", this.practiceGamesPerDay, " games played");
         }
         Persistence.savePracticeTimestamps(practiceGameTimestamps);
     }

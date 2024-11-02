@@ -24,15 +24,15 @@ export const QUERY_STRING_TARGET_WORD = "target";
 // Constants for practice game word selection screen
 // TODO-PRODUCTION: Uncomment
 //export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
-export const PRACTICE_GAMES_PER_DAY = 1000;    // For beta testing
+export let PRACTICE_GAMES_PER_DAY = 1000;    // For beta testing
 export const PRACTICE_STEPS_MINIMUM = 5;
-export const PRACTICE_STEPS_MAXIMUM = 7;
+export const PRACTICE_STEPS_MAXIMUM = 8;
 export const PRACTICE_DIFFICULTY_MINIMUM = 20;
 export const PRACTICE_TARGET_WORD_LEN = 0;     // 0 means any target word length is OK
 export const PRACTICE_REQ_WORD_LEN_1 = 4;
 export const PRACTICE_REQ_WORD_LEN_2 = 6;
 export const PRACTICE_MIN_CHOICES_PER_STEP = 2;
-export const PRACTICE_START_WORDS = ["FACE", "GRASP", "SPACE", "PLATE", "TRAIL", "PLANT"];
+export const PRACTICE_START_WORDS = ["FACE", "GRASP", "SPACE", "PLATE", "TRAIL", "PLANT", "HOUSE", "SNORE", "SNOW", "BROIL"];
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.

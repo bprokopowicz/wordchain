@@ -5,6 +5,7 @@ import { Game } from '../docs/javascript/Game.js';
 import { Cookie } from '../docs/javascript/Cookie.js';
 import { Persistence } from '../docs/javascript/Persistence.js';
 import { DailyGameDisplay } from '../docs/javascript/DailyGameDisplay.js'
+import { PracticeGameDisplay } from '../docs/javascript/PracticeGameDisplay.js'
 import * as Const from '../docs/javascript/Const.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
@@ -74,6 +75,7 @@ class Test extends BaseLogger {
     }
 
     display() {
+        this.logDebug("initializing test suite display", "test");
         this.outerDiv = ElementUtilities.addElement("div", {style: "margin: 2rem;"});
         this.displayTestSuite();
         this.displayDictTester();
@@ -94,7 +96,7 @@ class Test extends BaseLogger {
     */
 
     displayTestSuite() {
-        this.addTitle("WordChain Test Suite - allow 10+ seconds to complete.  Set Const.GL_DEBUG=false; Browser popups must be allowed.");
+        this.addTitle("WordChain Test Suite - allow 30+ seconds to complete.  Set Const.GL_DEBUG=false; Browser popups must be allowed.");
 
         var runAll         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
             runDict        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
@@ -183,7 +185,7 @@ class Test extends BaseLogger {
             this.showResults();
             console.log(`Testing took ${Date.now() - this.testingStartTime} ms.`);
         }  else {
-            const sleepTime = 1000;
+            const sleepTime = 500;
             this.logDebug("pausing  ", sleepTime, " for needToWaitForAsyncResults.", "test");
             inTheFuture(sleepTime).then( (foo=this) => { foo.waitForResultsThenShowThem();});
         }
@@ -283,7 +285,7 @@ class Test extends BaseLogger {
             var boundFunc = func.bind(this);
             boundFunc();
         } else {
-            const sleepTime = 500;
+            const sleepTime = 400;
             this.logDebug("pausing ", sleepTime, " for new window AppDisplay to be ready.", "test");
             inTheFuture(sleepTime).then( (foo=this) => { foo.waitForAppDisplayThenRunFunc(func);});
         }
@@ -1567,19 +1569,28 @@ TODO - what if these are played after the game is over?  They should not be addi
         // play and solve N practice games in a row.
         // showSolution calls showMove(userRequestedSolution=true), and this rebuilds the whole game GUI, including
         // the post-game-div to hold a 'new game' button if there are any more practice games allowed.
+        this.logDebug(this.testName, ": showing solution", "test");
         this.gameDisplay.showSolution();
 
         const srcElement = new MockEventSrcElement(this.gameDisplay);
         const mockEvent = new MockEvent(srcElement);
         let soFarSoGood = true;
-        for (let gamesPlayed=1; gamesPlayed < Const.PRACTICE_GAMES_PER_DAY; gamesPlayed++) {
+        const testPracticeGamesPerDay = 3;
+        this.gameDisplay.setPracticeGamesPerDay(testPracticeGamesPerDay);
+        soFarSoGood = this.verify(this.gameDisplay.practiceGamesPerDay == testPracticeGamesPerDay,
+                `expected practice games per day to be ${testPracticeGamesPerDay}, got: ${this.gameDisplay.practiceGamesPerDay}`, "test");
+        for (let gamesPlayed=1; gamesPlayed < testPracticeGamesPerDay; gamesPlayed++) {
+            if (!soFarSoGood) {
+                break; // stop testing on the first failure
+            }
+            this.logDebug(this.testName, ": gamesPlayed:", gamesPlayed, "test");
             // New Game button should be there.  The postGameDiv is reconstructed on every refresh of the display after a move
             // or solution. 
             const postGameDiv = this.gameDisplay.postGameDiv;
+            const children = postGameDiv.children;
 
-            if ( this.verify(postGameDiv.children.length == 1, "expected 1 children, got: ", postGameDiv.children.length) &&
-                    this.verify( (postGameDiv.children[0].textContent == "New Game"),
-                        "expected textContent=New Game, got: ", postGameDiv.children[0].textContent) && 
+            if ( this.verify(children.length == 1, "expected 1 children, got: ", children.length) &&
+                    this.verify( (children[0].textContent == "New Game"), "expected textContent=New Game, got: ", children[0].textContent) && 
                     this.verify(this.gameDisplay.anyGamesRemaining(), "After showing ", gamesPlayed, " games, anyGamesRemaining should still be true")
                     )
             {
@@ -1589,7 +1600,6 @@ TODO - what if these are played after the game is over?  They should not be addi
                 this.gameDisplay.showSolution();
             } else {
                 soFarSoGood = false;
-                break; // stop testing on the first failure
             }
         }
         // now there should be no New Game button

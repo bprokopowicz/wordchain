@@ -44,6 +44,7 @@ class DailyGameDisplay extends GameDisplay {
           ['braid', 'rafter'],
           ['poke', 'fumble'],
           ['shock', 'bagger'], //30
+          ['ripe', 'mixers'],
     ];
 
     /* ----- Construction ----- */
@@ -71,6 +72,15 @@ class DailyGameDisplay extends GameDisplay {
         this.baseDate = new Date("2024-10-15T00:00:00.000+00:00");
         this.baseTimestamp = null;
         this.dateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
+
+        // Are we debugging per-day behavior?
+        if (this.queryVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY)) {
+            // Yes, we're debugging, so override the standard one day increment.
+            const debugMinPerDay = parseInt(this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY));
+            Const.GL_DEBUG && this.logDebug("Setting minutes per day from query vars to ", debugMinPerDay, "daily");
+            this.dateIncrementMs = debugMinPerDay * 60 * 1000;
+            this.baseDate = new Date(); // today will be used as the first day of the daily game epoch
+        }
 
         // If we have a cookie for daily stats parse it; otherwise set it to initial values.
         let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
@@ -135,15 +145,6 @@ class DailyGameDisplay extends GameDisplay {
     // be over-ridden by setting the query string parameter QUERY_STRING_EPOCH_DAYS_AGO=n
 
     setBaseTimestamp() {
-
-        // Are we debugging daily games?
-        if (this.queryVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY)) {
-            // Yes, we're debugging, so override the standard one day increment.
-            const debugMinPerDay = parseInt(this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY));
-            Const.GL_DEBUG && this.logDebug("Setting minutes per day from query vars to ", debugMinPerDay, "daily");
-            this.dateIncrementMs = debugMinPerDay * 60 * 1000;
-            this.baseDate = new Date(); // today will be used as the first day of the daily game epoch
-        }
         if (this.queryVars.has(Const.QUERY_STRING_EPOCH_DAYS_AGO)) {
             let newEpoch = new Date();
             const daysAgo = parseInt(this.queryVars.get(Const.QUERY_STRING_EPOCH_DAYS_AGO));
