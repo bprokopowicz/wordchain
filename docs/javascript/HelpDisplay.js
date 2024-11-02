@@ -34,6 +34,9 @@ class HelpDisplay extends AuxiliaryDisplay {
         Every day there will be a new daily WordChain game.
         You can play up to ${Const.PRACTICE_GAMES_PER_DAY} practice games per day.
         </h3>
+        <p>
+        There is more information in the <a href="${Const.FAQ_HREF}" target="_blank">FAQ</a>.
+        </p>
         `;
 
         // Add to the container div that was created above.
