@@ -75,7 +75,6 @@ class Test extends BaseLogger {
     }
 
     display() {
-        this.logDebug("initializing test suite display", "test");
         this.outerDiv = ElementUtilities.addElement("div", {style: "margin: 2rem;"});
         this.displayTestSuite();
         this.displayDictTester();
@@ -96,7 +95,11 @@ class Test extends BaseLogger {
     */
 
     displayTestSuite() {
-        this.addTitle("WordChain Test Suite - allow 30+ seconds to complete.  Set Const.GL_DEBUG=false; Browser popups must be allowed.");
+        let debugWarning = "";
+        if (Const.GL_DEBUG) {
+            debugWarning = "  Set Const.GL_DEBUG=false for performance";
+        }
+        this.addTitle("WordChain Test Suite - allow 30+ seconds to complete; browser popups must be allowed." + debugWarning);
 
         var runAll         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
             runDict        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
