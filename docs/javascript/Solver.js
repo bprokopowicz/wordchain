@@ -219,14 +219,17 @@ class Solution extends BaseLogger {
     // displayed.  As of Oct 2024, the user knows either which letter to replace, or that a letter needs
     // to be added, or removed.  We don't consider replaying an existing word of the solution so far to be
     // a choice.
+    // the last step is not included in the difficulty total, because it is obvious even if there are many other
+    // possibilities
     calculateDifficulty(dictionary) {
         let i = 0;
         // these three fields will be updated as we travel the solution
         this.difficulty = 0;
         this.nChoicesEasiestStep = 1000;
         this.nChoicesOnStep = new Array();
-        // difficulty is defined by choices between successive words.
-        while (i < this.numWords() - 1) {
+        // difficulty is defined by choices between successive words.  We don't include 
+        // the choices at the last step since in effect there is only one obvious choice, the target.
+        while (i < this.numWords() - 2) {
             let thisWord = this.getNthWord(i)
             let nextWord = this.getNthWord(i+1)
             let replacementWords = new Set();

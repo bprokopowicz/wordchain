@@ -649,13 +649,13 @@ class Test extends BaseLogger {
         3 FOG   -> FOGY +  FLOG,FOGS,FOGY,FROG - FLOG
         2 FOGY  -> FOGY + FOGEY,FOGGY
         3 FOGGY -> xOGGY BOGGY,DOGGY,SOGGY
-        2 BOGGY -> BxGGY  BAGGY,BUGGY
-        20 total choices
+        2 BOGGY -> BxGGY  BAGGY,BUGGY  But, we don't count the last-step choices
+        18 total choices
         */
 
         solution.calculateDifficulty(this.fullDict);
         this.verify(solution.success(), `error on 'BLUE' to 'BAGGY': ${solution.getError()}`) &&
-            this.verify(solution.difficulty == 20, `expected difficulty 20, got ${solution.difficulty}`) &&
+            this.verify(solution.difficulty == 18, `expected difficulty 18, got ${solution.difficulty}`) &&
             this.verify(solution.nChoicesEasiestStep == expectedNumberChoices, `expected easiest step nChoices ${expectedNumberChoices}, got ${solution.nChoicesEasiestStep}`) &&
             this.success();
     }
@@ -703,9 +703,9 @@ class Test extends BaseLogger {
               reqWordLen2 = 5,
               minSteps = 7,
               maxSteps = 9,
-              minDifficulty = 30,
+              minDifficulty = 20,
               targetWordLen = 6,
-              expectedNumberOfPuzzles = 4,
+              expectedNumberOfPuzzles = 5,
               minChoicesPerStep = 2;
 
         const suitablePuzzles = Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2,

@@ -32,8 +32,8 @@ class DailyGameDisplay extends GameDisplay {
           ['hard', 'sinker'],
           ['loud', 'momma'],
           ['forgot', 'how'],
-          ['jaunty', 'name'],
-          ['bouncy', 'house'], //20
+          ['jaunty', 'estate'],
+          ['luck', 'babies'], //20
           ['mind', 'hugger'],
           ['beach', 'house'],
           ['plate', 'acorns'],
