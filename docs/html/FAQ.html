@@ -16,11 +16,15 @@
         </p>
             <ul>
             <li>
-            The purple squares depict the start and target words.
+            The purple squares depict the given start and target words.
             </li>
             <li>
-            The red/green squares (orange/blue in Colorblind Mode) mimic the letter cell
-            colors at the end of the game.
+            The green squares (orange in Colorblind Mode) indicate that the word played at that step was
+            good, that is, on the shortest path to the target word.
+            </li>
+            <li>
+            The read squares (blue in Colorblind Mode) indicate that the word played at that step was not 
+            an optimal choice, causing your solution to take more steps than the best solution.
             </li>
             <li>
             The gold stars indicate a GENIUS MOVE!
@@ -33,12 +37,11 @@
         <p>
         WordChain draws its start and target words from a "common dictionary" of everyday words,
         and it uses that dictionary to determine the shortest solution, indicated with
-        the uncolored letter cells at the start of the game.
-        There is also an "advanced dictionary" that includes all the words in the common dictionary
-        and many more.
+        all the blank letter cells at the start of the game.
         </p>
         <p>
-        When you make a move (i.e. add, delete, or change a letter),
+        There is also an "advanced dictionary" that includes all the words in the common dictionary
+        and many more.  When you make a move (i.e. add, delete, or change a letter),
         the <i>advanced</i> dictionary is used to determine whether the resulting word is valid. 
         If so, the <i>common</i> dictionary is used to determine the layout of the
         subsequent letter cells required to get to the target word.

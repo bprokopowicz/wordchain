@@ -26,7 +26,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         (and dashed when it is the current move).
         </p>
         <p>
-        If your step increases the number of steps from the start to the target word,
+        If your word played increases the number of steps from the start to the target word,
         the background of its letters will be red; otherwise it will be green
         (or orange/blue in Colorblind Mode).
         </p>
