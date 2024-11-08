@@ -55,14 +55,88 @@ Production
 
 daily game use cases:
 1) no recovered game number - calculate current game and initialize it
+    dailyGameNormalFinishStatsTest
 2) recovered game number - calculate today's game number and compare:
-   a) not the same: initialize today's game number
+   a) not the same: initialize today's game number 
+       - dailyGameUnfinishedRestartNextDay()
    b) the same: recover played moves and 'shown' flag
       i) shown is false, played moves are complete
           recover the game as solved
+          - finishDailyGameRestartTest()
       ii) shown is false, played moves are incomplete
           recover the game in progress
+          - continueDailyGameRestartTest()
       iii) shown is true, played moves are complete
            recover the game as finished, leave shown flag as true
+           - dailyGameShowSolutionTest()
       iv) shown is true, played moves are incomplete:
           this is a bug.  finish playing the game, save the solved state, leave 'shown' flag as true
+
+Testing issues.
+
+During app testing, some of the tests hang, and only proceed after clicking on the original test.html tab.  This happens in 
+DailyGameUnfinishedRestartNextDay
+DailyGameNormalFinishStat
+DailyGameShowSolution
+DailyGameOneMistakeShareTest
+For these tests, the new window is apparently not ready on the first look, and then never gets looked at again until the user clicks 
+on the new app's tab.
+also happened on one of the re-opens for MultiGameMixedResultsStatsTest
+
+THese are the places where execution stops: before running these functions in the new app window:
+DailyGameNormalFinishStat, DailyGameOneMistakeShare
+DailyGameUnfinishedRestart,FinishDailyGameShowSolution
+DailyGameUnfinishedRestart,FinishDailyGameShowSolution
+DailyGameNormalFinishStat, DailyGameOneMistakeShare
+DailyGameNormalFinishStat, DailyGameOneMistakeShare
+DailyGameNormalFinishStat, DailyGameShowSolutionTest
+DailyGameNormalFinishStat, DailyGameOneMistakeShare
+DailyGameNormalFinishStat, DailyGameOneMistakeShare
+DailyGameNormalFinishStat, DailyGameOneMistakeShare
+
+
+Questions: Is the new app window's code (initializing the daily game) running for a long time?  What, if anything, is running in the period
+up to the user-click on the tab that kicks it back to life?  What is the first thing running when it comes back to life?
+
+here is the new app initializing ...
+ BaseLogger.js:21 openTheTestAppWindow(): targetContext:  testingplace , newWindow:  Window {window: Window, self: Window, document: document, name: 'testingplace', location: Location, …}
+20:06:10.442 BaseLogger.js:21 !! first checking if new AppDisplay is ready.
+20:06:10.444 BaseLogger.js:21 !! Not ready - waiting  500  ms for new AppDisplay.
+
+20:06:10.541  recoveredDailyGameNumber: null
+20:06:10.542  Setting epoch to  2  days ago as  Sun Nov 03 2024 20:06:10 GMT-0600 (Central Standard Time)
+20:06:10.542  epoch timestamp is set to:  Sun Nov 03 2024 20:06:10 GMT-0600 (Central Standard Time)
+20:06:10.542  calculateGameNumber(): now:  1730858770542 , elapsed since base:  172800000 , gameNumber:  2
+20:06:10.543  setGameWordsFromGameNumber(): this.dailyGameNumber:  2
+20:06:10.543  setGameWordsFromGameNumber() start:  short  target:  poor
+20:06:10.543  this.dailyGameNumber (calculated) is 2
+20:06:10.543  recovered daily game is either older or not found; starting a new game
+20:06:10.543  GameDisplay.constructGame(): start:  short  target:  poor  gameState:  []
+20:06:10.550  constructor(): startWord: short , targetWord: poor
+20:06:10.571  Constructing game from beginning
+
+****   while this is going on, we pass by the 500 ms re-check timeout ****
+
+20:06:11.117  Game constructed:  Game {dictionary: WordChainDict, scrabbleDictionary: WordChainDict, playedSteps: Solution, remainingSteps: Solution}
+20:06:11.117  DailyGameDisplay.getSolutionShown() returns:  false
+20:06:11.117  showGameAfterMove() userRequestedSolution= false
+20:06:11.118  played so far: SHORT played:true, moveRating:ok [0 steps toward POOR] difficulty: -1
+20:06:11.118  remaining unplayed: SHOOT played:false, moveRating:ok, HOOT played:false, moveRating:ok, BOOT played:false, moveRating:ok, BOOR played:false, moveRating:ok, POOR played:false, moveRating:ok [4 steps toward POOR] difficulty: -1
+20:06:11.118  Game.isWinner() - returning false
+20:06:11.118  display instructions: (change,word:SHORT,changePosition:4),(future,word:SHOOT,changePosition:0),(future,word:HOOT,changePosition:1),(future,word:BOOT,changePosition:4),(future,word:BOOR,changePosition:1),(target,word:POOR)
+20:06:11.123  DailyGameDisplay.getSolutionShown() returns:  false
+20:06:11.123  showGameAfterMove() userRequestedSolution= false
+20:06:11.123  played so far: SHORT played:true, moveRating:ok [0 steps toward POOR] difficulty: -1
+20:06:11.123  remaining unplayed: SHOOT played:false, moveRating:ok, HOOT played:false, moveRating:ok, BOOT played:false, moveRating:ok, BOOR played:false, moveRating:ok, POOR played:false, moveRating:ok [4 steps toward POOR] difficulty: -1
+20:06:11.123  Game.isWinner() - returning false
+20:06:11.124  display instructions: (change,word:SHORT,changePosition:4),(future,word:SHOOT,changePosition:0),(future,word:HOOT,changePosition:1),(future,word:BOOT,changePosition:4),(future,word:BOOR,changePosition:1),(target,word:POOR)
+20:06:11.125  DailyGameDisplay.getSolutionShown() returns:  false
+20:06:11.125  Game.isWinner() - returning false
+
+*** initialized, but nothing is happening.  Then, a user-click of the test.html tab runs the stalled tasks. ****
+
+20:06:27.030 BaseLogger.js:21 intervalDebugger() called
+20:06:27.030 BaseLogger.js:21 !! re-checking if new AppDisplay is ready after wait time:  16586  ms.
+20:06:27.031 BaseLogger.js:21 !! new window AppDisplay is ready; calling:  dailyGameNormalFinishStat
+20:06:27.031  playLetter(): letterPosition: 4 , letter: O
+20:06:27.031

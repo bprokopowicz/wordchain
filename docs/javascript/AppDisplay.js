@@ -324,11 +324,11 @@ class AppDisplay extends BaseLogger {
         this.setSolutionStatus();
     }
 
-    switchToPracticeGame() {
+    switchToPracticeGame(startWord=null, targetWord=null) {
         if (this.practiceGame === null) {
             // Creation of PracticeGameDisplay causes the start/target words to be retrieved
             // from Cookies or randomly selected, and displays the game's grid for the user to play.
-            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
+            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv, startWord, targetWord);
         }
 
         // If the user has already played the maximum number of games, we disallow any more.

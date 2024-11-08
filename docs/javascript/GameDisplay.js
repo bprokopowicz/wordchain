@@ -195,6 +195,12 @@ class GameDisplay extends BaseLogger {
         return this.game;
     }
 
+    getSolutionShown() {
+        // this is a "pure virtual" function that should never be called directly.  
+        error.log("GameDisplay.getSolutionShown() should never be called.  Only call subclass implementations");
+        return false;
+    }
+
     canShowSolution() {
         // We can only show the solution if it isn't already shown or if the game is not won.
         return !(this.getSolutionShown() || this.game.isWinner())

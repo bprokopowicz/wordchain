@@ -8,7 +8,7 @@ class PracticeGameDisplay extends GameDisplay {
 
     /* ----- Construction ----- */
 
-    constructor(appDisplay, gameDiv, pickerDiv) {
+    constructor(appDisplay, gameDiv, pickerDiv, startWord=null, targetWord=null) {
         super(appDisplay, gameDiv, pickerDiv, "practice-picker");
 
         this.practiceGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using URL query vars or the setter func
@@ -25,7 +25,7 @@ class PracticeGameDisplay extends GameDisplay {
         // number of timestamps per day; 
 
         if (this.anyGamesRemaining()) {
-            this.updateWords();
+            this.updateWords(startWord, targetWord);
         }
     }
 
@@ -44,7 +44,9 @@ class PracticeGameDisplay extends GameDisplay {
 
     // this is a virtual function that tells the display if the user requested the solution for the (practice) game in progress
     getSolutionShown() {
-        return Persistence.getPracticeSolutionShown();
+        const ret = Persistence.getPracticeSolutionShown();
+        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.getSolutionShown() returns: ", ret, "practice");
+        return ret;
     }
 
     /* ----- Callbacks ----- */

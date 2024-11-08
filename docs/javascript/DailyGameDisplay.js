@@ -130,6 +130,7 @@ class DailyGameDisplay extends GameDisplay {
             Persistence.clearDailyGameState();
             Persistence.clearDailySolutionShown();
             this.recoveredDailyGameStateIfAny = [];  // nothing recovered
+            Const.GL_DEBUG && this.logDebug("recovered daily game is either older or not found; starting a new game", "daily");
 
             // Update stats relating to a new daily game.
             this.incrementStat("gamesPlayed");
@@ -208,7 +209,9 @@ class DailyGameDisplay extends GameDisplay {
     }
 
     getSolutionShown() {
-        return Persistence.getDailySolutionShown();
+        const ret =  Persistence.getDailySolutionShown();
+        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.getSolutionShown() returns: ", ret, "daily");
+        return ret;
     }
 
     /* ----- Callbacks ----- */
