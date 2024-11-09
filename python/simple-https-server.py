@@ -3,7 +3,7 @@
 # be at the top of the wordchain repo.
 
 import ssl
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import HTTPServer, ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 CERTFILE = './wordchain/localhost.pem'
 
@@ -17,8 +17,8 @@ def https_server(*, certfile):
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(CERTFILE)
 
-    server_address = ('', 443)
-    with HTTPServer(server_address, SimpleHTTPRequestHandler) as httpd:
+    server_address = ('0.0.0.0', 443)
+    with ThreadingHTTPServer(server_address, SimpleHTTPRequestHandler) as httpd:
         httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
         print_server_info(httpd)
         try:

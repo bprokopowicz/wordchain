@@ -206,6 +206,7 @@ class Test extends BaseLogger {
 
     closeNewAppWindow() {
         if (this.getNewAppWindow()) {
+            this.logDebug("!! NOT closing app window/tab", "test");
             this.getNewAppWindow().close();
             this.newWindow = null;
         }
@@ -249,7 +250,7 @@ class Test extends BaseLogger {
             // Will be logged in waitForAppDisplayThenRunFunc. 
             this.logDebug("!! this.newWindow is null", "test");
             return;
-        } 
+        }
         // set the child's console to our console. This doesn't work reliably, especially when the child window has a crashing bug.
         this.newWindow.console = console;
     }
@@ -263,10 +264,9 @@ class Test extends BaseLogger {
         // before running any test, which might be multi-game, clear the multi-game counter and results accumulator
         this.multiGameCountdown = null;
         this.multiGameResults = null;
-        let testFunc = this.appTestList.shift();
+        var testFunc = this.appTestList.shift();
         if (testFunc) {
-            let shortFuncName = testFunc.toString().split(' ')[0];
-            this.logDebug("!! runNextAppTest() testFunc=", shortFuncName, "test");
+            this.logDebug("!! runNextAppTest() testFunc=", testFunc.toString().substring(0,25), "test");
             // clear cookies and reopen the window in testing mode 
             const clearCookies = true;
             this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
@@ -294,7 +294,6 @@ class Test extends BaseLogger {
     // we wait and check again ...
 
     waitForAppDisplayThenRunFunc(func, isRewait=false) {
-        let shortFuncName = func.toString().split(' ')[0];
         if (isRewait) {
             this.logDebug("!! re-checking if new AppDisplay is ready after wait time: ", Date.now() - this.inTheFutureSetAt, " ms.", "test");
         } else {
@@ -303,15 +302,15 @@ class Test extends BaseLogger {
 
         let newWindow = this.getNewAppWindow();
         if (newWindow === null) {
-            this.testName="in between tests";
-            this.verify(false, `new app window is null waiting for:  ${shortFuncName}`);
+            this.testName="unknown - waiting for window";
+            this.verify(false, `new app window is null waiting for:  ${func.toString().substring(0,25)}`);
             console.error("new app window is null - tests cannot continue.");
             this.needToWaitForAsyncResults = false;
             return;
         }
 
         if ((newWindow.localStorage != null) && newWindow.theAppDisplayIsReady) {
-            this.logDebug("!! new window AppDisplay is ready; calling: ",  shortFuncName, "test");
+            this.logDebug("!! new window AppDisplay is ready; calling: ",  func.toString().substring(0,25), "test");
             this.inTheFutureSetAt = null;
             // How to call this class's member function 'func' with 'this' properly set.
             let boundFunc = func.bind(this);
@@ -1069,13 +1068,15 @@ class Test extends BaseLogger {
         this.appTestStartTime = null;
         this.appTestList = [
             /*
-            */
             this.openWindowTwiceTest,
+            */
             this.multiGameStatsTest,
             this.multiGameMixedResultsStatsTest,
             this.multiIncompleteGameStatsTest,
             this.dailyGameNormalFinishStatsTest,
             this.dailyGameUnfinishedRestartNextDayTest,
+            /*
+            */
             this.dailyGameTooManyMistakesShareTest,
             this.dailyGameEndsOnDeleteShareTest,
             this.dailyGameRestartAfterDohTest,
@@ -1086,6 +1087,8 @@ class Test extends BaseLogger {
             this.practiceGameLimitTest,
             this.geniusMoveAndShareTest,
             this.cookieRestartTest,
+            /*
+            */
         ];
         this.needToWaitForAsyncResults = true;
         this.runNextAppTest();
@@ -1159,7 +1162,7 @@ class Test extends BaseLogger {
     // This checks to see if the app initializes itself correctly.
 
     openWindowTwiceTest() {
-        this.testName = "OpenWindowTwice";
+        this.testName = "openWindowTwice";
 
         if (this.multiGameCountdown == null) {
             // this is the first call.  We will set a countdown of games to run
@@ -1766,6 +1769,7 @@ class Test extends BaseLogger {
         // now close the window,
         const clearCookies = false;
         this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
+        // and then wait for the window and finish the test ...
         this.waitForAppDisplayThenRunFunc(this.finishCookieRestartTest);
     }
 

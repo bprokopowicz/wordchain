@@ -22,9 +22,10 @@ Beta (for sharing with "Core Word Nerds" mailing list -- 10 people)
 - Execute automated tests in these environments:
   - Safari/iPhone [Pete - 11/11]
   - Safari/iPad [Pete - 11/11]
-  - Safari/Mac [Pete - 11/11]
+  - Safari/Mac [Pete - 11/11] -- Good on 11/08
   - Chrome/Android phone -- using debugging environment [Bonnie - 11/17]
-  - Chrome/Mac [Pete - 11/11]
+  - Chrome/Mac [Pete - 11/11] -- Good on 11/08
+  - Chrome/iPad [Pete - 11/11] -- Good on 11/08
 - Execute Manual UI Testing Use Cases in these environments:
   - Safari/iPhone [Pete - 11/15]
   - Safari/iPad [Pete - 11/15]
@@ -72,71 +73,23 @@ daily game use cases:
       iv) shown is true, played moves are incomplete:
           this is a bug.  finish playing the game, save the solved state, leave 'shown' flag as true
 
-Testing issues.
+Testing issues:
 
-During app testing, some of the tests hang, and only proceed after clicking on the original test.html tab.  This happens in 
-DailyGameUnfinishedRestartNextDay
-DailyGameNormalFinishStat
-DailyGameShowSolution
-DailyGameOneMistakeShareTest
-For these tests, the new window is apparently not ready on the first look, and then never gets looked at again until the user clicks 
-on the new app's tab.
-also happened on one of the re-opens for MultiGameMixedResultsStatsTest
+The app tests would hang on opening/initializing some of the tests.  It seems to be fixed by specifying width, height for the 
+window.open() call.  This makes it use a new window instead of tab.  
 
-THese are the places where execution stops: before running these functions in the new app window:
-DailyGameNormalFinishStat, DailyGameOneMistakeShare
-DailyGameUnfinishedRestart,FinishDailyGameShowSolution
-DailyGameUnfinishedRestart,FinishDailyGameShowSolution
-DailyGameNormalFinishStat, DailyGameOneMistakeShare
-DailyGameNormalFinishStat, DailyGameOneMistakeShare
-DailyGameNormalFinishStat, DailyGameShowSolutionTest
-DailyGameNormalFinishStat, DailyGameOneMistakeShare
-DailyGameNormalFinishStat, DailyGameOneMistakeShare
-DailyGameNormalFinishStat, DailyGameOneMistakeShare
+There is another problem, with loading the game itself, including during testing.  In IOS (phone, ipad) using Safari, wordchain.html will load and play OK,
+but if you force a hard reload (cmd-opt-R) from the web inspector while tethered to a mac, the javascript downloading fails for 
+2-4 of the files. Also, BaseLogger.js seems to take too long but does download.  You can see this in the Web Inspector on the mac
+when tethered to the iPad.  We haven't tethered a phone yet (nov 8, 2024)  
+TODO - verify that hard reload doesn't work on iphone/safari.
+TODO - can we force hard-reload on iphone/itab in Chrome?  Does that require tethering?
+
+    NOTE: If we clear the Safari's cache on iPad via Settings --> Safari --> Clear History and Website Data
+          and then go back to Safari, the app seems to reload everything just fine (tethered or not).
+
+The JS download failure has strange aspects.  Web Inspector/network shows that 2-4 JS files never load. They are in the green "waiting" phase, but
+if you look at the "Headers" tab in WebInspector, you will see there are no requests made for those pages.  And the web server doesn't show any
+request.
 
 
-Questions: Is the new app window's code (initializing the daily game) running for a long time?  What, if anything, is running in the period
-up to the user-click on the tab that kicks it back to life?  What is the first thing running when it comes back to life?
-
-here is the new app initializing ...
- BaseLogger.js:21 openTheTestAppWindow(): targetContext:  testingplace , newWindow:  Window {window: Window, self: Window, document: document, name: 'testingplace', location: Location, …}
-20:06:10.442 BaseLogger.js:21 !! first checking if new AppDisplay is ready.
-20:06:10.444 BaseLogger.js:21 !! Not ready - waiting  500  ms for new AppDisplay.
-
-20:06:10.541  recoveredDailyGameNumber: null
-20:06:10.542  Setting epoch to  2  days ago as  Sun Nov 03 2024 20:06:10 GMT-0600 (Central Standard Time)
-20:06:10.542  epoch timestamp is set to:  Sun Nov 03 2024 20:06:10 GMT-0600 (Central Standard Time)
-20:06:10.542  calculateGameNumber(): now:  1730858770542 , elapsed since base:  172800000 , gameNumber:  2
-20:06:10.543  setGameWordsFromGameNumber(): this.dailyGameNumber:  2
-20:06:10.543  setGameWordsFromGameNumber() start:  short  target:  poor
-20:06:10.543  this.dailyGameNumber (calculated) is 2
-20:06:10.543  recovered daily game is either older or not found; starting a new game
-20:06:10.543  GameDisplay.constructGame(): start:  short  target:  poor  gameState:  []
-20:06:10.550  constructor(): startWord: short , targetWord: poor
-20:06:10.571  Constructing game from beginning
-
-****   while this is going on, we pass by the 500 ms re-check timeout ****
-
-20:06:11.117  Game constructed:  Game {dictionary: WordChainDict, scrabbleDictionary: WordChainDict, playedSteps: Solution, remainingSteps: Solution}
-20:06:11.117  DailyGameDisplay.getSolutionShown() returns:  false
-20:06:11.117  showGameAfterMove() userRequestedSolution= false
-20:06:11.118  played so far: SHORT played:true, moveRating:ok [0 steps toward POOR] difficulty: -1
-20:06:11.118  remaining unplayed: SHOOT played:false, moveRating:ok, HOOT played:false, moveRating:ok, BOOT played:false, moveRating:ok, BOOR played:false, moveRating:ok, POOR played:false, moveRating:ok [4 steps toward POOR] difficulty: -1
-20:06:11.118  Game.isWinner() - returning false
-20:06:11.118  display instructions: (change,word:SHORT,changePosition:4),(future,word:SHOOT,changePosition:0),(future,word:HOOT,changePosition:1),(future,word:BOOT,changePosition:4),(future,word:BOOR,changePosition:1),(target,word:POOR)
-20:06:11.123  DailyGameDisplay.getSolutionShown() returns:  false
-20:06:11.123  showGameAfterMove() userRequestedSolution= false
-20:06:11.123  played so far: SHORT played:true, moveRating:ok [0 steps toward POOR] difficulty: -1
-20:06:11.123  remaining unplayed: SHOOT played:false, moveRating:ok, HOOT played:false, moveRating:ok, BOOT played:false, moveRating:ok, BOOR played:false, moveRating:ok, POOR played:false, moveRating:ok [4 steps toward POOR] difficulty: -1
-20:06:11.123  Game.isWinner() - returning false
-20:06:11.124  display instructions: (change,word:SHORT,changePosition:4),(future,word:SHOOT,changePosition:0),(future,word:HOOT,changePosition:1),(future,word:BOOT,changePosition:4),(future,word:BOOR,changePosition:1),(target,word:POOR)
-20:06:11.125  DailyGameDisplay.getSolutionShown() returns:  false
-20:06:11.125  Game.isWinner() - returning false
-
-*** initialized, but nothing is happening.  Then, a user-click of the test.html tab runs the stalled tasks. ****
-
-20:06:27.030 BaseLogger.js:21 intervalDebugger() called
-20:06:27.030 BaseLogger.js:21 !! re-checking if new AppDisplay is ready after wait time:  16586  ms.
-20:06:27.031 BaseLogger.js:21 !! new window AppDisplay is ready; calling:  dailyGameNormalFinishStat
-20:06:27.031  playLetter(): letterPosition: 4 , letter: O
-20:06:27.031
