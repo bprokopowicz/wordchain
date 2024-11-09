@@ -243,7 +243,8 @@ class Test extends BaseLogger {
         // download some source files and we don't know why!
         let windowFeatures = "width=300,height=400";
         let windowName = "AppDisplayTest";
-        this.newWindow = window.open(url, windowName, windowFeatures);
+        //this.newWindow = window.open(url, windowName, windowFeatures);
+        this.newWindow = open(url, windowName, windowFeatures);
         if (this.newWindow === null)
         {
             // Will be logged in waitForAppDisplayThenRunFunc. 
