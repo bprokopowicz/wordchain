@@ -14,7 +14,7 @@ export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
 export const DICT_URL = "https:/wordchain/docs/resources/WordChainDict";
 export const SCRABBLE_DICT_URL = "https:/wordchain/docs/resources/Scrabble3-6";
 
-// query-string consts
+// testing-var consts
 export const QUERY_STRING_DEBUG_MINUTES_PER_DAY = "minutes_per_day";
 export const QUERY_STRING_PRACTICE_GAMES_PER_DAY = "practice_games_per_day";
 export const QUERY_STRING_EPOCH_DAYS_AGO = "epoch_days_ago";

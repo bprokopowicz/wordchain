@@ -17,6 +17,9 @@ Testing
   - red sections
 
 Beta (for sharing with "Core Word Nerds" mailing list -- 10 people)
+- Investigate all Chrome/Safari warnings / violations / 
+     for example: [Violation] Added non-passive event listener to a scroll-blocking <some> event.
+     Consider marking event handler as 'passive' to make the page more responsive. See <URL>
 - Update Manual UI Testing Use Cases document [Pete - 11/5]
 - Write automated tests for daily game use cases described below [Pete - 11/4]
 - Execute automated tests in these environments:

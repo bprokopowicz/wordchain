@@ -11,7 +11,7 @@ class GameDisplay extends BaseLogger {
 
     /* ----- Construction ----- */
 
-    constructor(appDisplay, gameDiv, pickerDiv, pickerId) {
+    constructor(appDisplay, gameDiv, pickerDiv, pickerId, testingVars) {
 
         super();
 
@@ -28,25 +28,10 @@ class GameDisplay extends BaseLogger {
         // the word, whether it was played, and whether it was correct(relevant
         // only if it was played).
         this.gameState = [];
-
-        // parse any URL query-string variables and save them as this.queryVars[]
-        this.parseQueryString();
+        this.testingVars = testingVars;
 
 
         // Derived class constructor must call constructGame().
-    }
-
-    /* ----- Query string variable parsing */
-
-    parseQueryString() {
-        const queryString = window.location.search;
-        this.queryVars = new Map();
-        var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-        for (let pair of pairs) {
-            var keyVal = pair.split('=');
-            // use empty string as the value for query variables with no '...=val' value.
-            this.queryVars.set(keyVal[0], keyVal[1] || '');
-        }
     }
 
     /* ----- Picker ----- */

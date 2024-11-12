@@ -66,18 +66,19 @@ class DailyGameDisplay extends GameDisplay {
         return initialStats;
     }
 
-    constructor(appDisplay, gameDiv, pickerDiv) {
-        super(appDisplay, gameDiv, pickerDiv, "daily-picker");
+    constructor(appDisplay, gameDiv, pickerDiv, testingVars) {
+        super(appDisplay, gameDiv, pickerDiv, "daily-picker", testingVars);
 
-        this.baseDate = new Date("2024-10-15T00:00:00.000+00:00");
+        this.baseDate = new Date("2024-11-01T00:00:00.000+00:00");
         this.baseTimestamp = null;
         this.dateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
+        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.constructor testingVars=", testingVars, "test");
         // Are we debugging per-day behavior?
-        if (this.queryVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY)) {
+        if (testingVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY)) {
             // Yes, we're debugging, so override the standard one day increment.
-            const debugMinPerDay = parseInt(this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY));
-            Const.GL_DEBUG && this.logDebug("Setting minutes per day from query vars to ", debugMinPerDay, "daily");
+            const debugMinPerDay = parseInt(this.testingVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY));
+            Const.GL_DEBUG && this.logDebug("Setting minutes per day from testingVars to ", debugMinPerDay, "daily");
             this.dateIncrementMs = debugMinPerDay * 60 * 1000;
             this.baseDate = new Date(); // today will be used as the first day of the daily game epoch
         }
@@ -107,7 +108,7 @@ class DailyGameDisplay extends GameDisplay {
         const recoveredDailyGameNumber = Persistence.getDailyGameNumber();
         Const.GL_DEBUG && this.logDebug("recoveredDailyGameNumber:", recoveredDailyGameNumber, "daily");
 
-        // set the base timestamp (epoch) which is either hard-coded or calculated from URL query vars.
+        // set the base timestamp (epoch) which is either hard-coded or calculated from testing vars.
         this.setBaseTimestamp(); 
 
         // Now, determine the game number and get the game data from the GameWords object.
@@ -143,12 +144,12 @@ class DailyGameDisplay extends GameDisplay {
     }
 
     // baseTimestamp is the world-wide starting point determining for Wordchain games.  It is hardcoded as this.baseDate but can
-    // be over-ridden by setting the query string parameter QUERY_STRING_EPOCH_DAYS_AGO=n
+    // be over-ridden by setting the testing var QUERY_STRING_EPOCH_DAYS_AGO=n
 
     setBaseTimestamp() {
-        if (this.queryVars.has(Const.QUERY_STRING_EPOCH_DAYS_AGO)) {
+        if (this.testingVars.has(Const.QUERY_STRING_EPOCH_DAYS_AGO)) {
             let newEpoch = new Date();
-            const daysAgo = parseInt(this.queryVars.get(Const.QUERY_STRING_EPOCH_DAYS_AGO));
+            const daysAgo = parseInt(this.testingVars.get(Const.QUERY_STRING_EPOCH_DAYS_AGO));
             newEpoch.setDate(newEpoch.getDate() - daysAgo);
             this.baseDate = newEpoch;
             Const.GL_DEBUG && this.logDebug("Setting epoch to ", daysAgo, " days ago as ", newEpoch.toString(), "daily");
@@ -164,8 +165,8 @@ class DailyGameDisplay extends GameDisplay {
 
     setGameWordsFromGameNumber() {
         Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber(): this.dailyGameNumber: ", this.dailyGameNumber, "daily");
-        if (this.queryVars.has(Const.QUERY_STRING_START_WORD) && this.queryVars.has(Const.QUERY_STRING_TARGET_WORD)) {
-            [this.startWord, this.targetWord] = [this.queryVars.get(Const.QUERY_STRING_START_WORD), this.queryVars.get(Const.QUERY_STRING_TARGET_WORD)];
+        if (this.testingVars.has(Const.QUERY_STRING_START_WORD) && this.testingVars.has(Const.QUERY_STRING_TARGET_WORD)) {
+            [this.startWord, this.targetWord] = [this.testingVars.get(Const.QUERY_STRING_START_WORD), this.testingVars.get(Const.QUERY_STRING_TARGET_WORD)];
             this.validGame = true;
         } else if (this.dailyGameNumber >= 1 && this.dailyGameNumber <= DailyGameDisplay.GameWords.length) {
             [this.startWord, this.targetWord] = DailyGameDisplay.GameWords[this.dailyGameNumber];

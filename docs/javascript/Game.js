@@ -23,12 +23,12 @@ class Game extends BaseLogger {
     // optionally pass in the dictionary, for testing
     constructor(startWord, targetWord, stepsOfSolution, dict=new WordChainDict()) {
         super();
-        Const.GL_DEBUG && this.logDebug("constructor(): startWord:", startWord, ", targetWord:", targetWord, "game");
+        Const.GL_DEBUG && this.logDebug("Game.constructor(): startWord:", startWord, ", targetWord:", targetWord, "game");
         startWord = startWord.toUpperCase();
         targetWord = targetWord.toUpperCase();
         this.dictionary = dict;
         this.scrabbleDictionary = new WordChainDict(scrabbleWordList);
-        if (stepsOfSolution.length == 0) {
+        if (!stepsOfSolution || stepsOfSolution.length == 0) {
             Const.GL_DEBUG && this.logDebug("Constructing game from beginning", "game");
             this.playedSteps = Solution.newEmptySolution(startWord, targetWord);
             this.remainingSteps = Solver.solve(this.dictionary, startWord, targetWord);
@@ -210,7 +210,7 @@ class Game extends BaseLogger {
             // special case: if the user plays a scrabbleOnlyWord, we add that word to the normal dictionary, so that
             // the game solver can play that word if the best solution involves back-tracking out of it
             if (isScrabbleOnlyWord) {
-                this.logDebug("user played scrabble-only word: ", word, ", adding it to regular dictionary in case it is needed for backtracking", "game");
+                Const.GL_DEBUG && this.logDebug("user played scrabble-only word: ", word, ", adding it to regular dictionary in case it is needed for backtracking", "game");
                 this.dictionary.addWord(word);
             }
             if (word == this.remainingSteps.getNthWord(0)) {

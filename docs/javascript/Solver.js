@@ -10,6 +10,7 @@ class Solver {
    static logger = new BaseLogger();
 
    static solve(dictionary, fromWord, toWord) {
+        Const.GL_DEBUG && Solver.logger.logDebug("solve:", fromWord, toWord, "solver");
         fromWord = fromWord.toUpperCase();
         toWord = toWord.toUpperCase();
         let startingSolution = Solution.newEmptySolution(fromWord, toWord);
@@ -21,7 +22,9 @@ class Solver {
         if (startingSolution.getError()){
             return startingSolution;
         }
-        return Solver.finish(dictionary, startingSolution);
+        let solution = Solver.finish(dictionary, startingSolution);
+        Const.GL_DEBUG && Solver.logger.logDebug("solve() finished:", "solver");
+        return solution;
     }
 
     static finish(dictionary, startingSolution) {

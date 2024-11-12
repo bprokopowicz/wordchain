@@ -65,6 +65,7 @@ class Test extends BaseLogger {
         this.fullDict = new WordChainDict(globalWordList);
         this.scrabbleDict = new WordChainDict(scrabbleWordList);
         this.messages = [];
+        this.openTheTestAppWindow();
     }
 
     static singleton() {
@@ -116,23 +117,8 @@ class Test extends BaseLogger {
     }
 
     runTestsCallback(event) {
-
+        this.clearResults();
         const buttonId = event.srcElement.getAttribute("id");
-
-        if (this.testingInProgress) {
-            console.log("Testing already in progress, please wait for results ...");
-            return;
-        } else {
-            console.log("Testing started, please wait for results ...");
-        }
-        this.successCount = 0;
-        this.failureCount = 0;
-        this.testAssertionCount = 0;
-        this.totalAssertionCount = 0;
-        this.messages = [];
-        this.needToWaitForAsyncResults = false;
-
-        this.testingStartTime = Date.now();
 
         if (buttonId == "runAll" || buttonId == "runDict") {
             this.runDictTests();
@@ -144,24 +130,38 @@ class Test extends BaseLogger {
             this.runGameTests();
         }
         if (buttonId == "runAll" || buttonId == "runApp") {
-            this.runAppTests();
+            this.runAppTests(); // this will show Results when finished asynchronously
+        } else {
+            this.showResults(); // this will apply to any synchronous tests (dict, solver, game)
         }
-
-        // we may need to pause before checking results because App Tests run separately
-        let boundFunc = this.showResultsIfReadyThenStop.bind(this);
-        this.resultsIntervalId = window.setInterval(boundFunc, 500);
-        this.testingInProgress = true;
     }
 
+    clearResults() {
+        this.successCount = 0;
+        this.failureCount = 0;
+        this.testAssertionCount = 0;
+        this.totalAssertionCount = 0;
+        this.messages = [];
+        this.testingStartTime = Date.now();
+    }
+
+
     showResults() {
-        let results = "";
+        let elapsedTime = Date.now() - this.testingStartTime;
 
-        results += `<br>Success count: ${this.successCount}<br>`;
-        results += `Failure count: ${this.failureCount}<br>`;
-        results += `Total assertions verified: ${this.totalAssertionCount}<p>`;
-        results += this.messages.join("<br>");
+        let results = [
+            "",
+            `Success count: ${this.successCount}`,
+            `Failure count: ${this.failureCount}`,
+            `Total assertions verified: ${this.totalAssertionCount}`,
+            `Elapsed time : ${elapsedTime} ms.`,
+            "",
+        ];
 
-        ElementUtilities.setElementHTML("testResults", results);
+        let resultString = results.concat(this.messages).join("<br>");
+
+        ElementUtilities.setElementHTML("testResults", resultString);
+        console.log(`Testing took: ${elapsedTime} ms.`);
     }
 
     success(testName) {
@@ -181,150 +181,63 @@ class Test extends BaseLogger {
         return truthValue;
     }
 
-    // this function re-executes itself every 'sleepTime' milliseconds from the beginning 
-    // of testing until the results are ready.
-    showResultsIfReadyThenStop() {
-        this.logDebug("checking if results are ready", "test");
-        if (this.getResultsAreReady()) {
-            this.testingInProgress = false;
-            this.logDebug("results are ready - show them.", "test");
-            this.showResults();
-            window.clearInterval(this.resultsIntervalId);
-            console.log(`Testing took ${Date.now() - this.testingStartTime} ms.`);
-        }  
-    }
-
     /*
     ** App Testing Framework
     */
 
-    // This map can be passed to openTheTestAppWindow or reOpenTheTestAppWindow to set the 
+    // This map can be passed to openTheTestAppWindow or resetTheTestAppWindow to set the 
     // WordChain epoch manually.
 
     static EpochTwoDaysAgo = new Map([ [Const.QUERY_STRING_EPOCH_DAYS_AGO, "2"] ]);
     static EpochThreeDaysAgo = new Map([ [Const.QUERY_STRING_EPOCH_DAYS_AGO, "3"] ]);
 
-    closeNewAppWindow() {
-        if (this.getNewAppWindow()) {
-            this.getNewAppWindow().close();
-            this.newWindow = null;
-        }
-    }
-
     getNewAppWindow() {
+        /*
+         TODO - find a way to have the new window's console set to the main test window's console
+        if (this.newWindow) {
+            this.newWindow.console = this.console;
+        }
+        */
         return this.newWindow;
     }
 
-    getResultsAreReady() {
-        return ! this.needToWaitForAsyncResults;
-    }
-
-    openTheTestAppWindow(queryVars=new Map()) {
-        let suffix = "";
-        function appendKeyVal(val, key, map) {
-            if (suffix == "") {
-                suffix="?";
-            } else {
-                suffix += "&";
-            }
-            if (val.length > 0) {
-                suffix += `${key}=${val}`;
-            } else {
-                suffix += key;
-            }
-        }
-        queryVars.forEach( appendKeyVal );
-        let url = '/wordchain/docs/html/WordChain.html' + suffix;
-        this.logDebug("!! Opening window at ", url, "test");
-
+    openTheTestAppWindow(testingVars=new Map()) {
         // Setting the width/height is what makes a separate window open
         // instead of a new browser tab. HOWEVER, in iOS/Chrome, the appearance
         // is a new tab. In iOS/Safari this doesn't work -- we get failures to
         // download some source files and we don't know why!
-        let windowFeatures = "width=300,height=400";
-        let windowName = "AppDisplayTest";
-        //this.newWindow = window.open(url, windowName, windowFeatures);
-        this.newWindow = open(url, windowName, windowFeatures);
-        if (this.newWindow === null)
-        {
-            // Will be logged in waitForAppDisplayThenRunFunc. 
-            this.logDebug("!! this.newWindow is null", "test");
-            return;
-        } 
-        // set the child's console to our console. This doesn't work reliably, especially when the child window has a crashing bug.
-        this.newWindow.console = console;
-    }
-
-    runNextAppTest() {
-        let lastAppTestStartTime = this.appTestStartTime;
-        this.appTestStartTime = Date.now();
-        if (lastAppTestStartTime != null) {
-            this.logDebug(this.testName, " took ", this.appTestStartTime - lastAppTestStartTime, " ms", "test");
-        }
-        // before running any test, which might be multi-game, clear the multi-game counter and results accumulator
-        this.multiGameCountdown = null;
-        this.multiGameResults = null;
-        let testFunc = this.appTestList.shift();
-        if (testFunc) {
-            let shortFuncName = testFunc.toString().split(' ')[0];
-            this.logDebug("!! runNextAppTest() testFunc=", shortFuncName, "test");
-            // clear cookies and reopen the window in testing mode 
-            const clearCookies = true;
-            this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-            // and then wait for the window and begin the next test ...
-            this.waitForAppDisplayThenRunFunc(testFunc);
-        } else {
-            this.closeNewAppWindow();
-            this.needToWaitForAsyncResults = false;
+        if (! this.getNewAppWindow()) {
+            const url = '/wordchain/docs/html/WordChain.html';
+            const windowFeatures = "width=300,height=400";
+            const windowName = "AppDisplayTest";
+            this.newWindow = window.open(url, windowName, windowFeatures);
+            // TODO this.getNewAppWindow().console = this.console;
+            // now, we need to reset the window with the testingVars if any
+            this.logDebug("opened the one and only pop-up window: ", this.newWindow, ", at url: ", url, "test");
         }
     }
 
-    reOpenTheTestAppWindow(clearCookies, queryVars) {
-        // clear our own cookies
-        if (clearCookies) {
-            Cookie.clearNonDebugCookies();
-        }
-
-        // close and re-open the test App window
-        this.closeNewAppWindow();
-        this.openTheTestAppWindow(queryVars);
+    resetTheTestAppWindow(testingVars = new Map()) {
+        // This is a cheat to create a "new singleton" so that we get a fresh AppDisplay.
+        // TODO: the test app window keeps growing with each new reset.  The old content is still there.  
+        // This is kind of helpful, actually, because you can look at each test as if it had its own window..
+        this.logDebug("calling resetSingletonObject.  newAppWindow:", this.getNewAppWindow(), "test");
+        this.logDebug(" calling resetSingletonObject", "test");
+        this.getNewAppWindow().theAppDisplay.resetSingletonObject(testingVars);
+        this.logDebug("resetSingletonObject finished", "test");
     }
 
-    // We get access to the AppDisplay for the game in the new window through the window's attribute 'theAppDisplay.'
-    // If the new window is ready (it has set theAppDisplayIsReady) we run 'func' bound to 'this'.  If not,
-    // we wait and check again ...
+    runAppTest(testFunc) {
+        // clear cookies and reset the window with the standard testing daily puzzle
+        Cookie.clearNonDebugCookies();
+        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+        this.runFunc(testFunc);
+    }
 
-    waitForAppDisplayThenRunFunc(func, isRewait=false) {
-        let shortFuncName = func.toString().split(' ')[0];
-        if (isRewait) {
-            this.logDebug("!! re-checking if new AppDisplay is ready after wait time: ", Date.now() - this.inTheFutureSetAt, " ms.", "test");
-        } else {
-            this.logDebug("!! first checking if new AppDisplay is ready.", "test");
-        }
-
-        let newWindow = this.getNewAppWindow();
-        if (newWindow === null) {
-            this.testName="in between tests";
-            this.verify(false, `new app window is null waiting for:  ${shortFuncName}`);
-            console.error("new app window is null - tests cannot continue.");
-            this.needToWaitForAsyncResults = false;
-            return;
-        }
-
-        if ((newWindow.localStorage != null) && newWindow.theAppDisplayIsReady) {
-            this.logDebug("!! new window AppDisplay is ready; calling: ",  shortFuncName, "test");
-            this.inTheFutureSetAt = null;
-            // How to call this class's member function 'func' with 'this' properly set.
-            let boundFunc = func.bind(this);
-            boundFunc();
-        } else {
-            const sleepTime = 200;
-            this.logDebug("!! Not ready - waiting ", sleepTime, " ms for new AppDisplay.", "test");
-            const isRewaitP = true;
-            let boundFunc = this.waitForAppDisplayThenRunFunc.bind(this, func, isRewaitP);
-            this.inTheFutureSetAt = Date.now();
-            inTheFuture(sleepTime).then(boundFunc);
-        }
+    // utility to run a member function given the function object
+    runFunc(func) {
+        const boundFunc = func.bind(this);
+        boundFunc();
     }
 
     // playLettter, deleteLetter, and insertLetter all require the attribute this.gameDisplay to be set to
@@ -1067,30 +980,50 @@ class Test extends BaseLogger {
     */
 
     runAppTests() {
-        this.appTestStartTime = null;
+
+        let newWindow = this.getNewAppWindow();
+        if (!(newWindow && newWindow.localStorage && newWindow.theAppDisplayIsReady)) {
+            this.openTheTestAppWindow();
+            console.log("app test window isn't ready yet; try again.");
+            return; 
+        }
+        this.logDebug("window for App tests is ready.", "test");
         this.appTestList = [
-            /*
-            */
-            this.openWindowTwiceTest,
-            this.multiGameStatsTest,
-            this.multiGameMixedResultsStatsTest,
-            this.multiIncompleteGameStatsTest,
-            this.dailyGameNormalFinishStatsTest,
-            this.dailyGameUnfinishedRestartNextDayTest,
-            this.dailyGameTooManyMistakesShareTest,
-            this.dailyGameEndsOnDeleteShareTest,
-            this.dailyGameRestartAfterDohTest,
-            this.dailyGameRestartTest,
-            this.dailyGameOneMistakeShareTest,
-            this.dailyGameShowSolutionTest,
-            this.practiceGameTest,
-            this.practiceGameLimitTest,
-            this.geniusMoveAndShareTest,
-            this.cookieRestartTest,
+                this.multiGameStatsTest,
+                this.multiGameMixedResultsStatsTest,
+                this.multiIncompleteGameStatsTest,
+                this.dailyGameNormalFinishStatsTest,
+                this.dailyGameUnfinishedRestartNextDayTest,
+                this.dailyGameTooManyMistakesShareTest,
+                this.dailyGameEndsOnDeleteShareTest,
+                this.dailyGameRestartAfterDohTest,
+                this.dailyGameRestartTest,
+                this.dailyGameOneMistakeShareTest,
+                this.dailyGameShowSolutionTest,
+                this.practiceGameTest,
+                this.practiceGameLimitTest,
+                this.geniusMoveAndShareTest,
+                this.cookieRestartTest,
         ];
-        this.needToWaitForAsyncResults = true;
-        this.runNextAppTest();
+
+        this.runTheNextTest();
     }
+
+    runTheNextTest() {
+        const appTestFunc = this.appTestList.shift();
+        if (appTestFunc) {
+            const testFuncName = appTestFunc.toString().split(' ')[0];
+            this.logDebug("!! running appTest=", testFuncName, "test");
+            const testStart = Date.now();
+            this.runAppTest(appTestFunc);
+            const testDone = Date.now();
+            this.logDebug(testFuncName, " took ", testDone - testStart, " ms", "test");
+            inTheFuture(100).then( (foo=this) => {foo.runTheNextTest()})
+        } else {
+            this.logDebug("no more tests to run - showing results", "test");
+            this.showResults();
+        }
+    } 
 
     // start playing daily game for day 2, and then continue on day 3.  It should be a new, unplayed game.
     dailyGameUnfinishedRestartNextDayTest() {
@@ -1103,21 +1036,16 @@ class Test extends BaseLogger {
         this.deleteLetter(1);    // SHOOT -> HOOT
 
         // re-open the app window
-        const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.EpochThreeDaysAgo);
-        this.waitForAppDisplayThenRunFunc(this.continueUnfinishedRestartNextDayTest);
-    }
-     
-    // called after restart in the middle of the game on day 3.
-    continueUnfinishedRestartNextDayTest() {
+        Cookie.clearNonDebugCookies();
+        this.resetTheTestAppWindow(Test.EpochThreeDaysAgo);
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
         let [start, target, gameNumber] = [this.gameDisplay.startWord, this.gameDisplay.targetWord, this.gameDisplay.dailyGameNumber];
         let [expStart, expTarget] = DailyGameDisplay.GameWords[3];
         this.verify(start == expStart, "After restart, expected start word: ", expStart, ", got: ", start) &&
             this.verify(target == expTarget, "After restart, expected target word: ", expTarget, ", got: ", target) &&
             this.verify(gameNumber == 3, "Expected daily game number 3 after restarting next day, got", gameNumber) &&
             this.success();
-        this.runNextAppTest();
     }
 
     dailyGameNormalFinishStatsTest() {
@@ -1152,116 +1080,70 @@ class Test extends BaseLogger {
         testResults &&
             this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
-
-        this.runNextAppTest();
     }
         
-    // openWindowTwiceTest just opens the wordchain.html window, closes it, and re-opens it.
-    // This checks to see if the app initializes itself correctly.
-
-    openWindowTwiceTest() {
-        this.testName = "OpenWindowTwice";
-
-        if (this.multiGameCountdown == null) {
-            // this is the first call.  We will set a countdown of games to run
-            this.multiGameCountdown = 2;
-        } 
-
-        this.multiGameCountdown -= 1;
-        this.logDebug(this.testName, " countdown: ", this.multiGameCountdown, "test");
-        this.resultsSoFar = this.verify(this.getNewAppWindow() != null, `new window is null with countdown=${this.multiGameCountdown}`);
-
-        if (this.resultsSoFar) {
-            if (this.multiGameCountdown <= 0) {
-                this.success();
-                this.runNextAppTest();
-            } else {
-                // re-open open the test window, and then repeat this function with the countdown reduced 
-                const clearCookies = false;
-                this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-                this.waitForAppDisplayThenRunFunc(this.openWindowTwiceTest);
-            }
-        }
-    }
- 
-    // multiGameStatsTest plays the daily game 3 times (multiGameCountdown) and
-    // the checks both the stats cookie, and the elements in the StatsContainer.
+    // multiGameStatsTest plays the daily game 3 times and
+    // then checks both the stats cookie, and the elements in the StatsContainer.
 
     multiGameStatsTest() {
         this.testName = "MultiGameStats";
-        if (this.multiGameCountdown == null) {
-            // this is the first call.  We will set a countdown of games to run
-            this.multiGameCountdown = 3;
-        } 
+        // play the already opened game:
+        this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
 
-        this.logDebug("MultiGameStatsTest() countdown is: ", this.multiGameCountdown, "test");
-
-        this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done (?) 
-
-        this.multiGameCountdown -= 1;
-        if (this.multiGameCountdown <= 0) {
-            // create an expected DailyStats blob
-            let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
-            expDailyStats.gamesPlayed = 3;
-            expDailyStats.gamesCompleted = 3;
-            expDailyStats[0] = 3;  // all 3 games have 0 errors
-            this.verifyStats(expDailyStats) && this.success();
-            this.runNextAppTest();
-        } else {
-            // don't let the game pick up where it left off (a finished game). 
+        for (let gameCounter = 0; gameCounter <= 1; gameCounter++) {
+            // Re-open open the test window, and repeat 
+            // Don't let the game pick up where it left off (a finished game). 
+            // Don't clear all the cookies because we are accumulating stats data with them across games here.
             Persistence.clearDailyGameNumber(); 
-            // re-open open the test window, and then repeat this function with the countdown reduced 
-            const clearCookies = false;
-            this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-            this.waitForAppDisplayThenRunFunc(this.multiGameStatsTest);
+            this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+            this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
         }
+
+        // create an expected DailyStats blob
+        let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
+        expDailyStats.gamesPlayed = 3;
+        expDailyStats.gamesCompleted = 3;
+        expDailyStats[0] = 3;  // all 3 games have 0 errors
+        this.verifyStats(expDailyStats) && this.success();
     }
 
 
-    // a recursive test that makes 0, 1, or 2 errors depending on which iteration
+    // a test that makes 0, 1, or 2 errors depending on which iteration
 
     multiGameMixedResultsStatsTest() {
         this.testName = "MultiGameMixedResultsStats";
-        if (this.multiGameCountdown == null) {
-            this.multiGameCountdown = 2;
-        }
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
-        // game: SHORT -> POOR
-        this.playLetter(4, "O"); // SHORT -> SHOOT
-        this.deleteLetter(1);    // SHOOT -> HOOT
-        this.playLetter(1, "B"); // HOOT -> BOOT
-        // optionally add one or two wrong moves on the last letter
-        if (this.multiGameCountdown >=2) {
-            this.playLetter(4, "K"); // BOOT -> BOOK  mistake
+        for (let gameCounter = 0; gameCounter <= 2; gameCounter++) {
+            this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+            // game: SHORT -> POOR
+            this.playLetter(4, "O"); // SHORT -> SHOOT
+            this.deleteLetter(1);    // SHOOT -> HOOT
+            this.playLetter(1, "B"); // HOOT -> BOOT
+                                     // optionally add one or two wrong moves on the last letter
+            if (gameCounter >= 1) {
+                this.playLetter(4, "K"); // BOOT -> BOOK mistake
+            }
+            if (gameCounter >= 2) {
+                this.playLetter(4, "B"); // BOO? -> BOOB another mistake
+            }
+            this.playLetter(4, "R"); // BOO? -> BOOR
+            this.playLetter(1, "P"); // BOO? -> POOR
+            // now, play the same game again, if we have another round to go.
+            if (gameCounter != 2) {
+                Persistence.clearDailyGameNumber(); 
+                this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+            }
         }
-        if (this.multiGameCountdown >=1) {
-            this.playLetter(4, "B"); // BOO? -> BOOB mistake
-        }
-        this.playLetter(4, "R"); // BOO? -> BOOR
-        this.playLetter(1, "P"); // BOO? -> POOR
 
-        this.multiGameCountdown -= 1;
-        // this count needs to include case '0', and stops at -1 errors.
-        if (this.multiGameCountdown < 0) {
-            // create the expected daily stats blob
-            let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
-            expDailyStats.gamesPlayed = 3;
-            expDailyStats.gamesCompleted = 3;
-            expDailyStats[0] = 1;
-            expDailyStats[1] = 1;
-            expDailyStats[2] = 1;
-            this.verifyStats(expDailyStats) && this.success();
-            this.runNextAppTest();
-        } else {
-            // don't let the game pick up where it left off (a finished game). 
-            Persistence.clearDailyGameNumber(); 
-            // re-open open the test window, and then repeat this function with the countdown reduced 
-            const clearCookies = false;
-            this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-            this.waitForAppDisplayThenRunFunc(this.multiGameMixedResultsStatsTest);
-        }
-    }
+        // create the expected daily stats blob
+        let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
+        expDailyStats.gamesPlayed = 3;
+        expDailyStats.gamesCompleted = 3;
+        expDailyStats[0] = 1;
+        expDailyStats[1] = 1;
+        expDailyStats[2] = 1;
+        this.verifyStats(expDailyStats) && this.success();
+    } 
         
     // multiIncompleteGameStatsTest plays the daily game 2 times 
     // one failed, one incomplete and the solution shown
@@ -1269,55 +1151,46 @@ class Test extends BaseLogger {
 
     multiIncompleteGameStatsTest() {
         this.testName = "MultiIncompleteGameStats";
-        if (this.multiGameCountdown == null) {
-            // this is the first call.  We will set a countdown of games to run
-            this.multiGameCountdown = 3;
-        } 
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        this.logDebug("multiIncompleteGameStatsTest() countdown is: ", this.multiGameCountdown, "test");
-        if (this.multiGameCountdown == 1) {
-            // play a failed game and then verify
-            this.playLetter(4, "O"); // SHORT -> SHOOT
-            this.deleteLetter(1);    // SHOOT -> HOOT
-            this.playLetter(1, "B"); // HOOT -> BOOT
-            this.playLetter(1, "S"); // BOOT -> SOOT error
-            this.playLetter(1, "T"); // SOOT -> TOOT error
-            this.playLetter(1, "R"); // TOOT -> ROOT error
-            this.playLetter(1, "L"); // ROOT -> LOOT error
-            this.playLetter(1, "R"); // LOOT -> ROOT error
-
-            // create and verify an expected DailyStats blob
-            let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
-            expDailyStats.gamesPlayed = 3;
-            expDailyStats.gamesShown = 1;
-            expDailyStats.gamesFailed = 1;
-            expDailyStats.gamesCompleted = 1; 
-            expDailyStats[0] = 1;  // complete game has 0 errors
-            expDailyStats[Const.TOO_MANY_WRONG_MOVES] = 1;  // failed game has TOO_MANY_WRONG_MOVE errors
-            this.verifyStats(expDailyStats) && this.success();
-            this.runNextAppTest();
-            return;
-        } 
-
-        // play a full game, then an incomplete game
-        if (this.multiGameCountdown == 3) {
-            this.playTheCannedDailyGameOnce();
-        } else if (this.multiGameCountdown == 2) {
-            // play an incomplete game and request the solution 
-            // game: SHORT -> POOR
-            this.playLetter(4, "O"); // SHORT -> SHOOT
-            this.deleteLetter(1);    // SHOOT -> HOOT
-            this.playLetter(1, "B"); // HOOT -> BOOT
-                                     // give up - show the solution
-            this.gameDisplay.showSolution();
+        for (let gameCounter = 0; gameCounter <= 2; gameCounter++) {
+            this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+            this.logDebug("multiIncompleteGameStatsTest() gameCounter: ", gameCounter, "test");
+            if (gameCounter == 2) {
+                // play a failed game 
+                this.playLetter(4, "O"); // SHORT -> SHOOT
+                this.deleteLetter(1);    // SHOOT -> HOOT
+                this.playLetter(1, "B"); // HOOT -> BOOT
+                this.playLetter(1, "S"); // BOOT -> SOOT error
+                this.playLetter(1, "T"); // SOOT -> TOOT error
+                this.playLetter(1, "R"); // TOOT -> ROOT error
+                this.playLetter(1, "L"); // ROOT -> LOOT error
+                this.playLetter(1, "R"); // LOOT -> ROOT error
+            } else if (gameCounter == 1) {
+                // play a full game 
+                this.playTheCannedDailyGameOnce();
+            } else if (gameCounter == 0) {
+                // play an incomplete game and request the solution 
+                // game: SHORT -> POOR
+                this.playLetter(4, "O"); // SHORT -> SHOOT
+                this.deleteLetter(1);    // SHOOT -> HOOT
+                this.playLetter(1, "B"); // HOOT -> BOOT
+                                         // give up - show the solution
+                this.gameDisplay.showSolution();
+            }
+            if (gameCounter != 2) {
+                Persistence.clearDailyGameNumber(); 
+                this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+            }
         }
-        // move on to the next game
-        this.multiGameCountdown -= 1;
-        // don't let the game pick up where it left off (a finished game). 
-        Persistence.clearDailyGameNumber(); 
-        const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-        this.waitForAppDisplayThenRunFunc(this.multiIncompleteGameStatsTest);
+ 
+        // create and verify an expected DailyStats blob
+        let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
+        expDailyStats.gamesPlayed = 3;
+        expDailyStats.gamesShown = 1;
+        expDailyStats.gamesFailed = 1;
+        expDailyStats.gamesCompleted = 1; 
+        expDailyStats[0] = 1;  // complete game has 0 errors
+        expDailyStats[Const.TOO_MANY_WRONG_MOVES] = 1;  // failed game has TOO_MANY_WRONG_MOVE errors
+        this.verifyStats(expDailyStats) && this.success();
     }
 
     dailyGameShowSolutionTest() {
@@ -1329,26 +1202,15 @@ class Test extends BaseLogger {
 
          // The newly opened URL should be showing the test daily game by default;
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        let solutionShown = this.gameDisplay.getSolutionShown();
 
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.gameDisplay.showSolution();
-        solutionShown = this.gameDisplay.getSolutionShown();
+        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
 
-        const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-        this.waitForAppDisplayThenRunFunc(this.finishDailyGameShowSolutionTest);
-    }
-
-    finishDailyGameShowSolutionTest() {
-        //IMPORTANT: here, window.name is '', not 'testingplace' and local storage is not null.
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        Const.GL_DEBUG && this.logDebug("SECOND WINDOW: window: ", window, "test"); 
-        const solutionShown = this.gameDisplay.getSolutionShown();
-        Const.GL_DEBUG && this.logDebug(this.testName, "SECOND WINDOW: solutionShown: ", solutionShown, "test");
 
         // create an expected DailyStats blob
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
@@ -1356,7 +1218,7 @@ class Test extends BaseLogger {
         expDailyStats.gamesPlayed = 1;
         expDailyStats.gamesShown = 1;
         let testResults = this.verifyStats(expDailyStats);
-        Const.GL_DEBUG && this.logDebug("finishDailyGameShowSolutionTest testResults: ", testResults, "test");
+        this.logDebug("finishDailyGameShowSolutionTest testResults: ", testResults, "test");
 
         if (testResults) {
             // the new game should be in a solved state
@@ -1379,7 +1241,6 @@ class Test extends BaseLogger {
 
                 this.success();
         }
-        this.runNextAppTest();
     }
 
     dailyGameOneMistakeShareTest() {
@@ -1412,7 +1273,6 @@ class Test extends BaseLogger {
         this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
 
-        this.runNextAppTest();
     }
 
     dailyGameTooManyMistakesShareTest() {
@@ -1455,28 +1315,22 @@ class Test extends BaseLogger {
 
         this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
-
-        this.runNextAppTest();
     }
 
     dailyGameEndsOnDeleteShareTest() {
         this.testName = "DailyGameEndsOnDeleteShare";
 
         // We need to re-open the test window with a known daily game, not the default.
-        const clearCookies = true;
-        let queryVars = new Map(Test.EpochTwoDaysAgo);
-        queryVars.set( Const.QUERY_STRING_START_WORD, "START" );
-        queryVars.set( Const.QUERY_STRING_TARGET_WORD, "END" );
-        this.reOpenTheTestAppWindow(clearCookies, queryVars);
-        this.waitForAppDisplayThenRunFunc(this.finishDailyGameEndsOnDeleteShareTest);
-    }
-
-    finishDailyGameEndsOnDeleteShareTest() {
+        let testingVars = new Map(Test.EpochTwoDaysAgo);
+        testingVars.set( Const.QUERY_STRING_START_WORD, "START" );
+        testingVars.set( Const.QUERY_STRING_TARGET_WORD, "END" );
+        Cookie.clearNonDebugCookies();
+        this.resetTheTestAppWindow(testingVars);
 
         // The newly re-opened URL should be showing the daily game START -> END
+        const game = this.gameDisplay.game;
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         this.gameDisplay = appDisplay.currentGameDisplay;
-        const game = this.gameDisplay.game;
 
         // START -> END
         // solution: START STAT SEAT SENT SEND END
@@ -1504,12 +1358,11 @@ class Test extends BaseLogger {
 
         this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
-
-        this.runNextAppTest();
     }
 
     dailyGameRestartTest() {
         // The newly opened URL should be showing the daily game by default;
+        this.testName = "DailyGameRestart";
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // known game should be SHORT -> POOR, the game number will be 2.
@@ -1520,19 +1373,13 @@ class Test extends BaseLogger {
         this.deleteLetter(1);    // SHOOT -> HOOT
 
         // re-open the app window
-        const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-        this.waitForAppDisplayThenRunFunc(this.continueDailyGameRestartTest);
-    }
-
-    // called after first restart in the middle of the game.
-    continueDailyGameRestartTest() {
+        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
-        this.testName = "DailyGameRestart";
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = this.gameDisplay.game;
         const di = game.getDisplayInstructions();
-        this.multiStepResults = 
+
+        let resultsSoFar = 
             this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
             this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `instruction[0] is ${di[0].toStr()}`) &&
             this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `instruction[1] is ${di[1].toStr()}`) &&
@@ -1541,26 +1388,21 @@ class Test extends BaseLogger {
             this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
             this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
 
-        if (this.multiStepResults) {
+        if (resultsSoFar) {
             // finish the game. ( ... BOOT BOOR POOR)
             const playedB = this.playLetter(1, "B"); // HOOT -> BOOT
             const playedR = this.playLetter(4, "R"); // BOOT -> BOOR
             const playedP = this.playLetter(1, "P"); // BOOR -> POOR
 
-            this.multiStepResults = this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
+            resultsSoFar = this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
                 this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
                 this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK);
         }
 
         // ... and close and re-open it after it is solved
 
-        const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-        this.waitForAppDisplayThenRunFunc(this.finishDailyGameRestartTest);
-    }
-
-    finishDailyGameRestartTest() {
-        if (this.multiStepResults) {
+        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+        if (resultsSoFar) {
             // game should be done; stats should be saved.
             this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
             const game = this.gameDisplay.game;
@@ -1569,12 +1411,11 @@ class Test extends BaseLogger {
             this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
                 this.success();
         }
-        Cookie.clearNonDebugCookies();
-        this.runNextAppTest();
     }
 
     dailyGameRestartAfterDohTest() {
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        this.testName = "DailyGameRestartAfterDoh";
 
         // when opened with epoch two days ago, the daily game will always
         // be SHORT -> POOR
@@ -1586,15 +1427,9 @@ class Test extends BaseLogger {
         this.playLetter(1, "S"); // HOOT -> SOOT D'OH!!!
 
         // re-open the app window, with the same daily game number
-        const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-        this.waitForAppDisplayThenRunFunc(this.continueDailyGameRestartAfterDohTest);
-    }
+        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
 
-    // called after first restart in the middle of the game.
-    continueDailyGameRestartAfterDohTest() {
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT, SOOT (D'OH) already played.
-        this.testName = "DailyGameRestartAfterDoh";
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = this.gameDisplay.game;
         let di = game.getDisplayInstructions();
@@ -1627,16 +1462,12 @@ class Test extends BaseLogger {
                 this.verify((di[6].toStr() === `(played,word:POOR,moveRating:${Const.OK})`), `di[6] is ${di[6].toStr()}`) &&
                 this.success();
         }
-        Cookie.clearNonDebugCookies();
-        this.runNextAppTest();
     }
-
 
     practiceGameTest() {
         this.testName = "PracticeGame";
 
         this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
-        Cookie.clearNonDebugCookies();
 
         this.logDebug("Switching to practice game", "test");
         this.getNewAppWindow().theAppDisplay.switchToPracticeGame("TEST", "PILOT");
@@ -1659,12 +1490,10 @@ class Test extends BaseLogger {
             this.verify((resultInsertP0 === Const.OK), `insert P@0 returns ${resultInsertP0}, not ${Const.OK}`) &&
             this.verify((resultInsertI1 === Const.OK), `insert I@1 returns ${resultInsertI1}, not ${Const.OK}`) &&
             this.success();
-        this.runNextAppTest();
     }
 
     practiceGameLimitTest() {
         this.testName = "PracticeGameLimit";
-        Cookie.clearNonDebugCookies();
         this.logDebug("Switching to practice game", "test");
         this.getNewAppWindow().theAppDisplay.switchToPracticeGame("TEST", "PILOT");
         this.logDebug("Done switching to practice game", "test");
@@ -1696,8 +1525,7 @@ class Test extends BaseLogger {
             if ( this.verify(children.length == 1, "expected 1 children, got: ", children.length) &&
                     this.verify( (children[0].textContent == "New Game"), "expected textContent=New Game, got: ", children[0].textContent) && 
                     this.verify(this.gameDisplay.anyGamesRemaining(), "After showing ", gamesPlayed, " games, anyGamesRemaining should still be true")
-                    )
-            {
+               ) {
                 // pretend to click the new game button
                 this.gameDisplay.newGameCallback(mockEvent);
                 //do we need to wait a while? No, that callback handler runs synchronously.
@@ -1713,15 +1541,10 @@ class Test extends BaseLogger {
                 this.verify(postGameDiv.children.length == 0, "After showing too many games, expected 0 children, got: ", postGameDiv.children.length) &&
                 this.success();
         }
-        this.runNextAppTest();
     }
 
     geniusMoveAndShareTest() {
         this.testName = "GeniusMoveDisplay";
-
-        Cookie.clearNonDebugCookies();
-        this.getNewAppWindow().theAppDisplay.switchToDailyGame();
-
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // regular solution:                SHORT SHOOT HOOT BOOT BOOR POOR
@@ -1750,7 +1573,6 @@ class Test extends BaseLogger {
             this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
             this.verify((shareString === expectedShareString), `sharestring: expected '${expectedShareString}', got '${shareString}'`) &&
             this.success();
-        this.runNextAppTest();
     }
 
     cookieRestartTest() {
@@ -1764,14 +1586,8 @@ class Test extends BaseLogger {
         Cookie.save(Cookie.TEST_INT, 42);
         Cookie.save(Cookie.TEST_BOOL, true);
 
-        // now close the window,
-        const clearCookies = false;
-        this.reOpenTheTestAppWindow(clearCookies, Test.EpochTwoDaysAgo);
-        this.waitForAppDisplayThenRunFunc(this.finishCookieRestartTest);
-    }
-
-    finishCookieRestartTest() {
-        this.logDebug("new window should be re-opened; restoring values via cookies in new window", "test");
+        // now re-set the window,
+        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         var testIntRestored = Cookie.getInt(Cookie.TEST_INT);
         var testBoolRestored = Cookie.getBoolean(Cookie.TEST_BOOL);
@@ -1783,8 +1599,6 @@ class Test extends BaseLogger {
             this.verify((testObjRestored.nums[1] == 5), `testObjRestored[1]is ${testObjRestored[1]}, not 5`) &&
             this.verify((testObjRestored.field == "hello"), `testObjRestored.field is '${testObjRestored.field}', not hello`) &&
             this.success();
-        Cookie.clearNonDebugCookies();
-        this.runNextAppTest();
     }
 
     // ===== Dictionary Tester =====

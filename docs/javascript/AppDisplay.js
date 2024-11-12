@@ -22,10 +22,15 @@ class AppDisplay extends BaseLogger {
 
     /* ----- Construction ----- */
 
-    constructor() {
+    constructor(testingVars = new Map()) {
         super();
+        // these two variables are accessed from Test.js so that we 
+        // can control the application from the testing code.
         window.theAppDisplayIsReady = false;
         window.theAppDisplay = this;
+
+        // run-time variables for controlling behavior during test
+        this.testingVars = testingVars;
 
         // Flags from Settings screen
         this.darkTheme      = Cookie.getBoolean(Cookie.DARK_THEME);
@@ -60,7 +65,6 @@ class AppDisplay extends BaseLogger {
         this.setColors();
 
         window.theAppDisplayIsReady = true;
-
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
@@ -70,6 +74,13 @@ class AppDisplay extends BaseLogger {
             AppDisplay.singletonObject = new AppDisplay();
         }
         return AppDisplay.singletonObject;
+    }
+
+    // For automated testing only!
+    resetSingletonObject(testingVars) {
+        // so that we don't keep adding #root-div to the same document on each reset:
+        document.getElementById("root-div").remove(); 
+        AppDisplay.singletonObject = new AppDisplay(testingVars);
     }
 
     // This is the entry point for creating the screens and displaying the game.
@@ -103,7 +114,7 @@ class AppDisplay extends BaseLogger {
 
         // Creation of DailyGameDisplay causes the start/target words to be determined
         // based on today's date and displays the game's grid for the user to play.
-        this.dailyGame = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
+        this.dailyGame = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv, this.testingVars);
         this.practiceGame = null;
         this.currentGameDisplay = this.dailyGame;
     }
@@ -326,9 +337,15 @@ class AppDisplay extends BaseLogger {
 
     switchToPracticeGame(startWord=null, targetWord=null) {
         if (this.practiceGame === null) {
+            Const.GL_DEBUG && this.logDebug("AppDisplay.switchToPracticeGame(", startWord, targetWord, ")", "practice");
             // Creation of PracticeGameDisplay causes the start/target words to be retrieved
             // from Cookies or randomly selected, and displays the game's grid for the user to play.
-            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv, startWord, targetWord);
+            let newTestingVars = new Map(this.testingVars);
+            if (startWord && targetWord) {
+                newTestingVars.set(Const.QUERY_STRING_START_WORD, startWord);
+                newTestingVars.set(Const.QUERY_STRING_TARGET_WORD, targetWord);
+            }
+            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv, newTestingVars);
         }
 
         // If the user has already played the maximum number of games, we disallow any more.

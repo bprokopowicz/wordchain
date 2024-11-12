@@ -8,24 +8,25 @@ class PracticeGameDisplay extends GameDisplay {
 
     /* ----- Construction ----- */
 
-    constructor(appDisplay, gameDiv, pickerDiv, startWord=null, targetWord=null) {
-        super(appDisplay, gameDiv, pickerDiv, "practice-picker");
+    constructor(appDisplay, gameDiv, pickerDiv, testingVars) {
+        super(appDisplay, gameDiv, pickerDiv, "practice-picker", testingVars);
 
-        this.practiceGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using URL query vars or the setter func
+        this.practiceGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using testing vars 
         // Are we debugging the number of practice games allowed?
         this.maxGamesIntervalMs = 24 * 60 *60 * 1000; // one day in ms
-        if (this.queryVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) ) {
-            this.maxGamesIntervalMs = this.queryVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) * 60 * 1000;
+        if (this.testingVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) ) {
+            this.maxGamesIntervalMs = this.testingVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) * 60 * 1000;
         }
 
-        if (this.queryVars.has(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY) ) {
-            this.practiceGamesPerDay = this.queryVars.get(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY);
+        if (this.testingVars.has(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY) ) {
+            this.practiceGamesPerDay = this.testingVars.get(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY);
         }
         // We use timestamps to ensure the user doesn't play more than the maximum
         // number of timestamps per day; 
 
         if (this.anyGamesRemaining()) {
-            this.updateWords(startWord, targetWord);
+            let [optStartWord, optTargetWord] = [this.testingVars.get(Const.QUERY_STRING_START_WORD), this.testingVars.get(Const.QUERY_STRING_TARGET_WORD)];
+            this.updateWords(optStartWord, optTargetWord);
         }
     }
 
@@ -122,6 +123,7 @@ class PracticeGameDisplay extends GameDisplay {
     // startWord and targetWord are parameters for testing only.
     updateWords(startWord=null, targetWord=null) {
 
+        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.updateWords(", startWord, targetWord, ")", "test");
         Persistence.clearPracticeSolutionShown();
         let gameState = [];
         if (startWord && targetWord) {
