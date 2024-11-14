@@ -1,13 +1,3 @@
-Implementation Ideas (Future)
-- Solution button -- add means to show WordChain's ORIGINAL solution?
-- After a game fails should the solution be shown?
-  If so from the point of failure onward?
-  Or by the same means to show WordChain's original solution?
-- Possible settings to tweak game difficulty:
-  - Mode where future rows do not have change cells outlined thicker. (harder)
-  - Mode where picker displays only letters that could result in valid words. (easier)
-- Don't make the player select the last letter when there is only one step left? This prevents fat-fingering the last letter choice.
-
 Testing
 - Update Manual UI Testing Use Cases doc
   (https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing)
@@ -16,25 +6,26 @@ Testing
   - query parameters for practice games: start, target, minutes_per_day, whatever else
   - red sections
 
-Beta (for sharing with "Core Word Nerds" mailing list -- 10 people)
-- Investigate all Chrome/Safari warnings / violations / 
+Beta (for sharing with "Core Word Nerds" mailing list -- 11 people)
+- Write automated tests for daily game use cases described below [Pete - 11/15]
+- Execute automated tests in these environments:
+  - Safari/iPhone -- Done
+  - Safari/iPad -- Done
+  - Safari/Mac -- Done
+  - Chrome/Android phone -- using debugging environment [Bonnie - 11/17]
+  - Chrome/Mac -- Done
+  - Chrome/iPad -- Done
+- Update Manual UI Testing Use Cases document [Pete - 11/20]
+- Execute Manual UI Testing Use Cases in these environments:
+  - Safari/iPhone [Pete - 11/XX]
+  - Safari/iPad [Pete - 11/XX]
+  - Safari/Mac [Bonnie - 11/24]
+  - Chrome/Android phone -- using debugging environment [Bonnie - 11/24]
+  - Chrome/Mac [Pete - 11/XX]
+  - Chrome/iPhone [Pete - 11/XX]
+- Investigate all Chrome/Safari warnings/violations 
      for example: [Violation] Added non-passive event listener to a scroll-blocking <some> event.
      Consider marking event handler as 'passive' to make the page more responsive. See <URL>
-- Update Manual UI Testing Use Cases document [Pete - 11/5]
-- Write automated tests for daily game use cases described below [Pete - 11/4]
-- Execute automated tests in these environments:
-  - Safari/iPhone [Pete - 11/11]
-  - Safari/iPad [Pete - 11/11]
-  - Safari/Mac [Pete - 11/11] -- Good on 11/08
-  - Chrome/Android phone -- using debugging environment [Bonnie - 11/17]
-  - Chrome/Mac [Pete - 11/11] -- Good on 11/08
-  - Chrome/iPad [Pete - 11/11] -- Good on 11/08
-- Execute Manual UI Testing Use Cases in these environments:
-  - Safari/iPhone [Pete - 11/15]
-  - Safari/iPad [Pete - 11/15]
-  - Safari/Mac [Bonnie - 11/17]
-  - Chrome/Android phone -- using debugging environment [Bonnie - 11/23]
-  - Chrome/Mac [Pete - 11/12]
 
 Questions of Beta Users
 - Is it a fun game?
@@ -57,7 +48,17 @@ Production
 - Logo/favicon.ico
 - Consider removing words that are in both dictionaries from the Scrabble dictionary
 
-daily game use cases:
+Implementation Ideas (Future)
+- Solution button -- add means to show WordChain's ORIGINAL solution?
+- After a game fails should the solution be shown?
+  If so from the point of failure onward?
+  Or by the same means to show WordChain's original solution?
+- Possible settings to tweak game difficulty:
+  - Mode where future rows do not have change cells outlined thicker. (harder)
+  - Mode where picker displays only letters that could result in valid words. (easier)
+- Don't make the player select the last letter when there is only one step left? This prevents fat-fingering the last letter choice.
+
+Daily game use cases:
 1) no recovered game number - calculate current game and initialize it
     dailyGameNormalFinishStatsTest
 2) recovered game number - calculate today's game number and compare:
@@ -78,21 +79,20 @@ daily game use cases:
 
 Testing issues:
 
-The app tests would hang on opening/initializing some of the tests.  It seems to be fixed by specifying width, height for the 
-window.open() call.  This makes it use a new window instead of tab.  
+In IOS (phone, ipad) using Safari, wordchain.html will load and play OK, BUT:
+- if you force a hard reload (cmd-opt-R) from the web inspector while tethered to a Mac,
+  the javascript downloading fails for 2-4 of the files.
+- Also, BaseLogger.js seems to take too long but does download.  You can see this in the Web
+  Inspector on the Mac when tethered to the iPad.  We haven't tethered a phone yet (Nov 8, 2024)  
 
-There is another problem, with loading the game itself, including during testing.  In IOS (phone, ipad) using Safari, wordchain.html will load and play OK,
-but if you force a hard reload (cmd-opt-R) from the web inspector while tethered to a mac, the javascript downloading fails for 
-2-4 of the files. Also, BaseLogger.js seems to take too long but does download.  You can see this in the Web Inspector on the mac
-when tethered to the iPad.  We haven't tethered a phone yet (nov 8, 2024)  
-TODO - verify that hard reload doesn't work on iphone/safari.
-TODO - can we force hard-reload on iphone/itab in Chrome?  Does that require tethering?
+TODO - verify that hard reload doesn't work on iphone/safari (untethered).
+TODO - can we force hard-reload on iphone/ipad in Chrome?  Does that require tethering?
 
     NOTE: If we clear the Safari's cache on iPad via Settings --> Safari --> Clear History and Website Data
           and then go back to Safari, the app seems to reload everything just fine (tethered or not).
 
-The JS download failure has strange aspects.  Web Inspector/network shows that 2-4 JS files never load. They are in the green "waiting" phase, but
-if you look at the "Headers" tab in WebInspector, you will see there are no requests made for those pages.  And the web server doesn't show any
-request.
-
-
+The JS download failure has strange aspects.
+- Web Inspector/network shows that 2-4 JS files never load.
+  - They are in the green "waiting" phase, but if you look at the "Headers" tab in WebInspector,
+    you will see there are no requests made for those pages.
+  - And the web server doesn't show any request.
