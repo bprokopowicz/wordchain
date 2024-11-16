@@ -95,8 +95,8 @@ class StatsDisplay extends AuxiliaryDisplay {
         {
             // Are we in a *secure* environment that has a "share" button, like a smart phone?
             Const.GL_DEBUG && this.logDebug("shareCallback() navigator: ", navigator, "daily");
-            //TODO : canShare() seems to return false always (on MacOS chrome).  If you pass it 
-            // the data we want to share ({text: shareString}) it will return true, but then fail?
+            // TODO-BETA: canShare() seems to return false always (on MacOS chrome). If you pass it 
+            // the data we want to share ({text: shareString}) it will return true.
             let shareData = { text: shareString, };
             if (navigator.canShare(shareData)) {
                 // Yes -- use the button to share the shareString.
@@ -137,7 +137,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         Const.GL_DEBUG && this.logDebug("getShareString() gameInfo=", gameInfo, "daily");
 
         if (! gameInfo.over) {
-            this.appDisplay.showToast(Const.DAILY_NOT_OVER);
+            console.error("getShareString() called when game is not over!");
             return null;
         }
 
@@ -196,7 +196,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
         // now, add the target
         emoji = Const.PURPLE_SQUARE;
-        shareString += emoji.repeat(targetLength) + "\n";
+        shareString += emoji.repeat(targetLength);
 
         return shareString.trim();
     }
@@ -220,10 +220,10 @@ class StatsDisplay extends AuxiliaryDisplay {
     }
 
     // Hide or show the share callback based on whether the daily game solution
-    // has been shown.  If the solution was shown, the player is not allowed to
-    // share.
+    // has been shown. If the solution was shown or the daily game isn't over,
+    // the player is not allowed to share.
     updateShareButton() {
-        if (Persistence.getDailySolutionShown()) {
+        if (Persistence.getDailySolutionShown() || ! this.appDisplay.dailyGameOver()) {
             this.shareButton.style.display = "none";
         } else {
             this.shareButton.style.display = "block";

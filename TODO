@@ -25,6 +25,7 @@ Beta (for sharing with "Core Word Nerds" mailing list -- 11 people)
 - Investigate all Chrome/Safari warnings/violations 
      for example: [Violation] Added non-passive event listener to a scroll-blocking <some> event.
      Consider marking event handler as 'passive' to make the page more responsive. See <URL>
+- Check again for TODO-BETA (or TODO not marked TODO-PRODUCTION)
 
 Questions of Beta Users
 - Is it a fun game?
@@ -49,6 +50,7 @@ Production
 
 Implementation Ideas (Future)
 - Solution button -- add means to show WordChain's ORIGINAL solution?
+- Should "shown" rows be a different color (currently green, maybe show gray)?
 - After a game fails should the solution be shown?
   If so from the point of failure onward?
   Or by the same means to show WordChain's original solution?
@@ -56,6 +58,7 @@ Implementation Ideas (Future)
   - Mode where future rows do not have change cells outlined thicker. (harder)
   - Mode where picker displays only letters that could result in valid words. (easier)
 - Don't make the player select the last letter when there is only one step left? This prevents fat-fingering the last letter choice.
+
 
 Daily game use cases:
 1) no recovered game number - calculate current game and initialize it

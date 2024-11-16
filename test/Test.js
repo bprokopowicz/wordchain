@@ -211,6 +211,7 @@ class Test extends BaseLogger {
             const windowFeatures = "width=300,height=400";
             const windowName = "AppDisplayTest";
             this.newWindow = window.open(url, windowName, windowFeatures);
+
             // TODO this.getNewAppWindow().console = this.console;
             // now, we need to reset the window with the testingVars if any
             this.logDebug("opened the one and only pop-up window: ", this.newWindow, ", at url: ", url, "test");

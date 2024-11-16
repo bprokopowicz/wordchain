@@ -42,12 +42,10 @@ export const NOT_A_WORD       = "Not in word list";
 // --- Displayed from one of the *Display classes.
 export const GAME_WON         = "Solved!";
 export const GAME_LOST        = "Too many wrong moves";
-export const PICK_LETTER      = "Pick a letter";                // Displayed when no letter in picker.
 export const PICK_NEW_LETTER  = "Pick a different letter";      // Displayed when user selects the letter already in the cell to be changed.
 export const UNEXPECTED_ERROR = "Yikes! Something went wrong";
 export const TOO_MANY_GAMES   = `Only ${PRACTICE_GAMES_PER_DAY} games allowed per day`;
 export const NO_DAILY         = "Unable to create daily game;<br>here is a fun back-up";
-export const DAILY_NOT_OVER   = "Daily game still in progress";
 export const SHARE_FAILED     = "Failed to share";
 export const SHARE_COPIED     = "Copied to clipboard";
 export const SHARE_INSECURE   = "Cannot share in insecure environment";
@@ -57,7 +55,6 @@ export const GENIUS_MOVE      = "Genius play!";
 export const BAD_POSITION     = "Bad letter position";
 
 // Returns from Game class that indicate a bug in its input from GameDisplay.
-export const BAD_OPERATION       = "bad operation";
 export const BAD_LETTER_POSITION = "bad letter position";
 
 // DisplayInstruction displayTypes.

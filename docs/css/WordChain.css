@@ -401,6 +401,7 @@ svg {
 .letter-cell-played {
 }
 
+.letter-cell-start,
 .letter-cell-target {
     background: var(--target-word-bg);
 }

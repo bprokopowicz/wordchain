@@ -103,26 +103,26 @@ class LetterCell extends Cell {
 }
 
 class ActiveLetterCell extends LetterCell {
-    constructor(letter, letterPosition, letterPicker, moveRating, changePosition) {
+    constructor(letter, letterPosition, letterPicker, moveRating, changePosition, firstWord, gameIsOver) {
         super(letter);
+
+        if (firstWord) {
+            this.addClass("letter-cell-start");
+        }
 
         this.addCorrectnessClass(moveRating);
 
+        // This will only be true if the user is expected to pick a letter.
         if (letterPosition === changePosition) {
-            this.addClass("letter-cell-change");
+            // If the game is over we don't want to indicate that the
+            // user is expected to do something.
+            if (! gameIsOver) {
+                this.addClass("letter-cell-change");
+            }
 
             // Save the letter position so we can get it when the event comes.
             letterPicker.saveLetterPosition(letterPosition);
         }
-    }
-}
-
-class PlayedLetterCell extends LetterCell {
-    constructor(letter, moveRating) {
-        super(letter);
-
-        this.addClass("letter-cell-played");
-        this.addCorrectnessClass(moveRating);
     }
 }
 
@@ -135,6 +135,19 @@ class FutureLetterCell extends LetterCell {
         if (letterPosition === changePosition)
         {
             this.addClass("letter-cell-future-change");
+        }
+    }
+}
+
+class PlayedLetterCell extends LetterCell {
+    constructor(letter, moveRating, firstWord) {
+        super(letter);
+
+        if (firstWord) {
+            this.addClass("letter-cell-start");
+        } else {
+            this.addClass("letter-cell-played");
+            this.addCorrectnessClass(moveRating);
         }
     }
 }

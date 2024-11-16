@@ -131,10 +131,10 @@ class AppDisplay extends BaseLogger {
         ];
 
         // Now create objects for each of the auxiliary screens.
-        // Probably don't need to save these, but we will anyway!
+        // We don't need to save these in the object, but we will anyway!
         this.helpDisplay     = new HelpDisplay(this.auxiliaryButtonDiv, Const.HELP_PATH, this.auxiliaryDiv, this.primaryDivs);
-        this.settingsDisplay = new SettingsDisplay(this.auxiliaryButtonDiv, Const.SETTINGS_PATH, this.auxiliaryDiv, this.primaryDivs, this);
         this.statsDisplay    = new StatsDisplay(this.auxiliaryButtonDiv, Const.STATS_PATH, this.auxiliaryDiv, this.primaryDivs, this);
+        this.settingsDisplay = new SettingsDisplay(this.auxiliaryButtonDiv, Const.SETTINGS_PATH, this.auxiliaryDiv, this.primaryDivs, this);
     }
 
     createGameButtons() {
@@ -218,6 +218,12 @@ class AppDisplay extends BaseLogger {
     }
 
     /* ----- Utilities ----- */
+
+    dailyGameOver()
+    {
+        let gameInfo = this.getDailyGameInfo();
+        return gameInfo.over;
+    }
 
     disableSolutionButton()
     {
