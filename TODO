@@ -66,6 +66,13 @@ Implementation Ideas (Future)
 - After a game fails should the solution be shown?
   If so from the point of failure onward?
   Or by the same means to show WordChain's original solution?
+- When we show the solution, it solves the game as played so far.  It should also
+  show the best solution as played by the user until their first mistake, and then 
+  continued optimally.  This display doesn't need to be on a display grid like the game.
+  It could just be a vertical list of the words.  This optimal solution might be different
+  from WordChain's original solution, but of the same length.  We could have ANOTHER
+  button to Show WordChain's Original solution.
+
 - Possible settings to tweak game difficulty:
   - Mode where future rows do not have change cells outlined thicker. (harder)
   - Mode where picker displays only letters that could result in valid words. (easier)
