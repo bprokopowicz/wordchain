@@ -3,7 +3,6 @@ Testing
   (https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing)
 - Update Testing How-To doc
   (https://docs.google.com/document/d/1b8b2sDs3SFpffsEPO70uufia7UOJBccSUclHI4u9u8Y/edit?usp=sharing)
-  - query parameters for practice games: start, target, minutes_per_day, whatever else
   - red sections
 
 Beta (for sharing with "Core Word Nerds" mailing list -- 11 people)
@@ -87,7 +86,6 @@ In IOS (phone, ipad) using Safari, wordchain.html will load and play OK, BUT:
 
 TODO - verify that hard reload doesn't work on iphone/safari (untethered).
 TODO - can we force hard-reload on iphone/ipad in Chrome?  Does that require tethering?
-
     NOTE: If we clear the Safari's cache on iPad via Settings --> Safari --> Clear History and Website Data
           and then go back to Safari, the app seems to reload everything just fine (tethered or not).
 

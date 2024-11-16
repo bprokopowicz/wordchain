@@ -100,7 +100,7 @@ class Test extends BaseLogger {
         if (Const.GL_DEBUG) {
             debugWarning = "  Set Const.GL_DEBUG=false for performance";
         }
-        this.addTitle("WordChain Test Suite - allow 30+ seconds to complete; browser popups must be allowed." + debugWarning);
+        this.addTitle("WordChain Test Suite - click once on pop-up window to focus it, and then don't touch anything; allow 20+ seconds to complete; browser popups must be allowed" + debugWarning);
 
         var runAll         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
             runDict        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
@@ -130,7 +130,7 @@ class Test extends BaseLogger {
             this.runGameTests();
         }
         if (buttonId == "runAll" || buttonId == "runApp") {
-            this.runAppTests(); // this will show Results when finished asynchronously
+            this.runAppTests(); // this will take care of calling showResults() when it is finished asynchronously
         } else {
             this.showResults(); // this will apply to any synchronous tests (dict, solver, game)
         }
@@ -185,7 +185,7 @@ class Test extends BaseLogger {
     ** App Testing Framework
     */
 
-    // This map can be passed to openTheTestAppWindow or resetTheTestAppWindow to set the 
+    // This map can be passed to resetTheTestAppWindow to set the 
     // WordChain epoch manually.
 
     static EpochTwoDaysAgo = new Map([ [Const.QUERY_STRING_EPOCH_DAYS_AGO, "2"] ]);
@@ -234,7 +234,7 @@ class Test extends BaseLogger {
         this.runFunc(testFunc);
     }
 
-    // utility to run a member function given the function object
+    // utility to run a member function on this, given the raw function object (without this).
     runFunc(func) {
         const boundFunc = func.bind(this);
         boundFunc();
@@ -1009,6 +1009,11 @@ class Test extends BaseLogger {
         this.runTheNextTest();
     }
 
+    // runTheNextTest() iterates through all the test functions in this.appTestList, 
+    // running one test each time it is called, then scheduling the next test shortly
+    // ahead in the future.  This gives the javascript event loop a chance to execute
+    // other tasks in between each test, such as showing the screen changes.
+
     runTheNextTest() {
         const appTestFunc = this.appTestList.shift();
         if (appTestFunc) {
@@ -1078,7 +1083,7 @@ class Test extends BaseLogger {
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
         testResults &&
-            this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+            this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
         
@@ -1266,11 +1271,15 @@ class Test extends BaseLogger {
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
 
-        //  get the share string:
+        //  write the share string and verify it:
+        // TODO: this only verifies the shareString contents, not whether the share is copied to clipboard or the devices
+        // 'share' mechanism.  the clipboard.writeText() call is async, and the catch() clause doesn't
+        // execute on error in the callpath of stats.Display.shareCallback().  The error is handled async; the call
+        // to shareCallback() always returns the calculated shareString, NOT whether it was written to the clipboard.
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 1️⃣\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
 
-        this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+        this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
 
     }
@@ -1313,7 +1322,7 @@ class Test extends BaseLogger {
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 😖\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
 
-        this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+        this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
 
@@ -1356,7 +1365,7 @@ class Test extends BaseLogger {
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪`;
 
-        this.verify(actShareString==expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+        this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
 

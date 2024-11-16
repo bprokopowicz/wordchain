@@ -188,10 +188,13 @@ class ElementUtilities {
         }
 
         // Now, assign our localCallback to all the events of interest.
-        buttonElement.addEventListener("touchstart", localCallback);
-        buttonElement.addEventListener("click", localCallback);
-        buttonElement.addEventListener("keyup", localCallback);
-        buttonElement.addEventListener("keydown", localCallback);
+        // the {passive: true} argument shuts up thousands of violation warnings in Chrome: 
+        // "Added non-passive event listener to a scroll-blocking 'touchstart' event...."
+
+        buttonElement.addEventListener("touchstart", localCallback, {passive: true});
+        buttonElement.addEventListener("click", localCallback, {passive: true});
+        buttonElement.addEventListener("keyup", localCallback, {passive: true});
+        buttonElement.addEventListener("keydown", localCallback, {passive: true});
     }
 
     // Used only in Test.js.

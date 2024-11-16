@@ -95,11 +95,12 @@ class StatsDisplay extends AuxiliaryDisplay {
         {
             // Are we in a *secure* environment that has a "share" button, like a smart phone?
             Const.GL_DEBUG && this.logDebug("shareCallback() navigator: ", navigator, "daily");
-            if (navigator.canShare()) {
+            //TODO : canShare() seems to return false always (on MacOS chrome).  If you pass it 
+            // the data we want to share ({text: shareString}) it will return true, but then fail?
+            let shareData = { text: shareString, };
+            if (navigator.canShare(shareData)) {
                 // Yes -- use the button to share the shareString.
-                navigator.share({
-                    text: shareString,
-                })
+                navigator.share(shareData)
                 .catch((error) => {
                     this.appDisplay.showToast(Const.SHARE_FAILED);
                     console.error("Failed to share: ", error);
