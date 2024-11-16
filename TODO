@@ -26,6 +26,18 @@ Beta (for sharing with "Core Word Nerds" mailing list -- 11 people)
      for example: [Violation] Added non-passive event listener to a scroll-blocking <some> event.
      Consider marking event handler as 'passive' to make the page more responsive. See <URL>
 - Check again for TODO-BETA (or TODO not marked TODO-PRODUCTION)
+- If a move increases the shortest solution by 2 (dead-end -- whether or not you MUST backtrack)
+  what should the game display (and share graphic) look like ...
+  A: After you play the word that leads to the dead-end?
+  B: After you re-play the word that gets you out of the dead-end?
+     - this is a correct move, so kinda should be green,
+     - but the path is 2 longer, so kinda should be red ... 
+       or really dark red (confounded emoji in the share graphic??
+  (You can't make a move that lengthens the best solution by 3 because
+  there is always the option to undo, which lengthens the path by 2.)
+  For FAQ: This is a "dodo move" ... added 2 steps to soluiton
+- Need games to test undo and backtrack cases, preferably real games, but
+  we may need to tinker with the dictionary.
 
 Questions of Beta Users
 - Is it a fun game?

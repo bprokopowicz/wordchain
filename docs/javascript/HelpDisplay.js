@@ -27,8 +27,10 @@ class HelpDisplay extends AuxiliaryDisplay {
         </p>
         <p>
         If your word played increases the number of steps from the start to the target word,
-        the background of its letters will be red; otherwise it will be green
-        (or orange/blue in Colorblind Mode).
+        the background of its letters will be red, indicating a penalty;
+        otherwise the background will be green (or orange/blue in Colorblind Mode).
+        If you play ${Const.TOO_MANY_WRONG_MOVES} such "wrong moves" you lose the game.
+        If you reach the target word you win the game.
         </p>
         <h3>
         Every day there will be a new daily WordChain game.
