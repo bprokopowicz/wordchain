@@ -98,9 +98,9 @@ class Test extends BaseLogger {
     displayTestSuite() {
         let debugWarning = "";
         if (Const.GL_DEBUG) {
-            debugWarning = "  Set Const.GL_DEBUG=false for performance";
+            debugWarning = "<br>Set Const.GL_DEBUG=false for performance";
         }
-        this.addTitle("WordChain Test Suite - click once on pop-up window to focus it, and then don't touch anything; allow 20+ seconds to complete; browser popups must be allowed" + debugWarning);
+        this.addTitle("WordChain Test Suite<br>Click once on the pop-up window to focus it, and then don't touch anything<br>Allow 20+ seconds to complete<br>Browser popups must be allowed" + debugWarning);
 
         var runAll         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
             runDict        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
