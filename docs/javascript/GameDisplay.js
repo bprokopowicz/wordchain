@@ -11,7 +11,7 @@ class GameDisplay extends BaseLogger {
 
     /* ----- Construction ----- */
 
-    constructor(appDisplay, gameDiv, pickerDiv, pickerId, testingVars) {
+    constructor(appDisplay, gameDiv, pickerDiv, pickerId) {
 
         super();
 
@@ -28,8 +28,6 @@ class GameDisplay extends BaseLogger {
         // the word, whether it was played, and whether it was correct(relevant
         // only if it was played).
         this.gameState = [];
-        this.testingVars = testingVars;
-
 
         // Derived class constructor must call constructGame().
     }

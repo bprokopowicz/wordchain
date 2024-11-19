@@ -36,6 +36,23 @@
 **
 **   Obsolete
 **     HardMode, TypeSavingMode
+** 
+**  Used In testing
+**    TestDailyStart
+**      String: override any daily game and start with this word
+**    TestDailyTarget
+**      String: override any daily game and end with this word
+**    TestPracticeStart
+**      String: override any practice game and start with this word
+**    TestPracticeTarget
+**      String: override any practice game and end with this word
+**    TestMinutesPerDay
+**      Int: overrides the length of day for calculating daily game number and practice game daily limit reset
+**    TestEpochDaysAgo
+**      Int: overrides the base time of the WordChain epoch from a fixed value to this many days ago from today.
+**    TestPracticeGamesPerDay
+**      Int: overrides the limit on how many practice games per day you can play
+
 */
 
 
@@ -51,15 +68,25 @@ class Cookie {
     static DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
     static DAILY_STATS = "DailyStats";
     static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
-    static DEBUG_BASE_TIMESTAMP = "DebugBaseTimestamp";
     static PRACTICE_GAME_START = "PracticeGameStart";
     static PRACTICE_GAME_TARGET = "PracticeGameTarget";
     static PRACTICE_GAME_WORDS_PLAYED = "PracticeGameWordsPlayed";
     static PRACTICE_GAME_TIMESTAMPS = "PracticeGameTimestamps";
     static PRACTICE_SOLUTION_SHOWN = "PracticeSolutionShown";
-    static TEST_INT = "testint";
-    static TEST_BOOL = "testbool";
-    static TEST_OBJ = "testobj";
+
+    // These 3 are used for testing persistence only.  They don't affect game play 
+    static TEST_INT = "TestInt";
+    static TEST_BOOL = "TestBool";
+    static TEST_OBJ = "TestObj";
+
+    // These variables control game set-up for testing
+    static TEST_DAILY_START = "TestDailyStart";
+    static TEST_DAILY_TARGET = "TestDailyTarget";
+    static TEST_PRACTICE_START = "TestPracticeStart";
+    static TEST_PRACTICE_TARGET = "TestPracticeTarget";
+    static TEST_MINUTES_PER_DAY = "TestMinutesPerDay";
+    static TEST_EPOCH_DAYS_AGO = "TestEpochDaysAgo";
+    static TEST_PRACTICE_GAMES_PER_DAY = "TestPracticeGamesPerDay";
 
     static ALL_COOKIE_NAMES = [
         Cookie.DEBUG,
@@ -69,7 +96,6 @@ class Cookie {
         Cookie.DAILY_GAME_WORDS_PLAYED,
         Cookie.DAILY_STATS,
         Cookie.DAILY_SOLUTION_SHOWN,
-        Cookie.DEBUG_BASE_TIMESTAMP,
         Cookie.PRACTICE_GAME_START,
         Cookie.PRACTICE_GAME_TARGET,
         Cookie.PRACTICE_GAME_WORDS_PLAYED,
@@ -77,7 +103,14 @@ class Cookie {
         Cookie.PRACTICE_SOLUTION_SHOWN,
         Cookie.TEST_INT,
         Cookie.TEST_BOOL,
-        Cookie.TEST_OBJ
+        Cookie.TEST_OBJ,
+        Cookie.TEST_DAILY_START,
+        Cookie.TEST_DAILY_TARGET,
+        Cookie.TEST_PRACTICE_START,
+        Cookie.TEST_PRACTICE_TARGET,
+        Cookie.TEST_MINUTES_PER_DAY,
+        Cookie.TEST_EPOCH_DAYS_AGO,
+        Cookie.TEST_PRACTICE_GAMES_PER_DAY,
     ];
 
     static clearAllCookies() {
@@ -88,10 +121,16 @@ class Cookie {
 
     static clearNonDebugCookies() {
         for (const cookieName of Cookie.ALL_COOKIE_NAMES) {
-            if (cookieName.indexOf("Debug") < 0) {
+            if (cookieName.startsWith("Debug"))  {
+                // don't remove
+            } else {
                 Cookie.remove(cookieName);
             }
         }
+    }
+
+    static has(name) {
+        return Cookie.get(name) != null;
     }
 
     static get(name) {

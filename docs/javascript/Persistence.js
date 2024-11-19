@@ -107,6 +107,73 @@ class Persistence {
         Cookie.save(Cookie.COLORBLIND_MODE, colorblindMode);
     }
 
-}
+    // Testing vars
 
+    static hasTestDailyGameWords() {
+        return Cookie.has(Cookie.TEST_DAILY_START) && Cookie.has(Cookie.TEST_DAILY_TARGET);
+    }
+
+    static getTestDailyGameWords() {
+        return [
+            Cookie.get(Cookie.TEST_DAILY_START),
+            Cookie.get(Cookie.TEST_DAILY_TARGET)
+        ];
+    }
+
+    static saveTestDailyGameWords(start, target) {
+        Cookie.save(Cookie.TEST_DAILY_START, start);
+        Cookie.save(Cookie.TEST_DAILY_TARGET, target);
+    }
+
+    static hasTestPracticeGameWords() {
+        return Cookie.has(Cookie.TEST_PRACTICE_START) && Cookie.has(Cookie.TEST_PRACTICE_TARGET);
+    }
+
+    static getTestPracticeGameWords() {
+        return [ Cookie.get(Cookie.TEST_PRACTICE_START), Cookie.get(Cookie.TEST_PRACTICE_TARGET) ];
+    }
+
+    static saveTestPracticeGameWords(start, target) {
+        Cookie.save(Cookie.TEST_PRACTICE_START, start);
+        Cookie.save(Cookie.TEST_PRACTICE_TARGET, target);
+    }
+
+    static hasTestMinutesPerDay() {
+        Cookie.has(Cookie.TEST_MINUTES_PER_DAY);
+    }
+
+    static getTestMinutesPerDay() {
+        Cookie.getInt(Cookie.TEST_MINUTES_PER_DAY);
+    }
+
+    static saveTestMinutesPerDay(n) {
+        Cookie.save(Cookie.TEST_MINUTES_PER_DAY, n);
+    }
+
+    static hasTestEpochDaysAgo() {
+        let rc = Cookie.has(Cookie.TEST_EPOCH_DAYS_AGO);
+        return rc;
+    }
+
+    static getTestEpochDaysAgo() {
+        let rc = Cookie.getInt(Cookie.TEST_EPOCH_DAYS_AGO);
+        return rc;
+    }
+
+    static saveTestEpochDaysAgo(n) {
+        Cookie.save(Cookie.TEST_EPOCH_DAYS_AGO, n);
+    }
+
+    static hasTestPracticeGamesPerDay() {
+        Cookie.has(Cookie.TEST_PRACTICE_GAMES_PER_DAY);
+    }
+
+    static getTestPracticeGamesPerDay() {
+        Cookie.getInt(Cookie.TEST_PRACTICE_GAMES_PER_DAY);
+    }
+
+    static saveTestPracticeGamesPerDay(n) {
+        Cookie.save(Cookie.TEST_PRACTICE_GAMES_PER_DAY, n);
+    }
+}
 export { Persistence };

@@ -22,15 +22,12 @@ class AppDisplay extends BaseLogger {
 
     /* ----- Construction ----- */
 
-    constructor(testingVars = new Map()) {
+    constructor() {
         super();
         // these two variables are accessed from Test.js so that we 
         // can control the application from the testing code.
         window.theAppDisplayIsReady = false;
         window.theAppDisplay = this;
-
-        // run-time variables for controlling behavior during test
-        this.testingVars = testingVars;
 
         // Flags from Settings screen
         this.darkTheme      = Cookie.getBoolean(Cookie.DARK_THEME);
@@ -77,10 +74,10 @@ class AppDisplay extends BaseLogger {
     }
 
     // For automated testing only!
-    resetSingletonObject(testingVars) {
+    resetSingletonObject() {
         // so that we don't keep adding #root-div to the same document on each reset:
         document.getElementById("root-div").remove(); 
-        AppDisplay.singletonObject = new AppDisplay(testingVars);
+        AppDisplay.singletonObject = new AppDisplay();
     }
 
     // This is the entry point for creating the screens and displaying the game.
@@ -114,7 +111,7 @@ class AppDisplay extends BaseLogger {
 
         // Creation of DailyGameDisplay causes the start/target words to be determined
         // based on today's date and displays the game's grid for the user to play.
-        this.dailyGame = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv, this.testingVars);
+        this.dailyGame = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
         this.practiceGame = null;
         this.currentGameDisplay = this.dailyGame;
     }
@@ -341,17 +338,12 @@ class AppDisplay extends BaseLogger {
         this.setSolutionStatus();
     }
 
-    switchToPracticeGame(startWord=null, targetWord=null) {
+    switchToPracticeGame() {
         if (this.practiceGame === null) {
-            Const.GL_DEBUG && this.logDebug("AppDisplay.switchToPracticeGame(", startWord, targetWord, ")", "practice");
+            Const.GL_DEBUG && this.logDebug("AppDisplay.switchToPracticeGame()", "practice");
             // Creation of PracticeGameDisplay causes the start/target words to be retrieved
             // from Cookies or randomly selected, and displays the game's grid for the user to play.
-            let newTestingVars = new Map(this.testingVars);
-            if (startWord && targetWord) {
-                newTestingVars.set(Const.QUERY_STRING_START_WORD, startWord);
-                newTestingVars.set(Const.QUERY_STRING_TARGET_WORD, targetWord);
-            }
-            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv, newTestingVars);
+            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
         }
 
         // If the user has already played the maximum number of games, we disallow any more.
@@ -377,4 +369,5 @@ class AppDisplay extends BaseLogger {
 export { AppDisplay };
 
 // Create the singleton, and it all happens from there.
+// IMPORTANT: Do NOT import this file from Test.js!
 AppDisplay.singleton();

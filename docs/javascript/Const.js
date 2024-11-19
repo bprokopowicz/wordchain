@@ -14,13 +14,6 @@ export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
 export const DICT_URL = "https:/wordchain/docs/resources/WordChainDict";
 export const SCRABBLE_DICT_URL = "https:/wordchain/docs/resources/Scrabble3-6";
 
-// testing-var consts
-export const QUERY_STRING_DEBUG_MINUTES_PER_DAY = "minutes_per_day";
-export const QUERY_STRING_PRACTICE_GAMES_PER_DAY = "practice_games_per_day";
-export const QUERY_STRING_EPOCH_DAYS_AGO = "epoch_days_ago";
-export const QUERY_STRING_START_WORD = "start";
-export const QUERY_STRING_TARGET_WORD = "target";
-
 // Constants for practice game word selection screen
 // TODO-PRODUCTION: Uncomment
 //export const PRACTICE_GAMES_PER_DAY = 3;       // Real value

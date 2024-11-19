@@ -8,25 +8,25 @@ class PracticeGameDisplay extends GameDisplay {
 
     /* ----- Construction ----- */
 
-    constructor(appDisplay, gameDiv, pickerDiv, testingVars) {
-        super(appDisplay, gameDiv, pickerDiv, "practice-picker", testingVars);
+    constructor(appDisplay, gameDiv, pickerDiv) {
+        super(appDisplay, gameDiv, pickerDiv, "practice-picker");
 
         this.practiceGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using testing vars 
         // Are we debugging the number of practice games allowed?
         this.maxGamesIntervalMs = 24 * 60 *60 * 1000; // one day in ms
-        if (this.testingVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) ) {
-            this.maxGamesIntervalMs = this.testingVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY) * 60 * 1000;
+        if (Persistence.hasTestMinutesPerDay()) {
+            this.maxGamesIntervalMs = Persistence.getTestMinutesPerDay() * 60 * 1000;
         }
 
-        if (this.testingVars.has(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY) ) {
-            this.practiceGamesPerDay = this.testingVars.get(Const.QUERY_STRING_PRACTICE_GAMES_PER_DAY);
+        if (Persistence.hasTestPracticeGamesPerDay()) {
+            this.practiceGamesPerDay = Persistence.getTestPracticeGamesPerDay();
         }
+
         // We use timestamps to ensure the user doesn't play more than the maximum
-        // number of timestamps per day; 
+        // number of timestamps per day:
 
         if (this.anyGamesRemaining()) {
-            let [optStartWord, optTargetWord] = [this.testingVars.get(Const.QUERY_STRING_START_WORD), this.testingVars.get(Const.QUERY_STRING_TARGET_WORD)];
-            this.updateWords(optStartWord, optTargetWord);
+            this.updateWords();
         }
     }
 
@@ -120,18 +120,18 @@ class PracticeGameDisplay extends GameDisplay {
     }
 
     // updateWords starts a new game.  It should not be possible to call it if there are no more games left.
-    // startWord and targetWord are parameters for testing only.
-    updateWords(startWord=null, targetWord=null) {
 
-        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.updateWords(", startWord, targetWord, ")", "test");
+    updateWords() {
+
+        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.updateWords()", "test");
         Persistence.clearPracticeSolutionShown();
         let gameState = [];
-        if (startWord && targetWord) {
-            this.startWord = startWord;
-            this.targetWord = targetWord;
+        if (Persistence.hasTestPracticeGameWords()) {
+            [this.startWord, this.targetWord] = Persistence.getTestPracticeGameWords();
+            Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.updateWords() setting game from test vars to ", this.startWord, this.targetWord, "test");
             this.addNewPracticeGameTimestamp();
         } else {
-            // See if we have words in the cookie.
+            // See if we have words for a practice game in progress
             [this.startWord, this.targetWord] = Persistence.getPracticeGameDef();
 
             if (!this.startWord || this.startWord.length === 0) {

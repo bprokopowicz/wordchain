@@ -66,21 +66,20 @@ class DailyGameDisplay extends GameDisplay {
         return initialStats;
     }
 
-    constructor(appDisplay, gameDiv, pickerDiv, testingVars) {
-        super(appDisplay, gameDiv, pickerDiv, "daily-picker", testingVars);
+    constructor(appDisplay, gameDiv, pickerDiv) {
+        super(appDisplay, gameDiv, pickerDiv, "daily-picker");
 
         this.baseDate = new Date("2024-11-01T00:00:00.000+00:00");
         this.baseTimestamp = null;
         this.dateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
-        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.constructor testingVars=", testingVars, "test");
+        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.constructor", "test");
         // Are we debugging per-day behavior?
-        if (testingVars.has(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY)) {
+        if (Persistence.hasTestMinutesPerDay()) {
             // Yes, we're debugging, so override the standard one day increment.
-            const debugMinPerDay = parseInt(this.testingVars.get(Const.QUERY_STRING_DEBUG_MINUTES_PER_DAY));
-            Const.GL_DEBUG && this.logDebug("Setting minutes per day from testingVars to ", debugMinPerDay, "daily");
+            const debugMinPerDay = Persistence.getTestMinutesPerDay();
+            Const.GL_DEBUG && this.logDebug("Setting minutes per day to", debugMinPerDay, "daily");
             this.dateIncrementMs = debugMinPerDay * 60 * 1000;
-            this.baseDate = new Date(); // today will be used as the first day of the daily game epoch
         }
 
         // If we have a cookie for daily stats parse it; otherwise set it to initial values.
@@ -144,12 +143,12 @@ class DailyGameDisplay extends GameDisplay {
     }
 
     // baseTimestamp is the world-wide starting point determining for Wordchain games.  It is hardcoded as this.baseDate but can
-    // be over-ridden by setting the testing var QUERY_STRING_EPOCH_DAYS_AGO=n
+    // be over-ridden by setting the testing var TEST_EPOCH_DAYS_AGO
 
     setBaseTimestamp() {
-        if (this.testingVars.has(Const.QUERY_STRING_EPOCH_DAYS_AGO)) {
+        if (Persistence.hasTestEpochDaysAgo()) {
             let newEpoch = new Date();
-            const daysAgo = parseInt(this.testingVars.get(Const.QUERY_STRING_EPOCH_DAYS_AGO));
+            const daysAgo = Persistence.getTestEpochDaysAgo();
             newEpoch.setDate(newEpoch.getDate() - daysAgo);
             this.baseDate = newEpoch;
             Const.GL_DEBUG && this.logDebug("Setting epoch to ", daysAgo, " days ago as ", newEpoch.toString(), "daily");
@@ -165,9 +164,10 @@ class DailyGameDisplay extends GameDisplay {
 
     setGameWordsFromGameNumber() {
         Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber(): this.dailyGameNumber: ", this.dailyGameNumber, "daily");
-        if (this.testingVars.has(Const.QUERY_STRING_START_WORD) && this.testingVars.has(Const.QUERY_STRING_TARGET_WORD)) {
-            [this.startWord, this.targetWord] = [this.testingVars.get(Const.QUERY_STRING_START_WORD), this.testingVars.get(Const.QUERY_STRING_TARGET_WORD)];
+        if (Persistence.hasTestDailyGameWords()) {
+            [this.startWord, this.targetWord] = Persistence.getTestDailyGameWords();
             this.validGame = true;
+            Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber() overriding game words from test vars", "daily");
         } else if (this.dailyGameNumber >= 1 && this.dailyGameNumber <= DailyGameDisplay.GameWords.length) {
             [this.startWord, this.targetWord] = DailyGameDisplay.GameWords[this.dailyGameNumber];
             this.validGame = true;

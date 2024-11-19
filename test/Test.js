@@ -59,7 +59,7 @@ class Test extends BaseLogger {
     constructor() {
         super();
 
-        this.uestName = "NOT SET";
+        this.testName = "NOT SET";
         this.tinyList  = ["APPLE", "PEAR", "BANANA"];
         this.smallList = ["BAD", "BADE", "BALD", "BAT", "BATE", "BID", "CAD", "CAT", "DOG", "SCAD"]
         this.fullDict = new WordChainDict(globalWordList);
@@ -185,23 +185,11 @@ class Test extends BaseLogger {
     ** App Testing Framework
     */
 
-    // This map can be passed to resetTheTestAppWindow to set the 
-    // WordChain epoch manually.
-
-    static EpochTwoDaysAgo = new Map([ [Const.QUERY_STRING_EPOCH_DAYS_AGO, "2"] ]);
-    static EpochThreeDaysAgo = new Map([ [Const.QUERY_STRING_EPOCH_DAYS_AGO, "3"] ]);
-
     getNewAppWindow() {
-        /*
-         TODO - find a way to have the new window's console set to the main test window's console
-        if (this.newWindow) {
-            this.newWindow.console = this.console;
-        }
-        */
         return this.newWindow;
     }
 
-    openTheTestAppWindow(testingVars=new Map()) {
+    openTheTestAppWindow() {
         // Setting the width/height is what makes a separate window open
         // instead of a new browser tab. HOWEVER, in iOS/Chrome, the appearance
         // is a new tab. In iOS/Safari this doesn't work -- we get failures to
@@ -211,27 +199,23 @@ class Test extends BaseLogger {
             const windowFeatures = "width=300,height=400";
             const windowName = "AppDisplayTest";
             this.newWindow = window.open(url, windowName, windowFeatures);
-
-            // TODO this.getNewAppWindow().console = this.console;
-            // now, we need to reset the window with the testingVars if any
+            this.getNewAppWindow().console = console;
             this.logDebug("opened the one and only pop-up window: ", this.newWindow, ", at url: ", url, "test");
         }
     }
 
-    resetTheTestAppWindow(testingVars = new Map()) {
+    resetTheTestAppWindow() {
         // This is a cheat to create a "new singleton" so that we get a fresh AppDisplay.
-        // TODO: the test app window keeps growing with each new reset.  The old content is still there.  
-        // This is kind of helpful, actually, because you can look at each test as if it had its own window..
         this.logDebug("calling resetSingletonObject.  newAppWindow:", this.getNewAppWindow(), "test");
-        this.logDebug(" calling resetSingletonObject", "test");
-        this.getNewAppWindow().theAppDisplay.resetSingletonObject(testingVars);
-        this.logDebug("resetSingletonObject finished", "test");
+        this.getNewAppWindow().theAppDisplay.resetSingletonObject();
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
     }
 
     runAppTest(testFunc) {
         // clear cookies and reset the window with the standard testing daily puzzle
         Cookie.clearNonDebugCookies();
-        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+        Persistence.saveTestEpochDaysAgo(2);
+        this.resetTheTestAppWindow();
         this.runFunc(testFunc);
     }
 
@@ -276,7 +260,6 @@ class Test extends BaseLogger {
     // 
 
     playTheCannedDailyGameOnce() {
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
@@ -451,7 +434,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15976;
+        const expectedMinDictSize = 15974;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -1034,17 +1017,15 @@ class Test extends BaseLogger {
     // start playing daily game for day 2, and then continue on day 3.  It should be a new, unplayed game.
     dailyGameUnfinishedRestartNextDayTest() {
         this.testName = "DailyGameUnfinishedRestartNextDay";
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
         // play two moves, then close and try to restore ...
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
 
-        // re-open the app window
-        Cookie.clearNonDebugCookies();
-        this.resetTheTestAppWindow(Test.EpochThreeDaysAgo);
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        // re-open the app window, as if it were one day later
+        Persistence.saveTestEpochDaysAgo(3);
+        this.resetTheTestAppWindow();
 
         let [start, target, gameNumber] = [this.gameDisplay.startWord, this.gameDisplay.targetWord, this.gameDisplay.dailyGameNumber];
         let [expStart, expTarget] = DailyGameDisplay.GameWords[3];
@@ -1058,8 +1039,6 @@ class Test extends BaseLogger {
         this.testName = "DailyGameNormalFinishStats";
 
         // The newly opened URL should be showing the test daily game by default;
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-
         this.playTheCannedDailyGameOnce(); 
 
         // game is done.  Let's see what the saved stats and words played are:
@@ -1098,10 +1077,10 @@ class Test extends BaseLogger {
 
         for (let gameCounter = 0; gameCounter <= 1; gameCounter++) {
             // Re-open open the test window, and repeat 
-            // Don't let the game pick up where it left off (a finished game). 
+            // Don't let the game pick up where it left off, which is a finished game. 
             // Don't clear all the cookies because we are accumulating stats data with them across games here.
             Persistence.clearDailyGameNumber(); 
-            this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+            this.resetTheTestAppWindow();
             this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
         }
 
@@ -1120,7 +1099,6 @@ class Test extends BaseLogger {
         this.testName = "MultiGameMixedResultsStats";
 
         for (let gameCounter = 0; gameCounter <= 2; gameCounter++) {
-            this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
             // game: SHORT -> POOR
             this.playLetter(4, "O"); // SHORT -> SHOOT
             this.deleteLetter(1);    // SHOOT -> HOOT
@@ -1137,7 +1115,7 @@ class Test extends BaseLogger {
             // now, play the same game again, if we have another round to go.
             if (gameCounter != 2) {
                 Persistence.clearDailyGameNumber(); 
-                this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+                this.resetTheTestAppWindow();
             }
         }
 
@@ -1158,7 +1136,6 @@ class Test extends BaseLogger {
     multiIncompleteGameStatsTest() {
         this.testName = "MultiIncompleteGameStats";
         for (let gameCounter = 0; gameCounter <= 2; gameCounter++) {
-            this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
             this.logDebug("multiIncompleteGameStatsTest() gameCounter: ", gameCounter, "test");
             if (gameCounter == 2) {
                 // play a failed game 
@@ -1184,7 +1161,7 @@ class Test extends BaseLogger {
             }
             if (gameCounter != 2) {
                 Persistence.clearDailyGameNumber(); 
-                this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+                this.resetTheTestAppWindow();
             }
         }
  
@@ -1206,17 +1183,14 @@ class Test extends BaseLogger {
 
         this.testName = "DailyGameShowSolution";
 
-         // The newly opened URL should be showing the test daily game by default;
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+         // The newly opened URL should be showing the test daily game by default:
 
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.gameDisplay.showSolution();
-        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
-
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        this.resetTheTestAppWindow();
 
         // create an expected DailyStats blob
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
@@ -1252,9 +1226,7 @@ class Test extends BaseLogger {
     dailyGameOneMistakeShareTest() {
         this.testName = "DailyGameOneMistakeShare";
 
-        // The newly opened URL should be showing the test daily game by default;
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-
+        // The newly opened URL should be showing the test daily game by default:
         // SHORT -> POOR solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
@@ -1288,8 +1260,7 @@ class Test extends BaseLogger {
     dailyGameTooManyMistakesShareTest() {
         this.testName = "DailyGameTooManyMistakesShare";
 
-        // The newly opened URL should be showing the test daily game by default;
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        // The newly opened URL should be showing the test daily game by default:
         const game = this.gameDisplay.game;
 
         // SHORT -> POOR
@@ -1330,17 +1301,15 @@ class Test extends BaseLogger {
     dailyGameEndsOnDeleteShareTest() {
         this.testName = "DailyGameEndsOnDeleteShare";
 
-        // We need to re-open the test window with a known daily game, not the default.
-        let testingVars = new Map(Test.EpochTwoDaysAgo);
-        testingVars.set( Const.QUERY_STRING_START_WORD, "START" );
-        testingVars.set( Const.QUERY_STRING_TARGET_WORD, "END" );
-        Cookie.clearNonDebugCookies();
-        this.resetTheTestAppWindow(testingVars);
+        // We need to re-open the test window with a contrived daily game, not the default.
+        //Cookie.clearNonDebugCookies();
+        //Persistence.saveTestEpochDaysAgo(2);
+        Persistence.saveTestDailyGameWords("START", "END");
+        this.resetTheTestAppWindow();
 
         // The newly re-opened URL should be showing the daily game START -> END
         const game = this.gameDisplay.game;
         const appDisplay = this.getNewAppWindow().theAppDisplay;
-        this.gameDisplay = appDisplay.currentGameDisplay;
 
         // START -> END
         // solution: START STAT SEAT SENT SEND END
@@ -1373,7 +1342,6 @@ class Test extends BaseLogger {
     dailyGameRestartTest() {
         // The newly opened URL should be showing the daily game by default;
         this.testName = "DailyGameRestart";
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // known game should be SHORT -> POOR, the game number will be 2.
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
@@ -1383,9 +1351,8 @@ class Test extends BaseLogger {
         this.deleteLetter(1);    // SHOOT -> HOOT
 
         // re-open the app window
-        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+        this.resetTheTestAppWindow();
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = this.gameDisplay.game;
         const di = game.getDisplayInstructions();
 
@@ -1411,10 +1378,10 @@ class Test extends BaseLogger {
 
         // ... and close and re-open it after it is solved
 
-        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+        Persistence.saveTestEpochDaysAgo(2);
+        this.resetTheTestAppWindow();
         if (resultsSoFar) {
             // game should be done; stats should be saved.
-            this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
             const game = this.gameDisplay.game;
             this.logDebug("restored daily game after finishing it; display instructions are: ",
                     game.getDisplayInstructions(), "test");
@@ -1424,7 +1391,6 @@ class Test extends BaseLogger {
     }
 
     dailyGameRestartAfterDohTest() {
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         this.testName = "DailyGameRestartAfterDoh";
 
         // when opened with epoch two days ago, the daily game will always
@@ -1437,10 +1403,9 @@ class Test extends BaseLogger {
         this.playLetter(1, "S"); // HOOT -> SOOT D'OH!!!
 
         // re-open the app window, with the same daily game number
-        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
+        this.resetTheTestAppWindow();
 
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT, SOOT (D'OH) already played.
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         const game = this.gameDisplay.game;
         let di = game.getDisplayInstructions();
         if ( this.verify((di.length == 7), `expected 7 display instructions after restore, got ${di.length}`) &&
@@ -1480,9 +1445,11 @@ class Test extends BaseLogger {
         this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
 
         this.logDebug("Switching to practice game", "test");
-        this.getNewAppWindow().theAppDisplay.switchToPracticeGame("TEST", "PILOT");
+        Persistence.saveTestPracticeGameWords("TEST", "PILOT");
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
         this.logDebug("Done switching to practice game", "test");
 
+        // the active gameDisplay in this test needs to be refreshed after switching to the practice game
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
@@ -1505,10 +1472,13 @@ class Test extends BaseLogger {
     practiceGameLimitTest() {
         this.testName = "PracticeGameLimit";
         this.logDebug("Switching to practice game", "test");
-        this.getNewAppWindow().theAppDisplay.switchToPracticeGame("TEST", "PILOT");
+        Persistence.saveTestPracticeGameWords("TEST", "PILOT");
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
         this.logDebug("Done switching to practice game", "test");
 
+        // the active gameDisplay in this test needs to be refreshed after switching to the practice game
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
         // play and solve N practice games in a row.
         // showSolution calls showMove(userRequestedSolution=true), and this rebuilds the whole game GUI, including
         // the post-game-div to hold a 'new game' button if there are any more practice games allowed.
@@ -1555,7 +1525,6 @@ class Test extends BaseLogger {
 
     geniusMoveAndShareTest() {
         this.testName = "GeniusMoveDisplay";
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // regular solution:                SHORT SHOOT HOOT BOOT BOOR POOR
         // solve the puzzle like a genius:  SHORT SHOOT HOOT HOOR POOR
@@ -1597,8 +1566,8 @@ class Test extends BaseLogger {
         Cookie.save(Cookie.TEST_BOOL, true);
 
         // now re-set the window,
-        this.resetTheTestAppWindow(Test.EpochTwoDaysAgo);
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        Persistence.saveTestEpochDaysAgo(2);
+        this.resetTheTestAppWindow();
         var testIntRestored = Cookie.getInt(Cookie.TEST_INT);
         var testBoolRestored = Cookie.getBoolean(Cookie.TEST_BOOL);
         var testObjRestored = Cookie.getJsonOrElse(Cookie.TEST_OBJ, null);

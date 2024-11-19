@@ -93,17 +93,15 @@ class StatsDisplay extends AuxiliaryDisplay {
         const shareString = this.getShareString();
         if (shareString)
         {
-            // Are we in a *secure* environment that has a "share" button, like a smart phone?
             Const.GL_DEBUG && this.logDebug("shareCallback() navigator: ", navigator, "daily");
-            // TODO-BETA: canShare() seems to return false always (on MacOS chrome). If you pass it 
-            // the data we want to share ({text: shareString}) it will return true.
+            // Are we in a *secure* environment that has a "share" button, like a smart phone?
             let shareData = { text: shareString, };
             if (navigator.canShare(shareData)) {
                 // Yes -- use the button to share the shareString.
                 navigator.share(shareData)
                 .catch((error) => {
                     this.appDisplay.showToast(Const.SHARE_FAILED);
-                    console.error("Failed to share: ", error);
+                    // console.error("Failed to share: ", error);
                 });
             // Are we in a *secure* environment that has access to clipboard (probably on a laptop/desktop)?
             } else if (navigator.clipboard) {
