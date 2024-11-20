@@ -111,9 +111,9 @@ class AppDisplay extends BaseLogger {
 
         // Creation of DailyGameDisplay causes the start/target words to be determined
         // based on today's date and displays the game's grid for the user to play.
-        this.dailyGame = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
-        this.practiceGame = null;
-        this.currentGameDisplay = this.dailyGame;
+        this.dailyGameDisplay = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
+        this.practiceGameDisplay = null;
+        this.currentGameDisplay = this.dailyGameDisplay;
     }
 
     /* ----- Header ----- */
@@ -241,7 +241,7 @@ class AppDisplay extends BaseLogger {
 
     // Return an object with information about the daily game status.
     getDailyGameInfo() {
-        return this.dailyGame.getGameInfo();
+        return this.dailyGameDisplay.getGameInfo();
     }
 
     isColorblindMode() {
@@ -334,20 +334,20 @@ class AppDisplay extends BaseLogger {
         // Toggle the button text to Practice.
         this.switchGamesButton.innerHTML = "Practice";
 
-        this.currentGameDisplay = this.dailyGame;
+        this.currentGameDisplay = this.dailyGameDisplay;
         this.setSolutionStatus();
     }
 
     switchToPracticeGame() {
-        if (this.practiceGame === null) {
+        if (this.practiceGameDisplay === null) {
             Const.GL_DEBUG && this.logDebug("AppDisplay.switchToPracticeGame()", "practice");
             // Creation of PracticeGameDisplay causes the start/target words to be retrieved
             // from Cookies or randomly selected, and displays the game's grid for the user to play.
-            this.practiceGame = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
+            this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
         }
 
         // If the user has already played the maximum number of games, we disallow any more.
-        if (! this.practiceGame.anyGamesRemaining()) {
+        if (! this.practiceGameDisplay.anyGamesRemaining()) {
             this.showToast(Const.TOO_MANY_GAMES);
             return;
         }
@@ -361,7 +361,7 @@ class AppDisplay extends BaseLogger {
         // Toggle the button text to Daily.
         this.switchGamesButton.innerHTML = "Daily";
 
-        this.currentGameDisplay = this.practiceGame;
+        this.currentGameDisplay = this.practiceGameDisplay;
         this.setSolutionStatus();
     }
 }

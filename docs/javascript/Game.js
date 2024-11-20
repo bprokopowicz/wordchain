@@ -114,7 +114,8 @@ class Game extends BaseLogger {
             instructions.push(this.instructionForFutureWord(i));
         }
 
-        // now the target
+        // Now the target
+        // BUT, if the game is over (too many mistakes), 
         instructions.push(this.instructionForTargetWord());
     
         Const.GL_DEBUG && this.logDebug(`display instructions: ${instructions.map((instruction)=>instruction.toStr()).join()}`, "game");
@@ -141,11 +142,16 @@ class Game extends BaseLogger {
     instructionForLastPlayedWord() {
         // we are displaying the last played word, which is the active word.  We give instructions for
         // how to go from that word to the first word in the remaining steps.
+        // UNLESS, the last played word is the last mistake.
         let stepIndex = this.playedSteps.numSteps();
         let lastPlayedStep = this.playedSteps.solutionSteps[stepIndex];
         let lastWord = lastPlayedStep.word;  // the string itself
         let moveRating = lastPlayedStep.moveRating;
-        if (Game.wordHasHole(lastWord)) {
+        if (this.isOver()) {
+            // the game must be a failure, and this is the last mistake
+            let changePosition = -1; // not used
+            return new DisplayInstruction(lastWord, Const.PLAYED, changePosition, Const.WRONG_MOVE);
+        } else if (Game.wordHasHole(lastWord)) {
             // after user clicks plus somewhere, the list of played words includes the last word played with a hole
             // in it where the user clicked '+'.  This word with a hole is what we will return to the display to show.
             // the last word in the played list is the word with a hole

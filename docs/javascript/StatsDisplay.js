@@ -120,7 +120,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     // Return a share graphic if the game is over, and null if not.
     // Note that the share graphic is not HTML, but rather just a string, containing
     // some Unicode characters to construct the graphic.
-    getShareString(game) {
+    getShareString() {
 
         // getDailyGameInfo() returns an object with 4 properties, the last 3 of which are populated only if
         // over is true):
@@ -207,7 +207,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Set the initial clock display.
-        let msUntilNextGame = this.appDisplay.dailyGame.getMsUntilNextGame();
+        let msUntilNextGame = this.appDisplay.dailyGameDisplay.getMsUntilNextGame();
         this.countdownClock.textContent = msToDuration(msUntilNextGame);
 
         // Set a timer to change the clock and display every second.

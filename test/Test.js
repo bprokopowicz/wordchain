@@ -147,14 +147,14 @@ class Test extends BaseLogger {
 
 
     showResults() {
-        let elapsedTime = Date.now() - this.testingStartTime;
+        let elapsedTime = (Date.now() - this.testingStartTime) * 0.001;
 
         let results = [
             "",
-            `Success count: ${this.successCount}`,
-            `Failure count: ${this.failureCount}`,
+            `Successful test scenarios: ${this.successCount}`,
+            `Failed tests scenarios: ${this.failureCount}`,
             `Total assertions verified: ${this.totalAssertionCount}`,
-            `Elapsed time : ${elapsedTime} ms.`,
+            `Elapsed time : ${elapsedTime} seconds.`,
             "",
         ];
 
@@ -672,6 +672,9 @@ class Test extends BaseLogger {
         this.testGameRequiringWordReplay();
         this.testGameRequiringScrabbleWordReplay();
         this.testGameFinish();
+        this.testGameLossOnWrongLetterAdded();
+        this.testGameLossOnWrongDelete();
+        this.testGameLossOnWrongLetterChange();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -730,7 +733,7 @@ class Test extends BaseLogger {
 
         const playLetterResult = game.playLetter(4, "E");
         if (!this.verify((playLetterResult === Const.WRONG_MOVE), `playLetter(4, E) returns ${playLetterResult}, not WRONG_MOVE`)) return;
-        this.logDebug("After playLetter(4,E), game.remainingSteps are:" + game.remainingSteps.toStr(), "game");
+        this.logDebug("After playLetter(4,E), game.remainingSteps are:" + game.remainingSteps.toStr(), "test");
 
         const newPlayedWord = game.playedSteps.getNthWord(1);
         if (!this.verify((newPlayedWord === "BADE"), `Played word 1 should be BADE, not: ${newPlayedWord}`))  return;
@@ -953,6 +956,106 @@ class Test extends BaseLogger {
         this.verify((playResult === Const.OK), "Word played not OK") &&
             this.verify((displayInstructionsAfterFinish.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructionsAfterFinish.length}`) &&
             this.verify(game.isOver()) &&
+            this.success();
+    }
+
+    testGameLossOnWrongLetterChange() {
+        this.testName = "GameLossOnWrongLetterChange";
+        const game = new Game("SALTED", "FISH");
+        let r1 = game.playDelete(3);      // -> SATED
+        let r2 = game.playLetter(1, "F"); // -> FATED
+        let r3 = game.playDelete(5);      // -> FATE
+        let r4 = game.playDelete(4);      // -> FAT
+        let r5 = game.playAdd(1);         // -> F_AT
+        let r6 = game.playLetter(2, "L"); // -> FLAT wrong
+        let r7 = game.playLetter(2, "R"); // -> FRAT wrong
+        let r8 = game.playLetter(2, "E"); // -> FEAT wrong
+        let r9 = game.playLetter(3, "L"); // -> FELT wrong
+        let r10 = game.playLetter(3, "E"); // -> FEET wrong
+        let DIs = game.getDisplayInstructions();
+        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",");
+        let expectedDIsAsStrings = 
+            "(played,word:SALTED,moveRating:ok),(played,word:SATED,moveRating:ok),(played,word:FATED,moveRating:ok),(played,word:FATE,moveRating:ok),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(played,word:FRAT,moveRating:D'oh! Wrong move),(played,word:FEAT,moveRating:D'oh! Wrong move),(played,word:FELT,moveRating:D'oh! Wrong move),(played,word:FEET,moveRating:D'oh! Wrong move),(future,word:FEST,changePosition:2),(future,word:FIST,changePosition:4),(target,word:FISH)";
+            this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
+                this.verify(r2 == Const.OK, `expected r2=${Const.OK}, got ${r2}`) &&
+                this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
+                this.verify(r4 == Const.OK, `expected r4=${Const.OK}, got ${r4}`) &&
+                this.verify(r5 == Const.OK, `expected r5=${Const.OK}, got ${r5}`) &&
+                this.verify(r6 == Const.WRONG_MOVE, `expected r6=${Const.WRONG_MOVE}, got ${r6}`) &&
+                this.verify(r7 == Const.WRONG_MOVE, `expected r7=${Const.WRONG_MOVE}, got ${r7}`) &&
+                this.verify(r8 == Const.WRONG_MOVE, `expected r8=${Const.WRONG_MOVE}, got ${r8}`) &&
+                this.verify(r9 == Const.WRONG_MOVE, `expected r9=${Const.WRONG_MOVE}, got ${r9}`) &&
+                this.verify(r10 == Const.WRONG_MOVE, `expected r10=${Const.WRONG_MOVE}, got ${r10}`) &&
+                this.verify(game.isOver(), "game should be over after too many wrong moves") &&
+                this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
+                this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs: ${expectedDIsAsStrings} but got ${DIsAsStrings}`) &&
+                this.success();
+    }
+
+    testGameLossOnWrongLetterAdded() {
+        this.testName = "GameLossOnWrongLetterAdded";
+        const game = new Game("FISH", "SALTED");
+        let r1 = game.playLetter(4, "T"); // -> FIST
+        let r2 = game.playLetter(2, "E"); // -> FEST wrong
+        let r3 = game.playLetter(2, "A"); // -> FAST 
+        let r4 = game.playDelete(3);      // -> FAT
+        let r5 = game.playAdd(1);         // -> F_AT
+        let r6 = game.playLetter(2, "R"); // -> FRAT wrong
+        let r7 = game.playDelete(2);      // -> FAT
+        let r8 = game.playAdd(1);         // -> F_AT
+        let r9 = game.playLetter(2, "E"); // -> FEAT wrong
+        let r10 = game.playDelete(2);      // -> FAT
+        let r11 = game.playAdd(1);         // -> F_AT
+        let r12 = game.playLetter(2, "L"); // -> FLAT wrong
+        let r13 = game.playDelete(2);      // -> FAT
+        let r14 = game.playAdd(1);         // -> F_AT
+        let r15 = game.playLetter(2, "L"); // -> FLAT wrong
+        let DIs = game.getDisplayInstructions();
+        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",");
+        let expectedDIsAsStrings = 
+            "(played,word:FISH,moveRating:ok),(played,word:FIST,moveRating:ok),(played,word:FEST,moveRating:D'oh! Wrong move),(played,word:FAST,moveRating:ok),(played,word:FAT,moveRating:ok),(played,word:FRAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FEAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(future,word:FAT,changePosition:0),(future,word:FATE,changePosition:0),(future,word:FATED,changePosition:1),(future,word:SATED,changePosition:0),(target,word:SALTED)";
+
+            this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
+                this.verify(r2 == Const.WRONG_MOVE, `expected r2=${Const.WRONG_MOVE}, got ${r2}`) &&
+                this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
+                this.verify(r4 == Const.OK, `expected r4=${Const.OK}, got ${r4}`) &&
+                this.verify(r5 == Const.OK, `expected r5=${Const.OK}, got ${r5}`) &&
+                this.verify(r6 == Const.WRONG_MOVE, `expected r6=${Const.WRONG_MOVE}, got ${r6}`) &&
+                this.verify(r7 == Const.OK, `expected r7=${Const.OK}, got ${r7}`) &&
+                this.verify(r8 == Const.OK, `expected r8=${Const.OK}, got ${r8}`) &&
+                this.verify(r9 == Const.WRONG_MOVE, `expected r9=${Const.WRONG_MOVE}, got ${r9}`) &&
+                this.verify(r10 == Const.OK, `expected r10=${Const.OK}, got ${r10}`) &&
+                this.verify(r11 == Const.OK, `expected r11=${Const.OK}, got ${r11}`) &&
+                this.verify(r12 == Const.WRONG_MOVE, `expected r12=${Const.WRONG_MOVE}, got ${r12}`) &&
+                this.verify(r13 == Const.OK, `expected r13=${Const.OK}, got ${r13}`) &&
+                this.verify(r14 == Const.OK, `expected r14=${Const.OK}, got ${r14}`) &&
+                this.verify(r15 == Const.WRONG_MOVE, `expected r15=${Const.WRONG_MOVE}, got ${r15}`) &&
+                this.verify(game.isOver(), "game should be over after too many wrong moves") &&
+                this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
+                this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs: ${expectedDIsAsStrings} but got ${DIsAsStrings}`) &&
+                this.success();
+    }
+
+
+    testGameLossOnWrongDelete() {
+        this.testName = "GameLossOnWrongDelete";
+        const game = new Game("SALTED", "FISH");
+        game.playDelete(3);      // -> SATED
+        game.playLetter(1, "D"); // -> DATED
+        game.playDelete(5);      // -> DATE
+        game.playLetter(1, "M"); // -> MATE
+        game.playLetter(1, "R"); // -> RATE
+        game.playLetter(1, "L"); // -> LATE
+        game.playLetter(1, "F"); // -> FATE
+        game.playDelete(1);      // -> ATE  too many wrong moves
+
+        let DIs = game.getDisplayInstructions();
+        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",");
+        let expectedDIsAsStrings = 
+            "(played,word:SALTED,moveRating:ok),(played,word:SATED,moveRating:ok),(played,word:DATED,moveRating:D'oh! Wrong move),(played,word:DATE,moveRating:ok),(played,word:MATE,moveRating:D'oh! Wrong move),(played,word:RATE,moveRating:D'oh! Wrong move),(played,word:LATE,moveRating:D'oh! Wrong move),(played,word:FATE,moveRating:ok),(played,word:ATE,moveRating:D'oh! Wrong move),(future,word:FATE,changePosition:0),(future,word:FAT,changePosition:0),(future,word:FAST,changePosition:2),(future,word:FIST,changePosition:4),(target,word:FISH)"
+            this.verify(game.isOver(), "game should be over after too many wrong moves") &&
+            this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
+            this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs: ${expectedDIsAsStrings} but got ${DIsAsStrings}`) &&
             this.success();
     }
 

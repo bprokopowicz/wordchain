@@ -5,6 +5,9 @@ Testing
   (https://docs.google.com/document/d/1b8b2sDs3SFpffsEPO70uufia7UOJBccSUclHI4u9u8Y/edit?usp=sharing)
   - red sections
 
+Known Bugs
+- none
+
 Beta (for sharing with "Core Word Nerds" mailing list -- 11 people)
 - Write automated tests for daily game use cases described below [Pete - 11/15]
 - Execute automated tests in these environments:
