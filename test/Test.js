@@ -975,7 +975,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",");
         let expectedDIsAsStrings = 
-            "(played,word:SALTED,moveRating:ok),(played,word:SATED,moveRating:ok),(played,word:FATED,moveRating:ok),(played,word:FATE,moveRating:ok),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(played,word:FRAT,moveRating:D'oh! Wrong move),(played,word:FEAT,moveRating:D'oh! Wrong move),(played,word:FELT,moveRating:D'oh! Wrong move),(played,word:FEET,moveRating:D'oh! Wrong move),(future,word:FEST,changePosition:2),(future,word:FIST,changePosition:4),(target,word:FISH)";
+            "(played,word:SALTED,moveRating:ok),(played,word:SATED,moveRating:ok),(played,word:FATED,moveRating:ok),(played,word:FATE,moveRating:ok),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(played,word:FRAT,moveRating:D'oh! Wrong move),(played,word:FEAT,moveRating:D'oh! Wrong move),(played,word:FELT,moveRating:D'oh! Wrong move),(played,word:FEET,moveRating:D'oh! Wrong move),(future,word:FEST,changePosition:2),(future,word:FIST,changePosition:4),(played,word:FISH,moveRating:D'oh! Wrong move)";
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
                 this.verify(r2 == Const.OK, `expected r2=${Const.OK}, got ${r2}`) &&
                 this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
@@ -1013,7 +1013,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",");
         let expectedDIsAsStrings = 
-            "(played,word:FISH,moveRating:ok),(played,word:FIST,moveRating:ok),(played,word:FEST,moveRating:D'oh! Wrong move),(played,word:FAST,moveRating:ok),(played,word:FAT,moveRating:ok),(played,word:FRAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FEAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(future,word:FAT,changePosition:0),(future,word:FATE,changePosition:0),(future,word:FATED,changePosition:1),(future,word:SATED,changePosition:0),(target,word:SALTED)";
+            "(played,word:FISH,moveRating:ok),(played,word:FIST,moveRating:ok),(played,word:FEST,moveRating:D'oh! Wrong move),(played,word:FAST,moveRating:ok),(played,word:FAT,moveRating:ok),(played,word:FRAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FEAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(future,word:FAT,changePosition:0),(future,word:FATE,changePosition:0),(future,word:FATED,changePosition:1),(future,word:SATED,changePosition:0),(played,word:SALTED,moveRating:D'oh! Wrong move)";
 
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
                 this.verify(r2 == Const.WRONG_MOVE, `expected r2=${Const.WRONG_MOVE}, got ${r2}`) &&
@@ -1052,7 +1052,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",");
         let expectedDIsAsStrings = 
-            "(played,word:SALTED,moveRating:ok),(played,word:SATED,moveRating:ok),(played,word:DATED,moveRating:D'oh! Wrong move),(played,word:DATE,moveRating:ok),(played,word:MATE,moveRating:D'oh! Wrong move),(played,word:RATE,moveRating:D'oh! Wrong move),(played,word:LATE,moveRating:D'oh! Wrong move),(played,word:FATE,moveRating:ok),(played,word:ATE,moveRating:D'oh! Wrong move),(future,word:FATE,changePosition:0),(future,word:FAT,changePosition:0),(future,word:FAST,changePosition:2),(future,word:FIST,changePosition:4),(target,word:FISH)"
+            "(played,word:SALTED,moveRating:ok),(played,word:SATED,moveRating:ok),(played,word:DATED,moveRating:D'oh! Wrong move),(played,word:DATE,moveRating:ok),(played,word:MATE,moveRating:D'oh! Wrong move),(played,word:RATE,moveRating:D'oh! Wrong move),(played,word:LATE,moveRating:D'oh! Wrong move),(played,word:FATE,moveRating:ok),(played,word:ATE,moveRating:D'oh! Wrong move),(future,word:FATE,changePosition:0),(future,word:FAT,changePosition:0),(future,word:FAST,changePosition:2),(future,word:FIST,changePosition:4),(played,word:FISH,moveRating:D'oh! Wrong move)"
             this.verify(game.isOver(), "game should be over after too many wrong moves") &&
             this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
             this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs: ${expectedDIsAsStrings} but got ${DIsAsStrings}`) &&

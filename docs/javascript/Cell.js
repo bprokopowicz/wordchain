@@ -85,19 +85,15 @@ class LetterCell extends Cell {
         this.addContentsClass("letter");
     }
 
-    addCorrectnessClass(moveRating, targetWordInProgress=false) {
-        if (targetWordInProgress) {
-            this.addClass("letter-cell-target");
-        } else {
-            if (moveRating == Const.OK) {
-                this.addClass("letter-cell-good");
-            }
-            else if (moveRating == Const.GENIUS_MOVE) {
-                this.addClass("letter-cell-good");
-            }
-            else {
-                this.addClass("letter-cell-bad");
-            }
+    addCorrectnessClass(moveRating) {
+        if (moveRating == Const.OK) {
+            this.addClass("letter-cell-good");
+        }
+        else if (moveRating == Const.GENIUS_MOVE) {
+            this.addClass("letter-cell-good");
+        }
+        else {
+            this.addClass("letter-cell-bad");
         }
     }
 }
@@ -142,17 +138,15 @@ class PlayedLetterCell extends LetterCell {
         if (firstWord) {
             this.addClass("letter-cell-start");
         } else {
-            this.addClass("letter-cell-played");
             this.addCorrectnessClass(moveRating);
         }
     }
 }
 
 class TargetLetterCell extends LetterCell {
-    constructor(letter, moveRating, gameOver) {
+    constructor(letter) {
         super(letter);
-        const inProgress = !gameOver;
-        this.addCorrectnessClass(moveRating, inProgress);
+        this.addClass("letter-cell-target");
     }
 }
 

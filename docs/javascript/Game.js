@@ -115,10 +115,9 @@ class Game extends BaseLogger {
         }
 
         // Now the target
-        // BUT, if the game is over (too many mistakes), 
         instructions.push(this.instructionForTargetWord());
     
-        Const.GL_DEBUG && this.logDebug(`display instructions: ${instructions.map((instruction)=>instruction.toStr()).join()}`, "game");
+        Const.GL_DEBUG && this.logDebug("display instructions: ", instructions, "game");
         return instructions;
     }
 
@@ -164,12 +163,20 @@ class Game extends BaseLogger {
     }
 
     // this method is for displaying the target, either as Const.TARGET if not played yet,
-    // or Const.PLAYED if the game is solved
+    // or Const.PLAYED if the game is either solved or lost.  
+    // moveRating is Const.OK unless the game is lost; then it is Const.WRONG_MOVE
+
     instructionForTargetWord() {
         let targetWord = this.remainingSteps.getTarget();
-        let moveRating = Const.OK;
-        let changePosition=-1;
-        let displayType = this.isWinner() ? Const.PLAYED : Const.TARGET;
+        let changePosition=-1; // not used - there is no change FROM target to something
+        let displayType = Const.TARGET; // unless the game is over; then it is PLAYED
+        let moveRating = Const.OK; // unless the game is over and we lost; then it is WRONG_MOVE
+        if (this.isOver()) {
+            displayType = Const.PLAYED; 
+            if (!this.isWinner()) {
+                moveRating = Const.WRONG_MOVE;
+            }
+        }
         return new DisplayInstruction(targetWord, displayType, changePosition, moveRating);
     }
 

@@ -161,24 +161,13 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell, firstWord);
     }
 
+    // we only display the Target as Target if the game is not over.  If it is over, it will be
+    // displayed as Played, not Target.
+
     displayTarget(displayInstruction) {
-        var gameOver = false;
-        var rating = Const.OK;
-
-        // The only condition for displaying the Target as not OK is if the game is
-        // over and we are not a winner (too many wrong moves, etc)
-        if (this.game.isOver()) {
-            gameOver = true;
-
-            if (this.game.isWinner()) {
-                rating = Const.OK;
-            } else {
-                rating = Const.WRONG_MOVE;
-            }
-        }
 
         function getCell(letter, __letterPosition) {
-            return new TargetLetterCell(letter, rating, gameOver);
+            return new TargetLetterCell(letter);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -392,9 +381,13 @@ class GameDisplay extends BaseLogger {
         return summary;
     }
 
+    // count how many wrong moves.  Don't include the target word, which is marked as a 
+    // wrong move if we have too many mistakes, but isn't really a wrong move.
     getWrongMoveCount() {
         let wrongMoveCount = 0;
-        for (let [word, __wasPlayed, moveRating] of this.gameState) {
+        let gameStateWithoutTarget = this.gameState.slice();
+        gameStateWithoutTarget.pop();
+        for (let [word, __wasPlayed, moveRating] of gameStateWithoutTarget) {
             if (moveRating == Const.WRONG_MOVE) {
                 wrongMoveCount++;
             }
