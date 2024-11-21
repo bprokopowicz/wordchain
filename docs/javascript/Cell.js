@@ -103,7 +103,7 @@ class LetterCell extends Cell {
 }
 
 class ActiveLetterCell extends LetterCell {
-    constructor(letter, letterPosition, letterPicker, moveRating, changePosition, firstWord, gameIsOver) {
+    constructor(letter, letterPosition, letterPicker, moveRating, changePosition, firstWord) {
         super(letter);
 
         if (firstWord) {
@@ -114,11 +114,7 @@ class ActiveLetterCell extends LetterCell {
 
         // This will only be true if the user is expected to pick a letter.
         if (letterPosition === changePosition) {
-            // If the game is over we don't want to indicate that the
-            // user is expected to do something.
-            if (! gameIsOver) {
-                this.addClass("letter-cell-change");
-            }
+            this.addClass("letter-cell-change");
 
             // Save the letter position so we can get it when the event comes.
             letterPicker.saveLetterPosition(letterPosition);

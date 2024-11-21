@@ -106,17 +106,17 @@ class GameDisplay extends BaseLogger {
         // We need the picker for CHANGE moves.
         this.pickerEnabled = true;
 
-        function getCell(letter, letterPosition, firstWord, gameIsOver) {
+        function getCell(letter, letterPosition, firstWord) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
                 displayInstruction.moveRating, displayInstruction.changePosition,
-                firstWord, gameIsOver);
+                firstWord);
         }
 
         // changePosition goes 1..wordLength, so need to subtract 1.
         this.currentLetter = displayInstruction.word[displayInstruction.changePosition - 1];
 
         const hideAdditionCells = true;
-        this.displayCommon(displayInstruction, getCell, firstWord, hideAdditionCells, this.game.isOver());
+        this.displayCommon(displayInstruction, getCell, firstWord, hideAdditionCells);
     }
 
     displayDelete(displayInstruction, tableElement, firstWord) {
@@ -134,17 +134,15 @@ class GameDisplay extends BaseLogger {
         const hideAdditionCells = true;
         this.displayCommon(displayInstruction, getActiveLetterCell, firstWord, hideAdditionCells);
 
-        if (! this.game.isOver()) {
-            // Now we add an extra <tr> element for the deletion cell row.
-            this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
+        // Now we add an extra <tr> element for the deletion cell row.
+        this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
-            // we need to use a copy of 'this' as 'me' in the body of this local function
-            function getDeletionCell(letter, letterPosition) {
-                return new DeletionCell(letterPosition, me, me.deletionClickCallback);
-            }
-
-            this.displayCommon(displayInstruction, getDeletionCell, firstWord, hideAdditionCells);
+        // We need to use a copy of 'this' as 'me' in the body of this local function.
+        function getDeletionCell(letter, letterPosition) {
+            return new DeletionCell(letterPosition, me, me.deletionClickCallback);
         }
+
+        this.displayCommon(displayInstruction, getDeletionCell, firstWord, hideAdditionCells);
     }
 
     displayFuture(displayInstruction) {
@@ -167,10 +165,6 @@ class GameDisplay extends BaseLogger {
         var gameOver = false;
         var rating = Const.OK;
 
-        function getCell(letter, __letterPosition) {
-            return new TargetLetterCell(letter, rating, gameOver);
-        }
-
         // The only condition for displaying the Target as not OK is if the game is
         // over and we are not a winner (too many wrong moves, etc)
         if (this.game.isOver()) {
@@ -181,6 +175,10 @@ class GameDisplay extends BaseLogger {
             } else {
                 rating = Const.WRONG_MOVE;
             }
+        }
+
+        function getCell(letter, __letterPosition) {
+            return new TargetLetterCell(letter, rating, gameOver);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -242,22 +240,15 @@ class GameDisplay extends BaseLogger {
 
             if (displayInstruction.displayType === Const.ADD) {
                 this.displayAdd(displayInstruction, firstWord);
-                // Note: unlike for the next two cases, the game will never be lost
-                // when displaying an active addition row; rather, the loss will
-                // occur when the letter is changed.
                 ElementUtilities.addClass(this.rowElement, "tr-game-active");
             } else if (displayInstruction.displayType === Const.CHANGE) {
                 this.displayChange(displayInstruction, firstWord);
-                if (! this.game.isOver()) {
-                    ElementUtilities.addClass(this.rowElement, "tr-game-active");
-                }
+                ElementUtilities.addClass(this.rowElement, "tr-game-active");
             } else if (displayInstruction.displayType === Const.DELETE) {
                 // This method adds another row, so unlike the others,
                 // it needs access to the table element.
                 this.displayDelete(displayInstruction, tableElement, firstWord);
-                if (! this.game.isOver()) {
-                    ElementUtilities.addClass(this.rowElement, "tr-game-active");
-                }
+                ElementUtilities.addClass(this.rowElement, "tr-game-active");
             } else if (displayInstruction.displayType === Const.FUTURE) {
                 this.displayFuture(displayInstruction);
             } else if (displayInstruction.displayType === Const.PLAYED) {
@@ -350,7 +341,7 @@ class GameDisplay extends BaseLogger {
 
     /* ----- Utilities ----- */
 
-    displayCommon(displayInstruction, cellCreator, firstWord=false, hideAdditionCells=true, gameIsOver=false) {
+    displayCommon(displayInstruction, cellCreator, firstWord=false, hideAdditionCells=true) {
         var additionPosition = 0,
             cell = null,
             tdElement = null,
@@ -373,7 +364,7 @@ class GameDisplay extends BaseLogger {
         for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
             // Add the cell for this current letter.
             tdElement = this.addTd();
-            cell = cellCreator(letters[letterIndex], letterIndex + 1, firstWord, gameIsOver);
+            cell = cellCreator(letters[letterIndex], letterIndex + 1, firstWord);
             ElementUtilities.addElementTo(cell.getElement(), tdElement);
 
             // Add the next addition cell.
