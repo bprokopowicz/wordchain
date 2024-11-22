@@ -84,55 +84,53 @@ class GameDisplay extends BaseLogger {
         this.wrongMoves = 0;
     }
 
-    displayAdd(displayInstruction, firstWord) {
+    displayAdd(displayInstruction, isStartWord) {
         const me = this;
 
         // Disable the picker; it's not used for ADD moves.
         this.pickerEnabled = false;
 
-        function getCell(letter, letterPosition, firstWord) {
+        function getCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition,
-                firstWord);
+                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord);
         }
 
         const hideAdditionCells = false;
-        this.displayCommon(displayInstruction, getCell, firstWord, hideAdditionCells);
+        this.displayCommon(displayInstruction, getCell, hideAdditionCells);
     }
 
-    displayChange(displayInstruction, firstWord) {
+    displayChange(displayInstruction, isStartWord) {
         const me = this;
 
         // We need the picker for CHANGE moves.
         this.pickerEnabled = true;
 
-        function getCell(letter, letterPosition, firstWord) {
+        function getCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition,
-                firstWord);
+                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord);
         }
 
         // changePosition goes 1..wordLength, so need to subtract 1.
         this.currentLetter = displayInstruction.word[displayInstruction.changePosition - 1];
 
         const hideAdditionCells = true;
-        this.displayCommon(displayInstruction, getCell, firstWord, hideAdditionCells);
+        this.displayCommon(displayInstruction, getCell, hideAdditionCells);
     }
 
-    displayDelete(displayInstruction, tableElement, firstWord) {
+    displayDelete(displayInstruction, tableElement, isStartWord) {
         const me = this;
 
         // Disable the picker; it's not used for DELETE moves.
         this.pickerEnabled = false;
 
-        function getActiveLetterCell(letter, letterPosition, firstWord) {
+        function getActiveLetterCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, firstWord);
+                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord);
         }
 
         // First, display the letter cells.
         const hideAdditionCells = true;
-        this.displayCommon(displayInstruction, getActiveLetterCell, firstWord, hideAdditionCells);
+        this.displayCommon(displayInstruction, getActiveLetterCell, hideAdditionCells);
 
         // Now we add an extra <tr> element for the deletion cell row.
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
@@ -142,7 +140,7 @@ class GameDisplay extends BaseLogger {
             return new DeletionCell(letterPosition, me, me.deletionClickCallback);
         }
 
-        this.displayCommon(displayInstruction, getDeletionCell, firstWord, hideAdditionCells);
+        this.displayCommon(displayInstruction, getDeletionCell, hideAdditionCells);
     }
 
     displayFuture(displayInstruction) {
@@ -153,12 +151,12 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell);
     }
 
-    displayPlayed(displayInstruction, firstWord) {
+    displayPlayed(displayInstruction, isStartWord) {
         function getCell(letter, letterPosition) {
-            return new PlayedLetterCell(letter, displayInstruction.moveRating, firstWord);
+            return new PlayedLetterCell(letter, displayInstruction.moveRating, isStartWord);
         }
 
-        this.displayCommon(displayInstruction, getCell, firstWord);
+        this.displayCommon(displayInstruction, getCell);
     }
 
     // we only display the Target as Target if the game is not over.  If it is over, it will be
@@ -214,7 +212,7 @@ class GameDisplay extends BaseLogger {
         // all words are played words until we hit the first future or target word:
         let wordWasPlayed = true;
 
-        let firstWord = true;
+        let isStartWord = true;
         for (let displayInstruction of displayInstructions) {
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
 
@@ -228,27 +226,27 @@ class GameDisplay extends BaseLogger {
                 ]);
 
             if (displayInstruction.displayType === Const.ADD) {
-                this.displayAdd(displayInstruction, firstWord);
+                this.displayAdd(displayInstruction, isStartWord);
                 ElementUtilities.addClass(this.rowElement, "tr-game-active");
             } else if (displayInstruction.displayType === Const.CHANGE) {
-                this.displayChange(displayInstruction, firstWord);
+                this.displayChange(displayInstruction, isStartWord);
                 ElementUtilities.addClass(this.rowElement, "tr-game-active");
             } else if (displayInstruction.displayType === Const.DELETE) {
                 // This method adds another row, so unlike the others,
                 // it needs access to the table element.
-                this.displayDelete(displayInstruction, tableElement, firstWord);
+                this.displayDelete(displayInstruction, tableElement, isStartWord);
                 ElementUtilities.addClass(this.rowElement, "tr-game-active");
             } else if (displayInstruction.displayType === Const.FUTURE) {
                 this.displayFuture(displayInstruction);
             } else if (displayInstruction.displayType === Const.PLAYED) {
-                this.displayPlayed(displayInstruction, firstWord);
+                this.displayPlayed(displayInstruction, isStartWord);
             } else if (displayInstruction.displayType === Const.TARGET) {
                 this.displayTarget(displayInstruction);
             } else {
                 console.error("Unexpected displayType: ", displayInstruction.displayType);
             }
 
-            firstWord = false;
+            isStartWord = false;
 
             this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
         }
@@ -330,7 +328,9 @@ class GameDisplay extends BaseLogger {
 
     /* ----- Utilities ----- */
 
-    displayCommon(displayInstruction, cellCreator, firstWord=false, hideAdditionCells=true) {
+    // cellCreator is a factory method to produce the right kind of cell,
+    // including when the cell is for the start word.
+    displayCommon(displayInstruction, cellCreator, hideAdditionCells=true) {
         var additionPosition = 0,
             cell = null,
             tdElement = null,
@@ -353,7 +353,7 @@ class GameDisplay extends BaseLogger {
         for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
             // Add the cell for this current letter.
             tdElement = this.addTd();
-            cell = cellCreator(letters[letterIndex], letterIndex + 1, firstWord);
+            cell = cellCreator(letters[letterIndex], letterIndex + 1);
             ElementUtilities.addElementTo(cell.getElement(), tdElement);
 
             // Add the next addition cell.

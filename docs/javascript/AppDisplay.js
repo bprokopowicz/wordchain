@@ -265,6 +265,7 @@ class AppDisplay extends BaseLogger {
         //
         // played-word-good-bg
         // played-word-bad-bg
+        // played-word-genius-bg
         //
         // These need to be set according to whether the user has selected colorblind mode
         // as well as whether the user has selected light or dark mode.
@@ -272,26 +273,26 @@ class AppDisplay extends BaseLogger {
             // Colorblind Mode is checked: set good/bad colorblind variables based on whether
             // Dark Mode is set, and set the properties affected by Colorblind Mode
             // based on those variables.
-            let colorblindGood, colorblindBad;
             if (this.darkTheme) {
-                colorblindGood = AppDisplay.getCssProperty("colorblind-good-dark");
-                colorblindBad  = AppDisplay.getCssProperty("colorblind-bad-dark");
+                this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("colorblind-good-bg-dark"));
+                this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("colorblind-bad-bg-dark"));
+                this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("colorblind-genius-bg-dark"));
             } else {
-                colorblindGood = AppDisplay.getCssProperty("colorblind-good-light");
-                colorblindBad  = AppDisplay.getCssProperty("colorblind-bad-light");
+                this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("colorblind-good-bg-light"));
+                this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("colorblind-bad-bg-light"));
+                this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("colorblind-genius-bg-light"));
             }
-            this.setCssProperty("played-word-good-bg", colorblindGood);
-            this.setCssProperty("played-word-bad-bg",  colorblindBad);
-
         } else {
             // Colorblind Mode is not checked: restore the affected properties based on whether
             // Dark Mode is set.
             if (this.darkTheme) {
-                this.setCssProperty("played-word-good-bg",  AppDisplay.getCssProperty("non-colorblind-good-bg-dark"));
-                this.setCssProperty("played-word-bad-bg",   AppDisplay.getCssProperty("non-colorblind-bad-bg-dark"));
+                this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("non-colorblind-good-bg-dark"));
+                this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("non-colorblind-bad-bg-dark"));
+                this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("non-colorblind-genius-bg-dark"));
             } else {
-                this.setCssProperty("played-word-good-bg",  AppDisplay.getCssProperty("non-colorblind-good-bg-light"));
-                this.setCssProperty("played-word-bad-bg",   AppDisplay.getCssProperty("non-colorblind-bad-bg-light"));
+                this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("non-colorblind-good-bg-light"));
+                this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("non-colorblind-bad-bg-light"));
+                this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("non-colorblind-genius-bg-light"));
             }
         }
 

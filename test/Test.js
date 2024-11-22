@@ -147,14 +147,14 @@ class Test extends BaseLogger {
 
 
     showResults() {
-        let elapsedTime = (Date.now() - this.testingStartTime) * 0.001;
+        let elapsedTime = (Date.now() - this.testingStartTime);
 
         let results = [
             "",
             `Successful test scenarios: ${this.successCount}`,
             `Failed tests scenarios: ${this.failureCount}`,
             `Total assertions verified: ${this.totalAssertionCount}`,
-            `Elapsed time : ${elapsedTime} seconds.`,
+            `Elapsed time : ${elapsedTime} milliseconds.`,
             "",
         ];
 
@@ -1647,7 +1647,7 @@ class Test extends BaseLogger {
         let statsMockEvent = new MockEvent(statsSrcElement);
         let shareString = statsDisplay.shareCallback(statsMockEvent);
 
-        let expectedShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🌟🌟🌟🌟\n🟪🟪🟪🟪`;
+        let expectedShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟪🟪🟪🟪`;
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
             this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&

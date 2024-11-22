@@ -28,8 +28,10 @@
     /* ===== Cells ===== */
     --colorblind-good-light:            #5f99e4;    /* blue */
     --colorblind-bad-light:             #ebaf42;    /* orange */
+    --colorblind-genius-light:          #d4af37;    /* gold */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
     --non-colorblind-bad-bg-light:      #ea9797;    /* red */
+    --non-colorblind-genius-bg-light:   #d4af37;    /* gold */
 
     /*
     ** Dark Mode Colors
@@ -38,8 +40,10 @@
     /* ===== Cells ===== */
     --colorblind-good-dark:             #2d7be1;    /* blue */
     --colorblind-bad-dark:              #d58b04;    /* orange */
+    --colorblind-genius-dark:           #d4af37;    /* gold */
     --non-colorblind-good-bg-dark:      #28c128;    /* green */
     --non-colorblind-bad-bg-dark:       #d33433;    /* red */
+    --non-colorblind-genius-bg-dark:    #d4af37;    /* gold */
 }
 
 /*
@@ -91,6 +95,7 @@
     /* These properties are affected by changes in the Colorblind Mode setting */
     --non-colorblind-good-bg:   var(--non-colorblind-good-bg-light);
     --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-light);
+    --non-colorblind-genius-bg: var(--non-colorblind-genius-bg-light);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
@@ -128,6 +133,7 @@
     /* These properties are affected by changes in the Colorblind Mode setting */
     --non-colorblind-good-bg:   var(--non-colorblind-good-bg-dark);
     --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-dark);
+    --non-colorblind-genius-bg: var(--non-colorblind-genius-bg-dark);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
@@ -385,6 +391,11 @@ svg {
 .letter-cell-bad {
     background: var(--played-word-bad-bg);
 }
+
+.letter-cell-genius {
+    background: var(--played-word-genius-bg);
+}
+
 
 .letter-cell-change {
     border-width: .2rem;

@@ -90,7 +90,7 @@ class LetterCell extends Cell {
             this.addClass("letter-cell-good");
         }
         else if (moveRating == Const.GENIUS_MOVE) {
-            this.addClass("letter-cell-good");
+            this.addClass("letter-cell-genius");
         }
         else {
             this.addClass("letter-cell-bad");

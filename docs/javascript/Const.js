@@ -82,9 +82,9 @@ export const FAQ_HREF   = "FAQ.html";
 // Emoji code strings for share string
 export const RED_SQUARE     = "\u{1F7E5}";     // Wrong moves in graphic
 export const GREEN_SQUARE   = "\u{1F7E9}";     // Correct moves in graphic
-export const PURPLE_SQUARE   = "\u{1F7EA}";    // Unchosen moves in graphic (start and target);
-export const GOLD_STAR      = "\u{1F31F}";     // genius  moves in graphic
+export const PURPLE_SQUARE  = "\u{1F7EA}";     // Unchosen moves in graphic (start and target);
 export const ORANGE_SQUARE  = "\u{1F7E7}";     // Wrong moves in graphic -- colorblind
+export const GOLD_SQUARE    = "\u{1F7E8}";     // Genius moves in graphic
 export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves in graphic -- colorblind
 export const STAR           = "\u{2B50}";      // No wrong moves in first share line
 export const CONFOUNDED     = "\u{1F616}";     // Too many wrong moves in first share line and stats graph
