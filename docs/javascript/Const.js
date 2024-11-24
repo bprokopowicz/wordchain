@@ -94,6 +94,7 @@ export const PURPLE_SQUARE  = "\u{1F7EA}";     // Unchosen moves in graphic (sta
 export const ORANGE_SQUARE  = "\u{1F7E7}";     // Wrong moves in graphic -- colorblind
 export const GOLD_SQUARE    = "\u{1F7E8}";     // Genius moves in graphic
 export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves in graphic -- colorblind
+export const BROWN_SQUARE   = "\u{1F7EB}";     // Dodo moves in graphic
 export const STAR           = "\u{2B50}";      // No wrong moves in first share line
 export const CONFOUNDED     = "\u{1F616}";     // Too many wrong moves in first share line and stats graph
 export const FIRE           = "\u{1F525}";     // CURRENTLY NOT USED: Hard mode in first share line

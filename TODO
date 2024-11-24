@@ -3,20 +3,23 @@ Known Bugs
 
 Beta TODO (for sharing with "Core Word Nerds" mailing list -- 11 people)
 
+Testing
 - Execute automated tests in these environments:
-  - Safari/iPhone -- Done
-  - Safari/iPad -- Done
-  - Safari/Mac -- Done
-  - Chrome/Android phone -- using debugging environment [Bonnie - 11/17]
-  - Chrome/Mac -- Done
-  - Chrome/iPad -- Done
+  - Safari/iPhone
+  - Safari/iPad
+  - Safari/Mac
+  - Chrome/Android phone
+  - Chrome/Mac
+  - Chrome/iPad 
 - Execute Manual UI Testing Use Cases in these environments:
-  - Safari/iPhone [Pete - 11/XX]
-  - Safari/iPad [Pete - 11/XX]
-  - Safari/Mac [Bonnie - 11/XX]
-  - Chrome/Android phone -- using debugging environment [Bonnie - 11/XX]
-  - Chrome/Mac [Pete - 11/XX]
-  - Chrome/iPhone [Pete - 11/XX]
+  - Safari/iPhone
+  - Safari/iPad
+  - Safari/Mac
+  - Chrome/Android phone -- using debugging environment
+  - Chrome/Mac
+  - Chrome/iPhone
+
+Coding
 - If a move increases the shortest solution by 2 (dead-end -- whether or not you MUST backtrack)
   what should the game display (and share graphic) look like ...
   A: After you play the word that leads to the dead-end?
@@ -26,9 +29,12 @@ Beta TODO (for sharing with "Core Word Nerds" mailing list -- 11 people)
        or really dark red (confounded emoji in the share graphic??
   (You can't make a move that lengthens the best solution by 3 because
   there is always the option to undo, which lengthens the path by 2.)
-  For FAQ: This is a "dodo move" ... added 2 steps to soluiton
+  - For FAQ: This is a "dodo move" ... added 2 steps to soluiton
+  - NOTE: This can only happen on an ADD or DELETE move
+    - On a CHANGE move there's always a path -- just pick the correct letter next time
 - Need games to test undo and backtrack cases, preferably real games, but
   we may need to tinker with the dictionary.
+
 - =====> BEFORE SENDING TO BETA USERS:
   - Change Const.WORD_CHAIN_EPOCH_DATE
   - Check again for TODO-BETA (or TODO not marked TODO-PRODUCTION)

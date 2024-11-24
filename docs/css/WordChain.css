@@ -28,10 +28,12 @@
     /* ===== Cells ===== */
     --colorblind-good-bg-light:         #5f99e4;    /* blue */
     --colorblind-bad-bg-light:          #ff9200;    /* orange */
-    --colorblind-genius-bg-ligh         #d4af37;    /* gold */
+    --colorblind-genius-bg-light:       #d4af37;    /* gold */
+    --colorblind-dodo-bg-light:         #986e6e;    /* brownish */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
-    --non-colorblind-bad-bg-light:      #ea9797;    /* red */
+    --non-colorblind-bad-bg-light:      #f87474;    /* red */
     --non-colorblind-genius-bg-light:   #d4af37;    /* gold */
+    --non-colorblind-dodo-bg-light:     #986e6e;    /* brownish */
 
     /*
     ** Dark Mode Colors
@@ -41,9 +43,11 @@
     --colorblind-good-bg-dark:          #2d7be1;    /* blue */
     --colorblind-bad-bg-dark:           #d58b04;    /* orange */
     --colorblind-genius-bg-dark:        #d4af37;    /* gold */
+    --colorblind-dodo-bg-dark :         #986e6e;    /* brownish */
     --non-colorblind-good-bg-dark:      #28c128;    /* green */
     --non-colorblind-bad-bg-dark:       #d33433;    /* red */
     --non-colorblind-genius-bg-dark:    #d4af37;    /* gold */
+    --non-colorblind-dodo-bg-dark :     #986e6e;    /* brownish */
 }
 
 /*
@@ -99,6 +103,7 @@
     --non-colorblind-good-bg:   var(--non-colorblind-good-bg-light);
     --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-light);
     --non-colorblind-genius-bg: var(--non-colorblind-genius-bg-light);
+    --non-colorblind-dodo-bg:   var(--non-colorblind-dodo-bg-light);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
@@ -144,6 +149,7 @@
     --non-colorblind-good-bg:   var(--non-colorblind-good-bg-dark);
     --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-dark);
     --non-colorblind-genius-bg: var(--non-colorblind-genius-bg-dark);
+    --non-colorblind-dodo-bg:   var(--non-colorblind-dodo-bg-dark);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
@@ -406,6 +412,9 @@ svg {
     background: var(--played-word-genius-bg);
 }
 
+.letter-cell-dodo {
+    background: var(--played-word-dodo-bg);
+}
 
 .letter-cell-change {
     border-width: .2rem;

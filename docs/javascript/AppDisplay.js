@@ -292,10 +292,12 @@ class AppDisplay extends BaseLogger {
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("colorblind-good-bg-dark"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("colorblind-bad-bg-dark"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("colorblind-genius-bg-dark"));
+                this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("colorblind-dodo-bg-dark"));
             } else {
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("colorblind-good-bg-light"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("colorblind-bad-bg-light"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("colorblind-genius-bg-light"));
+                this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("colorblind-dodo-bg-light"));
             }
         } else {
             // Colorblind Mode is not checked: restore the affected properties based on whether
@@ -304,10 +306,12 @@ class AppDisplay extends BaseLogger {
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("non-colorblind-good-bg-dark"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("non-colorblind-bad-bg-dark"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("non-colorblind-genius-bg-dark"));
+                this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("non-colorblind-dodo-bg-dark"));
             } else {
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("non-colorblind-good-bg-light"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("non-colorblind-bad-bg-light"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("non-colorblind-genius-bg-light"));
+                this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("non-colorblind-dodo-bg-light"));
             }
         }
 
