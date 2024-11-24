@@ -29,6 +29,8 @@ class GameDisplay extends BaseLogger {
         // only if it was played).
         this.gameState = [];
 
+        this.wrongMoves = null;
+
         // Derived class constructor must call constructGame().
     }
 
@@ -81,7 +83,6 @@ class GameDisplay extends BaseLogger {
         Const.GL_DEBUG && this.logDebug ("GameDisplay.constructGame(): start: ", start, " target: ", target, " gameState: ", gameState, "game");
         this.game = new Game(start, target, gameState);
         this.showGameAfterMove();
-        this.wrongMoves = 0;
     }
 
     displayAdd(displayInstruction, isStartWord) {
@@ -253,14 +254,11 @@ class GameDisplay extends BaseLogger {
 
         // Were there more wrong words than the last time we showed a move?
         // If so, we need to show a toast message.
-        const wrongMoveCount = this.getWrongMoveCount()
-        if (wrongMoveCount > this.wrongMoves) {
-            if (! skipToast)
-            {
-                this.appDisplay.showToast(Const.WRONG_MOVE);
-            }
-            this.wrongMoves = wrongMoveCount;
+        const wrongMoveCount = this.getWrongMoveCount();
+        if (this.wrongMoves != null && wrongMoveCount > this.wrongMoves && !skipToast) {
+            this.appDisplay.showToast(Const.WRONG_MOVE);
         }
+        this.wrongMoves = wrongMoveCount;
 
         // Delete old move and add new one.
         ElementUtilities.deleteChildren(this.gameDiv);
@@ -332,7 +330,8 @@ class GameDisplay extends BaseLogger {
     // including when the cell is for the start word.
     displayCommon(displayInstruction, cellCreator, hideAdditionCells=true) {
         var additionPosition = 0,
-            cell = null,
+            additionCell = null,
+            letterCell = null,
             tdElement = null,
             wordLength = displayInstruction.wordLength,
             word = displayInstruction.word,
@@ -345,24 +344,31 @@ class GameDisplay extends BaseLogger {
         // The AdditionCells are hidden except when displaying an active row that
         // requires adding a letter.
         tdElement = this.addTd();
-        cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+        additionCell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
 
-        ElementUtilities.addElementTo(cell.getElement(), tdElement);
+        // Add special class to first addition cell to give it extra space on the left.
+        additionCell.addClass("action-cell-addition-first");
+
+        ElementUtilities.addElementTo(additionCell.getElement(), tdElement);
         additionPosition++;
 
         for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
-            // Add the cell for this current letter.
+            // Add the letter cell for this current letter.
             tdElement = this.addTd();
-            cell = cellCreator(letters[letterIndex], letterIndex + 1);
-            ElementUtilities.addElementTo(cell.getElement(), tdElement);
+            letterCell = cellCreator(letters[letterIndex], letterIndex + 1);
+            ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 
             // Add the next addition cell.
-            cell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+            additionCell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+
             tdElement = this.addTd();
-            ElementUtilities.addElementTo(cell.getElement(), tdElement);
+            ElementUtilities.addElementTo(additionCell.getElement(), tdElement);
 
             additionPosition++;
         }
+
+        // Add special class to last addition cell to give it extra space on the right.
+        additionCell.addClass("action-cell-addition-last");
     }
 
     // A list summarizing the moves of the game.
@@ -381,7 +387,7 @@ class GameDisplay extends BaseLogger {
         return summary;
     }
 
-    // count how many wrong moves.  Don't include the target word, which is marked as a 
+    // count how many wrong moves. Don't include the target word, which is marked as a 
     // wrong move if we have too many mistakes, but isn't really a wrong move.
     getWrongMoveCount() {
         let wrongMoveCount = 0;

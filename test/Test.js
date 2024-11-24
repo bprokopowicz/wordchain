@@ -1232,9 +1232,9 @@ class Test extends BaseLogger {
         this.verifyStats(expDailyStats) && this.success();
     } 
         
-    // multiIncompleteGameStatsTest plays the daily game 2 times 
-    // one failed, one incomplete and the solution shown
-    // the checks both the stats cookie, and the elements in the StatsContainer.
+    // multiIncompleteGameStatsTest plays the daily game 3 times:
+    // one failed, one successful, one incomplete and the solution shown.
+    // Checks both the stats cookie, and the elements in the StatsContainer.
 
     multiIncompleteGameStatsTest() {
         this.testName = "MultiIncompleteGameStats";

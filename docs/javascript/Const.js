@@ -46,6 +46,7 @@ export const NO_STATS         = "Stats unavailable";
 export const WRONG_MOVE       = "D'oh! Wrong move";
 export const GENIUS_MOVE      = "Genius play!";
 export const BAD_POSITION     = "Bad letter position";
+export const NEW_DAILY_GAME   = "Time for a new Daily game";
 
 // Returns from Game class that indicate a bug in its input from GameDisplay.
 export const BAD_LETTER_POSITION = "bad letter position";
@@ -66,6 +67,13 @@ export const INSERT_CHAR    = "+";
 
 export const MIN_WORD_LENGTH = 3;
 export const MAX_WORD_LENGTH = 6;
+
+// The starting date for the daily game -- needs to change when sending
+// to Beta and Production.
+export const WORD_CHAIN_EPOCH_DATE = "2024-11-01T00:00:00.000+00:00";
+
+// How frequently whe check whether it's time for a new Daily game.
+export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 60000;
 
 // Constants for testing/debugging games and broken games
 export const STATIC_DAILY_GAME_START  = "short";

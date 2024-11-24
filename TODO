@@ -1,15 +1,8 @@
-Testing
-- Update Manual UI Testing Use Cases doc
-  (https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing)
-- Update Testing How-To doc
-  (https://docs.google.com/document/d/1b8b2sDs3SFpffsEPO70uufia7UOJBccSUclHI4u9u8Y/edit?usp=sharing)
-  - red sections
-
 Known Bugs
 - none
 
-Beta (for sharing with "Core Word Nerds" mailing list -- 11 people)
-- Write automated tests for daily game use cases described below [Pete - 11/15]
+Beta TODO (for sharing with "Core Word Nerds" mailing list -- 11 people)
+
 - Execute automated tests in these environments:
   - Safari/iPhone -- Done
   - Safari/iPad -- Done
@@ -17,32 +10,31 @@ Beta (for sharing with "Core Word Nerds" mailing list -- 11 people)
   - Chrome/Android phone -- using debugging environment [Bonnie - 11/17]
   - Chrome/Mac -- Done
   - Chrome/iPad -- Done
-- Update Manual UI Testing Use Cases document [Pete - 11/20]
 - Execute Manual UI Testing Use Cases in these environments:
   - Safari/iPhone [Pete - 11/XX]
   - Safari/iPad [Pete - 11/XX]
-  - Safari/Mac [Bonnie - 11/24]
-  - Chrome/Android phone -- using debugging environment [Bonnie - 11/24]
+  - Safari/Mac [Bonnie - 11/XX]
+  - Chrome/Android phone -- using debugging environment [Bonnie - 11/XX]
   - Chrome/Mac [Pete - 11/XX]
   - Chrome/iPhone [Pete - 11/XX]
-- Investigate all Chrome/Safari warnings/violations 
-     for example: [Violation] Added non-passive event listener to a scroll-blocking <some> event.
-     Consider marking event handler as 'passive' to make the page more responsive. See <URL>
-- Check again for TODO-BETA (or TODO not marked TODO-PRODUCTION)
 - If a move increases the shortest solution by 2 (dead-end -- whether or not you MUST backtrack)
   what should the game display (and share graphic) look like ...
   A: After you play the word that leads to the dead-end?
   B: After you re-play the word that gets you out of the dead-end?
      - this is a correct move, so kinda should be green,
-     - but the path is 2 longer, so kinda should be red ... 
+     - but the path is 2 longer, so kinda should be red ...
        or really dark red (confounded emoji in the share graphic??
   (You can't make a move that lengthens the best solution by 3 because
   there is always the option to undo, which lengthens the path by 2.)
   For FAQ: This is a "dodo move" ... added 2 steps to soluiton
 - Need games to test undo and backtrack cases, preferably real games, but
   we may need to tinker with the dictionary.
+- =====> BEFORE SENDING TO BETA USERS:
+  - Change Const.WORD_CHAIN_EPOCH_DATE
+  - Check again for TODO-BETA (or TODO not marked TODO-PRODUCTION)
 
 Questions of Beta Users
+
 - Is it a fun game?
 - Is it too hard or too easy?
 - Is it easy to understand/use?
@@ -53,7 +45,8 @@ Questions of Beta Users
   - Android phone
   - Edge browser
 
-Production
+Production TODO
+
 - How to create/minify/obscure one big js file
 - Buy domain wordchain.com?
 - Where to host?
@@ -62,55 +55,41 @@ Production
 - Cookies: make secure? Obfuscate? Save in back-end DB?
 - Logo/favicon.ico
 - Consider removing words that are in both dictionaries from the Scrabble dictionary
+- Address slow handler violations:
+     [Violation] 'click' handler took XXXms
+        (can happen when switching to Practice game or starting new Practice game)
+     [Violation] 'setInterval' handler took XXXms
+        (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
 
 Implementation Ideas (Future)
+
 - Solution button -- add means to show WordChain's ORIGINAL solution?
 - Should "shown" rows be a different color (currently green, maybe show gray)?
 - After a game fails should the solution be shown?
   If so from the point of failure onward?
   Or by the same means to show WordChain's original solution?
 - When we show the solution, it solves the game as played so far.  It should also
-  show the best solution as played by the user until their first mistake, and then 
+  show the best solution as played by the user until their first mistake, and then
   continued optimally.  This display doesn't need to be on a display grid like the game.
   It could just be a vertical list of the words.  This optimal solution might be different
   from WordChain's original solution, but of the same length.  We could have ANOTHER
   button to Show WordChain's Original solution.
-
 - Possible settings to tweak game difficulty:
   - Mode where future rows do not have change cells outlined thicker. (harder)
   - Mode where picker displays only letters that could result in valid words. (easier)
 - Don't make the player select the last letter when there is only one step left? This prevents fat-fingering the last letter choice.
 
 
-Daily game use cases:
-1) no recovered game number - calculate current game and initialize it
-    dailyGameNormalFinishStatsTest
-2) recovered game number - calculate today's game number and compare:
-   a) not the same: initialize today's game number 
-       - dailyGameUnfinishedRestartNextDay()
-   b) the same: recover played moves and 'shown' flag
-      i) shown is false, played moves are complete
-          recover the game as solved
-          - finishDailyGameRestartTest()
-      ii) shown is false, played moves are incomplete
-          recover the game in progress
-          - continueDailyGameRestartTest()
-      iii) shown is true, played moves are complete
-           recover the game as finished, leave shown flag as true
-           - dailyGameShowSolutionTest()
-      iv) shown is true, played moves are incomplete:
-          this is a bug.  finish playing the game, save the solved state, leave 'shown' flag as true
-
-Testing issues:
+Testing issues (only occurs when device is tethered)
 
 In IOS (phone, ipad) using Safari, wordchain.html will load and play OK, BUT:
 - if you force a hard reload (cmd-opt-R) from the web inspector while tethered to a Mac,
   the javascript downloading fails for 2-4 of the files.
-- Also, BaseLogger.js seems to take too long but does download.  You can see this in the Web
-  Inspector on the Mac when tethered to the iPad.  We haven't tethered a phone yet (Nov 8, 2024)  
+- also, BaseLogger.js seems to take too long but does download. You can see this in the Web
+  Inspector on the Mac when tethered to the iPad. We haven't tethered a phone yet (Nov 8, 2024)
 
 TODO - verify that hard reload doesn't work on iphone/safari (untethered).
-TODO - can we force hard-reload on iphone/ipad in Chrome?  Does that require tethering?
+TODO - can we force hard-reload on iphone/ipad in Chrome? Does that require tethering?
     NOTE: If we clear the Safari's cache on iPad via Settings --> Safari --> Clear History and Website Data
           and then go back to Safari, the app seems to reload everything just fine (tethered or not).
 

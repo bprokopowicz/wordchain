@@ -51,7 +51,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
         // ----- Countdown Clock-----
 
-        ElementUtilities.addElementTo("h1", contentDiv, {align: "center"}, "NEXT DAILY GAME IN");
+        ElementUtilities.addElementTo("h1", contentDiv, {align: "center"}, "DAILY GAME CHANGES IN");
         const countdown = ElementUtilities.addElementTo("div", contentDiv, {class: "countdown-div"});
         this.countdownClock = ElementUtilities.addElementTo("div", countdown, {class: "countdown-clock"});
 
@@ -207,12 +207,12 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Set the initial clock display.
-        let msUntilNextGame = this.appDisplay.dailyGameDisplay.getMsUntilNextGame();
+        let msUntilNextGame = this.appDisplay.getMsUntilNextGame();
         this.countdownClock.textContent = msToDuration(msUntilNextGame);
 
         // Set a timer to change the clock and display every second.
         this.clockIntervalTimer = setInterval(() => {
-            msUntilNextGame -= 1000;
+            msUntilNextGame = this.appDisplay.getMsUntilNextGame();
             this.countdownClock.textContent = msToDuration(msUntilNextGame);
         }, 1000);
     }

@@ -6,7 +6,7 @@ import * as Const from './Const.js';
 
 /*
 **  long-term state is saved and recovered in Persistence.js.  This includes the state of any game in progress (game number and words played)
-**  and non-game-specific user stats.  
+**  and non-game-specific user stats.
 */
 
 class DailyGameDisplay extends GameDisplay {
@@ -57,7 +57,7 @@ class DailyGameDisplay extends GameDisplay {
             gamesShown:      0,
             gamesFailed:     0
         }
-        
+
         // Now create a stat for each number of wrong moves, and initialize
         // their values to 0. The stat properties for these is 0..TOO_MANY_WRONG_MOVES.
         for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
@@ -69,24 +69,14 @@ class DailyGameDisplay extends GameDisplay {
     constructor(appDisplay, gameDiv, pickerDiv) {
         super(appDisplay, gameDiv, pickerDiv, "daily-picker");
 
-        this.baseDate = new Date("2024-11-01T00:00:00.000+00:00");
-        this.baseTimestamp = null;
-        this.dateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
-
-        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.constructor", "test");
-        // Are we debugging per-day behavior?
-        if (Persistence.hasTestMinutesPerDay()) {
-            // Yes, we're debugging, so override the standard one day increment.
-            const debugMinPerDay = Persistence.getTestMinutesPerDay();
-            Const.GL_DEBUG && this.logDebug("Setting minutes per day to", debugMinPerDay, "daily");
-            this.dateIncrementMs = debugMinPerDay * 60 * 1000;
-        }
-
         // If we have a cookie for daily stats parse it; otherwise set it to initial values.
         let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
 
-        // had stats before. In all other cases this is redundant, but oh well!
+        // Had stats before. In all other cases this is redundant, but oh well!
         Persistence.saveDailyStats(dailyStats);
+
+        // Set the base timestamp (epoch) which is either hard-coded or calculated from testing vars.
+        this.setBaseTimestamp();
 
         // Get today's daily game; this will set this.startWord and
         // this.targetWord so that we can call the base class constructGame()
@@ -97,7 +87,9 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Determination of Daily Game Information ----- */
 
-    // setDailyGameData determines validGame, startWord, targetWord, recoveredDailyGameNumber, recoveredDailyGameStateIfAny
+    // setDailyGameData() determines validGame, startWord, targetWord, recoveredDailyGameNumber,
+    // and recoveredDailyGameStateIfAny. It returns a Boolean indicating whether a new game
+    // was created.
 
     setDailyGameData() {
 
@@ -107,14 +99,12 @@ class DailyGameDisplay extends GameDisplay {
         const recoveredDailyGameNumber = Persistence.getDailyGameNumber();
         Const.GL_DEBUG && this.logDebug("recoveredDailyGameNumber:", recoveredDailyGameNumber, "daily");
 
-        // set the base timestamp (epoch) which is either hard-coded or calculated from testing vars.
-        this.setBaseTimestamp(); 
-
         // Now, determine the game number and get the game data from the GameWords object.
         this.dailyGameNumber = this.calculateGameNumber();
 
+        // Set up the new game and see whether it's valid (i.e. not the backup game).
         this.validGame = false;
-        this.setGameWordsFromGameNumber();  
+        this.setGameWordsFromGameNumber();
         if (!this.validGame) {
             // Return now; don't consider this a new game.
             return;
@@ -124,6 +114,9 @@ class DailyGameDisplay extends GameDisplay {
         // the number we recovered isn't the game number we just calculated,
         // then this is a new daily game,
         Const.GL_DEBUG && this.logDebug("this.dailyGameNumber (calculated) is", this.dailyGameNumber, "daily");
+
+        let isNewDailyGame;
+
         if ((recoveredDailyGameNumber === null) || (recoveredDailyGameNumber != this.dailyGameNumber)) {
             // New daily game!
             Persistence.saveDailyGameNumber(this.dailyGameNumber);
@@ -134,27 +127,52 @@ class DailyGameDisplay extends GameDisplay {
 
             // Update stats relating to a new daily game.
             this.incrementStat("gamesPlayed");
+            isNewDailyGame = true;
+
+            // TODO-PRODUCTION: This is called twice on initial load.
+            this.constructGame(this.startWord, this.targetWord, this.recoveredDailyGameStateIfAny);
+
         } else {
-            // Existing daily game; recover the words played so far.  The recovered words determine if the 
+            // Existing daily game; recover the words played so far.  The recovered words determine if the
             // game is solved or not.
             this.recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
             Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameStateIfAny:", this.recoveredDailyGameStateIfAny, "daily");
+            isNewDailyGame = false;
         }
+
+        return isNewDailyGame;
     }
 
-    // baseTimestamp is the world-wide starting point determining for Wordchain games.  It is hardcoded as this.baseDate but can
-    // be over-ridden by setting the testing var TEST_EPOCH_DAYS_AGO
+    // baseTimestamp is the world-wide starting point determining for Wordchain games.
+    // It is hardcoded as this.baseDate but can be over-ridden by setting the testing
+    // var TestEpochDaysAgo.
 
     setBaseTimestamp() {
-        if (Persistence.hasTestEpochDaysAgo()) {
-            let newEpoch = new Date();
-            const daysAgo = Persistence.getTestEpochDaysAgo();
-            newEpoch.setDate(newEpoch.getDate() - daysAgo);
-            this.baseDate = newEpoch;
-            Const.GL_DEBUG && this.logDebug("Setting epoch to ", daysAgo, " days ago as ", newEpoch.toString(), "daily");
+        this.baseDate = new Date(Const.WORD_CHAIN_EPOCH_DATE);
+        this.baseTimestamp = null;
+        this.dateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
+
+        // Are we changing the number of minutes per day to make time move more quickly?
+        if (Persistence.hasTestMinutesPerDay()) {
+            // Yes, we're debugging, so override the standard one day increment.
+            const debugMinPerDay = Persistence.getTestMinutesPerDay();
+            this.dateIncrementMs = debugMinPerDay * 60 * 1000;
+            Const.GL_DEBUG && this.logDebug("Setting minutes per day to:", debugMinPerDay, "dateIncrementMs to:", this.dateIncrementMs, "daily");
         }
+
+        // Are we changing when the Epoch starts (for debugging purposes)?
+        if (Persistence.hasTestEpochDaysAgo()) {
+            // Yes, so recalculate the base date, which we use to get the base timestamp below.
+            const newEpochMs = Date.now(),
+                  daysAgo = Persistence.getTestEpochDaysAgo(),
+                  msAgo = daysAgo * this.dateIncrementMs;
+
+            this.baseDate = new Date(newEpochMs - msAgo);
+            Const.GL_DEBUG && this.logDebug("Setting epoch to:", daysAgo, "days ago", "daily");
+        }
+
         this.baseTimestamp = this.baseDate.getTime();
-        Const.GL_DEBUG && this.logDebug("epoch timestamp is set to: ", new Date(this.baseTimestamp), "daily");
+        Const.GL_DEBUG && this.logDebug("epoch timestamp is set to:", new Date(this.baseTimestamp), "daily");
     }
 
     //
@@ -175,13 +193,14 @@ class DailyGameDisplay extends GameDisplay {
             // No daily game? Something went awry; use the backup.
             [this.startWord, this.targetWord]  = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
             this.validGame = false;
+            // TODO-BETA: Need to show this only on the first time.
             this.appDisplay.showToast(Const.NO_DAILY);
         }
         Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber() start: ", this.startWord, " target: ", this.targetWord, "daily");
     }
 
     // valid daily game numbers run from 0 to GameWords.length-1.  If the calculated value is outside that range,
-    // a place-holder game is used.  
+    // a place-holder game is used.
 
     calculateGameNumber() {
         const nowTimestamp = (new Date()).getTime();
@@ -193,9 +212,12 @@ class DailyGameDisplay extends GameDisplay {
     }
 
     getMsUntilNextGame() {
-        const nextGameNum = this.calculateGameNumber() + 1;
-        const nextGameTimestamp = this.baseTimestamp + (nextGameNum * this.dateIncrementMs)
-        return nextGameTimestamp - (new Date()).getTime();
+        const nextGameNum = this.calculateGameNumber() + 1,
+              nextGameTimestamp = this.baseTimestamp + (nextGameNum * this.dateIncrementMs),
+              msUntilNextGame = nextGameTimestamp - (new Date()).getTime();
+
+        Const.GL_DEBUG && this.logDebug("getMsUntilNextGame(): nextGameNum:", nextGameNum, "msUntilNextGame:", msUntilNextGame, "daily");
+        return msUntilNextGame;
     }
 
     // this is a virtual function of the base class.  It is called when the base class adds a new word

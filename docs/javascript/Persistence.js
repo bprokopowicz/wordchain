@@ -6,17 +6,7 @@ import { Cookie } from './Cookie.js';
 
 class Persistence {
 
-    static clearPracticeGameState() {
-        Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
-    }
-
-    static getPracticeGameState() {
-        return Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
-    }
-
-    static savePracticeGameState(gameState) {
-        Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, gameState);
-    }
+    // Daily game state
 
     static clearDailyGameState() {
         Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, []);
@@ -28,6 +18,52 @@ class Persistence {
 
     static saveDailyGameState(gameState) {
         Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, gameState);
+    }
+
+    static getDailyStatsOrElse(defaultStats) {
+        return Cookie.getJsonOrElse(Cookie.DAILY_STATS, defaultStats);
+    }
+
+    static saveDailyStats(dailyStats) {
+        Cookie.saveJson(Cookie.DAILY_STATS, dailyStats);
+    }
+
+    static getDailySolutionShown() {
+        return Cookie.getBoolean(Cookie.DAILY_SOLUTION_SHOWN);
+    }
+
+    static saveDailySolutionShown() {
+        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, true);
+    }
+
+    static clearDailySolutionShown() {
+        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, false);
+    }
+
+    static getDailyGameNumber() {
+        return Cookie.getInt(Cookie.DAILY_GAME_NUMBER);
+    }
+
+    static saveDailyGameNumber(gameNumber) {
+        Cookie.save(Cookie.DAILY_GAME_NUMBER, gameNumber);
+    }
+
+    static clearDailyGameNumber() {
+        Cookie.remove(Cookie.DAILY_GAME_NUMBER);
+    }
+
+    // Practice game state
+
+    static clearPracticeGameState() {
+        Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
+    }
+
+    static getPracticeGameState() {
+        return Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
+    }
+
+    static savePracticeGameState(gameState) {
+        Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, gameState);
     }
 
     static clearPracticeGameDef() {
@@ -52,26 +88,6 @@ class Persistence {
         Cookie.save(Cookie.PRACTICE_GAME_TIMESTAMPS, JSON.stringify(timestamps));
     };
 
-    static getDailyStatsOrElse(defaultStats) {
-        return Cookie.getJsonOrElse(Cookie.DAILY_STATS, defaultStats);
-    }
-
-    static saveDailyStats(dailyStats) {
-        Cookie.saveJson(Cookie.DAILY_STATS, dailyStats);
-    }
-
-    static getDailySolutionShown() {
-        return Cookie.getBoolean(Cookie.DAILY_SOLUTION_SHOWN);
-    }
-
-    static saveDailySolutionShown() {
-        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, true);
-    }
-
-    static clearDailySolutionShown() {
-        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, false);
-    }
-
     static getPracticeSolutionShown() {
         return Cookie.getBoolean(Cookie.PRACTICE_SOLUTION_SHOWN);
     }
@@ -85,29 +101,25 @@ class Persistence {
     }
 
 
-    static getDailyGameNumber() {
-        return Cookie.getInt(Cookie.DAILY_GAME_NUMBER);
-    }
-
-    static saveDailyGameNumber(gameNumber) {
-        Cookie.save(Cookie.DAILY_GAME_NUMBER, gameNumber);
-    }
-
-    static clearDailyGameNumber() {
-        Cookie.remove(Cookie.DAILY_GAME_NUMBER);
-    }
-
     // GUI settings
 
-    static saveDarkTheme (darkTheme) {
+    static getDarkTheme() {
+        Cookie.getBoolean(Cookie.DARK_THEME)
+    }
+
+    static saveDarkTheme(darkTheme) {
         Cookie.save(Cookie.DARK_THEME, darkTheme);
     }
 
-    static saveColorblindMode (colorblindMode) {
+    static getColorblindMode() {
+        Cookie.getBoolean(Cookie.COLORBLIND_MODE)
+    }
+
+    static saveColorblindMode(colorblindMode) {
         Cookie.save(Cookie.COLORBLIND_MODE, colorblindMode);
     }
 
-    // Testing vars
+    // Testing vars -- Daily game
 
     static hasTestDailyGameWords() {
         return Cookie.has(Cookie.TEST_DAILY_START) && Cookie.has(Cookie.TEST_DAILY_TARGET);
@@ -125,6 +137,8 @@ class Persistence {
         Cookie.save(Cookie.TEST_DAILY_TARGET, target);
     }
 
+    // Testing vars -- Practice game
+
     static hasTestPracticeGameWords() {
         return Cookie.has(Cookie.TEST_PRACTICE_START) && Cookie.has(Cookie.TEST_PRACTICE_TARGET);
     }
@@ -139,11 +153,11 @@ class Persistence {
     }
 
     static hasTestMinutesPerDay() {
-        Cookie.has(Cookie.TEST_MINUTES_PER_DAY);
+        return Cookie.has(Cookie.TEST_MINUTES_PER_DAY);
     }
 
     static getTestMinutesPerDay() {
-        Cookie.getInt(Cookie.TEST_MINUTES_PER_DAY);
+        return Cookie.getInt(Cookie.TEST_MINUTES_PER_DAY);
     }
 
     static saveTestMinutesPerDay(n) {
@@ -165,11 +179,11 @@ class Persistence {
     }
 
     static hasTestPracticeGamesPerDay() {
-        Cookie.has(Cookie.TEST_PRACTICE_GAMES_PER_DAY);
+        return Cookie.has(Cookie.TEST_PRACTICE_GAMES_PER_DAY);
     }
 
     static getTestPracticeGamesPerDay() {
-        Cookie.getInt(Cookie.TEST_PRACTICE_GAMES_PER_DAY);
+        return Cookie.getInt(Cookie.TEST_PRACTICE_GAMES_PER_DAY);
     }
 
     static saveTestPracticeGamesPerDay(n) {

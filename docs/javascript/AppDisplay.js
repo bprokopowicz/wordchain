@@ -1,8 +1,8 @@
 import { BaseLogger } from './BaseLogger.js';
-import { Cookie } from './Cookie.js';
 import { DailyGameDisplay } from './DailyGameDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { HelpDisplay } from './HelpDisplay.js';
+import { Persistence } from './Persistence.js';
 import { PracticeGameDisplay } from './PracticeGameDisplay.js';
 import { SettingsDisplay } from './SettingsDisplay.js';
 import { StatsDisplay } from './StatsDisplay.js';
@@ -24,14 +24,14 @@ class AppDisplay extends BaseLogger {
 
     constructor() {
         super();
-        // these two variables are accessed from Test.js so that we 
+        // these two variables are accessed from Test.js so that we
         // can control the application from the testing code.
         window.theAppDisplayIsReady = false;
         window.theAppDisplay = this;
 
         // Flags from Settings screen
-        this.darkTheme      = Cookie.getBoolean(Cookie.DARK_THEME);
-        this.colorblindMode = Cookie.getBoolean(Cookie.COLORBLIND_MODE);
+        this.darkTheme      = Persistence.getDarkTheme();
+        this.colorblindMode = Persistence.getColorblindMode();
 
         // The mother of all divs.
         this.rootDiv = null;
@@ -76,7 +76,7 @@ class AppDisplay extends BaseLogger {
     // For automated testing only!
     resetSingletonObject() {
         // so that we don't keep adding #root-div to the same document on each reset:
-        document.getElementById("root-div").remove(); 
+        document.getElementById("root-div").remove();
         AppDisplay.singletonObject = new AppDisplay();
     }
 
@@ -114,6 +114,11 @@ class AppDisplay extends BaseLogger {
         this.dailyGameDisplay = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
         this.practiceGameDisplay = null;
         this.currentGameDisplay = this.dailyGameDisplay;
+
+        // Set a timer to check whether it's time for a new Daily game periodically.
+        this.checkDailyIntervalTimer = setInterval(() => {
+            this.checkForNewDailyGame();
+        }, Const.DAILY_GAME_CHANGE_CHECK_INTERVAL);
     }
 
     /* ----- Header ----- */
@@ -216,20 +221,26 @@ class AppDisplay extends BaseLogger {
 
     /* ----- Utilities ----- */
 
-    dailyGameOver()
-    {
+    // Check whether it is time for a new Daily game. This will recalculate
+    // game number and if it has changed will reset internal state accordingly.
+    checkForNewDailyGame() {
+        let isNewDailyGame = this.dailyGameDisplay.setDailyGameData();
+        if (isNewDailyGame) {
+            this.showToast(Const.NEW_DAILY_GAME);
+        }
+    }
+
+    dailyGameOver() {
         let gameInfo = this.getDailyGameInfo();
         return gameInfo.over;
     }
 
-    disableSolutionButton()
-    {
+    disableSolutionButton() {
         ElementUtilities.addClass(this.solutionButton, "header-button-disabled");
         this.solutionButton.enabled = false;
     }
 
-    enableSolutionButton()
-    {
+    enableSolutionButton() {
         ElementUtilities.removeClass(this.solutionButton, "header-button-disabled");
         this.solutionButton.enabled = true;
     }
@@ -242,6 +253,10 @@ class AppDisplay extends BaseLogger {
     // Return an object with information about the daily game status.
     getDailyGameInfo() {
         return this.dailyGameDisplay.getGameInfo();
+    }
+
+    getMsUntilNextGame() {
+        return this.dailyGameDisplay.getMsUntilNextGame();
     }
 
     isColorblindMode() {
@@ -298,7 +313,8 @@ class AppDisplay extends BaseLogger {
 
         // Re-show the moves to make the color changes take effect.
         // Pass true to indicate that toast display should be skipped.
-        this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove(true);
+        const skipToast=true;
+        this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove(skipToast);
     }
 
     // Set the given CSS property to the specified value.

@@ -26,9 +26,9 @@
     */
 
     /* ===== Cells ===== */
-    --colorblind-good-light:            #5f99e4;    /* blue */
-    --colorblind-bad-light:             #ebaf42;    /* orange */
-    --colorblind-genius-light:          #d4af37;    /* gold */
+    --colorblind-good-bg-light:         #5f99e4;    /* blue */
+    --colorblind-bad-bg-light:          #ff9200;    /* orange */
+    --colorblind-genius-bg-ligh         #d4af37;    /* gold */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
     --non-colorblind-bad-bg-light:      #ea9797;    /* red */
     --non-colorblind-genius-bg-light:   #d4af37;    /* gold */
@@ -38,9 +38,9 @@
     */
 
     /* ===== Cells ===== */
-    --colorblind-good-dark:             #2d7be1;    /* blue */
-    --colorblind-bad-dark:              #d58b04;    /* orange */
-    --colorblind-genius-dark:           #d4af37;    /* gold */
+    --colorblind-good-bg-dark:          #2d7be1;    /* blue */
+    --colorblind-bad-bg-dark:           #d58b04;    /* orange */
+    --colorblind-genius-bg-dark:        #d4af37;    /* gold */
     --non-colorblind-good-bg-dark:      #28c128;    /* green */
     --non-colorblind-bad-bg-dark:       #d33433;    /* red */
     --non-colorblind-genius-bg-dark:    #d4af37;    /* gold */
@@ -50,13 +50,9 @@
 ** These colors don't change for dark/light OR colorblind/non-colorblind.
 */
 :root {
-    /* ===== Add/Delete Buttons and Picker ===== */
-    --user-input-fg:            Black;
-    --user-input-bg:            #ffff00;    /* yellow */
-    --user-input-bg-enabled:    var(--user-input-bg);
+    /* ===== Picker ===== */
     --user-input-bg-disabled:   LightGray;
     --user-input-bg-selected:   LightGray;
-    --user-input-fg-enabled:    var(--user-input-fg);
     --user-input-fg-disabled:   LightGray;
 
     /* ===== Stats ===== */
@@ -78,6 +74,9 @@
     --primary-bg:               White;
     --secondary-bg:             Black;
 
+    --user-input-fg:            Black;
+    --user-input-bg:            #ffff00;    /* yellow */
+
     /* ===== Header ===== */
     --header-button-bg:         LightGray;
     --header-button-fg-disabled:#9c9ea0;
@@ -86,6 +85,10 @@
     /* Currently not used in v2 */
     --active-button-bg:         SlateGray;
     --inactive-button-bg:       LightGray;
+
+    /* ===== Picker ===== */
+    --user-input-bg-enabled:    var(--user-input-bg);
+    --user-input-fg-enabled:    var(--user-input-fg);
 
     /* ===== Cells, Letters, Buttons below Cells ===== */
     --cell-border:              var(--primary-fg);
@@ -117,6 +120,9 @@
     --primary-bg:               #1d1d1f;    /* very dark blueish gray */
     --secondary-bg:             White;
 
+    --user-input-fg:            White;
+    --user-input-bg:            #c6c60d;    /* mustard-y yellow */
+
     /* ===== Header ===== */
     --header-button-bg:         #49515a;    /* dark blueish gray */
     --header-bg:                Black;
@@ -125,8 +131,12 @@
     --active-button-bg:         #858b90;    /* light blueish gray */
     --inactive-button-bg:       #49515a;    /* dark blueish gray */
 
+    /* ===== Picker ===== */
+    --user-input-bg-enabled:    var(--user-input-bg);
+    --user-input-fg-enabled:    var(--user-input-fg);
+
     /* ===== Cells, Letters, Buttons below Cells ===== */
-    --cell-border:              #8d5f0c;    /* medium brown */
+    --cell-border:              White;
     --target-word-bg:           #b319ff;    /* medium purple */
     --game-button-bg:           #49515a;    /* dark blueish gray */
 
@@ -454,9 +464,19 @@ button.action-button {
     align-items: center;
     justify-content: center;
     background: var(--user-input-bg);
+    color: var(--user-input-fg);
+    border-color: var(--cell-border);
 }
 
 .action-cell-addition {
+}
+
+.action-cell-addition-first {
+    margin-left: 6px !important;
+}
+
+.action-cell-addition-last {
+    margin-right: 6px !important;
 }
 
 .action-cell-deletion {
@@ -966,15 +986,6 @@ input.setting-radio {
 
     button.action-button {
         padding-bottom: 4px;
-    }
-
-    .letter-change {
-        border-width: .4rem;
-        padding: 0;
-    }
-    .no-change {
-        border-width: .2rem;
-        padding: .2rem;
     }
 
     .auxiliary-content-div {
