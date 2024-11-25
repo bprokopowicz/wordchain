@@ -88,3 +88,9 @@ TROUBLESHOOTING
     - The pop-up windows have their own console.  You can view them in Chrome by clicking on the window and typing Option-Command-I
       If the windows disappear before you can see their console, you need to edit the particular app test and comment out "this.runNextTest()" in the test
       you want to pause with the window open.
+
+
+GOOGLE DOCS
+
+    - Testing How-To:    https://docs.google.com/document/d/1b8b2sDs3SFpffsEPO70uufia7UOJBccSUclHI4u9u8Y/edit?usp=sharing
+    - Testing Use Cases: https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing

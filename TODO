@@ -19,11 +19,6 @@ Testing
   - Chrome/Mac
   - Chrome/iPhone
 
-Coding
-- Check games that test backtrack cases, preferably real games, but
-  we may need to tinker with the dictionary.
-  ===> verify both ADD/DELETE scenarios; add to use case doc?
-
 - =====> BEFORE SENDING TO BETA USERS:
   - Change Const.WORD_CHAIN_EPOCH_DATE
   - Check again for TODO-BETA (or TODO not marked TODO-PRODUCTION)
