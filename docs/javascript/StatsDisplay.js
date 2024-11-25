@@ -1,6 +1,5 @@
 import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
 import { Persistence } from './Persistence.js';
-//import { DailyGameDisplay } from './DailyGameDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
 
