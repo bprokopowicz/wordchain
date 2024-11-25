@@ -45,6 +45,7 @@ export const SHARE_INSECURE   = "Cannot share in insecure environment";
 export const NO_STATS         = "Stats unavailable";
 export const WRONG_MOVE       = "D'oh! Wrong move";
 export const GENIUS_MOVE      = "Genius play!";
+export const DODO_MOVE        = "Ugh! Dodo move!";
 export const BAD_POSITION     = "Bad letter position";
 export const NEW_DAILY_GAME   = "Time for a new Daily game";
 

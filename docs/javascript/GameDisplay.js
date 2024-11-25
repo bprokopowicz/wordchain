@@ -211,38 +211,52 @@ class GameDisplay extends BaseLogger {
         let displayInstructions = this.game.getDisplayInstructions();
 
         // all words are played words until we hit the first future or target word:
-        let wordWasPlayed = true;
 
-        let isStartWord = true;
+        let isStartWord = true,
+            activeMoveRating = null;
+
         for (let displayInstruction of displayInstructions) {
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
 
-            if ((displayInstruction.displayType == Const.FUTURE) || (displayInstruction.displayType == Const.TARGET)) {
-                wordWasPlayed = false;
+            let wordWasPlayed = (displayInstruction.displayType !== Const.FUTURE) && (displayInstruction.displayType !== Const.TARGET);
+
+            // Const.PLAYED indicates the word was played before the active one.
+            if (wordWasPlayed && displayInstruction.displayType != Const.PLAYED) {
+                activeMoveRating = displayInstruction.moveRating;
             }
+
             this.gameState.push([
                 displayInstruction.word,
                 wordWasPlayed,
                 displayInstruction.moveRating
                 ]);
 
+            // These instructions all indicate the active word.
+            // Note that the active word has also been played.
             if (displayInstruction.displayType === Const.ADD) {
                 this.displayAdd(displayInstruction, isStartWord);
                 ElementUtilities.addClass(this.rowElement, "tr-game-active");
+
             } else if (displayInstruction.displayType === Const.CHANGE) {
                 this.displayChange(displayInstruction, isStartWord);
                 ElementUtilities.addClass(this.rowElement, "tr-game-active");
+
             } else if (displayInstruction.displayType === Const.DELETE) {
                 // This method adds another row, so unlike the others,
                 // it needs access to the table element.
                 this.displayDelete(displayInstruction, tableElement, isStartWord);
                 ElementUtilities.addClass(this.rowElement, "tr-game-active");
+
+            // These instructions indicate a word other than the active one.
             } else if (displayInstruction.displayType === Const.FUTURE) {
                 this.displayFuture(displayInstruction);
+
             } else if (displayInstruction.displayType === Const.PLAYED) {
                 this.displayPlayed(displayInstruction, isStartWord);
+
             } else if (displayInstruction.displayType === Const.TARGET) {
                 this.displayTarget(displayInstruction);
+
             } else {
                 console.error("Unexpected displayType: ", displayInstruction.displayType);
             }
@@ -254,9 +268,11 @@ class GameDisplay extends BaseLogger {
 
         // Were there more wrong words than the last time we showed a move?
         // If so, we need to show a toast message.
-        const wrongMoveCount = this.getWrongMoveCount();
+        const wrongMoveCount = this.game.numWrongMoves();
         if (this.wrongMoves != null && wrongMoveCount > this.wrongMoves && !skipToast) {
-            this.appDisplay.showToast(Const.WRONG_MOVE);
+            // Just in case moveRating never got set (which would be a bug)
+            // check for null and use WRONG_MOVE if null.
+            this.appDisplay.showToast(activeMoveRating || Const.WRONG_MOVE);
         }
         this.wrongMoves = wrongMoveCount;
 
@@ -387,20 +403,6 @@ class GameDisplay extends BaseLogger {
         return summary;
     }
 
-    // count how many wrong moves. Don't include the target word, which is marked as a 
-    // wrong move if we have too many mistakes, but isn't really a wrong move.
-    getWrongMoveCount() {
-        let wrongMoveCount = 0;
-        let gameStateWithoutTarget = this.gameState.slice();
-        gameStateWithoutTarget.pop();
-        for (let [word, __wasPlayed, moveRating] of gameStateWithoutTarget) {
-            if (moveRating == Const.WRONG_MOVE) {
-                wrongMoveCount++;
-            }
-        }
-        return wrongMoveCount;
-    }
-
     processGameResult(gameResult) {
         Const.GL_DEBUG && this.logDebug("GameDisplay.processGameResult() gameResult: ", gameResult, "callback");
         if (gameResult === Const.BAD_LETTER_POSITION) {
@@ -408,7 +410,9 @@ class GameDisplay extends BaseLogger {
             this.appDisplay.showToast(Const.UNEXPECTED_ERROR);
             // TODO-PRODUCTION: Should end the game or some such ...
         } else if (gameResult !== Const.OK) {
-            this.appDisplay.showToast(gameResult); // D'OH, Genius move are possible results as of Oct 2024.
+            // D'OH, Genius moves are possible results as of Oct 2024.
+            // Ugh, Dodo moves are possible results as of Nov 2024.
+            this.appDisplay.showToast(gameResult);
         }
 
         this.showGameAfterMove();

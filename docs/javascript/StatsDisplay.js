@@ -101,7 +101,7 @@ class StatsDisplay extends AuxiliaryDisplay {
                 navigator.share(shareData)
                 .catch((error) => {
                     this.appDisplay.showToast(Const.SHARE_FAILED);
-                    // console.error("Failed to share: ", error);
+                    console.error("Failed to share: ", error);
                 });
             // Are we in a *secure* environment that has access to clipboard (probably on a laptop/desktop)?
             } else if (navigator.clipboard) {
@@ -186,13 +186,15 @@ class StatsDisplay extends AuxiliaryDisplay {
                 emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
             } else if (moveRating === Const.GENIUS_MOVE) {
                 emoji = colorblindMode ? Const.GOLD_SQUARE : Const.GOLD_SQUARE;
+            } else if (moveRating === Const.DODO_MOVE) {
+                emoji = colorblindMode ? Const.BROWN_SQUARE : Const.BROWN_SQUARE;
             }
 
             // Now repeat that emoji for the length of the word and add a newline,
             // creating a row that looks like the row of tiles in the game.
             shareString += emoji.repeat(wordLength) + "\n";
         }
-        // now, add the target
+        // Now, add the target
         emoji = Const.PURPLE_SQUARE;
         shareString += emoji.repeat(targetLength);
 

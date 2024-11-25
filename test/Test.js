@@ -100,7 +100,7 @@ class Test extends BaseLogger {
         if (Const.GL_DEBUG) {
             debugWarning = "<br>Set Const.GL_DEBUG=false for performance";
         }
-        this.addTitle("WordChain Test Suite<br>Click once on the pop-up window to focus it, and then don't touch anything<br>Allow 20+ seconds to complete<br>Browser popups must be allowed" + debugWarning);
+        this.addTitle("WordChain Test Suite<br>Allow 20+ seconds to complete. Browser popups must be allowed." + debugWarning);
 
         var runAll         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
             runDict        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
@@ -669,6 +669,7 @@ class Test extends BaseLogger {
         this.testGameDisplayInstructionsDifferentPath();
         this.testGameUsingScrabbleWord();
         this.testGameUsingGeniusMove();
+        this.testGameUsingDodoMove();
         this.testGameRequiringWordReplay();
         this.testGameRequiringScrabbleWordReplay();
         this.testGameFinish();
@@ -721,7 +722,7 @@ class Test extends BaseLogger {
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAT", "DOG", "SCAD"]);
         const origSolution = Solver.solve(smallDict, "BAD", "CAT");
         const steps = [];
-        const game = new Game("BAD", "CAT", steps, smallDict);
+        const game = new Game("BAD", "CAT", steps, smallDict);  // BAD BAT CAT 
         const origWord1 = game.remainingSteps.getNthWord(0);
 
         if ( !(this.verify((origWord1 === "BAT"), "original solution should have BAT as first word") &&
@@ -731,8 +732,8 @@ class Test extends BaseLogger {
         const playAddResult = game.playAdd(3);
         if (!this.verify((playAddResult === Const.OK), "playAdd(3) not OK")) return;
 
-        const playLetterResult = game.playLetter(4, "E");
-        if (!this.verify((playLetterResult === Const.WRONG_MOVE), `playLetter(4, E) returns ${playLetterResult}, not WRONG_MOVE`)) return;
+        const playLetterResult = game.playLetter(4, "E");  // BAD BADE (BATE BAT CAT) or (BAD BAT CAT)
+        if (!this.verify((playLetterResult === Const.DODO_MOVE), `playLetter(4, E) returns ${playLetterResult}, not DODO_MOVE`)) return;
         this.logDebug("After playLetter(4,E), game.remainingSteps are:" + game.remainingSteps.toStr(), "test");
 
         const newPlayedWord = game.playedSteps.getNthWord(1);
@@ -897,6 +898,40 @@ class Test extends BaseLogger {
             this.success();
     }
 
+    testGameUsingDodoMove() {
+        this.testName = "GameUsingDodoMove";
+        const steps = [];
+        const game = new Game("PLANE", "PANED", steps); // shortest solution is PLANE,PANE,PANED
+                                                        // but dodo move is PLANE,PLAN,PAN,PANE,PANED
+
+        const planeToPlanResult = game.playDelete(5); // PLANE to PLAN; the dodo move
+        if (!this.verify((planeToPlanResult === Const.DODO_MOVE), `playDelete(5) expected DODO_MOVE, got ${planeToPlanResult}`)) return;
+
+        const planToPanResult = game.playDelete(2); // PLAN to PAN; correct
+        if (!this.verify((planToPanResult === Const.OK), "playDelete(2) not OK")) return;
+
+        const panToPaneAddResult = game.playAdd(3); // PAN to PANx; correct
+        if (!this.verify((panToPaneAddResult === Const.OK), "playAdd(3) not OK")) return;
+
+        const panToPaneChangeResult = game.playLetter(4, "E"); // PAN to PANE; correct
+        if (!this.verify((panToPaneChangeResult === Const.OK), `playLetter(4, E) returns ${panToPaneChangeResult}, not WRONG_MOVE`)) return;
+
+        const paneToPanedAddResult = game.playAdd(4); // PANE to PANEx; correct
+        if (!this.verify((paneToPanedAddResult === Const.OK), "playAdd(4) not OK")) return;
+
+        const paneToPanedChangeResult = game.playLetter(5, "D"); // PANE to PANED; correct
+        if (!this.verify((paneToPanedChangeResult === Const.OK), `playLetter(5, E) returns ${paneToPanedChangeResult}, not WRONG_MOVE`)) return;
+
+        this.success();
+
+        /*
+        const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be PLANE,PLAN,PAN,PANE,PANED
+        this.verify((scadToScagResult === Const.GENIUS_MOVE), `playLetter(4,G) expected ${Const.GENIUS_MOVE}, got ${scadToScagResult}`) &&
+        this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
+            this.success();
+        */
+    }
+
     testGameRequiringWordReplay() {
         this.testName = "GameRequiringWordReplay";
         const steps = [];
@@ -908,7 +943,7 @@ class Test extends BaseLogger {
         const blissToBlipsResult = game.playLetter(4,"P"); 
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be BLISS, BLIPS, BLISS, BLESS, LESS, LEST
         this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
-        this.verify((blissToBlipsResult === Const.WRONG_MOVE), `playLetter(4,P) expected ${Const.WRONG_MOVE}, got ${blissToBlipsResult}`) &&
+        this.verify((blissToBlipsResult === Const.DODO_MOVE), `playLetter(4,P) expected ${Const.DODO_MOVE}, got ${blissToBlipsResult}`) &&
         this.verify((displayInstructions.length === expectedDisplayLength),
                 `expected display instructions length=${expectedDisplayLength}, got ${displayInstructions.length}`) &&
         this.success();
@@ -935,7 +970,7 @@ class Test extends BaseLogger {
         // Solution should now be FREE FEE FIE FILE SILE SIDLE SILE SMILE SIMILE SIMPLE SAMPLE
         const displayInstructions = game.getDisplayInstructions();
         this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
-        this.verify((result === Const.WRONG_MOVE), `playing add 'D' at 2 expected: ${Const.WRONG_MOVE}, got: ${result}`) &&
+        this.verify((result === Const.DODO_MOVE), `playing add 'D' at 2 expected: ${Const.DODO_MOVE}, got: ${result}`) &&
         this.verify((displayInstructions.length === expectedDisplayLength),
                 `expected display instructions length==${expectedDisplayLength}, got: ${displayInstructions.length}`) &&
         this.success();
@@ -973,9 +1008,9 @@ class Test extends BaseLogger {
         let r9 = game.playLetter(3, "L"); // -> FELT wrong
         let r10 = game.playLetter(3, "E"); // -> FEET wrong
         let DIs = game.getDisplayInstructions();
-        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",");
+        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings = 
-            "(played,word:SALTED,moveRating:ok),(played,word:SATED,moveRating:ok),(played,word:FATED,moveRating:ok),(played,word:FATE,moveRating:ok),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(played,word:FRAT,moveRating:D'oh! Wrong move),(played,word:FEAT,moveRating:D'oh! Wrong move),(played,word:FELT,moveRating:D'oh! Wrong move),(played,word:FEET,moveRating:D'oh! Wrong move),(future,word:FEST,changePosition:2),(future,word:FIST,changePosition:4),(played,word:FISH,moveRating:D'oh! Wrong move)";
+            "(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:FATED,moveRating:ok),<br>(played,word:FATE,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:D'oh! Wrong move),<br>(played,word:FRAT,moveRating:D'oh! Wrong move),<br>(played,word:FEAT,moveRating:D'oh! Wrong move),<br>(played,word:FELT,moveRating:D'oh! Wrong move),<br>(played,word:FEET,moveRating:D'oh! Wrong move),<br>(future,word:FEST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:D'oh! Wrong move)";
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
                 this.verify(r2 == Const.OK, `expected r2=${Const.OK}, got ${r2}`) &&
                 this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
@@ -988,7 +1023,7 @@ class Test extends BaseLogger {
                 this.verify(r10 == Const.WRONG_MOVE, `expected r10=${Const.WRONG_MOVE}, got ${r10}`) &&
                 this.verify(game.isOver(), "game should be over after too many wrong moves") &&
                 this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
-                this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs: ${expectedDIsAsStrings} but got ${DIsAsStrings}`) &&
+                this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
                 this.success();
     }
 
@@ -1000,39 +1035,39 @@ class Test extends BaseLogger {
         let r3 = game.playLetter(2, "A"); // -> FAST 
         let r4 = game.playDelete(3);      // -> FAT
         let r5 = game.playAdd(1);         // -> F_AT
-        let r6 = game.playLetter(2, "R"); // -> FRAT wrong
+        let r6 = game.playLetter(2, "R"); // -> FRAT dodo - requires undoing back to FAT
         let r7 = game.playDelete(2);      // -> FAT
         let r8 = game.playAdd(1);         // -> F_AT
-        let r9 = game.playLetter(2, "E"); // -> FEAT wrong
+        let r9 = game.playLetter(2, "E"); // -> FEAT dodo 
         let r10 = game.playDelete(2);      // -> FAT
         let r11 = game.playAdd(1);         // -> F_AT
-        let r12 = game.playLetter(2, "L"); // -> FLAT wrong
+        let r12 = game.playLetter(2, "L"); // -> FLAT dodo
         let r13 = game.playDelete(2);      // -> FAT
         let r14 = game.playAdd(1);         // -> F_AT
-        let r15 = game.playLetter(2, "L"); // -> FLAT wrong
+        let r15 = game.playLetter(2, "L"); // -> FLAT dodo
         let DIs = game.getDisplayInstructions();
-        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",");
+        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings = 
-            "(played,word:FISH,moveRating:ok),(played,word:FIST,moveRating:ok),(played,word:FEST,moveRating:D'oh! Wrong move),(played,word:FAST,moveRating:ok),(played,word:FAT,moveRating:ok),(played,word:FRAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FEAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(played,word:FAT,moveRating:ok),(played,word:FLAT,moveRating:D'oh! Wrong move),(future,word:FAT,changePosition:0),(future,word:FATE,changePosition:0),(future,word:FATED,changePosition:1),(future,word:SATED,changePosition:0),(played,word:SALTED,moveRating:D'oh! Wrong move)";
+            "(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FEST,moveRating:D'oh! Wrong move),<br>(played,word:FAST,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FRAT,moveRating:Ugh! Dodo move!),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FEAT,moveRating:Ugh! Dodo move!),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:Ugh! Dodo move!),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:Ugh! Dodo move!),<br>(future,word:FAT,changePosition:0),<br>(future,word:FATE,changePosition:0),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:0),<br>(played,word:SALTED,moveRating:D'oh! Wrong move)";
 
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
                 this.verify(r2 == Const.WRONG_MOVE, `expected r2=${Const.WRONG_MOVE}, got ${r2}`) &&
                 this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
                 this.verify(r4 == Const.OK, `expected r4=${Const.OK}, got ${r4}`) &&
                 this.verify(r5 == Const.OK, `expected r5=${Const.OK}, got ${r5}`) &&
-                this.verify(r6 == Const.WRONG_MOVE, `expected r6=${Const.WRONG_MOVE}, got ${r6}`) &&
+                this.verify(r6 == Const.DODO_MOVE, `expected r6=${Const.DODO_MOVE}, got ${r6}`) &&
                 this.verify(r7 == Const.OK, `expected r7=${Const.OK}, got ${r7}`) &&
                 this.verify(r8 == Const.OK, `expected r8=${Const.OK}, got ${r8}`) &&
-                this.verify(r9 == Const.WRONG_MOVE, `expected r9=${Const.WRONG_MOVE}, got ${r9}`) &&
+                this.verify(r9 == Const.DODO_MOVE, `expected r9=${Const.DODO_MOVE}, got ${r9}`) &&
                 this.verify(r10 == Const.OK, `expected r10=${Const.OK}, got ${r10}`) &&
                 this.verify(r11 == Const.OK, `expected r11=${Const.OK}, got ${r11}`) &&
-                this.verify(r12 == Const.WRONG_MOVE, `expected r12=${Const.WRONG_MOVE}, got ${r12}`) &&
+                this.verify(r12 == Const.DODO_MOVE, `expected r12=${Const.DODO_MOVE}, got ${r12}`) &&
                 this.verify(r13 == Const.OK, `expected r13=${Const.OK}, got ${r13}`) &&
                 this.verify(r14 == Const.OK, `expected r14=${Const.OK}, got ${r14}`) &&
-                this.verify(r15 == Const.WRONG_MOVE, `expected r15=${Const.WRONG_MOVE}, got ${r15}`) &&
+                this.verify(r15 == Const.DODO_MOVE, `expected r15=${Const.DODO_MOVE}, got ${r15}`) &&
                 this.verify(game.isOver(), "game should be over after too many wrong moves") &&
                 this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
-                this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs: ${expectedDIsAsStrings} but got ${DIsAsStrings}`) &&
+                this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
                 this.success();
     }
 
@@ -1050,12 +1085,12 @@ class Test extends BaseLogger {
         game.playDelete(1);      // -> ATE  too many wrong moves
 
         let DIs = game.getDisplayInstructions();
-        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",");
+        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings = 
-            "(played,word:SALTED,moveRating:ok),(played,word:SATED,moveRating:ok),(played,word:DATED,moveRating:D'oh! Wrong move),(played,word:DATE,moveRating:ok),(played,word:MATE,moveRating:D'oh! Wrong move),(played,word:RATE,moveRating:D'oh! Wrong move),(played,word:LATE,moveRating:D'oh! Wrong move),(played,word:FATE,moveRating:ok),(played,word:ATE,moveRating:D'oh! Wrong move),(future,word:FATE,changePosition:0),(future,word:FAT,changePosition:0),(future,word:FAST,changePosition:2),(future,word:FIST,changePosition:4),(played,word:FISH,moveRating:D'oh! Wrong move)"
+            "(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:DATED,moveRating:D'oh! Wrong move),<br>(played,word:DATE,moveRating:ok),<br>(played,word:MATE,moveRating:D'oh! Wrong move),<br>(played,word:RATE,moveRating:D'oh! Wrong move),<br>(played,word:LATE,moveRating:D'oh! Wrong move),<br>(played,word:FATE,moveRating:ok),<br>(played,word:ATE,moveRating:Ugh! Dodo move!),<br>(future,word:FATE,changePosition:0),<br>(future,word:FAT,changePosition:0),<br>(future,word:FAST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:D'oh! Wrong move)"
             this.verify(game.isOver(), "game should be over after too many wrong moves") &&
             this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
-            this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs: ${expectedDIsAsStrings} but got ${DIsAsStrings}`) &&
+            this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
             this.success();
     }
 

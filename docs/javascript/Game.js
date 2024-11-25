@@ -4,15 +4,6 @@ import { WordChainDict, scrabbleWordList } from './WordChainDict.js';
 import * as Const from './Const.js';
 import { BaseLogger } from './BaseLogger.js';
 
-
-// DisplayInstruction properties:
-//
-// word:           empty string for future
-// displayType:    add, addChange, delete, change, future, played, target
-// changePosition: not relevant for played or target
-// moveRating:    OK, WRONG_MOVE, GENIUS_MOVE; not relevant for future
-
-
 class Game extends BaseLogger {
 
     // stepsOfSolution is a list of tuples of (word, wasPlayed, moveRating).
@@ -149,7 +140,7 @@ class Game extends BaseLogger {
         if (this.isOver()) {
             // the game must be a failure, and this is the last mistake
             let changePosition = -1; // not used
-            return new DisplayInstruction(lastWord, Const.PLAYED, changePosition, Const.WRONG_MOVE);
+            return new DisplayInstruction(lastWord, Const.PLAYED, changePosition, moveRating);
         } else if (Game.wordHasHole(lastWord)) {
             // after user clicks plus somewhere, the list of played words includes the last word played with a hole
             // in it where the user clicked '+'.  This word with a hole is what we will return to the display to show.
@@ -206,9 +197,14 @@ class Game extends BaseLogger {
         }
     }
 
+    // Returns the number of actually played wrong moves, including dodo moves.
+    numWrongMoves() {
+        return this.playedSteps.numWrongMoves();
+    }
+
     // Return true if game is over; false otherwise.
     isOver() {
-        return this.playedSteps.isSolved() || this.playedSteps.numWrongMoves() >= Const.TOO_MANY_WRONG_MOVES;
+        return this.playedSteps.isSolved() || this.numWrongMoves() >= Const.TOO_MANY_WRONG_MOVES;
     }
 
     // when you add a word
@@ -243,6 +239,8 @@ class Game extends BaseLogger {
             let moveRating = Const.OK;
             if (newRemainingSteps.numSteps() < (nCurrentRemainingSteps-1)) {
                 moveRating = Const.GENIUS_MOVE;
+            } else if (newRemainingSteps.numSteps() > (nCurrentRemainingSteps)) {
+                moveRating = Const.DODO_MOVE;
             } else if (newRemainingSteps.numSteps() > (nCurrentRemainingSteps-1)) {
                 moveRating = Const.WRONG_MOVE;
             }
@@ -266,10 +264,10 @@ class Game extends BaseLogger {
         return Game.locationOfHole(word) >= 0;
     }
     
-    // the GUI needs to know if a played word was acceptable (OK, GENIUS_MOVE, or WRONG_MOVE) vs invalid (NOT_A_WORD or technical
+    // the GUI needs to know if a played word was acceptable (OK, GENIUS_MOVE, DODO_MOVE, or WRONG_MOVE) vs invalid (NOT_A_WORD or technical
     // problems like BAD_POSITION)
     static moveIsValid(moveRating) {
-        return (moveRating == Const.OK) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.WRONG_MOVE);
+        return (moveRating == Const.OK) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE);
     }
 
     // addPosition is from 0 to last word played's length

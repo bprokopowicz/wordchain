@@ -203,7 +203,9 @@ class Solution extends BaseLogger {
 
 
     numWrongMoves() {
-        return this.solutionSteps.filter((solutionStep)=>solutionStep.moveRating == Const.WRONG_MOVE).length;
+        return this.solutionSteps.filter(
+                (step)=>((step.moveRating == Const.WRONG_MOVE) || (step.moveRating == Const.DODO_MOVE))
+                ).length;
     }
 
     findChangedLetterLocation(word1, word2) {

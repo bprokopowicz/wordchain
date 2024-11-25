@@ -247,7 +247,7 @@ class DailyGameDisplay extends GameDisplay {
             if (gameResult == Const.OK) {
                 this.incrementStat("gamesCompleted");
             }
-            let wrongMoveCount = this.getWrongMoveCount();
+            let wrongMoveCount = this.game.numWrongMoves();
             if (wrongMoveCount >= Const.TOO_MANY_WRONG_MOVES) {
                 this.incrementStat("gamesFailed");
             }
@@ -263,13 +263,13 @@ class DailyGameDisplay extends GameDisplay {
         //  over:            true if the game is over (user has found target word or too many steps)
         //  numWrongMoves:   how many more steps it took to solve than the minimum
         //  moveSummary:     array of arrays containing for each move:
-        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius
+        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius/dodo
         //      length of the move's word
         //  dailyGameNumber: the game number of today's game
         let gameInfo = {};
 
         gameInfo.over = this.game.isOver();
-        gameInfo.numWrongMoves = this.getWrongMoveCount();
+        gameInfo.numWrongMoves = this.game.numWrongMoves();
         gameInfo.moveSummary = this.getMoveSummary();
         gameInfo.dailyGameNumber = this.dailyGameNumber;
 

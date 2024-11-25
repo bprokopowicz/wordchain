@@ -9,10 +9,11 @@
     <h1 align=center>WordChain FAQ</h1>
         <h2>How do I interpret the share graphic?</h2>
         <p>
-        The score of WordChain is how many more steps than the best solution were made.
+        The WordChain score is how many <b>more</b> steps than
+        WordChain's calculated <b>best solution</b> were made.
         If there were no extra steps, that is depicted with a star.
         If there were 5 extra steps, that is depicted with a confounded emoji.
-        Otherwise, there is a number indicating how many extra there were.
+        Otherwise, there is a number emoji indicating how many extra steps you made.
         The squares show the progression of the game:
         </p>
             <ul>
@@ -20,15 +21,18 @@
             The purple squares depict the given start and target words.
             </li>
             <li>
-            The green squares (orange in Colorblind Mode) indicate that the word played at that step was
+            The green squares (blue in Colorblind Mode) indicate that the word played at that step was
             good, that is, on the shortest path to the target word.
             </li>
             <li>
-            The red squares (blue in Colorblind Mode) indicate that the word played at that step was not 
+            The red squares (orange in Colorblind Mode) indicate that the word played at that step was not
             an optimal choice, causing your solution to take more steps than the best solution.
             </li>
             <li>
-            The gold stars indicate a GENIUS MOVE!
+            The gold squares indicate a GENIUS MOVE!
+            </li>
+            <li>
+            The brown squares indicate a DODO MOVE!
             </li>
             </ul>
         <p>
@@ -50,6 +54,12 @@
         A <b>Genius Move</b> occurs when you play a word that is <i>only</i> in the <i>advanced</i> dictionary
         <b>and</b> it leads to solving the game in fewer steps than WordChain's solution
         using only the <i>common</i> dictionary.
+        </p>
+        <h2>What's this about a Dodo Move?</h2>
+        <p>
+        If you make a move that increases the shortest path to the target word by 2,
+        that is no ordinary wrong move -- it's a <b>Dodo Move</b>.
+        This can only happen when adding or deleting a letter.
         </p>
         <h2>I want to pick a next word; how can I make a change that WordChain isn't suggesting?</h2>
         <p>

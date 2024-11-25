@@ -11,7 +11,7 @@ class DisplayInstruction {
     // word:           string is ignored for future; only length of it is used
     // displayType:    add, delete, change, future, played, target
     // changePosition: relevant only for change and future; 1..word.length
-    // moveRating:     OK, WRONG_MOVE, GENIUS_MOVE; not relevant for future or target
+    // moveRating:     OK, WRONG_MOVE, GENIUS_MOVE, DODO_MOVE; not relevant for future or target
     //
     // add, delete, change are used for the active word.
     constructor(word, displayType, changePosition, moveRating) {
