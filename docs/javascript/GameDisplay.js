@@ -19,7 +19,7 @@ class GameDisplay extends BaseLogger {
 
         this.gameDiv   = gameDiv;
         this.pickerDiv = pickerDiv;
-        this.pickerId = pickerId;
+        this.pickerId  = pickerId;
 
         this.createPicker();
 
@@ -197,6 +197,8 @@ class GameDisplay extends BaseLogger {
         let userRequestedSolution = this.getSolutionShown();
         Const.GL_DEBUG && this.logDebug("showGameAfterMove() userRequestedSolution=", userRequestedSolution, "game");
 
+        this.scoreDiv = ElementUtilities.addElementTo("div", container, {class: "break score-div"});
+
         // Create an element that can be used to add buttons (or whatever) after the display of
         // elements for the game.
         this.postGameDiv = ElementUtilities.addElementTo("div", container, {class: "break post-game-div"});
@@ -287,13 +289,19 @@ class GameDisplay extends BaseLogger {
         }
 
         if (this.game.isOver()) {
-            if (!userRequestedSolution && !skipToast) {
-                if (this.game.isWinner()) {
-                    this.appDisplay.showToast(Const.GAME_WON);
-                } else {
-                    this.appDisplay.showToast(Const.GAME_LOST);
+            if (!userRequestedSolution) {
+                if (!skipToast) {
+                    if (this.game.isWinner()) {
+                        this.appDisplay.showToast(Const.GAME_WON);
+                    } else {
+                        this.appDisplay.showToast(Const.GAME_LOST);
+                    }
                 }
+
+                const scoreText = Const.SCORE_TEXT[this.wrongMoves];
+                ElementUtilities.addElementTo("label", this.scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
             }
+
             this.disablePicker();
 
             // If the derived class defined a function to do additional things when
@@ -417,7 +425,6 @@ class GameDisplay extends BaseLogger {
 
         this.showGameAfterMove();
     }
-
 }
 
 export { GameDisplay };

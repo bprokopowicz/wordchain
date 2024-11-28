@@ -8,7 +8,7 @@ Testing
   - Safari/iPhone
   - Safari/iPad
   - Safari/Mac
-  - Chrome/Android phone
+  - Chrome/Android phone -- using debugging environment
   - Chrome/Mac
   - Chrome/iPad 
 - Execute Manual UI Testing Use Cases in these environments:
@@ -26,6 +26,10 @@ Testing
 
 Questions of Beta Users
 
+- After every game (daily or practice)
+    what were the words
+    what was your score (0 to 4 or fail)
+    your reaction in 10 words or less (too easy, good game, too hard, boring, frustrating, ...)
 - Is it a fun game?
 - Is it too hard or too easy?
 - Is it easy to understand/use?

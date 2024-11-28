@@ -25,7 +25,7 @@ export const PRACTICE_TARGET_WORD_LEN = 0;     // 0 means any target word length
 export const PRACTICE_REQ_WORD_LEN_1 = 4;
 export const PRACTICE_REQ_WORD_LEN_2 = 6;
 export const PRACTICE_MIN_CHOICES_PER_STEP = 2;
-export const PRACTICE_START_WORDS = ["FACE", "GRASP", "SPACE", "PLATE", "TRAIL", "PLANT", "HOUSE", "SNORE", "SNOW", "BROIL"];
+export const PRACTICE_START_WORDS = ["FACE", "GRASP", "SPACE", "PLATE", "TRAIL", "PLANT", "HOUSE", "SNORE", "SNOW", "BROIL", "WRITE", "SONG", "FISH", "WASH", "SINK"];
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
@@ -118,6 +118,14 @@ export var NUMBERS        = [                // Used in first share line
     "\u{0038}\u{FE0F}\u{20E3}",
     "\u{0031}\u{FE0F}\u{20E3}",
     "\u{0039}\u{FE0F}\u{20E3}",     // 9
+];
+export const SCORE_TEXT   = [
+    "0 -- no mistakes!",
+    "1 wrong word",
+    "2 wrong words",
+    "3 wrong words",
+    "4 wrong words",
+    "5 -- too many mistakes!",
 ];
 
 // Instead of a number, if the user has had too many wrong moves
