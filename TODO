@@ -1,7 +1,10 @@
 Known Bugs
-- none
+==========
 
-Beta TODO (for sharing with "Core Word Nerds" mailing list -- 11 people)
+- None
+
+Beta TODO 
+=========
 
 Testing
 - Execute automated tests in these environments:
@@ -24,23 +27,16 @@ Testing
   - Check again for TODO-BETA (or TODO not marked TODO-PRODUCTION)
   - More practice words
 
-Questions of Beta Users
+Include in mail to Beta users ("Core Word Nerds" mailing list -- 11 people)
 
-- After every game (daily or practice)
-    what were the words
-    what was your score (0 to 4 or fail)
-    your reaction in 10 words or less (too easy, good game, too hard, boring, frustrating, ...)
-- Is it a fun game?
-- Is it too hard or too easy?
-- Is it easy to understand/use?
-- Anything unintuitive in the user interface?
-- Any bugs?
-- Any suggested enhancements?
+- Link to game
+- Google form
 - Especially interested in these environments:
-  - Android phone
-  - Edge browser
+  - Android phone/tablet
+  - Edge/Windows
 
 Production TODO
+===============
 
 - How to create/minify/obscure one big js file
 - Buy domain wordchain.com?
@@ -61,6 +57,7 @@ Production TODO
         (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
 
 Implementation Ideas (Future)
+=============================
 
 - Solution button -- add means to show WordChain's ORIGINAL solution?
 - Should "shown" rows be a different color (currently green, maybe show gray)?
@@ -79,13 +76,15 @@ Implementation Ideas (Future)
 - Don't make the player select the last letter when there is only one step left? This prevents fat-fingering the last letter choice.
 
 
-Testing issues (only occurs when device is tethered)
+Testing issues
+==============
 
 In IOS (phone, ipad) using Safari, wordchain.html will load and play OK, BUT:
 - if you force a hard reload (cmd-opt-R) from the web inspector while tethered to a Mac,
   the javascript downloading fails for 2-4 of the files.
 - also, BaseLogger.js seems to take too long but does download. You can see this in the Web
   Inspector on the Mac when tethered to the iPad. We haven't tethered a phone yet (Nov 8, 2024)
+- only occurs when device is tethered
 
 TODO - verify that hard reload doesn't work on iphone/safari (untethered).
 TODO - can we force hard-reload on iphone/ipad in Chrome? Does that require tethering?
