@@ -18,7 +18,7 @@ export const SCRABBLE_DICT_URL = "https:/wordchain/docs/resources/Scrabble3-6";
 // TODO-PRODUCTION: Uncomment
 //export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
 export let PRACTICE_GAMES_PER_DAY = 1000;    // For beta testing
-export const PRACTICE_STEPS_MINIMUM = 5;
+export const PRACTICE_STEPS_MINIMUM = 6;
 export const PRACTICE_STEPS_MAXIMUM = 8;
 export const PRACTICE_DIFFICULTY_MINIMUM = 20;
 export const PRACTICE_TARGET_WORD_LEN = 0;     // 0 means any target word length is OK
@@ -74,7 +74,7 @@ export const MAX_WORD_LENGTH = 6;
 export const WORD_CHAIN_EPOCH_DATE = "2024-11-01T00:00:00.000+00:00";
 
 // How frequently whe check whether it's time for a new Daily game.
-export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 60000;
+export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 60 * 1000;
 
 // Constants for testing/debugging games and broken games
 export const STATIC_DAILY_GAME_START  = "short";

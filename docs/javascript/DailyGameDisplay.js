@@ -46,6 +46,8 @@ class DailyGameDisplay extends GameDisplay {
           ['shock', 'bagger'], //30
           ['ripe', 'mixers'],
           ['here', 'after'],
+          ['foster', 'tub'],
+          ['ice', 'roping'],
     ];
 
     /* ----- Construction ----- */
