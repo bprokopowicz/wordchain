@@ -56,6 +56,10 @@ class MockEvent {
 class Test extends BaseLogger {
     static singletonObject = null;
 
+    // We set the epoch to two days ago by default for all app tests.  This means the 
+    // game number will be two.
+
+    static TEST_EPOCH_DAYS_AGO = 2; 
     constructor() {
         super();
 
@@ -214,7 +218,7 @@ class Test extends BaseLogger {
     runAppTest(testFunc) {
         // clear cookies and reset the window with the standard testing daily puzzle
         Cookie.clearNonDebugCookies();
-        Persistence.saveTestEpochDaysAgo(2);
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
         this.resetTheTestAppWindow();
         this.runFunc(testFunc);
     }
@@ -1162,14 +1166,15 @@ class Test extends BaseLogger {
         this.deleteLetter(1);    // SHOOT -> HOOT
 
         // re-open the app window, as if it were one day later
-        Persistence.saveTestEpochDaysAgo(3);
+        const expGameNumber = Test.TEST_EPOCH_DAYS_AGO + 1;
+        Persistence.saveTestEpochDaysAgo(expGameNumber);
         this.resetTheTestAppWindow();
 
         let [start, target, gameNumber] = [this.gameDisplay.startWord, this.gameDisplay.targetWord, this.gameDisplay.dailyGameNumber];
         let [expStart, expTarget] = DailyGameDisplay.GameWords[3];
         this.verify(start == expStart, "After restart, expected start word: ", expStart, ", got: ", start) &&
             this.verify(target == expTarget, "After restart, expected target word: ", expTarget, ", got: ", target) &&
-            this.verify(gameNumber == 3, "Expected daily game number 3 after restarting next day, got", gameNumber) &&
+            this.verify(gameNumber == expGameNumber, "Expected daily game number", expGameNumber, " after restarting next day, got", gameNumber) &&
             this.success();
     }
 
@@ -1199,7 +1204,7 @@ class Test extends BaseLogger {
         // now, get and check the share string:
 
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
         testResults &&
             this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
@@ -1388,7 +1393,7 @@ class Test extends BaseLogger {
         // execute on error in the callpath of stats.Display.shareCallback().  The error is handled async; the call
         // to shareCallback() always returns the calculated shareString, NOT whether it was written to the clipboard.
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 1️⃣\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 1️⃣\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
 
         this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
@@ -1430,7 +1435,7 @@ class Test extends BaseLogger {
 
         //  get the share string.  Note that after the final mistake, no more words are shown (unplayed) leading to the target.
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} 😖\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
 
         this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
@@ -1440,8 +1445,6 @@ class Test extends BaseLogger {
         this.testName = "DailyGameEndsOnDeleteShare";
 
         // We need to re-open the test window with a contrived daily game, not the default.
-        //Cookie.clearNonDebugCookies();
-        //Persistence.saveTestEpochDaysAgo(2);
         Persistence.saveTestDailyGameWords("START", "END");
         this.resetTheTestAppWindow();
 
@@ -1471,7 +1474,7 @@ class Test extends BaseLogger {
 
         //  get the share string.  use-case: the last play is a Delete
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪`;
+        let expShareString = `WordChain #${Const.TEST_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪`;
 
         this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
@@ -1516,7 +1519,7 @@ class Test extends BaseLogger {
 
         // ... and close and re-open it after it is solved
 
-        Persistence.saveTestEpochDaysAgo(2);
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
         this.resetTheTestAppWindow();
         if (resultsSoFar) {
             // game should be done; stats should be saved.
@@ -1682,7 +1685,7 @@ class Test extends BaseLogger {
         let statsMockEvent = new MockEvent(statsSrcElement);
         let shareString = statsDisplay.shareCallback(statsMockEvent);
 
-        let expectedShareString = `WordChain #${Const.STATIC_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟪🟪🟪🟪`;
+        let expectedShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟪🟪🟪🟪`;
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
             this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
@@ -1704,7 +1707,7 @@ class Test extends BaseLogger {
         Cookie.save(Cookie.TEST_BOOL, true);
 
         // now re-set the window,
-        Persistence.saveTestEpochDaysAgo(2);
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
         this.resetTheTestAppWindow();
         var testIntRestored = Cookie.getInt(Cookie.TEST_INT);
         var testBoolRestored = Cookie.getBoolean(Cookie.TEST_BOOL);

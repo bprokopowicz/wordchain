@@ -49,6 +49,9 @@ export const DODO_MOVE        = "Ugh! Dodo move!";
 export const BAD_POSITION     = "Bad letter position";
 export const NEW_DAILY_GAME   = "Time for a new Daily game";
 
+// If we force the daily game using stored test variables, this will be the game number.
+export const TEST_DAILY_GAME_NUMBER = -1;
+
 // Returns from Game class that indicate a bug in its input from GameDisplay.
 export const BAD_LETTER_POSITION = "bad letter position";
 
@@ -75,13 +78,6 @@ export const WORD_CHAIN_EPOCH_DATE = "2024-11-01T00:00:00.000+00:00";
 
 // How frequently whe check whether it's time for a new Daily game.
 export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 60 * 1000;
-
-// Constants for testing/debugging games and broken games
-export const STATIC_DAILY_GAME_START  = "short";
-export const STATIC_DAILY_GAME_TARGET = "poor";
-export const BACKUP_DAILY_GAME_START  = "daily";
-export const BACKUP_DAILY_GAME_TARGET = "broken";
-export const STATIC_DAILY_GAME_NUMBER = 2;
 
 // Constants for settings screen
 export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
