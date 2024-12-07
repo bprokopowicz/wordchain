@@ -134,6 +134,8 @@ class CustomMenu extends HTMLElement {
     __showOptions() {
         this.querySelector('custom-menu-options')
             .classList.toggle('hidden');
+        // This makes the picker set the scroll bar so that 'A' is showing at the top.
+        this.querySelector('custom-menu-options').scrollTop = 0;
     }
 }
 

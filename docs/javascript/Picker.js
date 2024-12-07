@@ -65,11 +65,14 @@ class Picker extends BaseLogger {
             letter = String.fromCharCode(letterCode);
             label = ElementUtilities.addElementTo("label", this.pickerMenuOptions, {class: "picker-option"}, letter)
 
-            // Add input with class hidden -- this will make it so that the
+            // Add input with class picker-hidden -- this will make it so that the
             // radio button itself doesn't appear in the menu options;
-            // just the label will appear.
+            // just the label will appear. NOTE: initially we set the class to "hidden"
+            // and in Chrome, the radio button itself was hidden, but it showed up
+            // in Safari on MacOS. Using our own class and styling it with the attributes
+            // in WordChain.css enabled us to hide those ugly radio buttons in Safari.
             input = ElementUtilities.addElementTo("input", label,
-                {type: "radio", name: pickerOptionId, value: letter, class: "hidden"})
+                {type: "radio", name: pickerOptionId, value: letter, class: "picker-hidden"})
         }
 
         // Force caller to enable the picker explictly.
@@ -98,7 +101,7 @@ class Picker extends BaseLogger {
         this.pickerMenu.enable();
     }
 
-    // GameDisplay saves the letter position in the picker so that when
+    // ActiveLetterCell saves the letter position in the picker so that when
     // a letter is selected we can give it back to the game.
     saveLetterPosition(position) {
         this.letterPosition = position;
@@ -108,7 +111,7 @@ class Picker extends BaseLogger {
     // a letter from the picker. In our case text and value are the same,
     // so we only use text.
     selectionMade(text, __value) {
-        return this.gameDisplay.letterPicked(text, this.letterPosition)
+        return this.gameDisplay.letterPicked(text, this.letterPosition);
     }
 }
 

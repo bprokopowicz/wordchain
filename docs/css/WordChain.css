@@ -577,6 +577,17 @@ button.action-button {
     text-align: center;
 }
 
+/*
+** These settings were required only for Safari on MacOS, to ensure that the
+** picker's radio buttons are actually hidden.
+*/
+.picker-hidden {
+    position: absolute;
+    appearance: none;
+    opacity: 0;
+
+}
+
 /* Styles for custom-menu, custom-menu-button, and custom-menu-options elements */
 
 custom-menu {
