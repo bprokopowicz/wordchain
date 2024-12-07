@@ -193,15 +193,16 @@ class DailyGameDisplay extends GameDisplay {
             this.dailyGameNumber = Const.TEST_DAILY_GAME_NUMBER;
             isValidGame = true;
             Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber() overriding game words from test vars", "daily");
-        } else if (this.dailyGameNumber >= 1 && this.dailyGameNumber <= DailyGameDisplay.GameWords.length) {
+        } else if (this.dailyGameNumber >= 1 && this.dailyGameNumber < DailyGameDisplay.GameWords.length) {
             [this.startWord, this.targetWord] = DailyGameDisplay.GameWords[this.dailyGameNumber];
             isValidGame = true;
         } else {
             // No daily game? Something went awry; use the backup.
-            [this.startWord, this.targetWord]  = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
             isValidGame = false;
-            // TODO-BETA: Need to show this only on the first time.
-            this.appDisplay.showToast(Const.NO_DAILY);
+            if ( (this.startWord != Const.BACKUP_DAILY_GAME_START) && (this.targetWord != Const.BACKUP_DAILY_GAME_TARGET)) {
+                [this.startWord, this.targetWord]  = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
+                this.appDisplay.showToast(Const.NO_DAILY);
+            }
         }
         Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber() start: ", this.startWord, " target: ", this.targetWord, "daily");
         return isValidGame;

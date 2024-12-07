@@ -76,6 +76,10 @@ export const MAX_WORD_LENGTH = 6;
 // to Beta and Production.
 export const WORD_CHAIN_EPOCH_DATE = "2024-11-01T00:00:00.000+00:00";
 
+// words to use if we are past the date of the last defined daily game words.
+export const BACKUP_DAILY_GAME_START  = "daily";
+export const BACKUP_DAILY_GAME_TARGET = "broken";
+
 // How frequently whe check whether it's time for a new Daily game.
 export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 60 * 1000;
 
