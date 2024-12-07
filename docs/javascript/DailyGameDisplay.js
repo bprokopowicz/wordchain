@@ -106,7 +106,6 @@ class DailyGameDisplay extends GameDisplay {
         this.dailyGameNumber = this.calculateGameNumber();
 
         // Set up the new game and see whether it's valid (i.e. not the backup game).
-
         this.validGame = this.setGameWordsFromGameNumber();
 
         let isNewDailyGame = false;
