@@ -193,7 +193,7 @@ class DailyGameDisplay extends GameDisplay {
             this.dailyGameNumber = Const.TEST_DAILY_GAME_NUMBER;
             isValidGame = true;
             Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber() overriding game words from test vars", "daily");
-        } else if (this.dailyGameNumber >= 1 && this.dailyGameNumber < DailyGameDisplay.GameWords.length) {
+        } else if (this.dailyGameNumber >= 0 && this.dailyGameNumber < DailyGameDisplay.GameWords.length) {
             [this.startWord, this.targetWord] = DailyGameDisplay.GameWords[this.dailyGameNumber];
             isValidGame = true;
         } else {
