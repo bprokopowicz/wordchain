@@ -34,7 +34,7 @@ class PracticeGameDisplay extends GameDisplay {
         this.practiceGamesPerDay = n;
     }
 
-    // this is a virtual function of the base class.  It is called after any play that adds a new 
+    // this is a pure virtual function in the base class.  It is called after any play that adds a new 
     // word to the solution (delete or letter picked).  
 
     updateGameInProgressPersistence(gameResult) {
@@ -44,6 +44,7 @@ class PracticeGameDisplay extends GameDisplay {
     }
 
     // this is a virtual function that tells the display if the user requested the solution for the (practice) game in progress
+
     getSolutionShown() {
         const ret = Persistence.getPracticeSolutionShown();
         Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.getSolutionShown() returns: ", ret, "practice");
@@ -119,7 +120,11 @@ class PracticeGameDisplay extends GameDisplay {
         Persistence.savePracticeTimestamps(practiceGameTimestamps);
     }
 
-    // updateWords starts a new game.  It should not be possible to call it if there are no more games left.
+    // updateWords creates a practice game.  It should not be possible to call it if there are no more 
+    // practice games left.  
+    // - If there are test vars to define the start and target, they will be used.
+    // - If there is no practice game in progress in persistance, we get a new practice puzzle.
+    // - Otherwise, the in-progress game will be created from persistence.
 
     updateWords() {
 
@@ -137,7 +142,6 @@ class PracticeGameDisplay extends GameDisplay {
             if (!this.startWord || this.startWord.length === 0) {
                 // No words in the cookie; get new ones from the Game class and save them.
                 [this.startWord, this.targetWord] = Game.getPracticePuzzle();
-                //[this.startWord, this.targetWord] = ["FATE", "CAT"];
                 this.addNewPracticeGameTimestamp();
                 Persistence.savePracticeGameDef(this.startWord, this.targetWord);
                 Persistence.clearPracticeGameState();

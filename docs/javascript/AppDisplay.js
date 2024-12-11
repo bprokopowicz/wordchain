@@ -112,7 +112,7 @@ class AppDisplay extends BaseLogger {
         // Creation of DailyGameDisplay causes the start/target words to be determined
         // based on today's date and displays the game's grid for the user to play.
         this.dailyGameDisplay = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
-        this.practiceGameDisplay = null;
+        this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
         this.currentGameDisplay = this.dailyGameDisplay;
 
         // Set a timer to check whether it's time for a new Daily game periodically.
@@ -235,6 +235,11 @@ class AppDisplay extends BaseLogger {
         return gameInfo.over;
     }
 
+    isDailyGameBroken() {
+        let gameInfo = this.getDailyGameInfo();
+        return gameInfo.dailyGameNumber === Const.BROKEN_DAILY_GAME_NUMBER;
+    }
+
     disableSolutionButton() {
         ElementUtilities.addClass(this.solutionButton, "header-button-disabled");
         this.solutionButton.enabled = false;
@@ -337,12 +342,12 @@ class AppDisplay extends BaseLogger {
     }
 
     // Show a "toast" pop-up (typically an error message).
-    showToast(message) {
+    showToast(message, duration=Const.SHOW_TOAST_DURATION) {
         this.toastDiv.innerHTML = message
         ElementUtilities.editClass(/hide/, "show", this.toastDiv);
         setTimeout(() => {
             ElementUtilities.editClass(/show/, "hide", this.toastDiv);
-        }, 3000);
+        }, duration);
     }
 
     switchToDailyGame() {
@@ -360,12 +365,17 @@ class AppDisplay extends BaseLogger {
     }
 
     switchToPracticeGame() {
+    /*
+        obsolete: we create the practice game in the constructor, so that there is no pause
+        when switching to practice game. 
+
         if (this.practiceGameDisplay === null) {
             Const.GL_DEBUG && this.logDebug("AppDisplay.switchToPracticeGame()", "practice");
             // Creation of PracticeGameDisplay causes the start/target words to be retrieved
             // from Cookies or randomly selected, and displays the game's grid for the user to play.
             this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
         }
+        */
 
         // If the user has already played the maximum number of games, we disallow any more.
         if (! this.practiceGameDisplay.anyGamesRemaining()) {

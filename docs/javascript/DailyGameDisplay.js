@@ -140,6 +140,12 @@ class DailyGameDisplay extends GameDisplay {
                 this.recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
                 Const.GL_DEBUG && this.logDebug("this.recoveredDailyGameStateIfAny:", this.recoveredDailyGameStateIfAny, "daily");
             }
+        } else {
+            // we are playing a default game when the daily game is broken
+            Persistence.saveDailyGameNumber(this.dailyGameNumber);
+            Persistence.clearDailyGameState();
+            Persistence.clearDailySolutionShown();
+            this.recoveredDailyGameStateIfAny = [];  // nothing recovered
         }
 
         return isNewDailyGame;
@@ -201,6 +207,7 @@ class DailyGameDisplay extends GameDisplay {
             isValidGame = false;
             if ( (this.startWord != Const.BACKUP_DAILY_GAME_START) && (this.targetWord != Const.BACKUP_DAILY_GAME_TARGET)) {
                 [this.startWord, this.targetWord]  = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
+                this.dailyGameNumber = Const.BROKEN_DAILY_GAME_NUMBER;
                 this.appDisplay.showToast(Const.NO_DAILY);
             }
         }

@@ -216,9 +216,10 @@ class Test extends BaseLogger {
     }
 
     runAppTest(testFunc) {
-        // clear cookies and reset the window with the standard testing daily puzzle
+        // clear cookies and reset the window with a known daily puzzle and a hard-coded practice puzzle.
         Cookie.clearNonDebugCookies();
         Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
+        Persistence.saveTestPracticeGameWords("TEST", "PILOT");
         this.resetTheTestAppWindow();
         this.runFunc(testFunc);
     }
@@ -1584,9 +1585,7 @@ class Test extends BaseLogger {
         this.testName = "PracticeGame";
 
         this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
-
         this.logDebug("Switching to practice game", "test");
-        Persistence.saveTestPracticeGameWords("TEST", "PILOT");
         this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
         this.logDebug("Done switching to practice game", "test");
 

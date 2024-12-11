@@ -30,7 +30,8 @@ class HelpDisplay extends AuxiliaryDisplay {
         the background of its letters will be red, indicating a penalty;
         otherwise the background will be green (or orange/blue in Colorblind Mode).
         If you play ${Const.TOO_MANY_WRONG_MOVES} such "wrong moves" you lose the game.
-        If you reach the target word you win the game.
+        If you reach the target word you win the game.  Your score is the number of wrong
+        moves you made, from 0 to ${Const.TOO_MANY_WRONG_MOVES}.
         </p>
         <h3>
         Every day there will be a new daily WordChain game.

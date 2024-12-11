@@ -30,27 +30,33 @@ export const PRACTICE_START_WORDS = ["FACE", "GRASP", "SPACE", "PLATE", "TRAIL",
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
 // --- Returned from Game class.
-export const OK               = "ok";
-export const NOT_A_WORD       = "Not in word list";
+export const SHOW_TOAST_DURATION = 3000; // milliseconds
+export const OK                  = "ok";
+export const NOT_A_WORD          = "Not in word list";
 // --- Displayed from one of the *Display classes.
-export const GAME_WON         = "Solved!";
-export const GAME_LOST        = "Too many wrong moves";
-export const PICK_NEW_LETTER  = "Pick a different letter";      // Displayed when user selects the letter already in the cell to be changed.
-export const UNEXPECTED_ERROR = "Yikes! Something went wrong";
-export const TOO_MANY_GAMES   = `Only ${PRACTICE_GAMES_PER_DAY} games allowed per day`;
-export const NO_DAILY         = "Unable to create daily game;<br>here is a fun back-up";
-export const SHARE_FAILED     = "Failed to share";
-export const SHARE_COPIED     = "Copied to clipboard";
-export const SHARE_INSECURE   = "Cannot share in insecure environment";
-export const NO_STATS         = "Stats unavailable";
-export const WRONG_MOVE       = "D'oh! Wrong move";
-export const GENIUS_MOVE      = "Genius play!";
-export const DODO_MOVE        = "Ugh! Dodo move!";
-export const BAD_POSITION     = "Bad letter position";
-export const NEW_DAILY_GAME   = "Time for a new Daily game";
+export const GAME_WON            = "Solved!";
+export const GAME_LOST           = "Too many wrong moves";
+export const PICK_NEW_LETTER     = "Pick a different letter";      // Displayed when user selects the letter already in the cell to be changed.
+export const UNEXPECTED_ERROR    = "Yikes! Something went wrong";
+export const TOO_MANY_GAMES      = `Only ${PRACTICE_GAMES_PER_DAY} games allowed per day`;
+export const NO_DAILY            = "Unable to create daily game;<br>here is a fun back-up";
+export const SHARE_FAILED        = "Failed to share";
+export const SHARE_COPIED        = "Copied to clipboard";
+export const SHARE_INSECURE      = "Cannot share in insecure environment";
+export const NO_STATS            = "Stats unavailable";
+export const WRONG_MOVE          = "D'oh! Wrong move";
+export const GENIUS_MOVE         = "Genius play!";
+export const DODO_MOVE           = "Ugh! Dodo move!";
+export const BAD_POSITION        = "Bad letter position";
+export const NEW_DAILY_GAME      = "Time for a new Daily game";
+export const WORKING_ON_NEW_GAME = "Working on a new game for you";
 
 // If we force the daily game using stored test variables, this will be the game number.
 export const TEST_DAILY_GAME_NUMBER = -1;
+
+// If the daily game number calculation fails or returns a game number that we don't have in 
+// our daily game list, use this as the daily game number
+export const BROKEN_DAILY_GAME_NUMBER = -2;
 
 // Returns from Game class that indicate a bug in its input from GameDisplay.
 export const BAD_LETTER_POSITION = "bad letter position";
