@@ -1,7 +1,7 @@
 Known Bugs
 ==========
 
-Beta TODO 
+Beta TODO
 =========
 
 Testing
@@ -11,7 +11,7 @@ Testing
   - Safari/Mac
   - Chrome/Android phone -- using debugging environment
   - Chrome/Mac
-  - Chrome/iPad 
+  - Chrome/iPad
 - Execute Manual UI Testing Use Cases in these environments:
   - Safari/iPhone
   - Safari/iPad
@@ -53,6 +53,8 @@ Production TODO
         (can happen when switching to Practice game or starting new Practice game)
      [Violation] 'setInterval' handler took XXXms
         (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
+- Consider changing Daily game to roll over at midnight local time
+- Consider changing Practice game window to align with Daily game window
 
 Implementation Ideas (Future)
 =============================

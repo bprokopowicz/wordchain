@@ -45,7 +45,7 @@ class WordChainDict extends BaseLogger {
 
     copy() {
         let wordList = this.getWordList();
-        let newDict = new WordChainDict(wordList);  
+        let newDict = new WordChainDict(wordList);
         Const.GL_DEBUG && this.logDebug("dictionary copy has ", newDict.getSize(), " words.", "dictionary");
         return newDict;
     }

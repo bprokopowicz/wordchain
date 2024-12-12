@@ -101,7 +101,7 @@ class Solver {
         }
         // search forever until all suitable puzzles are found
         let firstPuzzle = Solution.newEmptySolution(startWord, "dummy-end");
-        let listOfPossiblePuzzles =[]; 
+        let listOfPossiblePuzzles =[];
         listOfPossiblePuzzles.push(firstPuzzle);
         while (listOfPossiblePuzzles.length > 0) {
             let puzzle = listOfPossiblePuzzles.shift();
@@ -179,7 +179,7 @@ class Solution extends BaseLogger {
         this.target = target;
         this.errorMessage = "";
         // call calculateDifficulty(dictionary) to set these three fields:
-        this.difficulty = -1;  
+        this.difficulty = -1;
         this.nChoicesEasiestStep = 1000;
         this.nChoicesOnStep = new Array();
     }
@@ -232,14 +232,14 @@ class Solution extends BaseLogger {
         this.difficulty = 0;
         this.nChoicesEasiestStep = 1000;
         this.nChoicesOnStep = new Array();
-        // difficulty is defined by choices between successive words.  We don't include 
+        // difficulty is defined by choices between successive words.  We don't include
         // the choices at the last step since in effect there is only one obvious choice, the target.
         while (i < this.numWords() - 2) {
             let thisWord = this.getNthWord(i)
             let nextWord = this.getNthWord(i+1)
             let replacementWords = new Set();
             if (thisWord.length == nextWord.length) {
-                // we tell the user which letter location to change, so only the changes of that 
+                // we tell the user which letter location to change, so only the changes of that
                 // location should count towards difficulty
                 replacementWords = dictionary.findReplacementWords(thisWord);
                 let loc = this.findChangedLetterLocation(thisWord, nextWord);
@@ -291,15 +291,15 @@ class Solution extends BaseLogger {
     getLastWord() {
         return this.getNthWord(this.solutionSteps.length - 1);
     }
-    
-    // use case: removing a step containing a word with a hole before replacing it with 
+
+    // use case: removing a step containing a word with a hole before replacing it with
     // the word without the hole.
     removeLastStep() {
         this.solutionSteps.pop();
     }
 
-    // use case: when resolving from played word to target, that solution includes the played word as 
-    // its first word.  
+    // use case: when resolving from played word to target, that solution includes the played word as
+    // its first word.
     removeFirstStep() {
         this.solutionSteps.shift();
     }
@@ -354,7 +354,7 @@ class Solution extends BaseLogger {
         }
         return false;
     }
-        
+
     shortestWordLen() {
         let shortestLen = 1000;
         for (let word of this.getSolutionWords()) {
@@ -390,8 +390,8 @@ class Solution extends BaseLogger {
             return this.errorMessage;
         } else if (toHtml) {
             // display the words and the choice stats
-            return this.solutionSteps.map(step => step.word).join(", ") 
-                + " difficulty: " +  this.difficulty 
+            return this.solutionSteps.map(step => step.word).join(", ")
+                + " difficulty: " +  this.difficulty
                 + " choices at each step: " + this.nChoicesOnStep.join(",");
         } else {
             // display the words and details about the step (correct, played)

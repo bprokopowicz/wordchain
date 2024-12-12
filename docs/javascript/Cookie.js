@@ -36,7 +36,7 @@
 **
 **   Obsolete
 **     HardMode, TypeSavingMode
-** 
+**
 **  Used In testing
 **    TestDailyStart
 **      String: override any daily game and start with this word
@@ -74,7 +74,7 @@ class Cookie {
     static PRACTICE_GAME_TIMESTAMPS = "PracticeGameTimestamps";
     static PRACTICE_SOLUTION_SHOWN = "PracticeSolutionShown";
 
-    // These 3 are used for testing persistence only.  They don't affect game play 
+    // These 3 are used for testing persistence only.  They don't affect game play
     static TEST_INT = "TestInt";
     static TEST_BOOL = "TestBool";
     static TEST_OBJ = "TestObj";

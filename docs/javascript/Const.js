@@ -1,7 +1,7 @@
-// Turn on/off debugging.  We use var instead of const so that we can turn it on/off from 
+// Turn on/off debugging.  We use var instead of const so that we can turn it on/off from
 // code as well as by hard-coding it here.
 // Javascript requires a module-local setter function to set an exported value from outside
-// the module.  All exported values are read-only even if not declared using "export const".  
+// the module.  All exported values are read-only even if not declared using "export const".
 
 export let GL_DEBUG = false;
 
@@ -54,7 +54,7 @@ export const WORKING_ON_NEW_GAME = "Working on a new game for you";
 // If we force the daily game using stored test variables, this will be the game number.
 export const TEST_DAILY_GAME_NUMBER = -1;
 
-// If the daily game number calculation fails or returns a game number that we don't have in 
+// If the daily game number calculation fails or returns a game number that we don't have in
 // our daily game list, use this as the daily game number
 export const BROKEN_DAILY_GAME_NUMBER = -2;
 

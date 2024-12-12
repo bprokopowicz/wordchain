@@ -11,7 +11,7 @@ class PracticeGameDisplay extends GameDisplay {
     constructor(appDisplay, gameDiv, pickerDiv) {
         super(appDisplay, gameDiv, pickerDiv, "practice-picker");
 
-        this.practiceGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using testing vars 
+        this.practiceGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using testing vars
         // Are we debugging the number of practice games allowed?
         this.maxGamesIntervalMs = 24 * 60 *60 * 1000; // one day in ms
         if (Persistence.hasTestMinutesPerDay()) {
@@ -34,13 +34,13 @@ class PracticeGameDisplay extends GameDisplay {
         this.practiceGamesPerDay = n;
     }
 
-    // this is a pure virtual function in the base class.  It is called after any play that adds a new 
-    // word to the solution (delete or letter picked).  
+    // this is a pure virtual function in the base class.  It is called after any play that adds a new
+    // word to the solution (delete or letter picked).
 
     updateGameInProgressPersistence(gameResult) {
         if (Game.moveIsValid(gameResult)) {
             Persistence.savePracticeGameState(this.gameState);
-        } 
+        }
     }
 
     // this is a virtual function that tells the display if the user requested the solution for the (practice) game in progress
@@ -87,7 +87,7 @@ class PracticeGameDisplay extends GameDisplay {
     }
 
     // anyGamesRemaining() cleans up the saved list of recently played games' timestamps.
-    // It removes ones that are more than 24 hours old, and returns true/false depening 
+    // It removes ones that are more than 24 hours old, and returns true/false depening
     // on how many are  left compared to the allowed number per day.
 
     anyGamesRemaining() {
@@ -95,7 +95,7 @@ class PracticeGameDisplay extends GameDisplay {
 
         let practiceGameTimestamps = Persistence.getPracticeTimestamps();
 
-        // remove any any games that have aged out. 
+        // remove any any games that have aged out.
 
         practiceGameTimestamps = practiceGameTimestamps
             .filter(timestamp => (now-timestamp) < this.maxGamesIntervalMs);
@@ -120,8 +120,8 @@ class PracticeGameDisplay extends GameDisplay {
         Persistence.savePracticeTimestamps(practiceGameTimestamps);
     }
 
-    // updateWords creates a practice game.  It should not be possible to call it if there are no more 
-    // practice games left.  
+    // updateWords creates a practice game.  It should not be possible to call it if there are no more
+    // practice games left.
     // - If there are test vars to define the start and target, they will be used.
     // - If there is no practice game in progress in persistance, we get a new practice puzzle.
     // - Otherwise, the in-progress game will be created from persistence.
@@ -152,7 +152,7 @@ class PracticeGameDisplay extends GameDisplay {
             }
         }
 
-        // Now we're ready to construct (and display) the game.  
+        // Now we're ready to construct (and display) the game.
         this.constructGame(this.startWord, this.targetWord, gameState);
     }
 }

@@ -365,17 +365,8 @@ class AppDisplay extends BaseLogger {
     }
 
     switchToPracticeGame() {
-    /*
-        obsolete: we create the practice game in the constructor, so that there is no pause
-        when switching to practice game. 
-
-        if (this.practiceGameDisplay === null) {
-            Const.GL_DEBUG && this.logDebug("AppDisplay.switchToPracticeGame()", "practice");
-            // Creation of PracticeGameDisplay causes the start/target words to be retrieved
-            // from Cookies or randomly selected, and displays the game's grid for the user to play.
-            this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
-        }
-        */
+        // We used to create the practice game here, but moved it to the constructor,
+        // so that there is no pause when switching to the practice game for the first time.
 
         // If the user has already played the maximum number of games, we disallow any more.
         if (! this.practiceGameDisplay.anyGamesRemaining()) {

@@ -83,7 +83,7 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // horizontally.
         const interactiveDiv = this.addSetting(title, "setting-simple", description);
         ElementUtilities.addElementTo("a", interactiveDiv, {href: linkHref, target: "_blank"}, linkText);
-    } 
+    }
 
     /*
     // Add a setting whose input is a (mutually exclusive) set of radio buttons.

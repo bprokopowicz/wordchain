@@ -79,15 +79,15 @@ class ElementUtilities {
         const element = document.getElementById(elementId);
         if (mustExist && !element) {
             throw new Error(`ElementUtilities.getElement(): no element with id ${elementId}`);
-        }   
+        }
         return element;
-    }   
+    }
 
     // Used only in Test.js.
     static getElementValue(elementId) {
         const element = ElementUtilities.getElement(elementId);
         return element.value;
-    }   
+    }
 
     static editClass(fromPattern, toString, elements) {
 
@@ -188,7 +188,7 @@ class ElementUtilities {
         }
 
         // Now, assign our localCallback to all the events of interest.
-        // the {passive: true} argument shuts up thousands of violation warnings in Chrome: 
+        // the {passive: true} argument shuts up thousands of violation warnings in Chrome:
         // "Added non-passive event listener to a scroll-blocking 'touchstart' event...."
 
         buttonElement.addEventListener("touchstart", localCallback, {passive: true});

@@ -7,7 +7,7 @@ class BaseLogger {
     logDebug(...args) {
         let debugTags = Cookie.get(Cookie.DEBUG),
             messageTags = args[arguments.length - 1];
-        
+
         if (typeof messageTags === "string") {
             if (debugTags && messageTags) {
 
@@ -26,7 +26,6 @@ class BaseLogger {
         } else {
             console.error("Last argument of logDebug() is not a string;\n", ...args);
         }
-
     }
 }
 

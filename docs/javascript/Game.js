@@ -54,9 +54,9 @@ class Game extends BaseLogger {
               Const.PRACTICE_REQ_WORD_LEN_1, Const.PRACTICE_REQ_WORD_LEN_2,
               Const.PRACTICE_STEPS_MINIMUM, Const.PRACTICE_STEPS_MAXIMUM,
               Const.PRACTICE_DIFFICULTY_MINIMUM, Const.PRACTICE_MIN_CHOICES_PER_STEP);
-        
+
         if (puzzles.length > 0) {
-            rand = Math.floor(Math.random() * puzzles.length); 
+            rand = Math.floor(Math.random() * puzzles.length);
             Const.GL_DEBUG && logger.logDebug(`found ${puzzles.length} puzzles starting with ${startWord}.  Choosing #${rand}`, "game");
             let puzzle = puzzles[rand];
             Const.GL_DEBUG && logger.logDebug("selected random puzzle: " + puzzle.toStr(), "game");
@@ -81,7 +81,7 @@ class Game extends BaseLogger {
         this.remainingSteps.removeAllSteps();
     }
 
-    // returns a list to display all the steps of the puzzle. 
+    // returns a list to display all the steps of the puzzle.
     getDisplayInstructions() {
         Const.GL_DEBUG && this.logDebug("played so far: " + this.playedSteps.toStr(), "game");
         Const.GL_DEBUG && this.logDebug("remaining unplayed: " + this.remainingSteps.toStr(), "game");
@@ -107,7 +107,7 @@ class Game extends BaseLogger {
 
         // Now the target
         instructions.push(this.instructionForTargetWord());
-    
+
         Const.GL_DEBUG && this.logDebug("display instructions: ", instructions, "game");
         return instructions;
     }
@@ -120,7 +120,7 @@ class Game extends BaseLogger {
 
     instructionForFutureWord(stepIndex) {
         // we show hints in the future words that require a single letter-change to the next word
-        // the step index needs to be adjusted to account for the unplayed steps 
+        // the step index needs to be adjusted to account for the unplayed steps
         const futureWord = this.remainingSteps.getNthWord(stepIndex);
         const nextFutureWord = this.remainingSteps.getNthWord(stepIndex+1);
         const moveRating = Const.OK;
@@ -154,7 +154,7 @@ class Game extends BaseLogger {
     }
 
     // this method is for displaying the target, either as Const.TARGET if not played yet,
-    // or Const.PLAYED if the game is either solved or lost.  
+    // or Const.PLAYED if the game is either solved or lost.
     // moveRating is Const.OK unless the game is lost; then it is Const.WRONG_MOVE
 
     instructionForTargetWord() {
@@ -163,7 +163,7 @@ class Game extends BaseLogger {
         let displayType = Const.TARGET; // unless the game is over; then it is PLAYED
         let moveRating = Const.OK; // unless the game is over and we lost; then it is WRONG_MOVE
         if (this.isOver()) {
-            displayType = Const.PLAYED; 
+            displayType = Const.PLAYED;
             if (!this.isWinner()) {
                 moveRating = Const.WRONG_MOVE;
             }
@@ -190,7 +190,7 @@ class Game extends BaseLogger {
             // we display '+'s to let the user add a hole
             return new DisplayInstruction(lastWordPlayed, Const.ADD, 0, lastWordMoveRating);
         } else if (nextWord.length == lastWordPlayed.length-1) {
-            // we display '-'s to let the user delete a letter 
+            // we display '-'s to let the user delete a letter
             return new DisplayInstruction(lastWordPlayed, Const.DELETE, 0, lastWordMoveRating);
         } else {
             throw new Error(`${nextWord} and ${lastWordPlayed} have more than 1 letter length difference.`);
@@ -225,7 +225,7 @@ class Game extends BaseLogger {
             if (word == this.remainingSteps.getNthWord(0)) {
                 // user is adding the same word we found
                 let isPlayed = true;
-                let moveRating = Const.OK; 
+                let moveRating = Const.OK;
                 this.playedSteps.addWord(word, isPlayed, moveRating);
                 this.remainingSteps.removeFirstStep();
                 return Const.OK;
@@ -263,7 +263,7 @@ class Game extends BaseLogger {
     static wordHasHole(word) {
         return Game.locationOfHole(word) >= 0;
     }
-    
+
     // the GUI needs to know if a played word was acceptable (OK, GENIUS_MOVE, DODO_MOVE, or WRONG_MOVE) vs invalid (NOT_A_WORD or technical
     // problems like BAD_POSITION)
     static moveIsValid(moveRating) {
@@ -273,10 +273,10 @@ class Game extends BaseLogger {
     // addPosition is from 0 to last word played's length
     // This adds a word-with-a-hole-in-it to the played steps so far.
     // Then, when displaying the last word given (the action word)
-    // it should have n+1 letters, one of which is the HOLE character.  And it should
-    // be compared to first remaining step 
-    // returns true if no error
-    // returns null on error (e.g. unexpected position)
+    // it should have n+1 letters, one of which is the HOLE character.
+    // And it should be compared to the first remaining step.
+    // - Returns true if no error
+    // - Returns null on error (e.g. unexpected position)
     playAdd(addPosition) {
         Const.GL_DEBUG && this.logDebug("playAdd(): addPosition:", addPosition, "game");
         let oldWord = this.playedSteps.getLastWord();
