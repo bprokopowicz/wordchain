@@ -57,6 +57,7 @@ export const TEST_DAILY_GAME_NUMBER = -1;
 // If the daily game number calculation fails or returns a game number that we don't have in
 // our daily game list, use this as the daily game number
 export const BROKEN_DAILY_GAME_NUMBER = -2;
+export const UNINIT_DAILY_GAME_NUMBER = -1000;
 
 // Returns from Game class that indicate a bug in its input from GameDisplay.
 export const BAD_LETTER_POSITION = "bad letter position";
@@ -87,7 +88,7 @@ export const BACKUP_DAILY_GAME_START  = "daily";
 export const BACKUP_DAILY_GAME_TARGET = "broken";
 
 // How frequently whe check whether it's time for a new Daily game.
-export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 60 * 1000;
+export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 5 * 1000;
 
 // Constants for settings screen
 export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";

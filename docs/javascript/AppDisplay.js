@@ -224,20 +224,18 @@ class AppDisplay extends BaseLogger {
     // Check whether it is time for a new Daily game. This will recalculate
     // game number and if it has changed will reset internal state accordingly.
     checkForNewDailyGame() {
-        let isNewDailyGame = this.dailyGameDisplay.setDailyGameData();
+        let isNewDailyGame = this.dailyGameDisplay.updateDailyGameData();
         if (isNewDailyGame) {
             this.showToast(Const.NEW_DAILY_GAME);
         }
     }
 
-    dailyGameOver() {
-        let gameInfo = this.getDailyGameInfo();
-        return gameInfo.over;
+    isDailyGameOver() {
+        return this.dailyGameDisplay.gameIsOver();
     }
 
     isDailyGameBroken() {
-        let gameInfo = this.getDailyGameInfo();
-        return gameInfo.dailyGameNumber === Const.BROKEN_DAILY_GAME_NUMBER;
+        return this.dailyGameDisplay.gameIsBroken();
     }
 
     disableSolutionButton() {
@@ -367,7 +365,6 @@ class AppDisplay extends BaseLogger {
     switchToPracticeGame() {
         // We used to create the practice game here, but moved it to the constructor,
         // so that there is no pause when switching to the practice game for the first time.
-
         // If the user has already played the maximum number of games, we disallow any more.
         if (! this.practiceGameDisplay.anyGamesRemaining()) {
             this.showToast(Const.TOO_MANY_GAMES);

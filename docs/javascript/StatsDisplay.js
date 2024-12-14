@@ -222,7 +222,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     // has been shown. If the solution was shown or the daily game isn't over,
     // the player is not allowed to share.
     updateShareButton() {
-        if (Persistence.getDailySolutionShown() || ! this.appDisplay.dailyGameOver() || this.appDisplay.isDailyGameBroken()) {
+        if (Persistence.getDailySolutionShown() || ! this.appDisplay.isDailyGameOver() || this.appDisplay.isDailyGameBroken()) {
             this.shareButton.style.display = "none";
         } else {
             this.shareButton.style.display = "block";

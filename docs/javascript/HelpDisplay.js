@@ -20,7 +20,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         pluses to add, minuses to delete, and the letter picker menu button to change.
         </p>
         <p>
-        WordChain shows letter cells for the shortest solution,
+        WordChain shows empty letter cells for the rest of the shortest solution,
         which can help you decide what to do next.
         When a letter should be changed, the outline around the letter to change is thicker
         (and dashed when it is the current move).
