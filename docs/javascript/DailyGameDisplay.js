@@ -103,48 +103,45 @@ class DailyGameDisplay extends GameDisplay {
 
         const recoveredDailyGameNumber = Persistence.getDailyGameNumber();
 
-        // Now, determine the game number and get the game data from the GameWords object.
+        // Now, determine the game number for right now. 
+        const priorDailyGameNumber = this.dailyGameNumber;
         const calcDailyGameNumber = this.calculateGameNumber();
 
-        // Set up the new game words, which might be the back-up default if there is no game for today.
+        // Set up the new game words from the GameWords list.  This might be the back-up default if there is no game for today.
         // In that case, the dailyGameNumber will be set to the backup daily game number.
         // If there are debug vars defining the daily game, the daily game number will be set to a test constant.
 
-        const priorDailyGameNumber = this.dailyGameNumber;
         this.dailyGameNumber = this.setGameWordsFromGameNumber(calcDailyGameNumber);
-
         Const.GL_DEBUG && this.logDebug("updateDailyGameData(): priorGameNumber: ", priorDailyGameNumber,
                 " calcDailyGameNumber: ", calcDailyGameNumber, " recoveredDailyGameNumber: ", recoveredDailyGameNumber,
                 " after setting game words, this.dailyGameNumber: ", this.dailyGameNumber, "daily");
 
-        if (this.gameIsBroken()) {
-            // we are playing a default game when the daily game is broken
-            Persistence.saveDailyGameNumber(this.dailyGameNumber);
+        if (priorDailyGameNumber == this.dailyGameNumber) {
+            // the same game number is already being played
+            return false;
+        }
+
+        Persistence.saveDailyGameNumber(this.dailyGameNumber);
+
+        // if the persistence data is old, delete it before creating today's game
+        if (recoveredDailyGameNumber !== this.dailyGameNumber) {
+            Const.GL_DEBUG && this.logDebug("recovered daily game is either older or not found; starting a new game", "daily");
             Persistence.clearDailyGameState();
             Persistence.clearDailySolutionShown();
-        } else {
-            if (recoveredDailyGameNumber !== this.dailyGameNumber) {
-                // New daily game!
-                Persistence.clearDailyGameState();
-                Persistence.clearDailySolutionShown();
-                Const.GL_DEBUG && this.logDebug("recovered daily game is either older or not found; starting a new game", "daily");
-                // Update stats relating to starting a new daily game.
+            if (!this.gameIsBroken()) {
+                // New daily game!  Update stats relating to starting a new daily game.
                 this.incrementStat("gamesPlayed");
             }
         }
 
-        // now, construct a game from start to target, including any recovered played steps, but only
-        // if this is a different game than the one we were already playing priorDailyGameNumber);
+        // now, construct a game from start to target, including any recovered played steps if they
+        // weren't just cleared because the game number updated.
 
-        const isNewDailyGame = (priorDailyGameNumber != this.dailyGameNumber);
-        if (isNewDailyGame) {
-            let recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
-            Const.GL_DEBUG && this.logDebug("NEW DAILY GAME! recoveredDailyGameStateIfAny:", recoveredDailyGameStateIfAny, "daily");
-            this.constructGame(this.startWord, this.targetWord, recoveredDailyGameStateIfAny);
-            Persistence.saveDailyGameNumber(this.dailyGameNumber);
-        }
+        let recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
+        Const.GL_DEBUG && this.logDebug("NEW DAILY GAME! recoveredDailyGameStateIfAny:", recoveredDailyGameStateIfAny, "daily");
+        this.constructGame(this.startWord, this.targetWord, recoveredDailyGameStateIfAny);
 
-        return isNewDailyGame;
+        return true;
     }
 
     // baseTimestamp is the world-wide starting point determining for Wordchain games.

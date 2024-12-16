@@ -94,3 +94,34 @@ GOOGLE DOCS
 
     - Testing How-To:    https://docs.google.com/document/d/1b8b2sDs3SFpffsEPO70uufia7UOJBccSUclHI4u9u8Y/edit?usp=sharing
     - Testing Use Cases: https://docs.google.com/document/d/10OhXfsQWpEvvLodChFl1e-K8VdjBBmx7-jTihKBI1sE/edit?usp=sharing
+
+USE CASES FOR CREATING/UPDATING DAILY GAME
+
+scenario              recovered  prior   calculated game     create        persistence
+                      game       game    game       state    game?         update
+
+ON FIRST PLAY no state
+a normal 1st         none       uninit   N=0-30    clear    yes new       game number, incr games played
+b broken 1st         none       uninit   N=BROKEN  clear    yes broken    game number
+
+ON APP RESTART game state exists but prior game in progress in the app
+c recovered older    R~=N       uninit   N=0-30    clear    yes new       game number, incr games played
+d recovered older,   R~=N       uninit   N=BROKEN  clear    yes broken    unnecessary
+now broken
+e recovered active   R=N        uninit   N=0-30    recover  yes in prog   unnecessary
+f recovered broken   R=N        uninit   N=BROKEN  recover  yes in prog   unnecessary
+
+DURING PLAY prior game in progress in the the app exists
+g continuing         R=N        P=N      N=0-30    ignore   no            unnecessary
+h continuing broken  R=N        P=BROKEN N=BROKEN  ignore   no            unnecessary
+i rollover new day   R~=N       P~=N     N=0-30    clear    yes new       game number, incr games played
+j rollover to broken R~=N       P~=N     N=BROKEN  clear    yes broken    game number
+
+by action
+clear state, create new game    a,c,i            R~=N
+clear state, create broken game b,d,j            R~=N, N=BROKEN
+recover game in prog e, f (normal and broken)    R=N, P=uninit
+nothing - game on-going g, h (normal and broken) R=N, P=R=N
+
+
+
