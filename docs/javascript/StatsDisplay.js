@@ -95,7 +95,7 @@ class StatsDisplay extends AuxiliaryDisplay {
             Const.GL_DEBUG && this.logDebug("shareCallback() navigator: ", navigator, "daily");
             // Are we in a *secure* environment that has a "share" button, like a smart phone?
             let shareData = { text: shareString, };
-            if (navigator.canShare(shareData)) {
+            if ((typeof navigator.canShare === "function") && navigator.canShare(shareData)) {
                 // Yes -- use the button to share the shareString.
                 navigator.share(shareData)
                 .catch((error) => {
@@ -103,7 +103,7 @@ class StatsDisplay extends AuxiliaryDisplay {
                     console.error("Failed to share: ", error);
                 });
             // Are we in a *secure* environment that has access to clipboard (probably on a laptop/desktop)?
-            } else if (navigator.clipboard) {
+            } else if (typeof navigator.clipboard === "object") {
                 navigator.clipboard.writeText(shareString);
                 this.appDisplay.showToast(Const.SHARE_COPIED);
             // Insecure.

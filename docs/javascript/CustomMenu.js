@@ -109,7 +109,13 @@ class CustomMenu extends HTMLElement {
     }
 
     __getSelectionValue() {
+        // Since we don't need this function for WordChain, we are simply returning null here.
+        // The selectionMade() function in "objectToNotify" doesn't use its second argument.
+        // But some day, we may want to use this, so we'll leave it here as a reminder of
+        // the intended implementation.
         return null;
+
+        /*
         const selectedLabel = this.querySelector('label.selected');
 
         if (selectedLabel) {
@@ -124,6 +130,7 @@ class CustomMenu extends HTMLElement {
             console.error("CustomMenu.__getSelectionValue(): Did not find selectedLabel");
             return null;
         }
+        */
     }
 
     __hideOptions() {
