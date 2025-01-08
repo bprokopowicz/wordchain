@@ -81,7 +81,17 @@ export const MAX_WORD_LENGTH = 6;
 
 // The starting date for the daily game -- needs to change when sending
 // to Beta and Production.
-export const WORD_CHAIN_EPOCH_DATE = "2024-12-09T00:00:00.000+00:00";
+// The date is defined by year,month,day with time defaulting to 00:00:00 (midnight) LOCAL TIME
+export const WORD_CHAIN_EPOCH_YEAR = 2025; 
+export const WORD_CHAIN_EPOCH_MONTH = 0;   // 0-based month (january)
+export const WORD_CHAIN_EPOCH_DAY = 1;     // 1-based day (the first)
+export const WORD_CHAIN_EPOCH_HOURS = 0;   // midnight
+export const WORD_CHAIN_EPOCH_MINUTES = 0; // top of hour
+export const WORD_CHAIN_EPOCH_DATE = new Date(WORD_CHAIN_EPOCH_YEAR, WORD_CHAIN_EPOCH_MONTH, WORD_CHAIN_EPOCH_DAY, WORD_CHAIN_EPOCH_HOURS,WORD_CHAIN_EPOCH_MINUTES); 
+
+// This string defines the epoch in GTC (+00:00) time when passed to the Date constructor.  Use this
+// if we want to use one global schedule for all users
+// export const WORD_CHAIN_EPOCH_DATE_STR = "2024-12-09T00:00:00.000+00:00";
 
 // words to use if we are past the date of the last defined daily game words.
 export const BACKUP_DAILY_GAME_START  = "daily";

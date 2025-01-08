@@ -149,7 +149,7 @@ class DailyGameDisplay extends GameDisplay {
     // var TestEpochDaysAgo.
 
     setBaseTimestamp() {
-        this.baseDate = new Date(Const.WORD_CHAIN_EPOCH_DATE);
+        this.baseDate = Const.WORD_CHAIN_EPOCH_DATE;
         this.baseTimestamp = null;
         this.dateIncrementMs = 24 * 60 *60 * 1000; // one day in ms
 
