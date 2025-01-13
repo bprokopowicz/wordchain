@@ -169,14 +169,14 @@ class Test extends BaseLogger {
     }
 
     success(testName) {
-        this.messages.push(`${this.testName} (${this.testAssertionCount}) succeeded.`);
+        this.messages.push(`<font color="green">${this.testName} (${this.testAssertionCount})</font color="green">`);
         this.testAssertionCount = 0;
         this.successCount += 1;
     }
 
     verify(truthValue, message) {
         if (! truthValue) {
-            this.messages.push(`${this.testName}: Failed: ${message}`);
+            this.messages.push(`<font color="red">${this.testName}: Failed: ${message}</font color="red">`);
             this.failureCount += 1;
         } else {
             this.testAssertionCount += 1;
@@ -390,7 +390,7 @@ class Test extends BaseLogger {
         this.verify((tinyDict.getSize() === 3), "size !== 3") &&
             this.verify(tinyDict.isWord("APPLE"), "APPLE is not a word") &&
             this.verify(tinyDict.isWord("apPlE"), "apPlE is not a word") &&
-            this.verify(!tinyDict.isWord("PEACH"), "PEACH is not a word") &&
+            this.verify(!tinyDict.isWord("PEACH"), "PEACH is a word") &&
             this.success();
     }
 
