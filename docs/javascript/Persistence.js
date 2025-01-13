@@ -137,6 +137,11 @@ class Persistence {
         Cookie.save(Cookie.TEST_DAILY_TARGET, target);
     }
 
+    static clearTestDailyGameWords() {
+        Cookie.remove(Cookie.TEST_DAILY_START);
+        Cookie.remove(Cookie.TEST_DAILY_TARGET);
+    }
+
     // Testing vars -- Practice game
 
     static hasTestPracticeGameWords() {

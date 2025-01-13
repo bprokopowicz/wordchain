@@ -75,9 +75,6 @@ class DailyGameDisplay extends GameDisplay {
         // If we have a cookie for daily stats parse it; otherwise set it to initial values.
         let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
 
-        // Had stats before. In all other cases this is redundant, but oh well!
-        Persistence.saveDailyStats(dailyStats);
-
         // Set the base timestamp (epoch) which is either hard-coded or calculated from testing vars.
         this.setBaseTimestamp();
 
@@ -91,10 +88,10 @@ class DailyGameDisplay extends GameDisplay {
     /* ----- Determination of Daily Game Information ----- */
 
     // updateDailyGameData() determines the daily game number, startWord, and targetWord
-    // It returns a Boolean indicating whether this is a new game vs recovered in progress.
+    // It returns a Boolean indicating whether this is a new game vs a game in progress.
     // This can be called repeatedly with no effect unless the game has changed.
-    // The game has changed if the newly calculated game number is different from the
-    // current daily game number.
+    // The game has changed only if the newly calculated game number is different from the
+    // current daily game number, OR if the start or target words are re-defined by test variables.
 
     updateDailyGameData() {
 
@@ -102,30 +99,44 @@ class DailyGameDisplay extends GameDisplay {
         // to replay today's daily game instead of recovering it as played
 
         const recoveredDailyGameNumber = Persistence.getDailyGameNumber();
+        const [priorStartWord, priorTargetWord] = [this.startWord, this.targetWord];
 
-        // Now, determine the game number for right now. 
-        const priorDailyGameNumber = this.dailyGameNumber;
-        const calcDailyGameNumber = this.calculateGameNumber();
+        if (this.overrideGameWordsFromTestVars()) {
+            this.dailyGameNumber = Const.TEST_DAILY_GAME_NUMBER;
+        } else  {
+            // Determine the game number for right now. 
+            const calcDailyGameNumber = this.calculateGameNumber();
 
-        // Set up the new game words from the GameWords list.  This might be the back-up default if there is no game for today.
-        // In that case, the dailyGameNumber will be set to the backup daily game number.
-        // If there are debug vars defining the daily game, the daily game number will be set to a test constant.
+            if (calcDailyGameNumber < 0 || calcDailyGameNumber >= DailyGameDisplay.GameWords.length) {
+                // the calculated game number is not valid. Something went awry; use the backup.
+                this.dailyGameNumber = Const.BROKEN_DAILY_GAME_NUMBER;
+                [this.startWord, this.targetWord]  = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
+            } else {
+                // Set up the new game words from the GameWords list.  
+                this.dailyGameNumber = calcDailyGameNumber;
+                [this.startWord, this.targetWord] = DailyGameDisplay.GameWords[this.dailyGameNumber];
+            }
+        }
 
-        this.dailyGameNumber = this.setGameWordsFromGameNumber(calcDailyGameNumber);
-        Const.GL_DEBUG && this.logDebug("updateDailyGameData(): priorGameNumber: ", priorDailyGameNumber,
-                " calcDailyGameNumber: ", calcDailyGameNumber, " recoveredDailyGameNumber: ", recoveredDailyGameNumber,
-                " after setting game words, this.dailyGameNumber: ", this.dailyGameNumber, "daily");
+        // at this point, we have this.dailyGameNumber and start and target words set.
+        // let's see if that is a new game or the game already being played.
 
-        if (priorDailyGameNumber == this.dailyGameNumber) {
-            // the same game number is already being played
+        Const.GL_DEBUG && this.logDebug("updateDailyGameData(): calcDailyGameNumber: ", calcDailyGameNumber,
+                " recoveredDailyGameNumber: ", recoveredDailyGameNumber,
+                " this.dailyGameNumber: ", this.dailyGameNumber,
+                " startWord: ", this.startWord, " targetWord: ", this.targetWord, "daily");
+
+        if ((this.startWord == priorStartWord) && (this.targetWord == priorTargetWord)) {
+            // the same words are already being played
             return false;
         }
 
         Persistence.saveDailyGameNumber(this.dailyGameNumber);
 
         // if the persistence data is old, delete it before creating today's game
-        if (recoveredDailyGameNumber !== this.dailyGameNumber) {
-            Const.GL_DEBUG && this.logDebug("recovered daily game is either older or not found; starting a new game", "daily");
+        // Also, if we are playing a test game, and the words have changed, start the game over
+        if ((recoveredDailyGameNumber !== this.dailyGameNumber) || (this.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER)) {
+            Const.GL_DEBUG && this.logDebug("recovered daily game is either older or not found, or test game changed; starting a new game", "daily");
             Persistence.clearDailyGameState();
             Persistence.clearDailySolutionShown();
             if (!this.gameIsBroken()) {
@@ -135,7 +146,7 @@ class DailyGameDisplay extends GameDisplay {
         }
 
         // now, construct a game from start to target, including any recovered played steps if they
-        // weren't just cleared because the game number updated.
+        // weren't just cleared because the game changed.
 
         let recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
         Const.GL_DEBUG && this.logDebug("NEW DAILY GAME! recoveredDailyGameStateIfAny:", recoveredDailyGameStateIfAny, "daily");
@@ -176,32 +187,13 @@ class DailyGameDisplay extends GameDisplay {
         Const.GL_DEBUG && this.logDebug("epoch timestamp is set to:", new Date(this.baseTimestamp), "daily");
     }
 
-    //
-    // The daily games start and target are never recovered directly.  They are determined by the dailyGameNumber, which
-    // might be recovered if in progress, or calculated based on the date.  See calculateGameNumber()
-    // Return:
-    //   the actual daily game number now being used (may override gameNumber if that value is not good, or if there
-    //   is a test daily start/target).
-    //
-
-    setGameWordsFromGameNumber(gameNumber) {
-        Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber(): gameNumber: ", gameNumber, "daily");
-        let res = 0;
+    // returns true if the test vars are given.
+    overrideGameWordsFromTestVars() {
         if (Persistence.hasTestDailyGameWords()) {
             [this.startWord, this.targetWord] = Persistence.getTestDailyGameWords();
-            res = Const.TEST_DAILY_GAME_NUMBER;
-            Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber() overriding game words from test vars", "daily");
-        } else if (gameNumber>= 0 && gameNumber < DailyGameDisplay.GameWords.length) {
-            [this.startWord, this.targetWord] = DailyGameDisplay.GameWords[gameNumber];
-            res = gameNumber;
-        } else {
-            // No daily game? Something went awry; use the backup.
-            [this.startWord, this.targetWord]  = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
-            res = Const.BROKEN_DAILY_GAME_NUMBER;
+            return true;
         }
-        Const.GL_DEBUG && this.logDebug("setGameWordsFromGameNumber() start: ", this.startWord, " target: ", this.targetWord,
-                " game number: ", res, "daily");
-        return res;
+        return false;
     }
 
     // valid daily game numbers run from 0 to GameWords.length-1.  If the calculated value is outside that range,
