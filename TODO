@@ -4,6 +4,8 @@ Known Bugs
 Beta TODO
 =========
 
+Remove all rare words from standard dictionary
+
 Testing
 - Execute automated tests in these environments:
   - Safari/iPhone
