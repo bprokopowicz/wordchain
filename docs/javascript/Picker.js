@@ -1,104 +1,75 @@
 import { BaseLogger } from './BaseLogger.js';
 import { ElementUtilities } from './ElementUtilities.js';
-import { CustomMenu } from './CustomMenu.js';
 import * as Const from './Const.js';
 
 class Picker extends BaseLogger {
 
-    /* ----- Class Variables ----- */
-
-    MENU_BUTTON = "\u{025BC}";   // Downward pointing triangle
-    UNSELECTED  = " ";
-
     /* ----- Construction ----- */
 
+    // Arguments:
+    // gameDisplay: DailyGameDisplay or PracticeGameDisplay object
+    // pickerDiv: <div> element to which the picker elements will be added
+    // pickerId: 'id' attribute value for the outermost <div> that this
+    //    class adds to pickerDiv. This useful mainly to identify in the
+    //    devtools which picker is which: daily or practice.
     constructor(gameDisplay, pickerDiv, pickerId) {
         super();
-
-        // Save the picker ID in case we want to log it.
-        this.pickerId = pickerId;
 
         // Save gameDisplay so that we can call letterPicked() when the
         // user selects a letter.
         this.gameDisplay = gameDisplay;
 
-        var pickerContainer = ElementUtilities.addElementTo("div", pickerDiv, {class: "picker-container"});
-
-        this.pickerLabel = ElementUtilities.addElementTo(
-            "label", pickerContainer, {class: "picker-label"}, "Pick a letter: ")
-
         // Add the picker menu, which will end up looking like this:
         //
-        //    <custom-menu id="pickerId">
-        //        <custom-menu-button class="picker-button">
-        //            <custom-menu-button-selection class="picker-button-selection"></custom-menu-button-selection>
-        //            <custom-menu-button-arrow class="picker-button-arrow">MENU_BUTTON</custom-menu-button-arrow>
-        //        </custom-menu-button>
-        //        <custom-menu-options>
-        //            <label class="picker-option"><input type="radio" name="pickerId-radio" value="A" class="hidden">A</label>
+        //    <div class="picker-outer-div" id="pickerId">
+        //    <div class="picker-inner-div">
+        //    <table class="picker-table">
+        //        <tr class="picker-tr">
+        //            <td class="picker-td"><button class="picker-button">A</button></td>
         //            ...
-        //            <label class="picker-option"><input type="radio" name="pickerId-radio" value="Z" class="hidden">Z</label>
-        //        </custom-menu-options>
-        //    </custom-menu>
-        this.pickerMenu = ElementUtilities.addElementTo("custom-menu", pickerContainer, {id: pickerId});
+        //            <td class="picker-td"><button class="picker-button">Z</button></td>
+        //        </tr>
+        //    </table>
+        //    </div>
+        //    </div>
+        // 
+        // The picker-outer-div class will have a fixed width that spans the game display.
+        // The picker-inner-div class will be scrollable so that a user with a touch screen
+        // device can easily scroll by dragging; a non-touch-screen user will need to
+        // use a slider to move the letters.
+        this.pickerOuterDiv = ElementUtilities.addElementTo("div", pickerDiv, {class: "picker-outer-div", id: pickerId});
+        this.pickerInnerDiv = ElementUtilities.addElementTo("div", this.pickerOuterDiv, {class: "picker-inner-div"});
 
-        // Save this picker in the pickerMenu so that when a letter
-        // is selected we are notified -- and then we can notify the game display.
-        this.pickerMenu.objectToNotify = this;
-
-        // Now add the button and its selection and arrow elements.
-        this.pickerMenuButton = ElementUtilities.addElementTo("custom-menu-button", this.pickerMenu, {class: "picker-button"});
-        this.pickerMenuButtonSelection = ElementUtilities.addElementTo("custom-menu-button-selection", this.pickerMenuButton,
-            {value: this.UNSELECTED, class: "picker-button-selection"}, this.UNSELECTED)
-        this.pickerMenuButtonArrow = ElementUtilities.addElementTo("custom-menu-button-arrow", this.pickerMenuButton,
-            {value: this.UNSELECTED, class: "picker-button-arrow"}, this.MENU_BUTTON)
-
-        // Now add the options and their labels/inputs.
-        this.pickerMenuOptions = ElementUtilities.addElementTo("custom-menu-options", this.pickerMenu);
-
-        var pickerOptionId = `${pickerId}-radio`,
+        var table = ElementUtilities.addElementTo("table", this.pickerInnerDiv, {class: "picker-table"}),
+            row = ElementUtilities.addElementTo("tr", table, {class: "picker-tr"}),
             codeLetterA = "A".charCodeAt(0),
             codeLetterZ = "Z".charCodeAt(0),
-            letter, label, input;
+            letter, td, button;
 
         for (let letterCode = codeLetterA; letterCode <= codeLetterZ; letterCode++) {
             letter = String.fromCharCode(letterCode);
-            label = ElementUtilities.addElementTo("label", this.pickerMenuOptions, {class: "picker-option"}, letter)
-
-            // Add input with class picker-hidden -- this will make it so that the
-            // radio button itself doesn't appear in the menu options;
-            // just the label will appear. NOTE: initially we set the class to "hidden"
-            // and in Chrome, the radio button itself was hidden, but it showed up
-            // in Safari on MacOS. Using our own class and styling it with the attributes
-            // in WordChain.css enabled us to hide those ugly radio buttons in Safari.
-            input = ElementUtilities.addElementTo("input", label,
-                {type: "radio", name: pickerOptionId, value: letter, class: "picker-hidden"})
+            td = ElementUtilities.addElementTo("td", row, {class: "picker-td", align: "center"})
+            button = ElementUtilities.addElementTo("button", td, {class: "picker-button", letter: letter}, letter)
+            if (letter == 'M') {
+                this.middleButton = button;
+            }
+            ElementUtilities.setButtonCallback(button, this, this.selectionCallback);
         }
 
         // Force caller to enable the picker explictly.
-        this.pickerMenu.disable();
-    }
-
-    clear() {
-        this.pickerMenu.clearSelection();
+        this.disable();
     }
 
     disable() {
-        this.pickerLabel.setAttribute("class", "picker-label picker-label-disabled");
-        this.pickerMenu.setAttribute("class", "picker-button picker-button-disabled");
-        this.pickerMenuButton.setAttribute("class", "picker-button picker-button-disabled");
-        this.pickerMenuButtonSelection.setAttribute("class", "picker-button picker-button-disabled");
-        this.pickerMenuButtonArrow.setAttribute("class", "picker-button picker-button-disabled");
-        this.pickerMenu.disable();
+        // Hide pickerInnerDiv -- the outer div will not be hidden, so space
+        // for the picker will be present, but it will be blank. In this way,
+        // when we enable the picker, we simply "unhide" and the game display
+        // elements don't move, which would be jarring to a user.`
+        ElementUtilities.hide(this.pickerInnerDiv);
     }
 
     enable() {
-        this.pickerLabel.setAttribute("class", "picker-label picker-label-enabled");
-        this.pickerMenu.setAttribute("class", "picker-button picker-button-enabled");
-        this.pickerMenuButton.setAttribute("class", "picker-button picker-button-enabled");
-        this.pickerMenuButtonSelection.setAttribute("class", "picker-button picker-button-enabled");
-        this.pickerMenuButtonArrow.setAttribute("class", "picker-button picker-button-enabled");
-        this.pickerMenu.enable();
+        ElementUtilities.show(this.pickerInnerDiv);
     }
 
     // ActiveLetterCell saves the letter position in the picker so that when
@@ -107,11 +78,10 @@ class Picker extends BaseLogger {
         this.letterPosition = position;
     }
 
-    // This method is called from CustomMenu when the user has selected
-    // a letter from the picker. In our case text and value are the same,
-    // so we only use text.
-    selectionMade(text, __value) {
-        return this.gameDisplay.letterPicked(text, this.letterPosition);
+    // This method is called when the user clickes a letter button in the picker.
+    selectionCallback(event) {
+        const buttonText = event.srcElement.innerText;
+        return this.gameDisplay.letterPicked(buttonText, this.letterPosition);
     }
 }
 

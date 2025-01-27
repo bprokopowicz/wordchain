@@ -90,10 +90,6 @@
     --active-button-bg:         SlateGray;
     --inactive-button-bg:       LightGray;
 
-    /* ===== Picker ===== */
-    --user-input-bg-enabled:    var(--user-input-bg);
-    --user-input-fg-enabled:    var(--user-input-fg);
-
     /* ===== Cells, Letters, Buttons below Cells ===== */
     --cell-border:              var(--primary-fg);
     --target-word-bg:           #d09ade;    /* pale purple */
@@ -136,10 +132,6 @@
     --active-button-bg:         #858b90;    /* light blueish gray */
     --inactive-button-bg:       #49515a;    /* dark blueish gray */
 
-    /* ===== Picker ===== */
-    --user-input-bg-enabled:    var(--user-input-bg);
-    --user-input-fg-enabled:    var(--user-input-fg);
-
     /* ===== Cells, Letters, Buttons below Cells ===== */
     --cell-border:              White;
     --target-word-bg:           #b319ff;    /* medium purple */
@@ -168,10 +160,7 @@
 :root {
     --cell-size: 25px;
     --action-cell-size: 15px;
-    --picker-font-size: 1.3rem;
-
-    --custom-menu-scroll-height: 20rem;
-    --custom-menu-width: 3rem;
+    --picker-font-size: 2rem;
 }
 
 /*
@@ -499,6 +488,7 @@ button.action-button {
     display:flex;
     align-items: center;
     justify-content: center;
+    padding-top: 10px;
 }
 
 .score-label {
@@ -514,6 +504,16 @@ button.action-button {
     justify-content: center;
 }
 
+.original-solution-div {
+    display: flex;
+    width: 100%;
+    justify-content: left;
+    padding-top: 30px;
+}
+
+.original-solution-label {
+}
+
 .game-button {
     font-size: 1.5rem;
     font-weight: bold;
@@ -523,148 +523,61 @@ button.action-button {
 
 /*
 ** ----------------------
-** Picker and Custom-Menu
+** NEW Picker
 ** ----------------------
 */
 
+/*
+** This is the overall picker div, which contains the picker outer div
+** for the daily and practice games.
+*/
 #picker-div {
     justify-content: center;
     background: var(--primary-bg);
     width: 100%;
-    height: 25px;
+    height: 60px;
     padding-top: 10px;
     padding-bottom: 10px;
 }
 
-.picker-container {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
+/*
+** The classes below apply to both the daily and practice games pickers,
+** i.e. each of the pickers has a div with class picker-outer-div and
+** a div with class picker-inner-div..
+*/
+
+.picker-outer-div {
+    width: 325px;
 }
 
-.picker-label {
-    font-size: var(--picker-font-size);
-    margin-right: 5px;
+.picker-inner-div {
+    width: 100%;
+    overflow: auto;
 }
 
-.picker-label-enabled {
-    color: var(--user-input-fg-enabled);
+.picker-table {
 }
 
-.picker-label-disabled {
-    color: var(--user-input-fg-disabled);
+.picker-tr {
+}
+
+.picker-td {
 }
 
 .picker-button {
+    width: 50px;
+    height: 50px;
+    border: 1px solid black;
+    border-radius: 25%;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-right: 2px;
+    margin-bottom: 8px;
     font-size: var(--picker-font-size);
-    text-align: end;
+    font-weight: bold;
+    background: var(--user-input-bg);
+    color: var(--user-input-fg);
 }
-
-.picker-button-enabled {
-    color: var(--user-input-fg-enabled);
-    background: var(--user-input-bg-enabled);
-}
-
-.picker-button-disabled {
-    color: var(--user-input-fg-disabled);
-    background: var(--user-input-bg-disabled);
-}
-
-.picker-option {
-    font-size: var(--picker-font-size);
-    color: var(--primary-fg);
-    background: var(--primary-bg);
-    text-align: center;
-}
-
-/*
-** These settings were required only for Safari on MacOS, to ensure that the
-** picker's radio buttons are actually hidden.
-*/
-.picker-hidden {
-    position: absolute;
-    appearance: none;
-    opacity: 0;
-
-}
-
-/* Styles for custom-menu, custom-menu-button, and custom-menu-options elements */
-
-custom-menu {
-    position: relative;
-    display: inline-block;
-}
-
-custom-menu custom-menu-button {
-    min-width: var(--custom-menu-width);
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    border: 1px solid var(--primary-fg);
-    border-radius: 0.3rem;
-    padding-top: 0.1rem;
-    padding-bottom: 0.1rem;
-    padding-left: 0.2rem;
-    padding-right: 0.2rem;
-}
-
-custom-menu custom-menu-options {
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    height: var(--custom-menu-scroll-height);
-    min-width: var(--custom-menu-width);
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background-color: white;
-}
-
-custom-menu custom-menu-options.hidden {
-    height: 0;
-    overflow: hidden;
-}
-
-custom-menu input[type="radio"].hidden {
-    width: 0; /* This makes the radio button itself invisible */
-    overflow: hidden;
-}
-
-custom-menu label.selected {
-    background-color: var(--user-input-bg-selected);
-}
-
-custom-menu label:hover {
-    background-color: var(--user-input-bg-selected);
-}
-
-/* Optional styles for custom-menu-options elements */
-
-custom-menu custom-menu-button-selection {
-}
-
-custom-menu custom-menu-button-arrow {
-}
-
-custom-menu custom-menu-options label {
-    /*
-    This would style each option, which looks ... odd.
-    border: 2px solid darkgreen;
-    border-radius: 2px;
-    background-color: lightgreen;
-    */
-}
-custom-menu custom-menu-options label::before {
-    /*
-    This would put '>>>' before each label, with a little margin
-    content: '>>>';
-    margin-left: 0.2em;
-    margin-right: 0.2em;
-    */
-}
-
 
 /*
 ** =========================================
@@ -1013,6 +926,10 @@ input.setting-radio {
 */
 
 @media only screen and (min-width: 991px) {
+    #picker-div {
+        height: 100px;
+    }
+
     table {
         border-spacing: .9rem;
     }

@@ -38,6 +38,14 @@ class Game extends BaseLogger {
         Const.GL_DEBUG && this.logDebug("Game constructed: ", this, "game");
     }
 
+    getOriginalSolutionWords() {
+        return "START, BLAH, TARGET";
+    }
+
+    getUserSolutionWords() {
+        return "START, OOPS, TARGET";
+    }
+
     // Choose a random start/target that has a solution between
     // Const.PRACTICE_STEPS_MINIMUM and Const.PRACTICE_STEPS_MAXIMUM
     // steps. Returns an array: [startWord, targetWord].

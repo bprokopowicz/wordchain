@@ -60,7 +60,6 @@ class GameDisplay extends BaseLogger {
         }
 
         if (letter === this.currentLetter) {
-            this.letterPicker.clear();
             this.appDisplay.showToast(Const.PICK_NEW_LETTER);
             return Const.PICK_NEW_LETTER;
         }
@@ -203,6 +202,9 @@ class GameDisplay extends BaseLogger {
         // elements for the game.
         this.postGameDiv = ElementUtilities.addElementTo("div", container, {class: "break post-game-div"});
 
+        // Create an element in which we will show WordChain's original solution.
+        this.originalSolutionDiv = ElementUtilities.addElementTo("div", container, {class: "break original-solution-div"});
+
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
         // We'll build up the game state from the displayInstruction objects
@@ -309,6 +311,19 @@ class GameDisplay extends BaseLogger {
             if (this.additionalGameOverActions) {
                 this.additionalGameOverActions();
             }
+
+            // Display WordChain's original solution if different from the user's solution.
+            // Otherwise dispaly a message indicating that they are the same.
+            var originalSolutionWords = this.game.getOriginalSolutionWords(),
+                userSolutionWords = this.game.getUserSolutionWords(),
+                originalSolutionText;
+
+            if (originalSolutionWords == userSolutionWords) {
+                originalSolutionText = "Your solution is the same as WordChain's original solution!";   
+            } else {
+                originalSolutionText = `WordChain's original solution:<br>${originalSolutionWords}`;   
+            }
+            ElementUtilities.addElementTo("label", this.originalSolutionDiv, {class: "original-solution-label"}, `${originalSolutionText}`);
         }
 
         // Enable or disable the Solution button.
