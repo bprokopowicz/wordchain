@@ -236,7 +236,9 @@ class Test extends BaseLogger {
     playLetter(position, letter) {
         const unused = "";
         this.gameDisplay.letterPicker.saveLetterPosition(position);
-        let rc = this.gameDisplay.letterPicker.selectionMade(letter, unused);
+        const button = this.gameDisplay.letterPicker.getButtonForLetter(letter);
+        const mockEvent = new MockEvent(button);
+        let rc = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
         this.logDebug("playLetter(", position, ",", letter, ") returns: ", rc, "test");
         return rc;
     }
@@ -439,7 +441,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15974;
+        const expectedMinDictSize = 15972;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;

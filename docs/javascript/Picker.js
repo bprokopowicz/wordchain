@@ -19,6 +19,9 @@ class Picker extends BaseLogger {
         // user selects a letter.
         this.gameDisplay = gameDisplay;
 
+        // save each letter-button by letter, for access to buttons during testing.
+        this.buttonsForLetters = new Map();
+
         // Add the picker menu, which will end up looking like this:
         //
         //    <div class="picker-outer-div" id="pickerId">
@@ -50,6 +53,7 @@ class Picker extends BaseLogger {
             letter = String.fromCharCode(letterCode);
             td = ElementUtilities.addElementTo("td", row, {class: "picker-td", align: "center"})
             button = ElementUtilities.addElementTo("button", td, {class: "picker-button", letter: letter}, letter)
+            this.buttonsForLetters.set(letter, button);
             if (letter == 'M') {
                 this.middleButton = button;
             }
@@ -58,6 +62,14 @@ class Picker extends BaseLogger {
 
         // Force caller to enable the picker explictly.
         this.disable();
+    }
+
+    /* -- for testing: we want the button for a particular letter, so we
+    can simulate pressing it from test code.
+    */
+
+    getButtonForLetter(letter) {
+        return this.buttonsForLetters.get(letter);
     }
 
     disable() {
