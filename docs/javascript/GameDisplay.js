@@ -323,6 +323,8 @@ class GameDisplay extends BaseLogger {
             } else {
                 originalSolutionText = `WordChain's original solution:<br>${originalSolutionWords}`;   
             }
+            Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,
+                    " user solution words: ", userSolutionWords,  "game");
             ElementUtilities.addElementTo("label", this.originalSolutionDiv, {class: "original-solution-label"}, `${originalSolutionText}`);
         }
 

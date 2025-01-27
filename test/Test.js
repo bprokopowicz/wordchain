@@ -680,6 +680,7 @@ class Test extends BaseLogger {
         this.testGameRequiringWordReplay();
         this.testGameRequiringScrabbleWordReplay();
         this.testGameFinish();
+        this.testGameFinishAlternatePath();
         this.testGameLossOnWrongLetterAdded();
         this.testGameLossOnWrongDelete();
         this.testGameLossOnWrongLetterChange();
@@ -742,7 +743,6 @@ class Test extends BaseLogger {
         const playLetterResult = game.playLetter(4, "E");  // BAD BADE (BATE BAT CAT) or (BAD BAT CAT)
         if (!this.verify((playLetterResult === Const.DODO_MOVE), `playLetter(4, E) returns ${playLetterResult}, not DODO_MOVE`)) return;
         this.logDebug("After playLetter(4,E), game.remainingSteps are:" + game.remainingSteps.toStr(), "test");
-
         const newPlayedWord = game.playedSteps.getNthWord(1);
         if (!this.verify((newPlayedWord === "BADE"), `Played word 1 should be BADE, not: ${newPlayedWord}`))  return;
         const newSolutionWord0 = game.remainingSteps.getNthWord(0);
@@ -961,7 +961,7 @@ class Test extends BaseLogger {
         const steps = [];
         const game = new Game("FREE", "SAMPLE", steps);
         // FREE, FEE, FIE, FILE, MILE, SMILE, SIMILE, SIMPLE, SAMPLE 9 instructions
-        // playing FREE FEE FIE FILE SILE SIDLE (wrong) should give display instructions: 
+        // playing FREE FEE FIE FILE SILE(scrabble-only) SIDLE (wrong) should give display instructions: 
         // FREE FEE FIE FILE SILE SIDLE SILE            SMILE SIMILE SIMPLE SAMPLE length 11 
         // not
         // FREE FEE FIE FILE SILE SIDLE SIDE SITE SMITE SMILE SIMILE SIMPLE SAMPLE  length 13
@@ -983,8 +983,6 @@ class Test extends BaseLogger {
         this.success();
     }
 
-
-
     testGameFinish() {
         this.testName = "GameFinish";
 
@@ -995,8 +993,45 @@ class Test extends BaseLogger {
         const playResult = game.playDelete(1);
         game.finishGame();
         const displayInstructionsAfterFinish = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
+        const originalSolutionAsString = game.getOriginalSolutionWords();
+        const playedSolutionAsString = game.getUserSolutionWords();
+        const expOriginalSolutionAsString = "SCAD,CAD,BAD,BAT";
+        const expPlayedSolutionAsString = "SCAD,CAD,BAD,BAT";
         this.verify((playResult === Const.OK), "Word played not OK") &&
             this.verify((displayInstructionsAfterFinish.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructionsAfterFinish.length}`) &&
+            this.verify((originalSolutionAsString == expOriginalSolutionAsString), `expected original string ${expOriginalSolutionAsString}, got ${originalSolutionAsString}`) &&
+            this.verify((playedSolutionAsString == expPlayedSolutionAsString), `expected played string ${expPlayedSolutionAsString}, got ${playedSolutionAsString}`) &&
+            this.verify(game.isOver()) &&
+            this.success();
+    }
+
+    testGameFinishAlternatePath() {
+        this.testName = "GameFinishAlternatePath";
+
+        const steps = [];
+        const game = new Game("LEAKY", "SPOON", steps, this.fullDict);
+        var result;
+        result = game.playDelete(5);
+        result = game.playLetter(4,"N");
+        result = game.playLetter(2,"O");
+        result = game.playLetter(3,"O");
+        // next 3 give .. POON->SPOON
+        result = game.playLetter(1,"P");
+        result = game.playAdd(0);
+        result = game.playLetter(1,"S");
+        // next 3 give .. SOON->SPOON
+        /*
+        result = game.playLetter(1,"S");
+        result = game.playAdd(1);
+        result = game.playLetter(2,"P");
+        */
+        const originalSolutionAsString = game.getOriginalSolutionWords();
+        const playedSolutionAsString = game.getUserSolutionWords();
+        const expOriginalSolutionAsString = "LEAKY,LEAK,LEAN,LOAN,LOON,SOON,SPOON";
+        const expPlayedSolutionAsString = "LEAKY,LEAK,LEAN,LOAN,LOON,POON,SPOON";
+        //const expPlayedSolutionAsString = "LEAKY,LEAK,LEAN,LOAN,LOON,SOON,SPOON";
+        this.verify((originalSolutionAsString == expOriginalSolutionAsString), `expected original string ${expOriginalSolutionAsString}, got ${originalSolutionAsString}`) &&
+            this.verify((playedSolutionAsString == expPlayedSolutionAsString), `expected played string ${expPlayedSolutionAsString}, got ${playedSolutionAsString}`) &&
             this.verify(game.isOver()) &&
             this.success();
     }

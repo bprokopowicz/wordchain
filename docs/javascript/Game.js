@@ -15,35 +15,43 @@ class Game extends BaseLogger {
     constructor(startWord, targetWord, stepsOfSolution, dict=new WordChainDict()) {
         super();
         Const.GL_DEBUG && this.logDebug("Game.constructor(): startWord:", startWord, ", targetWord:", targetWord, "game");
-        startWord = startWord.toUpperCase();
-        targetWord = targetWord.toUpperCase();
+        this.startWord = startWord.toUpperCase();
+        this.targetWord = targetWord.toUpperCase();
         this.dictionary = dict;
         this.scrabbleDictionary = new WordChainDict(scrabbleWordList);
         if (!stepsOfSolution || stepsOfSolution.length == 0) {
             Const.GL_DEBUG && this.logDebug("Constructing game from beginning", "game");
-            this.playedSteps = Solution.newEmptySolution(startWord, targetWord);
-            this.remainingSteps = Solver.solve(this.dictionary, startWord, targetWord);
+            this.playedSteps = Solution.newEmptySolution(this.startWord, this.targetWord);
+            this.remainingSteps = Solver.solve(this.dictionary, this.startWord, this.targetWord);
             // remove the start word from the remaining steps.
             this.remainingSteps.removeFirstStep();
         } else {
             // we have a list of all the words, as tuples (word, wasPlayed, moveRating)
             Const.GL_DEBUG && this.logDebug(`Re-constructing game from existing steps: ${stepsOfSolution.join()}`, "game");
             let justThePlayedSteps = stepsOfSolution.filter((tup)=>tup[1]).map((tup)=> new SolutionStep(tup[0], tup[1], tup[2]));
-            this.playedSteps = new Solution(justThePlayedSteps, targetWord);
+            this.playedSteps = new Solution(justThePlayedSteps, this.targetWord);
 
             let justTheUnplayedSteps = stepsOfSolution.filter((tup)=>!tup[1]).map((tup)=> new SolutionStep(tup[0], tup[1], tup[2]));
-            this.remainingSteps = new Solution(justTheUnplayedSteps, targetWord);
+            this.remainingSteps = new Solution(justTheUnplayedSteps, this.targetWord);
 
         }
         Const.GL_DEBUG && this.logDebug("Game constructed: ", this, "game");
     }
 
     getOriginalSolutionWords() {
-        return "START, BLAH, TARGET";
+        // TRICKY EDGE CASE HERE:
+        // this.dictionary may have been modified since it was loaded, IF the user
+        // played a scrabble-only word.  From then, this scrabble-only word is in the standard dictionary
+        // to allow us to replay the scrabble word for back-tracking.  See testGameRequiringScrabbleWordReplay
+
+        const originalDict = new WordChainDict();
+        const bestSolution = Solver.solve(originalDict, this.startWord, this.targetWord);
+        return bestSolution.getSolutionWords().join(",");
     }
 
     getUserSolutionWords() {
-        return "START, OOPS, TARGET";
+        const userSolution = this.playedSteps;
+        return userSolution.getSolutionWords().join(",");
     }
 
     // Choose a random start/target that has a solution between
