@@ -10,6 +10,8 @@
 **        Boolean: whether user has chosen dark theme
 **     ColorblindMode (also used in StatsDisplay)
 **        Boolean: whether user has chosen colorblind mode
+**     ConfirmationMode
+**        Boolean: whether user has chosen confirmation mode (chosen by default)
 **
 **  Primarily used and set in DailyGameDisplay
 **
@@ -64,6 +66,7 @@ class Cookie {
     static DEBUG = "Debug";
     static DARK_THEME = "DarkTheme";
     static COLORBLIND_MODE = "ColorblindMode";
+    static CONFIRMATION_MODE = "ConfirmationMode";
     static DAILY_GAME_NUMBER = "DailyGameNumber";
     static DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
     static DAILY_STATS = "DailyStats";
@@ -92,6 +95,7 @@ class Cookie {
         Cookie.DEBUG,
         Cookie.DARK_THEME,
         Cookie.COLORBLIND_MODE,
+        Cookie.CONFIRMATION_MODE,
         Cookie.DAILY_GAME_NUMBER,
         Cookie.DAILY_GAME_WORDS_PLAYED,
         Cookie.DAILY_STATS,
@@ -143,6 +147,7 @@ class Cookie {
     }
 
     static getBoolean(name) {
+        var result = Cookie.get(name) === "true";
         return Cookie.get(name) === "true";
     }
 

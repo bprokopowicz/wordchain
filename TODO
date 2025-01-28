@@ -1,12 +1,60 @@
 Known Bugs
 ==========
 
-Beta TODO
-=========
+Production TODO
+===============
 
-Remove all rare words from standard dictionary
+Must Do
+-------
+- How to create/minify/obfuscate one big js file?
+- Buy domain wordchain.com or some such?
+- Where to host?
+- How to manage daily game words long-term?
+- Address/remove any TODO-PRODUCTION
+- Change Const.WORD_CHAIN_EPOCH_DATE
+- Remove all rare words from standard dictionary
 
-Testing
+Discuss
+-------
+
+BLP says we should do these:
+- Logo/favicon.ico -- we should see if we can find someone who
+  will design a logo for a reasonable price, and perhaps suggest
+  changes to styling in the game.
+- Consider changing Daily game to roll over at midnight local time
+- Consider changing Practice game window to align with Daily game window
+- Should "shown" rows be a different color (currently green, maybe show gray)?
+
+BLP says only do these if it really catches on:
+- Create a back-end that delivers the daily and practice games
+- Cookies: make secure? Obfuscate? Save in back-end DB?
+
+BLP says ask what our Beta users think on these:
+- Consider changing to "par scoring"
+  - WordChain's initial length is par
+  - Score is -N if N words greater than par
+  - Score is +N if N words less than par
+- When we show the solution, it solves the game as played so far.  It should also
+  show the best solution as played by the user until their first mistake, and then
+  continued optimally.  This display doesn't need to be on a display grid like the game.
+  It could just be a vertical list of the words.  This optimal solution might be different
+  from WordChain's original solution, but of the same length.  We could have ANOTHER
+  button to Show WordChain's Original solution.
+- Mode where future rows do not have change cells outlined thicker. (harder)
+- Don't make the player select the last letter when there is only one step left?
+  This prevents fat-fingering the last letter choice.
+
+BLP has no opinion on:
+- Consider removing words that are in both dictionaries from the Scrabble dictionary
+- Address slow handler violations:
+     [Violation] 'click' handler took XXXms
+        (can happen when switching to Practice game or starting new Practice game)
+     [Violation] 'setInterval' handler took XXXms
+        (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
+
+Testing Environments
+====================
+
 - Execute automated tests in these environments:
   - Safari/iPhone
   - Safari/iPad
@@ -22,63 +70,7 @@ Testing
   - Chrome/Mac
   - Chrome/iPhone
 
-- =====> BEFORE SENDING TO BETA USERS:
-  - Change Const.WORD_CHAIN_EPOCH_DATE
-  - Check again for TODO-BETA (or TODO not marked TODO-PRODUCTION)
-  - More practice words
-
-Include in mail to Beta users ("Core Word Nerds" mailing list -- 11 people)
-
-- Link to game
-- Google form
-- Especially interested in these environments:
-  - Android phone/tablet
-  - Edge/Windows
-
-Production TODO
-===============
-
-- How to create/minify/obscure one big js file
-- Buy domain wordchain.com?
-- Where to host?
-- Create a back-end that delivers the daily and practice games
-- How to manage daily game words long-term?
-- Cookies: make secure? Obfuscate? Save in back-end DB?
-- Logo/favicon.ico
-- Consider removing words that are in both dictionaries from the Scrabble dictionary
-- Consider changing to "par scoring"
-  - WordChain's initial length is par
-  - Score is -N if N words greater than par
-  - Score is +N if N words less than par
-- Address slow handler violations:
-     [Violation] 'click' handler took XXXms
-        (can happen when switching to Practice game or starting new Practice game)
-     [Violation] 'setInterval' handler took XXXms
-        (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
-- Consider changing Daily game to roll over at midnight local time
-- Consider changing Practice game window to align with Daily game window
-
-Implementation Ideas (Future)
-=============================
-
-- Solution button -- add means to show WordChain's ORIGINAL solution?
-- Should "shown" rows be a different color (currently green, maybe show gray)?
-- After a game fails should the solution be shown?
-  If so from the point of failure onward?
-  Or by the same means to show WordChain's original solution?
-- When we show the solution, it solves the game as played so far.  It should also
-  show the best solution as played by the user until their first mistake, and then
-  continued optimally.  This display doesn't need to be on a display grid like the game.
-  It could just be a vertical list of the words.  This optimal solution might be different
-  from WordChain's original solution, but of the same length.  We could have ANOTHER
-  button to Show WordChain's Original solution.
-- Possible settings to tweak game difficulty:
-  - Mode where future rows do not have change cells outlined thicker. (harder)
-  - Mode where picker displays only letters that could result in valid words. (easier)
-- Don't make the player select the last letter when there is only one step left? This prevents fat-fingering the last letter choice.
-
-
-Testing issues
+Testing Issues
 ==============
 
 In IOS (phone, ipad) using Safari, wordchain.html will load and play OK, BUT:

@@ -18,8 +18,11 @@ class SettingsDisplay extends AuxiliaryDisplay {
 
         // All the settings will be added to the content container created in
         // the base class constructor.
-        this.addCheckboxSetting("Dark Theme",      "dark",       appDisplay.isDarkTheme());
-        this.addCheckboxSetting("Colorblind Mode", "colorblind", appDisplay.isColorblindMode());
+        this.addCheckboxSetting("Dark Theme",        "dark",         appDisplay.isDarkTheme());
+        this.addCheckboxSetting("Colorblind Mode",   "colorblind",   appDisplay.isColorblindMode());
+
+        const confirmationModeDescription = "Selected plus, minus, and letter must be confirmed; gray indicates confirmation is needed.";
+        this.addCheckboxSetting("Confirmation Mode", "confirmation", appDisplay.isConfirmationMode(), confirmationModeDescription);
 
         /*
         const radioInfo = [{
@@ -65,10 +68,10 @@ class SettingsDisplay extends AuxiliaryDisplay {
     }
 
     // Add a setting whose input is a checkbox.
-    addCheckboxSetting(title, id, value) {
+    addCheckboxSetting(title, id, value, description="") {
         // setting-simple class styles the contents of the setting (title/description,
         // checkbox input) horizontally.
-        const interactiveDiv = this.addSetting(title, "setting-simple");
+        const interactiveDiv = this.addSetting(title, "setting-simple", description);
 
         const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
             {type: "checkbox", id: id, class: "setting-checkbox"});
@@ -141,6 +144,9 @@ class SettingsDisplay extends AuxiliaryDisplay {
             this.appDisplay.colorblindMode = event.srcElement.checked ? true : false;
             Persistence.saveColorblindMode(this.appDisplay.colorblindMode);
             this.appDisplay.setColors();
+        } else if (checkboxId === "confirmation") {
+            this.appDisplay.confirmationMode = event.srcElement.checked ? true : false;
+            Persistence.saveConfirmationMode(this.appDisplay.confirmationMode);
         }
     }
 

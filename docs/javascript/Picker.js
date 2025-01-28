@@ -19,7 +19,7 @@ class Picker extends BaseLogger {
         // user selects a letter.
         this.gameDisplay = gameDisplay;
 
-        // save each letter-button by letter, for access to buttons during testing.
+        // Save each letter-button by letter, for access to buttons during testing.
         this.buttonsForLetters = new Map();
 
         // Add the picker menu, which will end up looking like this:
@@ -28,14 +28,14 @@ class Picker extends BaseLogger {
         //    <div class="picker-inner-div">
         //    <table class="picker-table">
         //        <tr class="picker-tr">
-        //            <td class="picker-td"><button class="picker-button">A</button></td>
+        //            <td class="picker-td"><button class="picker-button button-unselected">A</button></td>
         //            ...
-        //            <td class="picker-td"><button class="picker-button">Z</button></td>
+        //            <td class="picker-td"><button class="picker-button button-unselected">Z</button></td>
         //        </tr>
         //    </table>
         //    </div>
         //    </div>
-        // 
+        //
         // The picker-outer-div class will have a fixed width that spans the game display.
         // The picker-inner-div class will be scrollable so that a user with a touch screen
         // device can easily scroll by dragging; a non-touch-screen user will need to
@@ -52,7 +52,7 @@ class Picker extends BaseLogger {
         for (let letterCode = codeLetterA; letterCode <= codeLetterZ; letterCode++) {
             letter = String.fromCharCode(letterCode);
             td = ElementUtilities.addElementTo("td", row, {class: "picker-td", align: "center"})
-            button = ElementUtilities.addElementTo("button", td, {class: "picker-button", letter: letter}, letter)
+            button = ElementUtilities.addElementTo("button", td, {class: "picker-button button-unselected", letter: letter}, letter)
             this.buttonsForLetters.set(letter, button);
             if (letter == 'M') {
                 this.middleButton = button;
@@ -64,10 +64,8 @@ class Picker extends BaseLogger {
         this.disable();
     }
 
-    /* -- for testing: we want the button for a particular letter, so we
-    can simulate pressing it from test code.
-    */
-
+    // For testing: we want the button for a particular letter, so we
+    // can simulate pressing it from test code.
     getButtonForLetter(letter) {
         return this.buttonsForLetters.get(letter);
     }
@@ -91,9 +89,16 @@ class Picker extends BaseLogger {
     }
 
     // This method is called when the user clickes a letter button in the picker.
+    // Its return value is needed ONLY for the testing infrastructure.
     selectionCallback(event) {
-        const buttonText = event.srcElement.innerText;
-        return this.gameDisplay.letterPicked(buttonText, this.letterPosition);
+
+        if (this.gameDisplay.needsConfirmation(event.srcElement)) {
+            return Const.NEEDS_CONFIRMATION;
+        } else {
+            // Tell the game that a letter has been picked.
+            const buttonText = event.srcElement.innerText;
+            return this.gameDisplay.letterPicked(buttonText, this.letterPosition);
+        }
     }
 }
 

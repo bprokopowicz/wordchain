@@ -104,7 +104,7 @@ class Persistence {
     // GUI settings
 
     static getDarkTheme() {
-        Cookie.getBoolean(Cookie.DARK_THEME)
+        return Cookie.getBoolean(Cookie.DARK_THEME)
     }
 
     static saveDarkTheme(darkTheme) {
@@ -112,11 +112,19 @@ class Persistence {
     }
 
     static getColorblindMode() {
-        Cookie.getBoolean(Cookie.COLORBLIND_MODE)
+        return Cookie.getBoolean(Cookie.COLORBLIND_MODE)
     }
 
     static saveColorblindMode(colorblindMode) {
         Cookie.save(Cookie.COLORBLIND_MODE, colorblindMode);
+    }
+
+    static getConfirmationMode() {
+        return Cookie.getBoolean(Cookie.CONFIRMATION_MODE)
+    }
+
+    static saveConfirmationMode(confirmationMode) {
+        Cookie.save(Cookie.CONFIRMATION_MODE, confirmationMode);
     }
 
     // Testing vars -- Daily game

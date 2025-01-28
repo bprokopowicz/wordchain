@@ -50,6 +50,8 @@ export const DODO_MOVE           = "Ugh! Dodo move!";
 export const BAD_POSITION        = "Bad letter position";
 export const NEW_DAILY_GAME      = "Time for a new Daily game";
 export const WORKING_ON_NEW_GAME = "Working on a new game for you";
+// --- Not shown to user; returned when user makes a move that requires confirmation.
+export const NEEDS_CONFIRMATION  = "Input needs confirmation";
 
 // If we force the daily game using stored test variables, this will be the game number.
 export const TEST_DAILY_GAME_NUMBER = -1;

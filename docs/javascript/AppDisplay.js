@@ -1,4 +1,5 @@
 import { BaseLogger } from './BaseLogger.js';
+import { Cookie } from './Cookie.js';
 import { DailyGameDisplay } from './DailyGameDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { HelpDisplay } from './HelpDisplay.js';
@@ -30,8 +31,18 @@ class AppDisplay extends BaseLogger {
         window.theAppDisplay = this;
 
         // Flags from Settings screen
-        this.darkTheme      = Persistence.getDarkTheme();
-        this.colorblindMode = Persistence.getColorblindMode();
+
+        // These flags are false by default.
+        this.darkTheme        = Persistence.getDarkTheme();
+        this.colorblindMode   = Persistence.getColorblindMode();
+
+        // Confirmation mode is true by default.
+        if (! Cookie.has(Cookie.CONFIRMATION_MODE)) {
+            this.confirmationMode = true;
+            Persistence.saveConfirmationMode(this.confirmationMode);
+        } else {
+            this.confirmationMode = Persistence.getConfirmationMode();
+        }
 
         // The mother of all divs.
         this.rootDiv = null;
@@ -264,6 +275,10 @@ class AppDisplay extends BaseLogger {
 
     isColorblindMode() {
         return this.colorblindMode;
+    }
+
+    isConfirmationMode() {
+        return this.confirmationMode;
     }
 
     isDarkTheme() {

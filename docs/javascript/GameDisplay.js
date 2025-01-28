@@ -31,6 +31,9 @@ class GameDisplay extends BaseLogger {
 
         this.wrongMoves = null;
 
+        // This will be used to keep track of a user's selection if we are in confirmation mode.
+        this.selectedButton = null;
+
         // Derived class constructor must call constructGame().
     }
 
@@ -75,6 +78,11 @@ class GameDisplay extends BaseLogger {
 
     addTd() {
         return ElementUtilities.addElementTo("td", this.rowElement, {class: 'td-game'});
+    }
+
+    canShowSolution() {
+        // We can only show the solution if it isn't already shown or if the game is not won.
+        return !(this.getSolutionShown() || this.game.isWinner())
     }
 
     // Called from derived class!
@@ -171,19 +179,14 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell);
     }
 
-    getGame() {
-        return this.game;
-    }
-
     getSolutionShown() {
         // this is a "pure virtual" function that should never be called directly.
         error.log("GameDisplay.getSolutionShown() should never be called.  Only call subclass implementations");
         return false;
     }
 
-    canShowSolution() {
-        // We can only show the solution if it isn't already shown or if the game is not won.
-        return !(this.getSolutionShown() || this.game.isWinner())
+    isConfirmationMode() {
+        return this.appDisplay.isConfirmationMode();
     }
 
     showGameAfterMove(skipToast=false) {
@@ -319,9 +322,9 @@ class GameDisplay extends BaseLogger {
                 originalSolutionText;
 
             if (originalSolutionWords == userSolutionWords) {
-                originalSolutionText = "Your solution is the same as WordChain's original solution!";   
+                originalSolutionText = "Your solution is the same as WordChain's original solution!";
             } else {
-                originalSolutionText = `WordChain's original solution:<br>${originalSolutionWords}`;   
+                originalSolutionText = `WordChain's original solution:<br>${originalSolutionWords}`;
             }
             Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,
                     " user solution words: ", userSolutionWords,  "game");
@@ -334,11 +337,16 @@ class GameDisplay extends BaseLogger {
 
     /* ----- Callbacks ----- */
 
+    // This function's return value is needed ONLY for the testing infrastructure.
     additionClickCallback(event) {
 
         if (this.game.isOver()) {
             console.error("GameDisplay.additionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
+        }
+
+        if (this.needsConfirmation(event.srcElement)) {
+            return Const.NEEDS_CONFIRMATION;
         }
 
         Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
@@ -349,11 +357,16 @@ class GameDisplay extends BaseLogger {
         return gameResult;
     }
 
+    // This function's return value is needed ONLY for the testing infrastructure.
     deletionClickCallback(event) {
 
         if (this.game.isOver()) {
             console.error("GameDisplay.deletionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
+        }
+
+        if (this.needsConfirmation(event.srcElement)) {
+            return Const.NEEDS_CONFIRMATION;
         }
 
         Const.GL_DEBUG && this.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
@@ -378,7 +391,6 @@ class GameDisplay extends BaseLogger {
             word = displayInstruction.word,
             letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
             moveRating = displayInstruction.moveRating;
-
 
         // We add AdditionCells for every word we display so that we use up their
         // space, thus making the letter cells always line up properly.
@@ -412,6 +424,28 @@ class GameDisplay extends BaseLogger {
         additionCell.addClass("action-cell-addition-last");
     }
 
+    // This function is used for confirmation mode to find the element whose class needs to
+    // be changed to indicate whether confirmation is needed. In the case of picker letters,
+    // it will be the button itself, but for action cells it will be an ancestor, and we use
+    // the builtin element.closest() function to find the selected element whose class
+    // contains the class of interest.
+    findSelectedWithClass(classOfInterest) {
+        // Assume the element is the selected button.
+        var element = this.selectedButton;
+
+        // Does the element's class contain the class passed in?
+        if (element.getAttribute('class').indexOf(classOfInterest) < 0)
+        {
+            // No -- use closest() to find the right one. The argument to closest()
+            // is a selector; here we're saying "find a <div> element whose 'class'
+            // attribute contains the class passed in. (The *= means contains;
+            // we would use ^= for starts-with and $= for ends-with.)
+            element = this.selectedButton.closest(`div[class*="${classOfInterest}"]`)
+        }
+
+        return element;
+    }
+
     // A list summarizing the moves of the game.
     // Unplayed words get a move rating of Const.FUTURE
     getMoveSummary() {
@@ -428,6 +462,45 @@ class GameDisplay extends BaseLogger {
         return summary;
     }
 
+    // Determines whether the button that the user clicked (a letter or a plus/minus
+    // action cell) needs to be confirmed. It returns true if so; false if not.
+    needsConfirmation(clickedButton) {
+        // Is the user playing with confirmation mode set?
+        if (this.isConfirmationMode()) {
+            // Yes -- has the user selected a letter? If so they may either be confirming
+            // or they may have changed their mind.
+            if (this.selectedButton !== null) {
+                // User has selected a letter; is it the same letter that they selected before?
+                if (event.srcElement === this.selectedButton) {
+                    // User is confirming! Show this button as unselected, and reset
+                    // selectedButton for the next time a letter needs to be selected.
+                    this.showUnselected();
+                    this.selectedButton = null;
+                    return false;
+                } else {
+                    // User changed the selection; it should remain unconfirmed.
+
+                    // Return the styling on the previous selection to unselected.
+                    this.showUnselected();
+
+                    // Now, change the selected button and show it as unconfirmed.
+                    this.selectedButton = event.srcElement;
+                    this.showUnconfirmed();
+                    return true;
+                }
+            } else {
+                // User has not yet selected a letter; save the currently selected button
+                // and show it unconfirmed.
+                this.selectedButton = event.srcElement;
+                this.showUnconfirmed();
+                return true;
+            }
+        } else {
+            // No confirmation mode, so confirmation not needed.
+            return false;
+        }
+    }
+
     processGameResult(gameResult) {
         Const.GL_DEBUG && this.logDebug("GameDisplay.processGameResult() gameResult: ", gameResult, "callback");
         if (gameResult === Const.BAD_LETTER_POSITION) {
@@ -441,6 +514,22 @@ class GameDisplay extends BaseLogger {
         }
 
         this.showGameAfterMove();
+    }
+
+    // Changes the class on the appropriate element relative to the selected button
+    // to 'button-unconfirmed'.
+    showUnconfirmed() {
+        const unselectedElement = this.findSelectedWithClass('button-unselected');
+        ElementUtilities.removeClass(unselectedElement, 'button-unselected')
+        ElementUtilities.addClass(unselectedElement, 'button-unconfirmed')
+    }
+
+    // Changes the class on the appropriate element relative to the selected button
+    // to 'button-unselected'.
+    showUnselected() {
+        const unconfirmedElement = this.findSelectedWithClass('button-unconfirmed');
+        ElementUtilities.removeClass(unconfirmedElement, 'button-unconfirmed')
+        ElementUtilities.addClass(unconfirmedElement, 'button-unselected')
     }
 }
 

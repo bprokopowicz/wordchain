@@ -54,14 +54,12 @@
 ** These colors don't change for dark/light OR colorblind/non-colorblind.
 */
 :root {
-    /* ===== Picker ===== */
-    --user-input-bg-disabled:   LightGray;
-    --user-input-bg-selected:   LightGray;
-    --user-input-fg-disabled:   LightGray;
-
     /* ===== Stats ===== */
     --stats-bar-bg:             Gray;
     --stats-bar-fg:             White;
+
+    /* ===== Game Play ===== */
+    --confirmation-bg:          LightGray;
 }
 
 /*
@@ -344,6 +342,20 @@ svg {
 }
 
 /*
+** -----------------
+** Confirmation Mode
+** -----------------
+*/
+
+.button-unselected {
+    background: var(--user-input-bg) !important;
+}
+
+.button-unconfirmed {
+    background: var(--confirmation-bg) !important;
+}
+
+/*
 ** ----------------------------------------
 ** Cell Grid, Cells, Buttons Below the Grid
 ** ----------------------------------------
@@ -360,6 +372,14 @@ svg {
 }
 
 .tr-game {
+    /*
+    ** Using block here makes the cells in the grid line up better.
+    ** The default display inexplicably puts a little extra space
+    ** between letters sometimes. Note that the display is still not
+    ** perfect looking because we are not accounting for the extra pixels
+    ** when letter outlines are bolded to indicate they will change.
+    */
+    display: block;
 }
 
 .tr-game-active {
@@ -407,7 +427,7 @@ svg {
 
 .letter-cell-change {
     border-width: .2rem;
-    border-style: dashed;
+    /*border-style: dashed;*/
 }
 
 .letter-cell-future {
@@ -461,7 +481,6 @@ button.action-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--user-input-bg);
     color: var(--user-input-fg);
     border-color: var(--cell-border);
 }
@@ -522,9 +541,9 @@ button.action-button {
 }
 
 /*
-** ----------------------
-** NEW Picker
-** ----------------------
+** -------------
+** Letter Picker
+** -------------
 */
 
 /*
@@ -906,7 +925,6 @@ input.setting-radio {
         margin: .5rem;
     }
 
-    
     :root {
         --cell-size: 35px;
         --action-cell-size: 20px;
