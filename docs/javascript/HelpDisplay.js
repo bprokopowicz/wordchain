@@ -9,24 +9,38 @@ class HelpDisplay extends AuxiliaryDisplay {
         super(buttonContainer, buttonSvgPath, parentContainer, saveRestoreContainers);
 
         const helpHTML = `
-        <h1 align=center>HOW TO PLAY</h1>
+        <h1 style="display: flex; justify-content: space-between; align-items: center;">
+            <button class="wordchain-button game-button">
+                <a href="${Const.FAQ_HREF}" target="_blank">FAQ</a>
+            </button>
+            <label>
+            HOW TO PLAY
+            </label>
+            <button class="wordchain-button game-button">
+                <a href="${Const.FAQ_HREF}" target="_blank">FAQ</a>
+            </button>
+        </h1>
         <h2>
-        Change words one step at a time to get from the starting word
-        to the target word in as few steps as possible.
+        Change words one step at a time (add/delete/change a letter)
+        to get from the starting word to the target word in as few steps as possible.
         </h2>
         <p>
-        A step consists of adding, deleting, or changing one letter.
-        Your next move is indicated with a yellow background:
-        pluses to add, minuses to delete, and the letter picker menu button to change.
+        When you are to add or delete a letter, plus or minus buttons appear.
+        When you are to change a letter, a scrollable list of letter buttons
+        appears at the top of the game and the letter to be changed has
+        a thicker outline in the current word.
+        The plus/minus/letter buttons are initially yellow.
+        By default, these buttons become gray on your first click/tap
+        and you must click/tap again to confirm your selection.
+        This "confirmation mode" can be turned off in the settings.
         </p>
         <p>
         WordChain shows empty letter cells for the rest of the shortest solution,
         which can help you decide what to do next.
-        When a letter should be changed, the outline around the letter to change is thicker
-        (and dashed when it is the current move).
+        When a letter should be changed, the outline around the letter to change is thicker.
         </p>
         <p>
-        If your word played increases the number of steps from the start to the target word,
+        If your played word increases the number of steps from the start to the target word,
         the background of its letters will be red, indicating a penalty;
         otherwise the background will be green (or orange/blue in Colorblind Mode).
         If you play ${Const.TOO_MANY_WRONG_MOVES} such "wrong moves" you lose the game.
@@ -38,11 +52,11 @@ class HelpDisplay extends AuxiliaryDisplay {
         You can play up to ${Const.PRACTICE_GAMES_PER_DAY} practice games per day.
         </h3>
         <p>
-        There is more information in the <a href="${Const.FAQ_HREF}" target="_blank">FAQ</a>.
+        There is lots more information in the <a href="${Const.FAQ_HREF}" target="_blank">FAQ</a>.
         </p>
         `;
 
-        // Add to the container div that was created above.
+        // Add the help text to the container div that is set in the superclass constructor.
         ElementUtilities.addElementTo("div", this.contentContainer, {class: 'help-content-div'}, helpHTML);
     }
 }
