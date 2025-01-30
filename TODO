@@ -12,7 +12,7 @@ Must Do
 - How to manage daily game words long-term?
 - Address/remove any TODO-PRODUCTION
 - Change Const.WORD_CHAIN_EPOCH_DATE
-- Remove all rare words from standard dictionary
+- Remove all rare words from standard dictionary (done through 'B') 1/28
 
 Discuss
 -------
@@ -21,7 +21,7 @@ BLP says we should do these:
 - Logo/favicon.ico -- we should see if we can find someone who
   will design a logo for a reasonable price, and perhaps suggest
   changes to styling in the game.
-- Consider changing Daily game to roll over at midnight local time
+- Consider changing Daily game to roll over at midnight local time  (Already done)
 - Consider changing Practice game window to align with Daily game window
 - Should "shown" rows be a different color (currently green, maybe show gray)?
 
@@ -46,6 +46,7 @@ BLP says ask what our Beta users think on these:
 
 BLP has no opinion on:
 - Consider removing words that are in both dictionaries from the Scrabble dictionary
+  PNP: no.  Scrabble dictionary must be a superset of the standard dictionary for reliable on-going edits to the std dictionary.
 - Address slow handler violations:
      [Violation] 'click' handler took XXXms
         (can happen when switching to Practice game or starting new Practice game)

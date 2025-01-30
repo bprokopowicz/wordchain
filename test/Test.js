@@ -238,25 +238,45 @@ class Test extends BaseLogger {
         this.gameDisplay.letterPicker.saveLetterPosition(position);
         const button = this.gameDisplay.letterPicker.getButtonForLetter(letter);
         const mockEvent = new MockEvent(button);
+        //TODO need to make double-clicking optional and test for both confirmation modes
         let rc = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
-        this.logDebug("playLetter(", position, ",", letter, ") returns: ", rc, "test");
+        this.logDebug("playLetter(", position, ",", letter, ") first click returns: ", rc, "test");
+        rc = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
+        this.logDebug("playLetter(", position, ",", letter, ") second click returns: ", rc, "test");
         return rc;
     }
 
     deleteLetter(position) {
-        const srcElement = new MockEventSrcElement(this.gameDisplay);
-        const mockEvent = new MockEvent(srcElement);
-        mockEvent.srcElement.setAttribute("deletionPosition", position.toString());
+        // the srcElement here is a 'delete' button.  
+        const mockDeleteButton = new MockEventSrcElement(this.gameDisplay);
+        mockDeleteButton.setAttribute("deletionPosition", position.toString());
+        // the new mockDeleteButton will NEVER be the GameDisplay's 'selectedButton', because it is new here.
+        // So, we will do the double-click confirmation always.
+        // TODO:  need to test clicking more than one delete button before the confirmation click
+        //        and need to either get rid of the parent-div-searching OR figure out how to get the parent here OR
+        //        not use a mockDeleteButton; instead, find the real delete button in the display.  
+        // click callback expects to find an object with class button-unselected, and then it will change its class
+        // to button-unconfirmed
+        // TODO: need to test with confirmation mode on and off
+        ElementUtilities.addClass(mockDeleteButton, 'button-unselected');
+        const mockEvent = new MockEvent(mockDeleteButton);
         let rc = this.gameDisplay.deletionClickCallback(mockEvent);
-        this.logDebug("deleteLetter(", position, ") returns: ", rc, "test");
+        // should be NEEDS_CONFIRMATION
+        this.logDebug("deleteLetter(", position, ") first click returns: ", rc, "test");
+        rc = this.gameDisplay.deletionClickCallback(mockEvent);
+        this.logDebug("deleteLetter(", position, ") second click returns: ", rc, "test");
         return rc;
     }
 
     insertLetter(position, letter) {
-        const srcElement = new MockEventSrcElement(this.gameDisplay);
-        const mockEvent = new MockEvent(srcElement);
+        // TODO: need to test with confirmation mode on and off
+        const mockInsertButton = new MockEventSrcElement(this.gameDisplay);
+        ElementUtilities.addClass(mockInsertButton, 'button-unselected');
+        const mockEvent = new MockEvent(mockInsertButton);
         mockEvent.srcElement.setAttribute("additionPosition", position.toString());
         let clickResult = this.gameDisplay.additionClickCallback(mockEvent);
+        this.logDebug("insertLetter(", position, ") first click returns: ", clickResult, "test");
+        clickResult = this.gameDisplay.additionClickCallback(mockEvent);
         let playResult = this.playLetter(position+1, letter);
         this.logDebug("insertLetter(", position, ",", letter, ") returns: ", clickResult, " then ", playResult,  "test");
         return playResult;
@@ -441,7 +461,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15972;
+        const expectedMinDictSize = 15881;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -995,8 +1015,8 @@ class Test extends BaseLogger {
         const displayInstructionsAfterFinish = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
         const originalSolutionAsString = game.getOriginalSolutionWords();
         const playedSolutionAsString = game.getUserSolutionWords();
-        const expOriginalSolutionAsString = "SCAD,CAD,BAD,BAT";
-        const expPlayedSolutionAsString = "SCAD,CAD,BAD,BAT";
+        const expOriginalSolutionAsString = "SCAD, CAD, BAD, BAT";
+        const expPlayedSolutionAsString = "SCAD, CAD, BAD, BAT";
         this.verify((playResult === Const.OK), "Word played not OK") &&
             this.verify((displayInstructionsAfterFinish.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructionsAfterFinish.length}`) &&
             this.verify((originalSolutionAsString == expOriginalSolutionAsString), `expected original string ${expOriginalSolutionAsString}, got ${originalSolutionAsString}`) &&
@@ -1027,9 +1047,9 @@ class Test extends BaseLogger {
         */
         const originalSolutionAsString = game.getOriginalSolutionWords();
         const playedSolutionAsString = game.getUserSolutionWords();
-        const expOriginalSolutionAsString = "LEAKY,LEAK,LEAN,LOAN,LOON,SOON,SPOON";
-        const expPlayedSolutionAsString = "LEAKY,LEAK,LEAN,LOAN,LOON,POON,SPOON";
-        //const expPlayedSolutionAsString = "LEAKY,LEAK,LEAN,LOAN,LOON,SOON,SPOON";
+        const expOriginalSolutionAsString = "LEAKY, LEAK, LEAN, LOAN, LOON, SOON, SPOON";
+        const expPlayedSolutionAsString = "LEAKY, LEAK, LEAN, LOAN, LOON, POON, SPOON";
+        //const expPlayedSolutionAsString = "LEAKY, LEAK, LEAN, LOAN, LOON, SOON, SPOON";
         this.verify((originalSolutionAsString == expOriginalSolutionAsString), `expected original string ${expOriginalSolutionAsString}, got ${originalSolutionAsString}`) &&
             this.verify((playedSolutionAsString == expPlayedSolutionAsString), `expected played string ${expPlayedSolutionAsString}, got ${playedSolutionAsString}`) &&
             this.verify(game.isOver()) &&

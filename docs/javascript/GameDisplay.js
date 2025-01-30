@@ -340,6 +340,8 @@ class GameDisplay extends BaseLogger {
     // This function's return value is needed ONLY for the testing infrastructure.
     additionClickCallback(event) {
 
+        Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
+
         if (this.game.isOver()) {
             console.error("GameDisplay.additionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
@@ -349,7 +351,6 @@ class GameDisplay extends BaseLogger {
             return Const.NEEDS_CONFIRMATION;
         }
 
-        Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
         let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition')),
             gameResult = this.game.playAdd(additionPosition);
 
@@ -360,6 +361,8 @@ class GameDisplay extends BaseLogger {
     // This function's return value is needed ONLY for the testing infrastructure.
     deletionClickCallback(event) {
 
+        Const.GL_DEBUG && this.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
+
         if (this.game.isOver()) {
             console.error("GameDisplay.deletionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
@@ -369,7 +372,6 @@ class GameDisplay extends BaseLogger {
             return Const.NEEDS_CONFIRMATION;
         }
 
-        Const.GL_DEBUG && this.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
         let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition')),
             gameResult = this.game.playDelete(deletionPosition);
 
@@ -465,13 +467,14 @@ class GameDisplay extends BaseLogger {
     // Determines whether the button that the user clicked (a letter or a plus/minus
     // action cell) needs to be confirmed. It returns true if so; false if not.
     needsConfirmation(clickedButton) {
+        Const.GL_DEBUG && this.logDebug("needsConfirmation() clickedButton:", clickedButton, "callback");
         // Is the user playing with confirmation mode set?
         if (this.isConfirmationMode()) {
             // Yes -- has the user selected a letter? If so they may either be confirming
             // or they may have changed their mind.
             if (this.selectedButton !== null) {
                 // User has selected a letter; is it the same letter that they selected before?
-                if (event.srcElement === this.selectedButton) {
+                if ( clickedButton  === this.selectedButton) {
                     // User is confirming! Show this button as unselected, and reset
                     // selectedButton for the next time a letter needs to be selected.
                     this.showUnselected();
@@ -484,14 +487,14 @@ class GameDisplay extends BaseLogger {
                     this.showUnselected();
 
                     // Now, change the selected button and show it as unconfirmed.
-                    this.selectedButton = event.srcElement;
+                    this.selectedButton = clickedButton;
                     this.showUnconfirmed();
                     return true;
                 }
             } else {
                 // User has not yet selected a letter; save the currently selected button
                 // and show it unconfirmed.
-                this.selectedButton = event.srcElement;
+                this.selectedButton = clickedButton;
                 this.showUnconfirmed();
                 return true;
             }
