@@ -26,7 +26,8 @@ class TestClassForCookie {
 
 // A MockEventSrcElement just has an attributes map that we can populate during testing so that
 // when we call a callback, that callback can get the necessary elements from it.
-// The only attributes we use in this way are the additionPosition and deletionPosition
+// The attributes we use in this way are the additionPosition and deletionPosition,
+// and class, which is button-unselected or button-unconfirmed
 class MockEventSrcElement {
     constructor() {
         this.attributes = new Map();
@@ -56,10 +57,10 @@ class MockEvent {
 class Test extends BaseLogger {
     static singletonObject = null;
 
-    // We set the epoch to two days ago by default for all app tests.  This means the 
+    // We set the epoch to two days ago by default for all app tests.  This means the
     // game number will be two.
 
-    static TEST_EPOCH_DAYS_AGO = 2; 
+    static TEST_EPOCH_DAYS_AGO = 2;
     constructor() {
         super();
 
@@ -232,59 +233,203 @@ class Test extends BaseLogger {
 
     // playLettter, deleteLetter, and insertLetter all require the attribute this.gameDisplay to be set to
     // the active GameDisplay (Practice or Daily).
+    // If the app is in ConfirmationMode, we will click twice here to confirm.
+    // If the optionalLetter is different from letter, it indicates that the user
+    // first selects the optionLetter, then letter, then confirms letter.
+    //
+    // returns
+    //   Const.OK if the letter is changed
+    //   Const.UNEXPECTED_ERROR if app is in ConfirmationMode but picker doesn't return NEEDS_CONFIRMATION on first click
+    //   some other error if the picker.selectionCallback fails
 
-    playLetter(position, letter) {
-        const unused = "";
+
+    playLetter(position, letter, optionalLetter=letter) {
+        this.logDebug(`playLetter(${position}, ${letter}, ${optionalLetter})`, "test");
         this.gameDisplay.letterPicker.saveLetterPosition(position);
-        const button = this.gameDisplay.letterPicker.getButtonForLetter(letter);
-        const mockEvent = new MockEvent(button);
-        //TODO need to make double-clicking optional and test for both confirmation modes
-        let rc = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
-        this.logDebug("playLetter(", position, ",", letter, ") first click returns: ", rc, "test");
-        rc = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
-        this.logDebug("playLetter(", position, ",", letter, ") second click returns: ", rc, "test");
+        var optionalLetterButton = null;
+        if (optionalLetter != letter) {
+            // we are testing a 'user changed their mind' case, where first optionalLetter is clicked,
+            // then letter, then letter is confirmed.
+            if (!this.gameDisplay.isConfirmationMode()) {
+                this.logDebug("playLetter() was given an optional letter but the game is not in ConfirmationMode.  This is a bad test.", "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            optionalLetterButton = this.gameDisplay.letterPicker.getButtonForLetter(optionalLetter);
+            const mockEvent = new MockEvent(optionalLetterButton);
+            const optionalClickRes = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
+            if (optionalClickRes != Const.NEEDS_CONFIRMATION) {
+                this.logDebug("optional click got ", optionalClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            if (!ElementUtilities.hasClass(optionalLetterButton, 'button-unconfirmed')) {
+                this.logDebug("optional letter-button 'class' after first selecting should have button-unconfirmed.", "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+        }
+
+        // at this point, if we have an optional letter, it was selected above and needs confirmation.  Instead,
+        // we select and confirm the intended letter button.
+
+        const realButton = this.gameDisplay.letterPicker.getButtonForLetter(letter);
+        const mockEvent = new MockEvent(realButton);
+        if (this.gameDisplay.isConfirmationMode()) {
+            const firstClickRes = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
+            if (firstClickRes != Const.NEEDS_CONFIRMATION) {
+                this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            // validate that realButton is unconfirmed
+            if (!ElementUtilities.hasClass(realButton, 'button-unconfirmed')) {
+                this.logDebug("realButton class after first selecting should have button-unconfirmed.", "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+
+            if (optionalLetterButton != null) {
+                if (!ElementUtilities.hasClass(optionalLetterButton, 'button-unselected')) {
+                    this.logDebug("optional-button class after first selecting should have button-unselected.", "test");
+                    return Const.UNEXPECTED_ERROR;
+                }
+            }
+        }
+
+        const rc = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
+        if (!ElementUtilities.hasClass(realButton, 'button-unselected')) {
+            this.logDebug("realButton class after first selecting should have button-unselected.", "test");
+            return Const.UNEXPECTED_ERROR;
+        }
+        this.logDebug("final click returns: ", rc, "test");
         return rc;
     }
 
-    deleteLetter(position) {
-        // the srcElement here is a 'delete' button.  
+    deleteLetter(position, optionalPosition=position) {
+        this.logDebug(`deleteLetter(${position}, ${optionalPosition})`, "test");
+
+        const changesMind = (position != optionalPosition);
+        var mockOptionalDeleteButton = null;
+        if (changesMind) {
+            //pre-click the optional position deletion button
+            if (!this.gameDisplay.isConfirmationMode()) {
+                this.logDebug("deleteLetter() was given an optional position but the game is not in ConfirmationMode.  This is a bad test.", "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            mockOptionalDeleteButton = new MockEventSrcElement(this.gameDisplay);
+            ElementUtilities.addClass(mockOptionalDeleteButton, 'button-unselected');
+            mockOptionalDeleteButton.setAttribute("deletionPosition", optionalPosition.toString());
+            const mockEvent = new MockEvent(mockOptionalDeleteButton);
+            const optionalClickRes  = this.gameDisplay.deletionClickCallback(mockEvent);
+            if (optionalClickRes != Const.NEEDS_CONFIRMATION) {
+                this.logDebug("got ", optionalClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            if (!ElementUtilities.hasClass(mockOptionalDeleteButton, 'button-unconfirmed')) {
+                this.logDebug("mock optional delete-button  class after selecting should have button-unconfirmed.", "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+        }
+        // the srcElement here is a 'deletion' button.
         const mockDeleteButton = new MockEventSrcElement(this.gameDisplay);
-        mockDeleteButton.setAttribute("deletionPosition", position.toString());
-        // the new mockDeleteButton will NEVER be the GameDisplay's 'selectedButton', because it is new here.
-        // So, we will do the double-click confirmation always.
-        // TODO:  need to test clicking more than one delete button before the confirmation click
-        //        and need to either get rid of the parent-div-searching OR figure out how to get the parent here OR
-        //        not use a mockDeleteButton; instead, find the real delete button in the display.  
-        // click callback expects to find an object with class button-unselected, and then it will change its class
-        // to button-unconfirmed
-        // TODO: need to test with confirmation mode on and off
         ElementUtilities.addClass(mockDeleteButton, 'button-unselected');
+        mockDeleteButton.setAttribute("deletionPosition", position.toString());
+
         const mockEvent = new MockEvent(mockDeleteButton);
-        let rc = this.gameDisplay.deletionClickCallback(mockEvent);
-        // should be NEEDS_CONFIRMATION
-        this.logDebug("deleteLetter(", position, ") first click returns: ", rc, "test");
-        rc = this.gameDisplay.deletionClickCallback(mockEvent);
-        this.logDebug("deleteLetter(", position, ") second click returns: ", rc, "test");
+
+        if (this.gameDisplay.isConfirmationMode()) {
+            const firstClickRes  = this.gameDisplay.deletionClickCallback(mockEvent);
+            if (firstClickRes != Const.NEEDS_CONFIRMATION) {
+                this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            if (changesMind) {
+                // check that the optional delete button has been reset to unselected
+                if (!ElementUtilities.hasClass(mockOptionalDeleteButton, 'button-unselected')) {
+                    this.logDebug("mock optional delete-button class after changing mind should have button-unselected.", "test");
+                    return Const.UNEXPECTED_ERROR;
+                }
+            }
+            if (!ElementUtilities.hasClass(mockDeleteButton, 'button-unconfirmed')) {
+                this.logDebug("mock delete-button class after first press should have button-unconfirmed.", "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+        }
+
+        const rc = this.gameDisplay.deletionClickCallback(mockEvent);
+        if (!ElementUtilities.hasClass(mockDeleteButton, 'button-unselected')) {
+            this.logDebug("mock delete-button class after final press should have button-unselected.", "test");
+            return Const.UNEXPECTED_ERROR;
+        }
+        this.logDebug("final click returns: ", rc, "test");
         return rc;
     }
 
-    insertLetter(position, letter) {
-        // TODO: need to test with confirmation mode on and off
+    insertLetter(position, letter, optionalPosition=position) {
+        const changesMind = position != optionalPosition;
+        this.logDebug(`insertLetter(${position}, ${letter}, ${optionalPosition})`, "test");
+
+        var mockOptionalInsertButton = null;
+        if (changesMind) {
+            if (!this.gameDisplay.isConfirmationMode()) {
+                this.logDebug("insertLetter() was given an optional position but the game is not in ConfirmationMode.  This is a bad test.", "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            mockOptionalInsertButton = new MockEventSrcElement(this.gameDisplay);
+            mockOptionalInsertButton.setAttribute("additionPosition", optionalPosition.toString());
+            ElementUtilities.addClass(mockOptionalInsertButton, 'button-unselected');
+            const mockEvent = new MockEvent(mockOptionalInsertButton);
+            const optionalClickRes = this.gameDisplay.additionClickCallback(mockEvent);
+            if (optionalClickRes != Const.NEEDS_CONFIRMATION) {
+                this.logDebug("got ", optionalClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            if (!ElementUtilities.hasClass(mockOptionalInsertButton, 'button-unconfirmed')) {
+                this.logDebug("mock optional insert-button class after first press should have button-unconfirmed.", "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+        }
+
         const mockInsertButton = new MockEventSrcElement(this.gameDisplay);
+        mockInsertButton.setAttribute("additionPosition", position.toString());
         ElementUtilities.addClass(mockInsertButton, 'button-unselected');
         const mockEvent = new MockEvent(mockInsertButton);
-        mockEvent.srcElement.setAttribute("additionPosition", position.toString());
-        let clickResult = this.gameDisplay.additionClickCallback(mockEvent);
-        this.logDebug("insertLetter(", position, ") first click returns: ", clickResult, "test");
-        clickResult = this.gameDisplay.additionClickCallback(mockEvent);
+
+        if (this.gameDisplay.isConfirmationMode()) {
+            const firstClickRes = this.gameDisplay.additionClickCallback(mockEvent);
+            if (firstClickRes != Const.NEEDS_CONFIRMATION) {
+                this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            if (!ElementUtilities.hasClass(mockInsertButton, 'button-unconfirmed')) {
+                this.logDebug("mock insert-button class after first press should have button-unconfirmed.", "test");
+                return Const.UNEXPECTED_ERROR;
+            }
+            if (changesMind) {
+                if (!ElementUtilities.hasClass(mockOptionalInsertButton, 'button-unselected')) {
+                    this.logDebug("mock optional insert-button class after re-press should have button-unselected.", "test");
+                    return Const.UNEXPECTED_ERROR;
+                }
+            }
+        }
+
+        const clickResult = this.gameDisplay.additionClickCallback(mockEvent);
+        if (clickResult != Const.OK) {
+            this.logDebug("got ", clickResult, " instead of ", Const.OK, "test");
+            return clickResult;
+        }
+        if (!ElementUtilities.hasClass(mockInsertButton, 'button-unselected')) {
+            this.logDebug("mock insert-button class after last press should have button-unselected.", "test");
+            return Const.UNEXPECTED_ERROR;
+        }
+        // At this point, if we are not in confirmation mode, we have clicked once to add the new position.
+        // If we are in confirmation mode, we have already clicked twice successfully
+        // So we can now play the letter.
+
         let playResult = this.playLetter(position+1, letter);
         this.logDebug("insertLetter(", position, ",", letter, ") returns: ", clickResult, " then ", playResult,  "test");
         return playResult;
     }
-         
-    // this plays the known daily game for day 2.  No status of whether or not it worked.  It is useful for 
+
+    // This plays the known daily game for day 2.  No status of whether or not it worked.  It is useful for
     // tests that need multiple game instances to test stats.
-    // 
+    //
 
     playTheCannedDailyGameOnce() {
 
@@ -310,7 +455,7 @@ class Test extends BaseLogger {
         let dailyStats = Persistence.getDailyStatsOrElse(null);
         this.logDebug("verifyStats() dailyStats", dailyStats, "test");
 
-        // open the stats window.  This should compute the shareString and start the countdown clock 
+        // open the stats window.  This should compute the shareString and start the countdown clock
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
@@ -339,13 +484,13 @@ class Test extends BaseLogger {
             completionPercent = ((dailyStats.gamesCompleted / dailyStats.gamesPlayed) * 100).toFixed(1);
         }
 
-        let expCompletionText = `${completionPercent}\nCompletion %`; 
+        let expCompletionText = `${completionPercent}\nCompletion %`;
         let actCompletionText = statsContainer.children[1].innerText.trim();
 
         let expShownText = `${expDailyStats.gamesShown}\nShown`;
         let actShownText = statsContainer.children[2].innerText.trim();
 
-        let testRes = 
+        let testRes =
             this.verify(actContainerLen==expContainerLen, `expected statsContainer.children.length==${expContainerLen}, got ${actContainerLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
             this.verify(actDistributionLen==expDistributionLen, `expected statsDistribution.children.length==${expDistributionLen}, got ${actDistributionLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
             this.verify(dailyStats.gamesPlayed==expDailyStats.gamesPlayed, `expected dailyStats.gamesPlayed==${expDailyStats.gamesPlayed}, got ${dailyStats.gamesPlayed}`) &&
@@ -359,16 +504,16 @@ class Test extends BaseLogger {
 
         for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
             // check the stats blob
-            testRes = testRes && 
+            testRes = testRes &&
                 this.verify(dailyStats[wrongMoves]==expDailyStats[wrongMoves], `expected dailyStats.${wrongMoves}==${expDailyStats[wrongMoves]}, got ${dailyStats[wrongMoves]}`);
 
             // check the DOM contents
             let actDistributionText = statsDistribution.children[wrongMoves].innerText.trim();
             let expDistributionText = Const.NUMBERS[wrongMoves] + "\n" + expDailyStats[wrongMoves];
-            testRes = testRes && 
+            testRes = testRes &&
                 this.verify(actDistributionText==expDistributionText, `expected statsDistribution.children.${wrongMoves}.innerText=='${expDistributionText}', got '${actDistributionText}'`);
         }
-                
+
         return testRes;
     }
 
@@ -663,7 +808,7 @@ class Test extends BaseLogger {
         suitablePuzzles.sort();
         // short-circuit the test if no puzzles found.
         if (!this.verify(suitablePuzzles.length > 0, "no suitable puzzles found")) {
-            return;  
+            return;
         }
 
         const [targetWord, difficulty] = suitablePuzzles[0].split(":");
@@ -750,7 +895,7 @@ class Test extends BaseLogger {
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAT", "DOG", "SCAD"]);
         const origSolution = Solver.solve(smallDict, "BAD", "CAT");
         const steps = [];
-        const game = new Game("BAD", "CAT", steps, smallDict);  // BAD BAT CAT 
+        const game = new Game("BAD", "CAT", steps, smallDict);  // BAD BAT CAT
         const origWord1 = game.remainingSteps.getNthWord(0);
 
         if ( !(this.verify((origWord1 === "BAT"), "original solution should have BAT as first word") &&
@@ -950,13 +1095,6 @@ class Test extends BaseLogger {
         if (!this.verify((paneToPanedChangeResult === Const.OK), `playLetter(5, E) returns ${paneToPanedChangeResult}, not WRONG_MOVE`)) return;
 
         this.success();
-
-        /*
-        const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be PLANE,PLAN,PAN,PANE,PANED
-        this.verify((scadToScagResult === Const.GENIUS_MOVE), `playLetter(4,G) expected ${Const.GENIUS_MOVE}, got ${scadToScagResult}`) &&
-        this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
-            this.success();
-        */
     }
 
     testGameRequiringWordReplay() {
@@ -967,7 +1105,7 @@ class Test extends BaseLogger {
         // BLISS BLIPS LIPS LAPS LASS LAST LEST (7)
 
         const expectedDisplayLength = 6;
-        const blissToBlipsResult = game.playLetter(4,"P"); 
+        const blissToBlipsResult = game.playLetter(4,"P");
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be BLISS, BLIPS, BLISS, BLESS, LESS, LEST
         this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
         this.verify((blissToBlipsResult === Const.DODO_MOVE), `playLetter(4,P) expected ${Const.DODO_MOVE}, got ${blissToBlipsResult}`) &&
@@ -981,8 +1119,8 @@ class Test extends BaseLogger {
         const steps = [];
         const game = new Game("FREE", "SAMPLE", steps);
         // FREE, FEE, FIE, FILE, MILE, SMILE, SIMILE, SIMPLE, SAMPLE 9 instructions
-        // playing FREE FEE FIE FILE SILE(scrabble-only) SIDLE (wrong) should give display instructions: 
-        // FREE FEE FIE FILE SILE SIDLE SILE            SMILE SIMILE SIMPLE SAMPLE length 11 
+        // playing FREE FEE FIE FILE SILE(scrabble-only) SIDLE (wrong) should give display instructions:
+        // FREE FEE FIE FILE SILE SIDLE SILE            SMILE SIMILE SIMPLE SAMPLE length 11
         // not
         // FREE FEE FIE FILE SILE SIDLE SIDE SITE SMITE SMILE SIMILE SIMPLE SAMPLE  length 13
 
@@ -991,7 +1129,7 @@ class Test extends BaseLogger {
         result = game.playLetter(2, "I"); // -> FIE
         result = game.playAdd(2);         // -> FIxE
         result = game.playLetter(3, "L"); // -> FILE
-        result = game.playLetter(1, "S"); // -> SILE 
+        result = game.playLetter(1, "S"); // -> SILE
         result = game.playAdd(2);         // -> SIxLE
         result = game.playLetter(3, "D"); // -> SIDLE  wrong move
         // Solution should now be FREE FEE FIE FILE SILE SIDLE SILE SMILE SIMILE SIMPLE SAMPLE
@@ -1071,7 +1209,7 @@ class Test extends BaseLogger {
         let r10 = game.playLetter(3, "E"); // -> FEET wrong
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
-        let expectedDIsAsStrings = 
+        let expectedDIsAsStrings =
             "(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:FATED,moveRating:ok),<br>(played,word:FATE,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:D'oh! Wrong move),<br>(played,word:FRAT,moveRating:D'oh! Wrong move),<br>(played,word:FEAT,moveRating:D'oh! Wrong move),<br>(played,word:FELT,moveRating:D'oh! Wrong move),<br>(played,word:FEET,moveRating:D'oh! Wrong move),<br>(future,word:FEST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:D'oh! Wrong move)";
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
                 this.verify(r2 == Const.OK, `expected r2=${Const.OK}, got ${r2}`) &&
@@ -1094,13 +1232,13 @@ class Test extends BaseLogger {
         const game = new Game("FISH", "SALTED");
         let r1 = game.playLetter(4, "T"); // -> FIST
         let r2 = game.playLetter(2, "E"); // -> FEST wrong
-        let r3 = game.playLetter(2, "A"); // -> FAST 
+        let r3 = game.playLetter(2, "A"); // -> FAST
         let r4 = game.playDelete(3);      // -> FAT
         let r5 = game.playAdd(1);         // -> F_AT
         let r6 = game.playLetter(2, "R"); // -> FRAT dodo - requires undoing back to FAT
         let r7 = game.playDelete(2);      // -> FAT
         let r8 = game.playAdd(1);         // -> F_AT
-        let r9 = game.playLetter(2, "E"); // -> FEAT dodo 
+        let r9 = game.playLetter(2, "E"); // -> FEAT dodo
         let r10 = game.playDelete(2);      // -> FAT
         let r11 = game.playAdd(1);         // -> F_AT
         let r12 = game.playLetter(2, "L"); // -> FLAT dodo
@@ -1109,7 +1247,7 @@ class Test extends BaseLogger {
         let r15 = game.playLetter(2, "L"); // -> FLAT dodo
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
-        let expectedDIsAsStrings = 
+        let expectedDIsAsStrings =
             "(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FEST,moveRating:D'oh! Wrong move),<br>(played,word:FAST,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FRAT,moveRating:Ugh! Dodo move!),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FEAT,moveRating:Ugh! Dodo move!),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:Ugh! Dodo move!),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:Ugh! Dodo move!),<br>(future,word:FAT,changePosition:0),<br>(future,word:FATE,changePosition:0),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:0),<br>(played,word:SALTED,moveRating:D'oh! Wrong move)";
 
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
@@ -1148,7 +1286,7 @@ class Test extends BaseLogger {
 
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
-        let expectedDIsAsStrings = 
+        let expectedDIsAsStrings =
             "(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:DATED,moveRating:D'oh! Wrong move),<br>(played,word:DATE,moveRating:ok),<br>(played,word:MATE,moveRating:D'oh! Wrong move),<br>(played,word:RATE,moveRating:D'oh! Wrong move),<br>(played,word:LATE,moveRating:D'oh! Wrong move),<br>(played,word:FATE,moveRating:ok),<br>(played,word:ATE,moveRating:Ugh! Dodo move!),<br>(future,word:FATE,changePosition:0),<br>(future,word:FAT,changePosition:0),<br>(future,word:FAST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:D'oh! Wrong move)"
             this.verify(game.isOver(), "game should be over after too many wrong moves") &&
             this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
@@ -1158,9 +1296,9 @@ class Test extends BaseLogger {
 
     /*
     ** App Tests
-    ** App tests need to be run one after the other, pausing to wait for the app window to display, etc.  
+    ** App tests need to be run one after the other, pausing to wait for the app window to display, etc.
     ** These tests use the utilities in the App Testing Framework section, above.
-    ** 
+    **
     */
 
     runAppTests() {
@@ -1169,7 +1307,7 @@ class Test extends BaseLogger {
         if (!(newWindow && newWindow.localStorage && newWindow.theAppDisplayIsReady)) {
             this.openTheTestAppWindow();
             console.log("app test window isn't ready yet; try again.");
-            return; 
+            return;
         }
         this.logDebug("window for App tests is ready.", "test");
         this.appTestList = [
@@ -1185,15 +1323,17 @@ class Test extends BaseLogger {
                 this.dailyGameOneMistakeShareTest,
                 this.dailyGameShowSolutionTest,
                 this.practiceGameTest,
+                this.practiceGameTestNoConfirm,
                 this.practiceGameLimitTest,
                 this.geniusMoveAndShareTest,
                 this.cookieRestartTest,
+                this.changeMindOnSelectedLettersTest,
         ];
 
         this.runTheNextTest();
     }
 
-    // runTheNextTest() iterates through all the test functions in this.appTestList, 
+    // runTheNextTest() iterates through all the test functions in this.appTestList,
     // running one test each time it is called, then scheduling the next test shortly
     // ahead in the future.  This gives the javascript event loop a chance to execute
     // other tasks in between each test, such as showing the screen changes.
@@ -1212,7 +1352,28 @@ class Test extends BaseLogger {
             this.logDebug("no more tests to run - showing results", "test");
             this.showResults();
         }
-    } 
+    }
+
+    // confirmation is a function of the GameDisplay so to test it we need to be playing a game
+    changeMindOnSelectedLettersTest() {
+        this.testName = "changeMindOnSelectedLetters";
+        // SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+        // but we play  SHORT SHOOT SHOT HOT POT POO POOR
+        const changeLetterResult1 = this.playLetter(4, "O", "Z"); // SHORT -> SHOZT not confirmed -> SHOOT confirmed
+        const deleteLetterResult1 = this.deleteLetter(3,5);       // SHOOT -> SHOO not confirmed -> SHOT confirmed
+        const deleteLetterResult2 = this.deleteLetter(1);         // SHOT -> HOT  we are deleting even though not really a display option on this step.
+        const changeLetterResult2 = this.playLetter(1, "P");      // HOT -> POT
+        const changeLetterResult3 = this.playLetter(3, "O");      // POT -> POO
+        const insertLetterResult1 = this.insertLetter(3, "R", 0);  // POO -> xPOO change mind -> POOx -> POOR
+        this.verify(changeLetterResult1 == Const.OK, "after changing mind from Z to O, expected: ", Const.OK, " got: ", changeLetterResult1) &&
+            this.verify(deleteLetterResult1 == Const.WRONG_MOVE, "after changing mind from HOOT to SHOT, expected: ", Const.WRONG_MOVE, " got: ", deleteLetterResult1) &&
+            this.verify(deleteLetterResult2 == Const.OK, "after SHOT to HOT, expected: ", Const.OK, " got: ", deleteLetterResult2) &&
+            this.verify(changeLetterResult2 == Const.OK, "after HOT to POT, expected: ", Const.OK, " got: ", changeLetterResult1) &&
+            this.verify(changeLetterResult3 == Const.OK, "after POT to POO, expected: ", Const.OK, " got: ", changeLetterResult1) &&
+            this.verify(insertLetterResult1 == Const.OK, "after changing mind from POO ->  xPOO to POOx->POOR, expected: ", Const.OK, " got: ", insertLetterResult1) &&
+            this.success();
+    }
 
     // start playing daily game for day 2, and then continue on day 3.  It should be a new, unplayed game.
     dailyGameUnfinishedRestartNextDayTest() {
@@ -1240,13 +1401,13 @@ class Test extends BaseLogger {
         this.testName = "DailyGameNormalFinishStats";
 
         // The newly opened URL should be showing the test daily game by default;
-        this.playTheCannedDailyGameOnce(); 
+        this.playTheCannedDailyGameOnce();
 
         // game is done.  Let's see what the saved stats and words played are:
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const statsDisplay = appDisplay.statsDisplay;
 
-        // open the stats window.  This should compute the shareString, start the countdown clock 
+        // open the stats window.  This should compute the shareString, start the countdown clock
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
@@ -1267,7 +1428,7 @@ class Test extends BaseLogger {
             this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
-        
+
     // multiGameStatsTest plays the daily game 3 times and
     // then checks both the stats cookie, and the elements in the StatsContainer.
 
@@ -1277,10 +1438,10 @@ class Test extends BaseLogger {
         this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
 
         for (let gameCounter = 0; gameCounter <= 1; gameCounter++) {
-            // Re-open open the test window, and repeat 
-            // Don't let the game pick up where it left off, which is a finished game. 
+            // Re-open open the test window, and repeat
+            // Don't let the game pick up where it left off, which is a finished game.
             // Don't clear all the cookies because we are accumulating stats data with them across games here.
-            Persistence.clearDailyGameNumber(); 
+            Persistence.clearDailyGameNumber();
             this.resetTheTestAppWindow();
             this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
         }
@@ -1315,7 +1476,7 @@ class Test extends BaseLogger {
             this.playLetter(1, "P"); // BOO? -> POOR
             // now, play the same game again, if we have another round to go.
             if (gameCounter != 2) {
-                Persistence.clearDailyGameNumber(); 
+                Persistence.clearDailyGameNumber();
                 this.resetTheTestAppWindow();
             }
         }
@@ -1328,8 +1489,8 @@ class Test extends BaseLogger {
         expDailyStats[1] = 1;
         expDailyStats[2] = 1;
         this.verifyStats(expDailyStats) && this.success();
-    } 
-        
+    }
+
     // multiIncompleteGameStatsTest plays the daily game 3 times:
     // one failed, one successful, one incomplete and the solution shown.
     // Checks both the stats cookie, and the elements in the StatsContainer.
@@ -1339,7 +1500,7 @@ class Test extends BaseLogger {
         for (let gameCounter = 0; gameCounter <= 2; gameCounter++) {
             this.logDebug("multiIncompleteGameStatsTest() gameCounter: ", gameCounter, "test");
             if (gameCounter == 2) {
-                // play a failed game 
+                // play a failed game
                 this.playLetter(4, "O"); // SHORT -> SHOOT
                 this.deleteLetter(1);    // SHOOT -> HOOT
                 this.playLetter(1, "B"); // HOOT -> BOOT
@@ -1349,10 +1510,10 @@ class Test extends BaseLogger {
                 this.playLetter(1, "L"); // ROOT -> LOOT error
                 this.playLetter(1, "R"); // LOOT -> ROOT error
             } else if (gameCounter == 1) {
-                // play a full game 
+                // play a full game
                 this.playTheCannedDailyGameOnce();
             } else if (gameCounter == 0) {
-                // play an incomplete game and request the solution 
+                // play an incomplete game and request the solution
                 // game: SHORT -> POOR
                 this.playLetter(4, "O"); // SHORT -> SHOOT
                 this.deleteLetter(1);    // SHOOT -> HOOT
@@ -1361,17 +1522,17 @@ class Test extends BaseLogger {
                 this.gameDisplay.showSolution();
             }
             if (gameCounter != 2) {
-                Persistence.clearDailyGameNumber(); 
+                Persistence.clearDailyGameNumber();
                 this.resetTheTestAppWindow();
             }
         }
- 
+
         // create and verify an expected DailyStats blob
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
         expDailyStats.gamesPlayed = 3;
         expDailyStats.gamesShown = 1;
         expDailyStats.gamesFailed = 1;
-        expDailyStats.gamesCompleted = 1; 
+        expDailyStats.gamesCompleted = 1;
         expDailyStats[0] = 1;  // complete game has 0 errors
         expDailyStats[Const.TOO_MANY_WRONG_MOVES] = 1;  // failed game has TOO_MANY_WRONG_MOVE errors
         this.verifyStats(expDailyStats) && this.success();
@@ -1486,7 +1647,7 @@ class Test extends BaseLogger {
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const statsDisplay = appDisplay.statsDisplay;
 
-        // open the stats window.  This should compute the shareString, start the countdown clock 
+        // open the stats window.  This should compute the shareString, start the countdown clock
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
@@ -1525,7 +1686,7 @@ class Test extends BaseLogger {
         // game is done.  Let's see what the saved stats and words played are:
         const statsDisplay = appDisplay.statsDisplay;
 
-        // open the stats window.  This should compute the shareString, start the countdown clock 
+        // open the stats window.  This should compute the shareString, start the countdown clock
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
@@ -1555,7 +1716,7 @@ class Test extends BaseLogger {
         const game = this.gameDisplay.game;
         const di = game.getDisplayInstructions();
 
-        let resultsSoFar = 
+        let resultsSoFar =
             this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
             this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `instruction[0] is ${di[0].toStr()}`) &&
             this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `instruction[1] is ${di[1].toStr()}`) &&
@@ -1638,12 +1799,22 @@ class Test extends BaseLogger {
         }
     }
 
-    practiceGameTest() {
+    practiceGameTestNoConfirm() {
+        const confirm = false;
+        this.practiceGameTest(confirm);
+    }
+
+    practiceGameTest(confirm=true) {
         this.testName = "PracticeGame";
+        if (!confirm) {
+        this.testName = "PracticeGameNoConfirm";
+        }
 
         this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
         this.logDebug("Switching to practice game", "test");
         this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
+        this.getNewAppWindow().theAppDisplay.confirmationMode = confirm;
+
         this.logDebug("Done switching to practice game", "test");
 
         // the active gameDisplay in this test needs to be refreshed after switching to the practice game
@@ -1656,6 +1827,9 @@ class Test extends BaseLogger {
         let resultO2 = this.playLetter(2, "O");          // LIT -> LOT
         let resultInsertP0 = this.insertLetter(0, "P" ); // LOT -> PLOT
         let resultInsertI1 = this.insertLetter(1, "I");  // PLOT -> PxLOT
+
+        // restore default confirmation mode
+        this.getNewAppWindow().theAppDisplay.confirmationMode = true;
 
         this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
             this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
@@ -1682,8 +1856,7 @@ class Test extends BaseLogger {
         this.logDebug(this.testName, ": showing solution", "test");
         this.gameDisplay.showSolution();
 
-        const srcElement = new MockEventSrcElement(this.gameDisplay);
-        const mockEvent = new MockEvent(srcElement);
+        const mockEvent = null; // the event is not actually touched by the callback
         let soFarSoGood = true;
         const testPracticeGamesPerDay = 3;
         this.gameDisplay.setPracticeGamesPerDay(testPracticeGamesPerDay);
@@ -1695,15 +1868,15 @@ class Test extends BaseLogger {
             }
             this.logDebug(this.testName, ": gamesPlayed:", gamesPlayed, "test");
             // New Game button should be there.  The postGameDiv is reconstructed on every refresh of the display after a move
-            // or solution. 
+            // or solution.
             const postGameDiv = this.gameDisplay.postGameDiv;
             const children = postGameDiv.children;
 
             if ( this.verify(children.length == 1, "expected 1 children, got: ", children.length) &&
-                    this.verify( (children[0].textContent == "New Game"), "expected textContent=New Game, got: ", children[0].textContent) && 
+                    this.verify( (children[0].textContent == "New Game"), "expected textContent=New Game, got: ", children[0].textContent) &&
                     this.verify(this.gameDisplay.anyGamesRemaining(), "After showing ", gamesPlayed, " games, anyGamesRemaining should still be true")
                ) {
-                // pretend to click the new game button
+                // pretend to click the new game button.
                 this.gameDisplay.newGameCallback(mockEvent);
                 //do we need to wait a while? No, that callback handler runs synchronously.
                 this.gameDisplay.showSolution();
@@ -1729,7 +1902,7 @@ class Test extends BaseLogger {
         let resultO4 = this.playLetter(4, "O");       // SHORT -> SHOOT
         let resultDelete1 = this.deleteLetter(1);     // SHOOT -> HOOT
         let resultR4Genius = this.playLetter(4, "R"); // HOOT -> HOOR genius move
-        let resultP1 = this.playLetter(1, "P");       // HOOR -> POOR  
+        let resultP1 = this.playLetter(1, "P");       // HOOR -> POOR
 
         // let's look at the share ...
         let statsDisplay = this.getNewAppWindow().theAppDisplay.statsDisplay;
@@ -1776,6 +1949,7 @@ class Test extends BaseLogger {
             this.verify((testObjRestored.field == "hello"), `testObjRestored.field is '${testObjRestored.field}', not hello`) &&
             this.success();
     }
+
 
     // ===== Dictionary Tester =====
 

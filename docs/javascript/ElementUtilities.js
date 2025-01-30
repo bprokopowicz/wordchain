@@ -26,6 +26,15 @@ class ElementUtilities {
         element.setAttribute('class', elementClass);
     }
 
+    // This utility only takes a single class name, not a list like other methods here.
+    static hasClass(element, className) {
+        const classes = element.getAttribute('class');
+        if (classes == null) {
+            return false;
+        }
+        return (classes.indexOf(className) >= 0);
+    }
+
     static addElement(elementType, attributes=null, innerHTML=null) {
         return ElementUtilities.addElementTo(elementType, document.body, attributes, innerHTML);
     }
