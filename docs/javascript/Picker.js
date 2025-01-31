@@ -28,9 +28,9 @@ class Picker extends BaseLogger {
         //    <div class="picker-inner-div">
         //    <table class="picker-table">
         //        <tr class="picker-tr">
-        //            <td class="picker-td"><button class="picker-button button-unselected">A</button></td>
+        //            <td class="picker-td"><button class=`picker-button ${Const.UNSELECTED_STYLE}`>A</button></td>
         //            ...
-        //            <td class="picker-td"><button class="picker-button button-unselected">Z</button></td>
+        //            <td class="picker-td"><button class=`picker-button Const.UNSELECTED_STYLE`>Z</button></td>
         //        </tr>
         //    </table>
         //    </div>
@@ -52,7 +52,7 @@ class Picker extends BaseLogger {
         for (let letterCode = codeLetterA; letterCode <= codeLetterZ; letterCode++) {
             letter = String.fromCharCode(letterCode);
             td = ElementUtilities.addElementTo("td", row, {class: "picker-td", align: "center"})
-            button = ElementUtilities.addElementTo("button", td, {class: "picker-button button-unselected", letter: letter}, letter)
+            button = ElementUtilities.addElementTo("button", td, {class: `picker-button ${Const.UNSELECTED_STYLE}`, letter: letter}, letter)
             this.buttonsForLetters.set(letter, button);
             if (letter == 'M') {
                 this.middleButton = button;

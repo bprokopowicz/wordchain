@@ -261,8 +261,8 @@ class Test extends BaseLogger {
                 this.logDebug("optional click got ", optionalClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            if (!ElementUtilities.hasClass(optionalLetterButton, 'button-unconfirmed')) {
-                this.logDebug("optional letter-button 'class' after first selecting should have button-unconfirmed.", "test");
+            if (!ElementUtilities.hasClass(optionalLetterButton, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("optional letter-button 'class' after first selecting should have ", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
         }
@@ -279,22 +279,22 @@ class Test extends BaseLogger {
                 return Const.UNEXPECTED_ERROR;
             }
             // validate that realButton is unconfirmed
-            if (!ElementUtilities.hasClass(realButton, 'button-unconfirmed')) {
-                this.logDebug("realButton class after first selecting should have button-unconfirmed.", "test");
+            if (!ElementUtilities.hasClass(realButton, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("realButton class after first selecting should have ", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
 
             if (optionalLetterButton != null) {
-                if (!ElementUtilities.hasClass(optionalLetterButton, 'button-unselected')) {
-                    this.logDebug("optional-button class after first selecting should have button-unselected.", "test");
+                if (!ElementUtilities.hasClass(optionalLetterButton, Const.UNSELECTED_STYLE)) {
+                    this.logDebug("optional-button class after first selecting should have ", Const.UNSELECTED_STYLE, "test");
                     return Const.UNEXPECTED_ERROR;
                 }
             }
         }
 
         const rc = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
-        if (!ElementUtilities.hasClass(realButton, 'button-unselected')) {
-            this.logDebug("realButton class after first selecting should have button-unselected.", "test");
+        if (!ElementUtilities.hasClass(realButton, Const.UNSELECTED_STYLE)) {
+            this.logDebug("realButton class after first selecting should have ", Const.UNSELECTED_STYLE, "test");
             return Const.UNEXPECTED_ERROR;
         }
         this.logDebug("final click returns: ", rc, "test");
@@ -313,7 +313,7 @@ class Test extends BaseLogger {
                 return Const.UNEXPECTED_ERROR;
             }
             mockOptionalDeleteButton = new MockEventSrcElement(this.gameDisplay);
-            ElementUtilities.addClass(mockOptionalDeleteButton, 'button-unselected');
+            ElementUtilities.addClass(mockOptionalDeleteButton, Const.UNSELECTED_STYLE);
             mockOptionalDeleteButton.setAttribute("deletionPosition", optionalPosition.toString());
             const mockEvent = new MockEvent(mockOptionalDeleteButton);
             const optionalClickRes  = this.gameDisplay.deletionClickCallback(mockEvent);
@@ -321,14 +321,14 @@ class Test extends BaseLogger {
                 this.logDebug("got ", optionalClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            if (!ElementUtilities.hasClass(mockOptionalDeleteButton, 'button-unconfirmed')) {
-                this.logDebug("mock optional delete-button  class after selecting should have button-unconfirmed.", "test");
+            if (!ElementUtilities.hasClass(mockOptionalDeleteButton, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("mock optional delete-button  class after selecting should have ", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
         }
         // the srcElement here is a 'deletion' button.
         const mockDeleteButton = new MockEventSrcElement(this.gameDisplay);
-        ElementUtilities.addClass(mockDeleteButton, 'button-unselected');
+        ElementUtilities.addClass(mockDeleteButton, Const.UNSELECTED_STYLE);
         mockDeleteButton.setAttribute("deletionPosition", position.toString());
 
         const mockEvent = new MockEvent(mockDeleteButton);
@@ -341,20 +341,20 @@ class Test extends BaseLogger {
             }
             if (changesMind) {
                 // check that the optional delete button has been reset to unselected
-                if (!ElementUtilities.hasClass(mockOptionalDeleteButton, 'button-unselected')) {
-                    this.logDebug("mock optional delete-button class after changing mind should have button-unselected.", "test");
+                if (!ElementUtilities.hasClass(mockOptionalDeleteButton, Const.UNSELECTED_STYLE)) {
+                    this.logDebug("mock optional delete-button class after changing mind should have ", Const.UNSELECTED_STYLE, "test");
                     return Const.UNEXPECTED_ERROR;
                 }
             }
-            if (!ElementUtilities.hasClass(mockDeleteButton, 'button-unconfirmed')) {
-                this.logDebug("mock delete-button class after first press should have button-unconfirmed.", "test");
+            if (!ElementUtilities.hasClass(mockDeleteButton, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("mock delete-button class after first press should have ", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
         }
 
         const rc = this.gameDisplay.deletionClickCallback(mockEvent);
-        if (!ElementUtilities.hasClass(mockDeleteButton, 'button-unselected')) {
-            this.logDebug("mock delete-button class after final press should have button-unselected.", "test");
+        if (!ElementUtilities.hasClass(mockDeleteButton, Const.UNSELECTED_STYLE)) {
+            this.logDebug("mock delete-button class after final press should have ", Const.UNSELECTED_STYLE, "test");
             return Const.UNEXPECTED_ERROR;
         }
         this.logDebug("final click returns: ", rc, "test");
@@ -373,22 +373,22 @@ class Test extends BaseLogger {
             }
             mockOptionalInsertButton = new MockEventSrcElement(this.gameDisplay);
             mockOptionalInsertButton.setAttribute("additionPosition", optionalPosition.toString());
-            ElementUtilities.addClass(mockOptionalInsertButton, 'button-unselected');
+            ElementUtilities.addClass(mockOptionalInsertButton, Const.UNSELECTED_STYLE);
             const mockEvent = new MockEvent(mockOptionalInsertButton);
             const optionalClickRes = this.gameDisplay.additionClickCallback(mockEvent);
             if (optionalClickRes != Const.NEEDS_CONFIRMATION) {
                 this.logDebug("got ", optionalClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            if (!ElementUtilities.hasClass(mockOptionalInsertButton, 'button-unconfirmed')) {
-                this.logDebug("mock optional insert-button class after first press should have button-unconfirmed.", "test");
+            if (!ElementUtilities.hasClass(mockOptionalInsertButton, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("mock optional insert-button class after first press should have ", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
         }
 
         const mockInsertButton = new MockEventSrcElement(this.gameDisplay);
         mockInsertButton.setAttribute("additionPosition", position.toString());
-        ElementUtilities.addClass(mockInsertButton, 'button-unselected');
+        ElementUtilities.addClass(mockInsertButton, Const.UNSELECTED_STYLE);
         const mockEvent = new MockEvent(mockInsertButton);
 
         if (this.gameDisplay.isConfirmationMode()) {
@@ -397,13 +397,13 @@ class Test extends BaseLogger {
                 this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            if (!ElementUtilities.hasClass(mockInsertButton, 'button-unconfirmed')) {
-                this.logDebug("mock insert-button class after first press should have button-unconfirmed.", "test");
+            if (!ElementUtilities.hasClass(mockInsertButton, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("mock insert-button class after first press should have ", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
             if (changesMind) {
-                if (!ElementUtilities.hasClass(mockOptionalInsertButton, 'button-unselected')) {
-                    this.logDebug("mock optional insert-button class after re-press should have button-unselected.", "test");
+                if (!ElementUtilities.hasClass(mockOptionalInsertButton, Const.UNSELECTED_STYLE)) {
+                    this.logDebug("mock optional insert-button class after re-press should have ", Const.UNSELECTED_STYLE, "test");
                     return Const.UNEXPECTED_ERROR;
                 }
             }
@@ -414,8 +414,8 @@ class Test extends BaseLogger {
             this.logDebug("got ", clickResult, " instead of ", Const.OK, "test");
             return clickResult;
         }
-        if (!ElementUtilities.hasClass(mockInsertButton, 'button-unselected')) {
-            this.logDebug("mock insert-button class after last press should have button-unselected.", "test");
+        if (!ElementUtilities.hasClass(mockInsertButton, Const.UNSELECTED_STYLE)) {
+            this.logDebug("mock insert-button class after last press should have ", Const.UNSELECTED_STYLE, "test");
             return Const.UNEXPECTED_ERROR;
         }
         // At this point, if we are not in confirmation mode, we have clicked once to add the new position.

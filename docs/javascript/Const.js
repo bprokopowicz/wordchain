@@ -147,6 +147,9 @@ export const SCORE_TEXT   = [
     "5 -- too many mistakes!",
 ];
 
+// CSS class values
+export const UNSELECTED_STYLE = 'button-unselected';
+export const UNCONFIRMED_STYLE = 'button-unconfirmed';
 // Instead of a number, if the user has had too many wrong moves
 // use the CONFOUNDED emoji.
 export const TOO_MANY_WRONG_MOVES = 5;  // Shouldn't be > 9; relates to NUMBERS array above

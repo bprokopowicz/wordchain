@@ -522,17 +522,17 @@ class GameDisplay extends BaseLogger {
     // Changes the class on the appropriate element relative to the selected button
     // to 'button-unconfirmed'.
     showUnconfirmed() {
-        const unselectedElement = this.findSelectedWithClass('button-unselected');
-        ElementUtilities.removeClass(unselectedElement, 'button-unselected')
-        ElementUtilities.addClass(unselectedElement, 'button-unconfirmed')
+        const unselectedElement = this.findSelectedWithClass(Const.UNSELECTED_STYLE);
+        ElementUtilities.removeClass(unselectedElement, Const.UNSELECTED_STYLE)
+        ElementUtilities.addClass(unselectedElement, Const.UNCONFIRMED_STYLE)
     }
 
     // Changes the class on the appropriate element relative to the selected button
     // to 'button-unselected'.
     showUnselected() {
-        const unconfirmedElement = this.findSelectedWithClass('button-unconfirmed');
-        ElementUtilities.removeClass(unconfirmedElement, 'button-unconfirmed')
-        ElementUtilities.addClass(unconfirmedElement, 'button-unselected')
+        const unconfirmedElement = this.findSelectedWithClass(Const.UNCONFIRMED_STYLE);
+        ElementUtilities.removeClass(unconfirmedElement, Const.UNCONFIRMED_STYLE)
+        ElementUtilities.addClass(unconfirmedElement, Const.UNSELECTED_STYLE)
     }
 }
 

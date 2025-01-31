@@ -38,7 +38,7 @@ class ActionCell extends Cell {
             addButtonTo = this.cellContainer;
         }
 
-        ElementUtilities.addClass(addButtonTo, 'circle action-cell button-unselected');
+        ElementUtilities.addClass(addButtonTo, `circle action-cell ${Const.UNSELECTED_STYLE}`);
 
         this.cellContents = ElementUtilities.addElementTo("button", addButtonTo, {class: 'action-button'}, this.symbol);
         ElementUtilities.setButtonCallback(this.cellContents, callbackObj, callbackFunc);
