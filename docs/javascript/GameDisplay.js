@@ -322,13 +322,16 @@ class GameDisplay extends BaseLogger {
                 originalSolutionText;
 
             if (originalSolutionWords == userSolutionWords) {
-                originalSolutionText = "Your solution is the same as WordChain's original solution!";
+                originalSolutionText = "Your solution is the same as WordChain's original solution!<p>";
             } else {
-                originalSolutionText = `WordChain's original solution:<br>${originalSolutionWords}`;
+                originalSolutionText = `WordChain's original solution:<br>${originalSolutionWords}<p>`;
             }
             Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,
                     " user solution words: ", userSolutionWords,  "game");
             ElementUtilities.addElementTo("label", this.originalSolutionDiv, {class: "original-solution-label"}, `${originalSolutionText}`);
+            const imageDiv = ElementUtilities.addElementTo("div", this.originalSolutionDiv, {class: "icon-div"});
+            ElementUtilities.addElementTo("img", imageDiv, {src: "../images/favicon.png", class: "word-chain-icon"});
+            ElementUtilities.addElementTo("label", imageDiv, {class: "original-dolution-label"}, "Thank you for playing WordChain!");
         }
 
         // Enable or disable the Solution button.

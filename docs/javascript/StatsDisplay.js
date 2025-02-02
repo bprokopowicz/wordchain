@@ -186,7 +186,8 @@ class StatsDisplay extends AuxiliaryDisplay {
             } else if (moveRating === Const.GENIUS_MOVE) {
                 emoji = colorblindMode ? Const.GOLD_SQUARE : Const.GOLD_SQUARE;
             } else if (moveRating === Const.DODO_MOVE) {
-                emoji = colorblindMode ? Const.BROWN_SQUARE : Const.BROWN_SQUARE;
+                // These used to be brown squares, but they were off-putting.
+                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
             }
 
             // Now repeat that emoji for the length of the word and add a newline,

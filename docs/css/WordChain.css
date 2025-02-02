@@ -29,11 +29,11 @@
     --colorblind-good-bg-light:         #5f99e4;    /* blue */
     --colorblind-bad-bg-light:          #ff9200;    /* orange */
     --colorblind-genius-bg-light:       #f0ce15;    /* gold */
-    --colorblind-dodo-bg-light:         #986e6e;    /* brownish */
+    --colorblind-dodo-bg-light:         #ff9200;    /* orange; was brownish */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
     --non-colorblind-bad-bg-light:      #f87474;    /* red */
     --non-colorblind-genius-bg-light:   #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-light:     #986e6e;    /* brownish */
+    --non-colorblind-dodo-bg-light:     #f87474;    /* red; was brownish */
 
     /*
     ** Dark Mode Colors
@@ -43,11 +43,11 @@
     --colorblind-good-bg-dark:          #2d7be1;    /* blue */
     --colorblind-bad-bg-dark:           #d58b04;    /* orange */
     --colorblind-genius-bg-dark:        #f0ce15;    /* gold */
-    --colorblind-dodo-bg-dark :         #986e6e;    /* brownish */
+    --colorblind-dodo-bg-dark :         #d58b04;    /* orange; was brownish */
     --non-colorblind-good-bg-dark:      #28c128;    /* green */
     --non-colorblind-bad-bg-dark:       #d33433;    /* red */
     --non-colorblind-genius-bg-dark:    #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-dark :     #986e6e;    /* brownish */
+    --non-colorblind-dodo-bg-dark :     #d33433;    /* red; was brownish */
 }
 
 /*
@@ -409,6 +409,11 @@ svg {
     margin-left: 4px;
 }
 
+/*
+** The played-word*bg properties are set in AppDisplay.js to the appropriate
+** dark mode and colorblind properties.
+*/
+
 .letter-cell-good {
     background: var(--played-word-good-bg);
 }
@@ -458,6 +463,8 @@ button.action-button {
     justify-content: center;
     font-weight: bold;
     padding-bottom: 2px;
+    /* This turns off double-tap zooming on iPad -- thank ja! */
+    touch-action: none;
 }
 
 .action-outer-cell {
@@ -526,11 +533,26 @@ button.action-button {
 .original-solution-div {
     display: flex;
     width: 100%;
+    flex-direction: column;
     justify-content: left;
+    align-items: center;
     padding-top: 30px;
 }
 
 .original-solution-label {
+}
+
+.icon-div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 25px;
+}
+
+.word-chain-icon {
+    width: 80px;
+    height: 80px;
+    margin-right: 15px;
 }
 
 .game-button {
@@ -596,6 +618,8 @@ button.action-button {
     font-weight: bold;
     background: var(--user-input-bg);
     color: var(--user-input-fg);
+    /* This turns off double-tap zooming on iPad -- thank ja! */
+    touch-action: none;
 }
 
 /*
