@@ -46,12 +46,12 @@ class Game extends BaseLogger {
 
         const originalDict = new WordChainDict();
         const bestSolution = Solver.solve(originalDict, this.startWord, this.targetWord);
-        return bestSolution.getSolutionWords().join(", ");
+        return bestSolution.getSolutionWords().join('⇒');
     }
 
     getUserSolutionWords() {
         const userSolution = this.playedSteps;
-        return userSolution.getSolutionWords().join(", ");
+        return userSolution.getSolutionWords().join('⇒');
     }
 
     // Choose a random start/target that has a solution between
