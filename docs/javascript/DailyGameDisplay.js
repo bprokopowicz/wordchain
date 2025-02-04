@@ -53,12 +53,12 @@ class DailyGameDisplay extends GameDisplay {
     /* ----- Construction ----- */
 
     // Construct initial stats to be used if we don't have a cookie for daily stats.
+    // Note: gamesStarted >= gamesWon + gamesLost.   Some games are incomplete - neither won nor lost.
     static NewDailyStatsBlob() {
         let initialStats = {
-            gamesPlayed:     0,
-            gamesCompleted:  0,
-            gamesShown:      0,
-            gamesFailed:     0
+            gamesStarted: 0,
+            gamesWon:     0,
+            gamesLost:    0
         }
 
         // Now create a stat for each number of wrong moves, and initialize
@@ -141,7 +141,7 @@ class DailyGameDisplay extends GameDisplay {
             Persistence.clearDailySolutionShown();
             if (!this.gameIsBroken()) {
                 // New daily game!  Update stats relating to starting a new daily game.
-                this.incrementStat("gamesPlayed");
+                this.incrementStat("gamesStarted");
             }
         }
 
@@ -242,11 +242,11 @@ class DailyGameDisplay extends GameDisplay {
     updateDailyGameStatsIfDone(gameResult) {
         if (this.game.isOver()) {
             if (gameResult == Const.OK) {
-                this.incrementStat("gamesCompleted");
+                this.incrementStat("gamesWon");
             }
             let wrongMoveCount = this.game.numWrongMoves();
             if (wrongMoveCount >= Const.TOO_MANY_WRONG_MOVES) {
-                this.incrementStat("gamesFailed");
+                this.incrementStat("gamesLost");
             }
             // increment the specific-number-of-wrong-moves counter
             this.incrementStat(wrongMoveCount);
@@ -294,13 +294,12 @@ class DailyGameDisplay extends GameDisplay {
     // Called from AppDisplay when "Solution" button is clicked.
     showSolution() {
         // TODO-PRODUCTION: Add an "are you sure?"
+        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.showSolution() called.", "daily");
         this.game.finishGame();
-        Persistence.saveDailySolutionShown();
         this.showGameAfterMove();
 
-        // update persistent storage about the daily game.
-        this.incrementStat("gamesShown");
         Persistence.saveDailyGameState(this.gameState);
+        Persistence.saveDailySolutionShown();
     }
 }
 

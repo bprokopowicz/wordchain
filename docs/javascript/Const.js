@@ -1,13 +1,23 @@
+export var GL_DEBUG = false;
+
 // Turn on/off debugging.  We use var instead of const so that we can turn it on/off from
-// code as well as by hard-coding it here.
+// code as well as by hard-coding it here, BUT:
 // Javascript requires a module-local setter function to set an exported value from outside
 // the module.  All exported values are read-only even if not declared using "export const".
+// As of Feb 2025, this doesn't work.  The log line is printed, but GL_DEBUG remains false as
+// seen by other code using either Const.GL_DEBUG or Const.GET_GL_DEBUG().
 
-export let GL_DEBUG = false;
 
+/*
 export function SET_GL_DEBUG(value) {
+    console.log("OVERRIDING GL_DEBUG TO: ", value);
     GL_DEBUG = value;
 }
+
+export function GET_GL_DEBUG(value) {
+    return GL_DEBUG; 
+}
+*/
 
 // Constants for URLs. (CURRENTLY UNUSED)
 export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";

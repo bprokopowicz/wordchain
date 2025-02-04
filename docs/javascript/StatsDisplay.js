@@ -7,13 +7,11 @@ import * as Const from './Const.js';
 ** The updateStatsContent() method in this class reads a DailyStats cookie,
 ** an object with the following properties:
 **
-** gamesPlayed
+** gamesStarted
 **    Integer: number of games started.
-** gamesCompleted
-**    Integer: number of games completed.
-** gamesShown
-**    Integer: number of games for which the 'Solution' button was clicked.
-** gamesFailed
+** gamesWon
+**    Integer: number of games solved by the user.
+** gamesLost
 **    Integer: number of games that ended because of too many wrong moves.
 ** 0 .. <Const.TOO_MANY_WRONG_MOVES>
 **    Integer: Number of games that had 0, 1, ... wrong moves.
@@ -256,16 +254,9 @@ class StatsDisplay extends AuxiliaryDisplay {
             ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-label"}, label);
         }
 
-        let completionPercent;
-        if (dailyStats.gamesPlayed === 0) {
-            completionPercent = 0;
-        } else {
-            completionPercent = ((dailyStats.gamesCompleted / dailyStats.gamesPlayed) * 100).toFixed(1);
-        }
-
-        addStat(dailyStats.gamesPlayed, "Played", this.statsContainer);
-        addStat(completionPercent, "Completion %", this.statsContainer);
-        addStat(dailyStats.gamesShown, "Shown", this.statsContainer);
+        addStat(dailyStats.gamesStarted, "Started", this.statsContainer);
+        addStat(dailyStats.gamesWon, "Won", this.statsContainer);
+        addStat(dailyStats.gamesLost, "Lost", this.statsContainer);
 
         // Next we'll display a bar graph showing how many games there were at each "wrong moves value",
         // i.e. 0 .. <Const.TOO_MANY_WRONG_MOVES> *and* "games that ended because of too many

@@ -103,7 +103,7 @@ class Test extends BaseLogger {
     displayTestSuite() {
         let debugWarning = "";
         if (Const.GL_DEBUG) {
-            debugWarning = "<br>Set Const.GL_DEBUG=false for performance";
+            debugWarning = "<br>Warning: Const.GL_DEBUG is on for logging; this will be SLOW.";
         }
         this.addTitle("WordChain Test Suite<br>Allow 20+ seconds to complete. Browser popups must be allowed." + debugWarning);
 
@@ -444,7 +444,7 @@ class Test extends BaseLogger {
     }
 
     // compares the current stats cookie and stats screen content with expected and calculated values.
-    // Also, asserts that gamesPlayed >= gamesCompleted+gamesShown+gamesFailed
+    // Also, asserts that gamesStarted >= gamesWon+gamesLost
 
     verifyStats(expDailyStats) {
 
@@ -460,7 +460,7 @@ class Test extends BaseLogger {
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
 
-        // the statsContainer is a GUI element with at least 3 children: Played, Completion %, and Shown
+        // the statsContainer is a GUI element with at least 3 children: Played, Won and Lost
         let statsContainer = statsDisplay.statsContainer;
 
         // the statsDistribution is a GUI element with one bar for each possible number of wrong moves: 0 .. Const.TOO_MANY_WRONG_MOVES
@@ -476,31 +476,28 @@ class Test extends BaseLogger {
         let actDistributionLen = statsDistribution.children.length;
 
         // three calculated text values we expect to find on the stats screen:
-        let expPlayedText = `${expDailyStats.gamesPlayed}\nPlayed`;
+        let expPlayedText = `${expDailyStats.gamesStarted}\nStarted`;
         let actPlayedText = statsContainer.children[0].innerText.trim();
 
         let completionPercent = 0;
-        if (dailyStats.gamesPlayed > 0) {
-            completionPercent = ((dailyStats.gamesCompleted / dailyStats.gamesPlayed) * 100).toFixed(1);
+        if (dailyStats.gamesStarted > 0) {
         }
 
-        let expCompletionText = `${completionPercent}\nCompletion %`;
-        let actCompletionText = statsContainer.children[1].innerText.trim();
+        let expWonText = `${dailyStats.gamesWon}\nWon`;
+        let actWonText = statsContainer.children[1].innerText.trim();
 
-        let expShownText = `${expDailyStats.gamesShown}\nShown`;
-        let actShownText = statsContainer.children[2].innerText.trim();
+        let expLostText = `${expDailyStats.gamesLost}\nLost`;
+        let actLostText = statsContainer.children[2].innerText.trim();
 
         let testRes =
             this.verify(actContainerLen==expContainerLen, `expected statsContainer.children.length==${expContainerLen}, got ${actContainerLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
             this.verify(actDistributionLen==expDistributionLen, `expected statsDistribution.children.length==${expDistributionLen}, got ${actDistributionLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
-            this.verify(dailyStats.gamesPlayed==expDailyStats.gamesPlayed, `expected dailyStats.gamesPlayed==${expDailyStats.gamesPlayed}, got ${dailyStats.gamesPlayed}`) &&
-            this.verify(dailyStats.gamesCompleted==expDailyStats.gamesCompleted, `expected dailyStats.gamesCompleted==${expDailyStats.gamesCompleted}, got ${dailyStats.gamesCompleted}`) &&
+            this.verify(dailyStats.gamesStarted==expDailyStats.gamesStarted, `expected dailyStats.gamesStarted==${expDailyStats.gamesStarted}, got ${dailyStats.gamesStarted}`) &&
+            this.verify(dailyStats.gamesWon==expDailyStats.gamesWon, `expected dailyStats.gamesWon==${expDailyStats.gamesWon}, got ${dailyStats.gamesWon}`) &&
             this.verify(dailyStats.gamesShown==expDailyStats.gamesShown, `expected dailyStats.gamesShown==${expDailyStats.gamesShown}, got ${dailyStats.gamesShown}`) &&
-            this.verify(dailyStats.gamesFailed==expDailyStats.gamesFailed, `expected dailyStats.gamesFailed==${expDailyStats.gamesFailed}, got ${dailyStats.gamesFailed}`) &&
+            this.verify(dailyStats.gamesLost==expDailyStats.gamesLost, `expected dailyStats.gamesLost==${expDailyStats.gamesLost}, got ${dailyStats.gamesLost}`) &&
             this.verify(actPlayedText==expPlayedText, `expected statsContainer.children.0.innerText==${expPlayedText}, got ${actPlayedText}`) &&
-            this.verify(actCompletionText==expCompletionText, `expected statsContainer.children.1.innerText=='${expCompletionText}', got '${actCompletionText}'`) &&
-            this.verify(actShownText=Text=expShownText, `expected statsContainer.children.2.innerText=='${expShownText}', got '${actShownText}'`) &&
-            this.verify(dailyStats.gamesPlayed >= dailyStats.gamesCompleted + dailyStats.gamesShown + dailyStats.gamesFailed, `assertion failed: played not >= completed+shown+failed`);
+            this.verify(dailyStats.gamesStarted >= dailyStats.gamesWon + dailyStats.gamesLost, `assertion failed: #started not >= #won+#lost`);
 
         for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
             // check the stats blob
@@ -1413,8 +1410,8 @@ class Test extends BaseLogger {
 
         // create an expected DailyStats blob
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
-        expDailyStats.gamesPlayed = 1;
-        expDailyStats.gamesCompleted = 1;
+        expDailyStats.gamesStarted = 1;
+        expDailyStats.gamesWon = 1;
         expDailyStats[0] = 1;  // the only completed game has 0 errors
 
         let testResults = this.verifyStats(expDailyStats);
@@ -1447,8 +1444,8 @@ class Test extends BaseLogger {
 
         // create an expected DailyStats blob
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
-        expDailyStats.gamesPlayed = 3;
-        expDailyStats.gamesCompleted = 3;
+        expDailyStats.gamesStarted = 3;
+        expDailyStats.gamesWon = 3;
         expDailyStats[0] = 3;  // all 3 games have 0 errors
         this.verifyStats(expDailyStats) && this.success();
     }
@@ -1482,8 +1479,8 @@ class Test extends BaseLogger {
 
         // create the expected daily stats blob
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
-        expDailyStats.gamesPlayed = 3;
-        expDailyStats.gamesCompleted = 3;
+        expDailyStats.gamesStarted = 3;
+        expDailyStats.gamesWon = 3;
         expDailyStats[0] = 1;
         expDailyStats[1] = 1;
         expDailyStats[2] = 1;
@@ -1528,10 +1525,9 @@ class Test extends BaseLogger {
 
         // create and verify an expected DailyStats blob
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
-        expDailyStats.gamesPlayed = 3;
-        expDailyStats.gamesShown = 1;
-        expDailyStats.gamesFailed = 1;
-        expDailyStats.gamesCompleted = 1;
+        expDailyStats.gamesStarted = 3;
+        expDailyStats.gamesLost = 1;
+        expDailyStats.gamesWon = 1;
         expDailyStats[0] = 1;  // complete game has 0 errors
         expDailyStats[Const.TOO_MANY_WRONG_MOVES] = 1;  // failed game has TOO_MANY_WRONG_MOVE errors
         this.verifyStats(expDailyStats) && this.success();
@@ -1556,8 +1552,7 @@ class Test extends BaseLogger {
         // create an expected DailyStats blob
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
         // stats are zero by default
-        expDailyStats.gamesPlayed = 1;
-        expDailyStats.gamesShown = 1;
+        expDailyStats.gamesStarted = 1;
         let testResults = this.verifyStats(expDailyStats);
         this.logDebug("finishDailyGameShowSolutionTest testResults: ", testResults, "test");
 
@@ -1861,11 +1856,11 @@ class Test extends BaseLogger {
         this.gameDisplay.setPracticeGamesPerDay(testPracticeGamesPerDay);
         soFarSoGood = this.verify(this.gameDisplay.practiceGamesPerDay == testPracticeGamesPerDay,
                 `expected practice games per day to be ${testPracticeGamesPerDay}, got: ${this.gameDisplay.practiceGamesPerDay}`, "test");
-        for (let gamesPlayed=1; gamesPlayed < testPracticeGamesPerDay; gamesPlayed++) {
+        for (let gamesStarted=1; gamesStarted < testPracticeGamesPerDay; gamesStarted++) {
             if (!soFarSoGood) {
                 break; // stop testing on the first failure
             }
-            this.logDebug(this.testName, ": gamesPlayed:", gamesPlayed, "test");
+            this.logDebug(this.testName, ": gamesStarted:", gamesStarted, "test");
             // New Game button should be there.  The postGameDiv is reconstructed on every refresh of the display after a move
             // or solution.
             const postGameDiv = this.gameDisplay.postGameDiv;
@@ -1873,7 +1868,7 @@ class Test extends BaseLogger {
 
             if ( this.verify(children.length == 1, "expected 1 children, got: ", children.length) &&
                     this.verify( (children[0].textContent == "New Game"), "expected textContent=New Game, got: ", children[0].textContent) &&
-                    this.verify(this.gameDisplay.anyGamesRemaining(), "After showing ", gamesPlayed, " games, anyGamesRemaining should still be true")
+                    this.verify(this.gameDisplay.anyGamesRemaining(), "After showing ", gamesStarted, " games, anyGamesRemaining should still be true")
                ) {
                 // pretend to click the new game button.
                 this.gameDisplay.newGameCallback(mockEvent);
