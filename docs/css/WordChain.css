@@ -158,6 +158,7 @@
 :root {
     --cell-size: 25px;
     --action-cell-size: 15px;
+    --cell-margin: 4px;
     --picker-font-size: 2rem;
 }
 
@@ -405,8 +406,8 @@ svg {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 4px;
-    margin-left: 4px;
+    margin-right: var(--cell-margin);
+    margin-left: var(--cell-margin);
 }
 
 /*
@@ -480,8 +481,8 @@ button.action-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 4px;
-    margin-left: 4px;
+    margin-right: var(--cell-margin);
+    margin-left: var(--cell-margin);
 }
 
 .action-cell {
@@ -987,13 +988,21 @@ input.setting-radio {
 **************************************
 */
 
+/*
+** Changes to address clipping issue on Samsumg or other devices that are narrower
+** than our iPhones.
+**
+**     iPhone 14 pro: viewport width 393 px.
+**     Galaxy S21: viewport width 360 px.
+*/
 @media only screen and (width < 390px) {
+    :root {
+        --cell-size: 22px;
+        --action-cell-size: 13px;
+        --cell-margin: 3px;
+    }
+
     #game-div {
-        /*
-        ** Margin added to address clipping issue on Samsumg.
-        ** Galaxy S21: viewport width 360 px.
-        ** iPhone 14 pro: viewport width 393 px.
-        */
         margin-left: 25px;
 
         /* Allow horizontal scrolling just in case things widen past Samsung viewport. */
@@ -1001,6 +1010,9 @@ input.setting-radio {
     }
 }
 
+/*
+** Changes to for large screens like laptop.
+*/
 @media only screen and (min-width: 991px) {
     #picker-div {
         height: 100px;
