@@ -273,8 +273,6 @@ hr {
     flex-direction: column;
     justify-content: flex-start;
     margin-left: 25px;
-    margin-right: 10px;
-    overflow-x: hidden;
 }
 
 /*
