@@ -195,7 +195,6 @@ html, body {
     height: 100vh;
     margin: 0px;
     background: var(--primary-bg);
-    overflow-x: none;
 }
 
 hr {
@@ -274,6 +273,8 @@ hr {
     flex-direction: column;
     justify-content: flex-start;
     margin-left: 25px;
+    margin-right: 10px;
+    overflow-x: hidden;
 }
 
 /*
