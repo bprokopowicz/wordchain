@@ -260,7 +260,7 @@ hr {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    margin-left: 5px;
+    margin-left: 10px;
 }
 
 /*
@@ -464,7 +464,11 @@ button.action-button {
     justify-content: center;
     font-weight: bold;
     padding-bottom: 2px;
-    /* This turns off double-tap zooming on iPad -- thank ja! */
+    /*
+    ** This turns off double-tap zooming on iPad -- thank ja!
+    ** Unlike with the picker setting, here we can use value
+    ** none because we don't need/want any scrolling.
+    */
     touch-action: none;
 }
 
@@ -632,8 +636,11 @@ button.action-button {
     font-weight: bold;
     background: var(--user-input-bg);
     color: var(--user-input-fg);
-    /* This turns off double-tap zooming on iPad -- thank ja! */
-    touch-action: none;
+    /*
+    ** This turns off double-tap zooming on iPad. Note that setting this
+    ** to 'none' interferes with the ability to scroll the picker.
+    */
+    touch-action: pan-x;
 }
 
 /*
