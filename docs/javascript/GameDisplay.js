@@ -190,8 +190,8 @@ class GameDisplay extends BaseLogger {
     }
 
     showGameAfterMove(skipToast=false) {
-        const container = ElementUtilities.addElementTo("div", this.gameDiv, {class: "game-container"}),
-              tableDiv = ElementUtilities.addElementTo("div", container, {class: "table-div"}),
+        const gameContainer = ElementUtilities.addElementTo("div", this.gameDiv, {class: "game-container"}),
+              tableDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "table-div"}),
               tableElement = ElementUtilities.addElementTo("table", tableDiv, {class: "table-game"});
 
         // See whether the user requested the solution.
@@ -199,14 +199,12 @@ class GameDisplay extends BaseLogger {
         let userRequestedSolution = this.getSolutionShown();
         Const.GL_DEBUG && this.logDebug("showGameAfterMove() userRequestedSolution=", userRequestedSolution, "game");
 
-        this.scoreDiv = ElementUtilities.addElementTo("div", container, {class: "break score-div"});
-
         // Create an element that can be used to add buttons (or whatever) after the display of
         // elements for the game.
-        this.postGameDiv = ElementUtilities.addElementTo("div", container, {class: "break post-game-div"});
+        this.postGameDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "break post-game-div"});
 
-        // Create an element in which we will show WordChain's original solution.
-        this.originalSolutionDiv = ElementUtilities.addElementTo("div", container, {class: "break original-solution-div"});
+        // Create an element that can be used to add game results (score, WordChain solution).
+        this.resultsDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "break results-div"});
 
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
@@ -285,7 +283,7 @@ class GameDisplay extends BaseLogger {
 
         // Delete old move and add new one.
         ElementUtilities.deleteChildren(this.gameDiv);
-        ElementUtilities.addElementTo(container, this.gameDiv);
+        ElementUtilities.addElementTo(gameContainer, this.gameDiv);
 
         if (this.pickerEnabled) {
             this.enablePicker();
@@ -294,6 +292,16 @@ class GameDisplay extends BaseLogger {
         }
 
         if (this.game.isOver()) {
+            // Create an element that subclasses can use in their additionalGameOverActions()
+            // to add buttons (or whatever) immediately after the display of elements for the game.
+            this.postGameDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "break post-game-div"});
+
+            // Create divs to go in the results div.
+            var resultsDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "break results-div"}),
+                scoreDiv = ElementUtilities.addElementTo("div", resultsDiv, {class: "break score-div"}),
+                originalSolutionDiv = ElementUtilities.addElementTo("div", resultsDiv, {class: "break original-solution-div"}),
+                iconDiv = ElementUtilities.addElementTo("div", resultsDiv, {class: "break icon-div"});
+
             if (!userRequestedSolution) {
                 if (!skipToast) {
                     if (this.game.isWinner()) {
@@ -304,7 +312,7 @@ class GameDisplay extends BaseLogger {
                 }
 
                 const scoreText = Const.SCORE_TEXT[this.wrongMoves];
-                ElementUtilities.addElementTo("label", this.scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
+                ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
             }
 
             this.disablePicker();
@@ -318,20 +326,23 @@ class GameDisplay extends BaseLogger {
             // Display WordChain's original solution if different from the user's solution.
             // Otherwise dispaly a message indicating that they are the same.
             var originalSolutionWords = this.game.getOriginalSolutionWords(),
-                userSolutionWords = this.game.getUserSolutionWords(),
-                originalSolutionText;
+                userSolutionWords = this.game.getUserSolutionWords();
 
             if (originalSolutionWords == userSolutionWords) {
-                originalSolutionText = "Your solution is the same as WordChain's original solution!<p>";
+                ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
+                    "Your solution is the same as WordChain's original solution!");
             } else {
-                originalSolutionText = `WordChain's original solution:<br>${originalSolutionWords}<p>`;
+                ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
+                    "WordChain's original solution:");
+                ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
+                    originalSolutionWords);
             }
+
             Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,
                     " user solution words: ", userSolutionWords,  "game");
-            ElementUtilities.addElementTo("label", this.originalSolutionDiv, {class: "original-solution-label"}, `${originalSolutionText}`);
-            const imageDiv = ElementUtilities.addElementTo("div", this.originalSolutionDiv, {class: "icon-div"});
-            ElementUtilities.addElementTo("img", imageDiv, {src: "../images/favicon.png", class: "word-chain-icon"});
-            ElementUtilities.addElementTo("label", imageDiv, {class: "original-dolution-label"}, "Thank you for playing WordChain!");
+
+            ElementUtilities.addElementTo("img", iconDiv, {src: "../images/favicon.png", class: "word-chain-icon"});
+            ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
         }
 
         // Enable or disable the Solution button.

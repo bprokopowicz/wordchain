@@ -260,6 +260,7 @@ hr {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    margin-left: 5px;
 }
 
 /*
@@ -510,6 +511,15 @@ button.action-button {
     font-weight: bold;
 }
 
+/*
+** ----------------------------------------
+** Game results
+** ----------------------------------------
+*/
+
+.results-div {
+}
+
 .score-div {
     display:flex;
     align-items: center;
@@ -534,7 +544,7 @@ button.action-button {
     display: flex;
     width: 100%;
     flex-direction: column;
-    justify-content: left;
+    justify-content: center;
     align-items: center;
     padding-top: 30px;
 }
@@ -544,7 +554,7 @@ button.action-button {
 
 .icon-div {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     margin: 25px;
 }
@@ -553,6 +563,10 @@ button.action-button {
     width: 80px;
     height: 80px;
     margin-right: 15px;
+}
+
+.icon-label {
+    font-style: italic;
 }
 
 .game-button {
@@ -576,7 +590,7 @@ button.action-button {
     justify-content: center;
     background: var(--primary-bg);
     width: 100%;
-    height: 60px;
+    height: 70px;
     padding-top: 10px;
     padding-bottom: 10px;
 }
