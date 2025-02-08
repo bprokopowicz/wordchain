@@ -182,7 +182,6 @@ html, body {
     height: 100vh;
     margin: 0px;
     background: var(--primary-bg);
-    overflow-x: none;
 }
 
 hr {
@@ -260,7 +259,7 @@ hr {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    margin-left: 10px;
+    overflow-x: hidden;
 }
 
 /*
@@ -594,7 +593,7 @@ button.action-button {
     justify-content: center;
     background: var(--primary-bg);
     width: 100%;
-    height: 70px;
+    height: 60px;
     padding-top: 10px;
     padding-bottom: 10px;
 }
@@ -987,6 +986,20 @@ input.setting-radio {
 ** Override Styling for Larger Screens
 **************************************
 */
+
+@media only screen and (width < 390px) {
+    #game-div {
+        /*
+        ** Margin added to address clipping issue on Samsumg.
+        ** Galaxy S21: viewport width 360 px.
+        ** iPhone 14 pro: viewport width 393 px.
+        */
+        margin-left: 25px;
+
+        /* Allow horizontal scrolling just in case things widen past Samsung viewport. */
+        overflow-x: auto;
+    }
+}
 
 @media only screen and (min-width: 991px) {
     #picker-div {
