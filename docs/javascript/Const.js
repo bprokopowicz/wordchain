@@ -44,7 +44,7 @@ export const SHOW_TOAST_DURATION = 3000; // milliseconds
 export const OK                  = "ok";
 export const NOT_A_WORD          = "Not in word list";
 // --- Displayed from one of the *Display classes.
-export const GAME_WON            = "Solved!";
+export const GAME_WON            = "Solved! You win!";
 export const GAME_LOST           = "Too many wrong moves";
 export const PICK_NEW_LETTER     = "Pick a different letter";      // Displayed when user selects the letter already in the cell to be changed.
 export const UNEXPECTED_ERROR    = "Yikes! Something went wrong";

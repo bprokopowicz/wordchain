@@ -12,46 +12,37 @@ Must Do
 - How to manage daily game words long-term?
 - Address/remove any TODO-PRODUCTION
 - Change Const.WORD_CHAIN_EPOCH_DATE
+- Fix Const.PRACTICE_GAMES_PER_DAY
 - Remove all rare words from standard dictionary (done through 'B') 1/29
 
 Discuss
 -------
 
 BLP says we should do these:
-- Logo/favicon.ico -- we should see if we can find someone who
-  will design a logo for a reasonable price, and perhaps suggest
-  changes to styling in the game.
-- Consider changing Daily game to roll over at midnight local time  (Already done)
 - Consider changing Practice game window to align with Daily game window
-- Should "shown" rows be a different color (currently green, maybe show gray)?
 
 BLP says only do these if it really catches on:
 - Create a back-end that delivers the daily and practice games
 - Cookies: make secure? Obfuscate? Save in back-end DB?
+- Mode where future rows do not have change cells outlined thicker. (harder)
 
 BLP says ask what our Beta users think on these:
-- Consider changing to "par scoring"
-  - WordChain's initial length is par
-  - Score is -N if N words greater than par
-  - Score is +N if N words less than par
-- When we show the solution, it solves the game as played so far.  It should also
-  show the best solution as played by the user until their first mistake, and then
-  continued optimally.  This display doesn't need to be on a display grid like the game.
-  It could just be a vertical list of the words.  This optimal solution might be different
-  from WordChain's original solution, but of the same length.  We could have ANOTHER
-  button to Show WordChain's Original solution.
-- Mode where future rows do not have change cells outlined thicker. (harder)
 - Don't make the player select the last letter when there is only one step left?
-  This prevents fat-fingering the last letter choice.
+- Show Solution
+  - Should it require confirmation?
+  - Should letters in "shown" rows be a different color (currently green, maybe show gray)?
 
 BLP has no opinion on:
-- Consider removing words that are in both dictionaries from the Scrabble dictionary
-  PNP: no.  Scrabble dictionary must be a superset of the standard dictionary for reliable on-going edits to the std dictionary.
 - Address slow handler violations:
      [Violation] 'click' handler took XXXms
         (can happen when switching to Practice game or starting new Practice game)
      [Violation] 'setInterval' handler took XXXms
         (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
+
+Issues
+------
+
+Start page favorites on iOS Safari does not show favicon :-(
 
 Testing Environments
 ====================
