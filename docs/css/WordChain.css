@@ -515,6 +515,19 @@ button.action-button {
     font-weight: bold;
 }
 
+.game-button {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-fg);
+    background: var(--game-button-bg);
+}
+
+.post-game-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /*
 ** ----------------------------------------
 ** Game results
@@ -536,12 +549,6 @@ button.action-button {
     border-width: .1rem;
     padding: 6px;
     font-weight: bold;
-}
-
-.post-game-div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .original-solution-div {
@@ -571,13 +578,6 @@ button.action-button {
 
 .icon-label {
     font-style: italic;
-}
-
-.game-button {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--primary-fg);
-    background: var(--game-button-bg);
 }
 
 /*
