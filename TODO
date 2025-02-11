@@ -7,13 +7,14 @@ Production TODO
 Must Do
 -------
 - How to create/minify/obfuscate one big js file?
-- Buy domain wordchain.com or some such?
+- Buy domain wordchaingame.com or some such?
 - Where to host?
 - How to manage daily game words long-term?
 - Address/remove any TODO-PRODUCTION
 - Change Const.WORD_CHAIN_EPOCH_DATE
 - Fix Const.PRACTICE_GAMES_PER_DAY
 - Remove all rare words from standard dictionary (done through 'B') 1/29
+- Use index.html at the root instead of WordChain.html in docs/html
 
 Discuss
 -------

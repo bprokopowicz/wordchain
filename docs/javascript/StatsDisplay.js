@@ -192,10 +192,13 @@ class StatsDisplay extends AuxiliaryDisplay {
             // creating a row that looks like the row of tiles in the game.
             shareString += emoji.repeat(wordLength) + "\n";
         }
+
         // Now, add the target
         emoji = Const.PURPLE_SQUARE;
-        shareString += emoji.repeat(targetLength);
+        shareString += emoji.repeat(targetLength) + "\n";
 
+        // Add the URL to the game and send the trimmed result.
+        shareString += "\n" + Const.URL_ROOT;
         return shareString.trim();
     }
 
