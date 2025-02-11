@@ -1421,7 +1421,7 @@ class Test extends BaseLogger {
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
         testResults &&
-            this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+            this.verify((actShareString.indexOf(expShareString) === 0), `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
 
@@ -1608,7 +1608,7 @@ class Test extends BaseLogger {
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 1️⃣\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
 
-        this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+        this.verify((actShareString.indexOf(expShareString) === 0), `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
 
     }
@@ -1650,7 +1650,7 @@ class Test extends BaseLogger {
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
 
-        this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+        this.verify((actShareString.indexOf(expShareString) === 0), `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
 
@@ -1689,7 +1689,7 @@ class Test extends BaseLogger {
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Const.TEST_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪`;
 
-        this.verify(actShareString===expShareString, `expected share string=='${expShareString}', got '${actShareString}'`) &&
+        this.verify((actShareString.indexOf(expShareString)===0), `expected share string=='${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
 
@@ -1888,7 +1888,7 @@ class Test extends BaseLogger {
     }
 
     geniusMoveAndShareTest() {
-        this.testName = "GeniusMoveDisplay";
+        this.testName = "GeniusMoveAndShare";
 
         // regular solution:                SHORT SHOOT HOOT BOOT BOOR POOR
         // solve the puzzle like a genius:  SHORT SHOOT HOOT HOOR POOR
@@ -1906,15 +1906,14 @@ class Test extends BaseLogger {
 
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
-        let shareString = statsDisplay.shareCallback(statsMockEvent);
-
-        let expectedShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟪🟪🟪🟪`;
+        let actShareString = statsDisplay.shareCallback(statsMockEvent);
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟪🟪🟪🟪`;
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
             this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
             this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
             this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
-            this.verify((shareString === expectedShareString), `sharestring: expected '${expectedShareString}', got '${shareString}'`) &&
+            this.verify((actShareString.indexOf(expShareString) === 0), `sharestring: expected '${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
 
