@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+  },
+  "devDependencies": {
+    "webpack": "^5.97.1",
+    "webpack-obfuscator": "^3.5.1"
+  }
+}

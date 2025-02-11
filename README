@@ -1,4 +1,5 @@
 How to run locally
+
 Start web server:
 
     cd /Users/bonnie/Projects/
@@ -20,6 +21,20 @@ https://bprokopowicz.github.io/wordchain/docs/html/Test.html
 
 You will need to enable pop-ups from that site.  Chrome will ask you on the first attempt.
 
+======================================================
+How to deploy a bundled, obfuscated version
+
+At the top of the repo:
+npm install
+
+   this will read package.json, and add any packages found there in the local directory node_modules.
+   It will also update package-lock.json, if anything changed in node_modules compared to what was there.
+   node_modules is NOT in the repo.  
+
+webpack --mode development
+
+   This will read webpack.js in the repo.  That defines the input (top-level HTML file for us), output file name, and plug-in
+   transformations (obfuscator)
 =======================================================
 Source code control (github)
 
