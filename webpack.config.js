@@ -1,10 +1,11 @@
 var WebpackObfuscator = require('webpack-obfuscator');
 module.exports = {
     entry: {
-        main: './docs/javascript/AppDisplay.js'
+        main: './docs/javascript/AppDisplay.js',
+        test: './test/Test.js',
     },
     output: {
-        filename: 'bundle.js'
+        filename: '[name]-bundled.js',
     },
     /*
     uncomment this to apply obfuscation.  As of Feb 11, 2025, obfuscation

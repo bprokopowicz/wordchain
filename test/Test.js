@@ -57,6 +57,10 @@ class MockEvent {
 class Test extends BaseLogger {
     static singletonObject = null;
 
+    // set this to true if we want to test against WordChainBundled.html vs WordChain.html
+    // TODO: make this a button on the test page
+    static TEST_BUNDLED_RELEASE = true;
+
     // We set the epoch to two days ago by default for all app tests.  This means the
     // game number will be two.
 
@@ -105,7 +109,11 @@ class Test extends BaseLogger {
         if (Const.GL_DEBUG) {
             debugWarning = "<br>Warning: Const.GL_DEBUG is on for logging; this will be SLOW.";
         }
-        this.addTitle("WordChain Test Suite<br>Allow 20+ seconds to complete. Browser popups must be allowed." + debugWarning);
+        let bundledWarning = "";
+        if (Test.TEST_BUNDLED_RELEASE) {
+            bundledWarning = "<br>Warning: This is testing the bundled local app.";
+        }
+        this.addTitle("WordChain Test Suite<br>Allow 20+ seconds to complete. Browser popups must be allowed." + debugWarning + bundledWarning);
 
         var runAll         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
             runDict        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
@@ -200,7 +208,10 @@ class Test extends BaseLogger {
         // is a new tab. In iOS/Safari this doesn't work -- we get failures to
         // download some source files and we don't know why!
         if (! this.getNewAppWindow()) {
-            const url = '/wordchain/docs/html/WordChain.html';
+            //const url = '/wordchain/docs/html/WordChain.html';
+            const url = Test.TEST_BUNDLED_RELEASE ?
+                '/wordchain/docs/html/WordChainBundled.html' :
+                '/wordchain/docs/html/WordChain.html';
             const windowFeatures = "width=300,height=400";
             const windowName = "AppDisplayTest";
             this.newWindow = window.open(url, windowName, windowFeatures);
