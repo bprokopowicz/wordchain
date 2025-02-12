@@ -22,19 +22,29 @@ https://bprokopowicz.github.io/wordchain/docs/html/Test.html
 You will need to enable pop-ups from that site.  Chrome will ask you on the first attempt.
 
 ======================================================
-How to deploy a bundled, obfuscated version
+How to deploy and test a bundled version
 
 At the top of the repo:
 npm install
 
-   this will read package.json, and add any packages found there in the local directory node_modules.
-   It will also update package-lock.json, if anything changed in node_modules compared to what was there.
-   node_modules is NOT in the repo.  
+   - This will read package.json, and add any packages found there to the local directory
+     node_modules if they aren't already there.
+   - It will also update package-lock.json, if anything changed in node_modules compared
+     to what was there.
+   - Note: node_modules is NOT in the repo, but package.json and package-lock.json are.  
 
 webpack --mode development
 
-   This will read webpack.js in the repo.  That defines the input (top-level HTML file for us), output file name, and plug-in
-   transformations (obfuscator)
+   - This will read webpack.config.js in the repo.
+   - This file defines the input (top-level JavaScript file for us), output file name,
+     and plug-in transformations (obfuscator)
+   - Currently creates 2 bundles wordchain/dist/main-bundled.js, wordchain/dist/test-bundled.js.
+
+As above, navigate in Chrome or Safari to:
+
+    https://localhost/wordchain/docs/html/WordChainBundled.html
+    https://localhost/wordchain/docs/html/TestBundled.html
+
 =======================================================
 Source code control (github)
 
