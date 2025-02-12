@@ -1,6 +1,6 @@
 Known Bugs
 ==========
-- None
+- One of the Test* Cookies causes bad breakage -- like problem with Solver.getNthWord()
 
 Production TODO
 ===============

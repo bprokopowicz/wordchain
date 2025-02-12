@@ -177,6 +177,11 @@ class Test extends BaseLogger {
         let resultString = results.concat(this.messages).join("<br>");
 
         ElementUtilities.setElementHTML("testResults", resultString);
+
+        // We have found that if we don't clear all the local storage,
+        // the Test* cookies (probably the epoch) mess things up and
+        // result in an error from Solver.getNthWord() of all things!
+        Persistence.clearAll();
         console.log(`Testing took: ${elapsedTime} ms.`);
     }
 
@@ -219,7 +224,7 @@ class Test extends BaseLogger {
         // download some source files and we don't know why!
         if (! this.getNewAppWindow()) {
             //const url = '/wordchain/docs/html/WordChain.html';
-            const url = Test.isBundled ?
+            const url = this.isBundled ?
                 '/wordchain/docs/html/WordChainBundled.html' :
                 '/wordchain/docs/html/WordChain.html';
             const windowFeatures = "width=300,height=400";

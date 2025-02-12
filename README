@@ -11,6 +11,7 @@ Navigate in Chrome or Safari to:
     https://localhost/wordchain/docs/html/Test.html
 
 =======================================================
+
 How to run at github pages
 
 After each push, github will republish the repo.  The game and tests are 
@@ -22,9 +23,10 @@ https://bprokopowicz.github.io/wordchain/docs/html/Test.html
 You will need to enable pop-ups from that site.  Chrome will ask you on the first attempt.
 
 ======================================================
-How to deploy and test a bundled version
 
-At the top of the repo:
+How to deploy and run a bundled version
+
+At the top of the repo (wordchain directory):
 npm install
 
    - This will read package.json, and add any packages found there to the local directory
@@ -40,12 +42,13 @@ webpack --mode development
      and plug-in transformations (obfuscator)
    - Currently creates 2 bundles wordchain/dist/main-bundled.js, wordchain/dist/test-bundled.js.
 
-As above, navigate in Chrome or Safari to:
+Similar to above, navigate in Chrome or Safari to:
 
     https://localhost/wordchain/docs/html/WordChainBundled.html
     https://localhost/wordchain/docs/html/TestBundled.html
 
 =======================================================
+
 Source code control (github)
 
 I created the url
