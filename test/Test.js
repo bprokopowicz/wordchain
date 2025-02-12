@@ -57,10 +57,6 @@ class MockEvent {
 class Test extends BaseLogger {
     static singletonObject = null;
 
-    // set this to true if we want to test against WordChainBundled.html vs WordChain.html
-    // TODO: make this a button on the test page
-    static TEST_BUNDLED_RELEASE = true;
-
     // We set the epoch to two days ago by default for all app tests.  This means the
     // game number will be two.
 
@@ -68,6 +64,13 @@ class Test extends BaseLogger {
     constructor() {
         super();
 
+        // save the calling <script> tag element for access to its parameters:
+        var scripts = document.getElementsByTagName('script');
+        var index = scripts.length - 1;
+        this.scriptObj = scripts[index];
+        console.log("scriptObj: ", this.scriptObj, "scriptObj.dataset: ", this.scriptObj.dataset);
+        const bundledArg = this.scriptObj.dataset.bundled;
+        this.isBundled = (bundledArg === "true");
         this.testName = "NOT SET";
         this.tinyList  = ["APPLE", "PEAR", "BANANA"];
         this.smallList = ["BAD", "BADE", "BALD", "BAT", "BATE", "BID", "CAD", "CAT", "DOG", "SCAD"]
@@ -75,6 +78,7 @@ class Test extends BaseLogger {
         this.scrabbleDict = new WordChainDict(scrabbleWordList);
         this.messages = [];
         this.openTheTestAppWindow();
+        console.log("The Test singleton: ", this);
     }
 
     static singleton() {
@@ -109,11 +113,10 @@ class Test extends BaseLogger {
         if (Const.GL_DEBUG) {
             debugWarning = "<br>Warning: Const.GL_DEBUG is on for logging; this will be SLOW.";
         }
-        let bundledWarning = "";
-        if (Test.TEST_BUNDLED_RELEASE) {
-            bundledWarning = "<br>Warning: This is testing the bundled local app.";
-        }
-        this.addTitle("WordChain Test Suite<br>Allow 20+ seconds to complete. Browser popups must be allowed." + debugWarning + bundledWarning);
+        let bundledStatus = "<br>This is testing against the " + (this.isBundled? "" : "non-") + "bundled wordchain source";
+
+        this.addTitle("WordChain Test Suite<br>Allow 20+ seconds to complete. Browser popups must be allowed." + debugWarning + bundledStatus);
+
 
         var runAll         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
             runDict        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
@@ -202,6 +205,13 @@ class Test extends BaseLogger {
         return this.newWindow;
     }
 
+    closeTheTestAppWindow() {
+        if (this.newWindow) {
+            this.newWindow.close();
+            this.newWindow = null;
+        }
+    }
+
     openTheTestAppWindow() {
         // Setting the width/height is what makes a separate window open
         // instead of a new browser tab. HOWEVER, in iOS/Chrome, the appearance
@@ -209,7 +219,7 @@ class Test extends BaseLogger {
         // download some source files and we don't know why!
         if (! this.getNewAppWindow()) {
             //const url = '/wordchain/docs/html/WordChain.html';
-            const url = Test.TEST_BUNDLED_RELEASE ?
+            const url = Test.isBundled ?
                 '/wordchain/docs/html/WordChainBundled.html' :
                 '/wordchain/docs/html/WordChain.html';
             const windowFeatures = "width=300,height=400";
