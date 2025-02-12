@@ -1,5 +1,6 @@
 Known Bugs
 ==========
+- None
 
 Production TODO
 ===============
@@ -14,36 +15,51 @@ Must Do
 - Change Const.WORD_CHAIN_EPOCH_DATE
 - Fix Const.PRACTICE_GAMES_PER_DAY
 - Remove all rare words from standard dictionary (done through 'B') 1/29
-- Use index.html at the root instead of WordChain.html in docs/html
+- Use index.html at the root instead of docs/html/WordChain.html
 
-Discuss
--------
-
-BLP says we should do these:
+Maybe Do
+---------
 - Consider changing Practice game window to align with Daily game window
 
-BLP says only do these if it really catches on:
+Second Beta TODO
+================
+
+- More daily game words
+- Execute automated tests and manual test use cases:
+  - Safari iPhone
+  - Safari iPad
+  - Chrome Mac
+- Seek user input on:
+  - Should the game automatically select the very last letter?
+  - Show Solution button:
+    - Should it require confirmation?
+    - Should letters in "shown" rows be a different color to indicate the user
+      didn't enter them (currently shown green, maybe show gray)?
+  - What would you think of having a hint button that would make the next
+    optimal move?
+    - If you think that would be a good addition, should we limit the number
+      of hints per game?
+    - Regardless of number of hints, they  would have to show up in the share
+      somehow, such as a different color (gray?) in the graphic.
+
+Maybe Some Day
+==============
+
+- Another hint approach:
+  - When you are changing a letter, letters in the picker that don't form valid
+    words (according to either dictionary) would become unselectable.
+  - When you are adding a letter, "+" buttons where there are no valid words
+    (according to the "common words" dictionary) would become unselectable.
+  - When you are deleting a letter, "-" buttons where the result is an invalid
+    word would become unselectable.
 - Create a back-end that delivers the daily and practice games
 - Cookies: make secure? Obfuscate? Save in back-end DB?
 - Mode where future rows do not have change cells outlined thicker. (harder)
-
-BLP says ask what our Beta users think on these:
-- Don't make the player select the last letter when there is only one step left?
-- Show Solution
-  - Should it require confirmation?
-  - Should letters in "shown" rows be a different color (currently green, maybe show gray)?
-
-BLP has no opinion on:
 - Address slow handler violations:
      [Violation] 'click' handler took XXXms
         (can happen when switching to Practice game or starting new Practice game)
      [Violation] 'setInterval' handler took XXXms
         (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
-
-Issues
-------
-
-Start page favorites on iOS Safari does not show favicon :-(
 
 Testing Environments
 ====================
