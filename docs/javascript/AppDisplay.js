@@ -72,7 +72,31 @@ class AppDisplay extends BaseLogger {
         // Now set the colors based on darkTheme and colorblindMode.
         this.setColors();
 
+        // Now, start the interval timer to check for new games:
+        this.startNewGameIntervalCheck();
+
         window.theAppDisplayIsReady = true;
+    }
+
+    startNewGameIntervalCheck() {
+        Const.GL_DEBUG && this.logDebug("startNewGameIntervalCheck() called", "display");
+        // stop any timer already running 
+        this.stopNewGameIntervalCheck();
+
+        // Set a timer to check whether it's time for a new Daily game periodically.
+        this.checkDailyIntervalTimer = setInterval(() => {
+                this.checkForNewDailyGame();
+                }, Const.DAILY_GAME_CHANGE_CHECK_INTERVAL);
+        Const.GL_DEBUG && this.logDebug("startNewGameIntervalCheck() created timer id: ", this.checkDailyIntervalTimer,  "display");
+    }
+
+    stopNewGameIntervalCheck() {
+        Const.GL_DEBUG && this.logDebug("stopNewGameIntervalCheck() called", "display");
+        if (this.checkDailyIntervalTimer) {
+            Const.GL_DEBUG && this.logDebug("stopNewGameIntervalCheck() clearing old timer id: ", this.checkDailyIntervalTimer, "display");
+            clearInterval(this.checkDailyIntervalTimer);
+            this.checkDailyIntervalTimer = null;
+        }
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
@@ -88,6 +112,8 @@ class AppDisplay extends BaseLogger {
     resetSingletonObject() {
         // so that we don't keep adding #root-div to the same document on each reset:
         document.getElementById("root-div").remove();
+        this.stopNewGameIntervalCheck();
+        this.statsDisplay.stopCountdownClock();
         AppDisplay.singletonObject = new AppDisplay();
     }
 
@@ -125,11 +151,6 @@ class AppDisplay extends BaseLogger {
         this.dailyGameDisplay = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
         this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
         this.currentGameDisplay = this.dailyGameDisplay;
-
-        // Set a timer to check whether it's time for a new Daily game periodically.
-        this.checkDailyIntervalTimer = setInterval(() => {
-            this.checkForNewDailyGame();
-        }, Const.DAILY_GAME_CHANGE_CHECK_INTERVAL);
     }
 
     /* ----- Header ----- */
@@ -235,6 +256,7 @@ class AppDisplay extends BaseLogger {
     // Check whether it is time for a new Daily game. This will recalculate
     // game number and if it has changed will reset internal state accordingly.
     checkForNewDailyGame() {
+        Const.GL_DEBUG && this.logDebug("checkForNewDailyGame() called; timer id: ", this.checkDailyIntervalTimer, "display");
         let isNewDailyGame = this.dailyGameDisplay.updateDailyGameData();
         if (isNewDailyGame) {
             this.showToast(Const.NEW_DAILY_GAME);
@@ -270,6 +292,7 @@ class AppDisplay extends BaseLogger {
     }
 
     getMsUntilNextGame() {
+        Const.GL_DEBUG && this.logDebug("AppDisplay.getMsUntilNextGame() called", "display");
         return this.dailyGameDisplay.getMsUntilNextGame();
     }
 

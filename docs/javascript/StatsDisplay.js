@@ -74,7 +74,8 @@ class StatsDisplay extends AuxiliaryDisplay {
     // This is called when the user Xes out of Stats screen, via the base class
     // closeAuxiliaryCallback().
     additionalCloseActions() {
-        clearInterval(this.clockIntervalTimer);
+        Const.GL_DEBUG && this.logDebug("StatsDisplay.additionalCloseActions(): clearing timer id: ", this.clockIntervalTimer, "daily");
+        this.stopCountdownClock();
     }
 
     // This is called when the user opensStats screen, via the base class
@@ -205,6 +206,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     // This is called when the user opens the Stats screen; it displays a
     // countdown clock until the next daily game is available.
     startCountdownClock() {
+
         function msToDuration(ms) {
             return new Date(ms).toISOString().substr(11, 8);
         }
@@ -218,6 +220,12 @@ class StatsDisplay extends AuxiliaryDisplay {
             msUntilNextGame = this.appDisplay.getMsUntilNextGame();
             this.countdownClock.textContent = msToDuration(msUntilNextGame);
         }, 1000);
+        Const.GL_DEBUG && this.logDebug("StatsDisplay.startCountdownClock() timer id: ", this.clockIntervalTimer, "daily");
+    }
+
+    stopCountdownClock() {
+        Const.GL_DEBUG && this.logDebug("StatsDisplay.stopCountdownClock() timer id: ", this.clockIntervalTimer, "daily");
+        clearInterval(this.clockIntervalTimer);
     }
 
     // Hide or show the share callback based on whether the daily game solution

@@ -12,6 +12,10 @@ class Persistence {
         Cookie.clearAllCookies();
     }
 
+    static clearAllNonDebug() {
+        Cookie.clearNonDebugCookies();
+    }
+
     static clearDailyGameState() {
         Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, []);
     }

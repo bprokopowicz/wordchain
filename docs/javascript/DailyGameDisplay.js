@@ -101,11 +101,14 @@ class DailyGameDisplay extends GameDisplay {
         const recoveredDailyGameNumber = Persistence.getDailyGameNumber();
         const [priorStartWord, priorTargetWord] = [this.startWord, this.targetWord];
 
+	// if the daily game number doesn't get calculated (bug) it will be assigned as the known 'broken game'.
+	let calcDailyGameNumber = Const.BROKEN_DAILY_GAME_NUMBER;
+
         if (this.overrideGameWordsFromTestVars()) {
             this.dailyGameNumber = Const.TEST_DAILY_GAME_NUMBER;
         } else  {
             // Determine the game number for right now. 
-            const calcDailyGameNumber = this.calculateGameNumber();
+            calcDailyGameNumber = this.calculateGameNumber();
 
             if (calcDailyGameNumber < 0 || calcDailyGameNumber >= DailyGameDisplay.GameWords.length) {
                 // the calculated game number is not valid. Something went awry; use the backup.
@@ -203,7 +206,7 @@ class DailyGameDisplay extends GameDisplay {
         const nowTimestamp = (new Date()).getTime();
         const msElapsed = nowTimestamp - this.baseTimestamp;
         const gameNumber = Math.floor(msElapsed / this.dateIncrementMs);
-        Const.GL_DEBUG && this.logDebug("calculateGameNumber(): now: ", nowTimestamp, ", elapsed since base: ",
+        Const.GL_DEBUG && this.logDebug("calculateGameNumber(): base: ", this.baseTimestamp, " now: ", nowTimestamp, ", elapsed since base: ",
                 msElapsed, ", gameNumber: ", gameNumber, "daily");
         return gameNumber;
     }
@@ -213,7 +216,7 @@ class DailyGameDisplay extends GameDisplay {
               nextGameTimestamp = this.baseTimestamp + (nextGameNum * this.dateIncrementMs),
               msUntilNextGame = nextGameTimestamp - (new Date()).getTime();
 
-        Const.GL_DEBUG && this.logDebug("getMsUntilNextGame(): nextGameNum:", nextGameNum, "msUntilNextGame:", msUntilNextGame, "daily");
+        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.getMsUntilNextGame(): nextGameNum:", nextGameNum, "msUntilNextGame:", msUntilNextGame, "daily");
         return msUntilNextGame;
     }
 

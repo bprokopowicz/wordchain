@@ -77,7 +77,7 @@ class Test extends BaseLogger {
         this.fullDict = new WordChainDict(globalWordList);
         this.scrabbleDict = new WordChainDict(scrabbleWordList);
         this.messages = [];
-        this.openTheTestAppWindow();
+        //this.openTheTestAppWindow();
         console.log("The Test singleton: ", this);
     }
 
@@ -181,7 +181,8 @@ class Test extends BaseLogger {
         // We have found that if we don't clear all the local storage,
         // the Test* cookies (probably the epoch) mess things up and
         // result in an error from Solver.getNthWord() of all things!
-        Persistence.clearAll();
+        Persistence.clearAllNonDebug();
+// TODO - close the pop-up window, too
         console.log(`Testing took: ${elapsedTime} ms.`);
     }
 
@@ -223,7 +224,6 @@ class Test extends BaseLogger {
         // is a new tab. In iOS/Safari this doesn't work -- we get failures to
         // download some source files and we don't know why!
         if (! this.getNewAppWindow()) {
-            //const url = '/wordchain/docs/html/WordChain.html';
             const url = this.isBundled ?
                 '/wordchain/docs/html/WordChainBundled.html' :
                 '/wordchain/docs/html/WordChain.html';
@@ -244,7 +244,7 @@ class Test extends BaseLogger {
 
     runAppTest(testFunc) {
         // clear cookies and reset the window with a known daily puzzle and a hard-coded practice puzzle.
-        Cookie.clearNonDebugCookies();
+        Persistence.clearAllNonDebug();
         Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
         Persistence.saveTestPracticeGameWords("TEST", "PILOT");
         this.resetTheTestAppWindow();
@@ -1328,7 +1328,8 @@ class Test extends BaseLogger {
         let newWindow = this.getNewAppWindow();
         if (!(newWindow && newWindow.localStorage && newWindow.theAppDisplayIsReady)) {
             this.openTheTestAppWindow();
-            console.log("app test window isn't ready yet; try again.");
+            this.logDebug("app test window isn't ready yet; will try again.", "test");
+            inTheFuture(1000).then( (foo=this) => {foo.runAppTests()} )
             return;
         }
         this.logDebug("window for App tests is ready.", "test");
@@ -1372,6 +1373,7 @@ class Test extends BaseLogger {
             inTheFuture(100).then( (foo=this) => {foo.runTheNextTest()})
         } else {
             this.logDebug("no more tests to run - showing results", "test");
+            this.closeTheTestAppWindow();
             this.showResults();
         }
     }
