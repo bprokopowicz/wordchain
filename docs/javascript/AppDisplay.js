@@ -1,3 +1,4 @@
+import * as css from "../css/WordChain.css";
 import { BaseLogger } from './BaseLogger.js';
 import { Cookie } from './Cookie.js';
 import { DailyGameDisplay } from './DailyGameDisplay.js';
