@@ -1,21 +1,16 @@
 Known Bugs
 ==========
-- One of the Test* Cookies causes bad breakage -- like problem with Solver.getNthWord()
 
 Production TODO
 ===============
 
 Must Do
 -------
-- How to create/minify/obfuscate one big js file?
-- Buy domain wordchaingame.com or some such?
-- Where to host?
 - How to manage daily game words long-term?
 - Address/remove any TODO-PRODUCTION
 - Change Const.WORD_CHAIN_EPOCH_DATE
 - Fix Const.PRACTICE_GAMES_PER_DAY
 - Remove all rare words from standard dictionary (done through 'B') 1/29
-- Use index.html at the root instead of docs/html/WordChain.html
 
 Maybe Do
 ---------
@@ -24,6 +19,8 @@ Maybe Do
 Second Beta TODO
 ================
 
+- Set up at hostinger.com with domain WordChainGame.com
+  - Use index.html at the root instead of docs/html/WordChainBundle.html?
 - More daily game words
 - Execute automated tests and manual test use cases:
   - Safari iPhone
@@ -42,8 +39,8 @@ Second Beta TODO
     - Regardless of number of hints, they  would have to show up in the share
       somehow, such as a different color (gray?) in the graphic.
 
-Maybe Some Day
-==============
+Maybe Someday
+=============
 
 - Another hint approach:
   - When you are changing a letter, letters in the picker that don't form valid
@@ -60,24 +57,6 @@ Maybe Some Day
         (can happen when switching to Practice game or starting new Practice game)
      [Violation] 'setInterval' handler took XXXms
         (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
-
-Testing Environments
-====================
-
-- Execute automated tests in these environments:
-  - Safari/iPhone
-  - Safari/iPad
-  - Safari/Mac
-  - Chrome/Android phone -- using debugging environment
-  - Chrome/Mac
-  - Chrome/iPad
-- Execute Manual UI Testing Use Cases in these environments:
-  - Safari/iPhone
-  - Safari/iPad
-  - Safari/Mac
-  - Chrome/Android phone -- using debugging environment
-  - Chrome/Mac
-  - Chrome/iPhone
 
 Testing Issues
 ==============
