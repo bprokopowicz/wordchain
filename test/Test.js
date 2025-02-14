@@ -1,4 +1,3 @@
-import * as css from "../docs/css/WordChain.css";
 import { BaseLogger } from '../docs/javascript/BaseLogger.js';
 import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';

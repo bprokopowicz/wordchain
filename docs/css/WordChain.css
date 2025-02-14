@@ -594,7 +594,6 @@ button.action-button {
     justify-content: center;
     background: var(--primary-bg);
     width: 100%;
-    height: 60px;
     padding-top: 10px;
     padding-bottom: 10px;
 }
@@ -1014,9 +1013,6 @@ input.setting-radio {
 ** Changes to for large screens like laptop.
 */
 @media only screen and (min-width: 991px) {
-    #picker-div {
-        height: 100px;
-    }
 
     table {
         border-spacing: .9rem;
