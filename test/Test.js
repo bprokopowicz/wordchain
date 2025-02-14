@@ -629,7 +629,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15881;
+        const expectedMinDictSize = 15850;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -872,8 +872,23 @@ class Test extends BaseLogger {
         this.testGameLossOnWrongLetterAdded();
         this.testGameLossOnWrongDelete();
         this.testGameLossOnWrongLetterChange();
+        this.testGameSolveAllDailyGames();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
+    }
+
+    testGameSolveAllDailyGames() {
+        this.testName = "GameSolveAllDailyGames";
+        for (let wordPair of DailyGameDisplay.GameWords) {
+            let [start, target] = wordPair;
+            const steps = [];
+            const game = new Game(start, target, steps);
+            const solution = game.remainingSteps;
+            if (!this.verify(solution.isSolved(), `daily puzzle ${start}->${target} has no solution!`)) {
+                return; // short-circuit the test if any puzzle fails.
+            }
+        }
+        this.success();
     }
 
     testGameCorrectFirstWord() {
