@@ -5,5 +5,4 @@
 
 # Ignore all __pycache__ directories
 __pycache__/
-dist/
 node_modules/
