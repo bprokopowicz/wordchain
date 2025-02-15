@@ -182,7 +182,6 @@ class Test extends BaseLogger {
         // the Test* cookies (probably the epoch) mess things up and
         // result in an error from Solver.getNthWord() of all things!
         Persistence.clearAllNonDebug();
-// TODO - close the pop-up window, too
         console.log(`Testing took: ${elapsedTime} ms.`);
     }
 
