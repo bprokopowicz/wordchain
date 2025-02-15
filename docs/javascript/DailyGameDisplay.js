@@ -48,6 +48,38 @@ class DailyGameDisplay extends GameDisplay {
           ['here', 'after'],
           ['foster', 'tub'],
           ['ice', 'roping'],
+	  ['paint', 'abroad'],
+	  ['singer', 'prizes'],
+	  ['host', 'barber'],
+	  ['fast', 'driver'],
+	  ['boat', 'dealer'],
+	  ['base', 'early'], // 40
+	  ['moat', 'palace'],
+	  ['hoist', 'single'],
+	  ['mint', 'ponies'],
+	  ['astral', 'weeks'],
+	  ['tart', 'ballot'],
+	  ['cake', 'breath'],
+	  ['dog', 'camper'],
+	  ['sinus', 'deride'],
+	  ['hero', 'loving'],
+	  ['paint', 'remove'], //50
+	  ['table', 'center'],
+	  ['word', 'pusher'],
+	  ['drink', 'shaken'],
+	  ['lost', 'skiers'],
+	  ['bare', 'mascot'],
+	  ['boiled', 'chosen'],
+	  ['tired', 'losing'],
+	  ['soft', 'create'],
+	  ['solid', 'groovy'],
+	  ['nearby', 'grave'], //60
+	  ['smoky', 'aliens'],
+	  ['warm', 'lather'],
+	  ['least', 'heroic'],
+	  ['fine', 'sprawl'],
+	  ['pray', 'harder'],
+	  ['cream', 'heater'],
     ];
 
     /* ----- Construction ----- */
