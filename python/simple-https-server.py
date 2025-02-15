@@ -5,7 +5,7 @@
 import ssl
 from http.server import HTTPServer, ThreadingHTTPServer, SimpleHTTPRequestHandler
 
-CERTFILE = './wordchain/localhost.pem'
+CERTFILE = './localhost.pem'
 
 
 def main():

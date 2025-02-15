@@ -19,10 +19,12 @@ export function GET_GL_DEBUG(value) {
 }
 */
 
-// Constants for URLs. (CURRENTLY UNUSED)
-export const URL_ROOT = "https://bprokopowicz.github.io/wordchain/";
-export const DICT_URL = "https:/wordchain/docs/resources/WordChainDict";
-export const SCRABBLE_DICT_URL = "https:/wordchain/docs/resources/Scrabble3-6";
+// Constants for URLs.
+export const SHARE_URL_ROOT = "https://WordChainFun.com/";
+export const DICT_URL = "https:/docs/resources/WordChainDict";
+export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
+export const EMAIL_URL = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
+export const FAQ_URL   = "/FAQ.html";
 
 // Constants for practice game word selection screen
 // TODO-PRODUCTION: Uncomment
@@ -111,10 +113,6 @@ export const BACKUP_DAILY_GAME_TARGET = "broken";
 
 // How frequently whe check whether it's time for a new Daily game.
 export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 5 * 1000;
-
-// Constants for settings screen
-export const EMAIL_HREF = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
-export const FAQ_HREF   = "FAQ.html";
 
 // Constants for sharing graphic and stats screen
 // Emoji code strings for share string

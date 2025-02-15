@@ -11,13 +11,13 @@ class HelpDisplay extends AuxiliaryDisplay {
         const helpHTML = `
         <h1 style="display: flex; justify-content: space-between; align-items: center;">
             <button class="wordchain-button game-button">
-                <a href="${Const.FAQ_HREF}" target="_blank">FAQ</a>
+                <a href="${Const.FAQ_URL}" target="_blank">FAQ</a>
             </button>
             <label>
             HOW TO PLAY
             </label>
             <button class="wordchain-button game-button">
-                <a href="${Const.FAQ_HREF}" target="_blank">FAQ</a>
+                <a href="${Const.FAQ_URL}" target="_blank">FAQ</a>
             </button>
         </h1>
         <h2>
@@ -52,7 +52,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         You can play up to ${Const.PRACTICE_GAMES_PER_DAY} practice games per day.
         </h3>
         <p>
-        There is lots more information in the <a href="${Const.FAQ_HREF}" target="_blank">FAQ</a>.
+        There is lots more information in the <a href="${Const.FAQ_URL}" target="_blank">FAQ</a>.
         </p>
         `;
 

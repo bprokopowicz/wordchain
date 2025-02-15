@@ -45,8 +45,8 @@ class SettingsDisplay extends AuxiliaryDisplay {
 
         const feedbackDescription = "Dictionary suggestions? Gripes? Things you love? Feature ideas?";
         const faqDescription = "Everything you want to know and then some!";
-        this.addLinkSetting("Feedback",   "Email", Const.EMAIL_HREF, feedbackDescription);
-        this.addLinkSetting("Questions?", "FAQ",   Const.FAQ_HREF, faqDescription);
+        this.addLinkSetting("Feedback",   "Email", Const.EMAIL_URL, feedbackDescription);
+        this.addLinkSetting("Questions?", "FAQ",   Const.FAQ_URL, faqDescription);
     }
 
     // Add a setting to content container.

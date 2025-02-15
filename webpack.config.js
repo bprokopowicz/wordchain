@@ -1,26 +1,25 @@
 var WebpackObfuscator = require('webpack-obfuscator');
 module.exports = {
     entry: {
-        main: './docs/javascript/AppDisplayBundled.js',
-        test: './test/TestBundled.js',
+        wordchain: './docs/javascript/AppDisplayBundled.js',
+        testing: './test/TestBundled.js',
     },
     output: {
         filename: '[name]-bundled.js',
     },
-    /*
     plugins: [
         new WebpackObfuscator({ }, ['js-file-to-exclude.js'])
     ],
-    */
     module: {
         rules: [
-          {
-            test: /\.css$/,
-            use: [
-                'style-loader',
-                'css-loader',
-            ]
-          }
+            {
+                /* Note: 'test' does NOT refer to testing or above entry point! */
+                test: /\.css$/,
+                use: [
+                    'style-loader',
+                    'css-loader',
+                ]
+            }
         ]
     },
 };

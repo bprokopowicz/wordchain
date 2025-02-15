@@ -224,8 +224,8 @@ class Test extends BaseLogger {
         // download some source files and we don't know why!
         if (! this.getNewAppWindow()) {
             const url = this.isBundled ?
-                '/wordchain/docs/html/WordChainBundled.html' :
-                '/wordchain/docs/html/WordChain.html';
+                '/index.html' :
+                '/indexUnbundled.html';
             const windowFeatures = "width=300,height=400";
             const windowName = "AppDisplayTest";
             this.newWindow = window.open(url, windowName, windowFeatures);
@@ -1464,7 +1464,7 @@ class Test extends BaseLogger {
         let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
         testResults &&
             this.verify((actShareString.indexOf(expShareString) === 0), `expected share string=='${expShareString}', got '${actShareString}'`) &&
-            this.verify((actShareString.indexOf(Const.URL_ROOT) > 0), `expected to see url root ${Const.URL_ROOT} in share string, got '${actShareString}'`) &&
+            this.verify((actShareString.indexOf(Const.SHARE_URL_ROOT) > 0), `expected to see url root ${Const.SHARE_URL_ROOT} in share string, got '${actShareString}'`) &&
             this.success();
     }
 

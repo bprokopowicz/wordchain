@@ -199,7 +199,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         shareString += emoji.repeat(targetLength) + "\n";
 
         // Add the URL to the game and send the trimmed result.
-        shareString += "\n" + Const.URL_ROOT;
+        shareString += "\n" + Const.SHARE_URL_ROOT;
         return shareString.trim();
     }
 

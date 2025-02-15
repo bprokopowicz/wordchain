@@ -341,7 +341,7 @@ class GameDisplay extends BaseLogger {
             Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,
                     " user solution words: ", userSolutionWords,  "game");
 
-            ElementUtilities.addElementTo("img", iconDiv, {src: "../images/favicon.png", class: "word-chain-icon"});
+            ElementUtilities.addElementTo("img", iconDiv, {src: "/docs/images/favicon.png", class: "word-chain-icon"});
             ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
         }
 
