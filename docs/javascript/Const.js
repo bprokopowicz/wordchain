@@ -15,7 +15,7 @@ export function SET_GL_DEBUG(value) {
 }
 
 export function GET_GL_DEBUG(value) {
-    return GL_DEBUG; 
+    return GL_DEBUG;
 }
 */
 
@@ -23,8 +23,11 @@ export function GET_GL_DEBUG(value) {
 export const SHARE_URL_ROOT = "https://WordChainFun.com/";
 export const DICT_URL = "https:/docs/resources/WordChainDict";
 export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
-export const EMAIL_URL = "mailto:bonnie.prokopowicz@gmail.com?subject=WordChain%20Feedback";
+export const EMAIL_URL = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
 export const FAQ_URL   = "/FAQ.html";
+
+// Our very own copyright!
+export const COPYRIGHT = "Copyright \u{00A9} 2025 WordChainFun"
 
 // Constants for practice game word selection screen
 // TODO-PRODUCTION: Uncomment
@@ -96,12 +99,12 @@ export const MAX_WORD_LENGTH = 6;
 // The starting date for the daily game -- needs to change when sending
 // to Beta and Production.
 // The date is defined by year,month,day with time defaulting to 00:00:00 (midnight) LOCAL TIME
-export const WORD_CHAIN_EPOCH_YEAR = 2025; 
+export const WORD_CHAIN_EPOCH_YEAR = 2025;
 export const WORD_CHAIN_EPOCH_MONTH = 0;   // 0-based month (january)
 export const WORD_CHAIN_EPOCH_DAY = 17;    // 1-based day (the first)
 export const WORD_CHAIN_EPOCH_HOURS = 0;   // midnight
 export const WORD_CHAIN_EPOCH_MINUTES = 0; // top of hour
-export const WORD_CHAIN_EPOCH_DATE = new Date(WORD_CHAIN_EPOCH_YEAR, WORD_CHAIN_EPOCH_MONTH, WORD_CHAIN_EPOCH_DAY, WORD_CHAIN_EPOCH_HOURS,WORD_CHAIN_EPOCH_MINUTES); 
+export const WORD_CHAIN_EPOCH_DATE = new Date(WORD_CHAIN_EPOCH_YEAR, WORD_CHAIN_EPOCH_MONTH, WORD_CHAIN_EPOCH_DAY, WORD_CHAIN_EPOCH_HOURS,WORD_CHAIN_EPOCH_MINUTES);
 
 // This string defines the epoch in GTC (+00:00) time when passed to the Date constructor.  Use this
 // if we want to use one global schedule for all users

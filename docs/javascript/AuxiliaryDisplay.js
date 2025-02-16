@@ -30,7 +30,7 @@ class AuxiliaryDisplay extends BaseLogger {
         this.closeButton = this.createSvgButton(closeButtonContainer, "close-button", this, this.closeAuxiliaryCallback, Const.CLOSE_PATH);
 
         // Add a break so that the content appears below the close button.
-        ElementUtilities.addElementTo("div", this.contentContainer, {class: "break"});
+        ElementUtilities.addBreak(this.contentContainer);
     }
 
     // This is a common method for creating a button that has an SVG image

@@ -79,7 +79,7 @@ class AppDisplay extends BaseLogger {
 
     startNewGameIntervalCheck() {
         Const.GL_DEBUG && this.logDebug("startNewGameIntervalCheck() called", "display");
-        // stop any timer already running 
+        // Stop any timer already running.
         this.stopNewGameIntervalCheck();
 
         // Set a timer to check whether it's time for a new Daily game periodically.
@@ -137,6 +137,12 @@ class AppDisplay extends BaseLogger {
         // The auxiliary-div contains all the auxiliary screens.
         this.auxiliaryDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "auxiliary-div", class: "auxiliary-div"});
         this.createAuxiliaryScreens();
+
+        // The root-div also contains a copyright div. NOTE: this needs to be in
+        // root-div because it needs to come after the auxiliary screens or else
+        // the copyright will appear at the top on those screens.
+        ElementUtilities.addBreak(this.rootDiv);
+        this.copyrightDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "copyright-div"}, Const.COPYRIGHT);
 
         // The toast-div displays all messages to the user.
         this.toastDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "toast-div", class: "pop-up hide"});
@@ -210,12 +216,8 @@ class AppDisplay extends BaseLogger {
 
     createGameDiv(lowerDiv) {
         // We always want the game to appear on a "line" by itself, not
-        // next to the picker grid.
-        //
-        // A div with class "break" forces whatever comes after this div
-        // to be on a "new line" when the containing div is display: flex.
-        // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
-        ElementUtilities.addElementTo("div", lowerDiv, {class: "break"});
+        // next to the picker grid, so add a break.
+        ElementUtilities.addBreak(lowerDiv);
 
         // This div is the one we style as none or flex to hide/show the div.
         this.gameDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "game-div"}, null);
@@ -224,7 +226,7 @@ class AppDisplay extends BaseLogger {
 
     createPickerDiv(parentDiv) {
         // This div is the one we style as none or flex to hide/show the div.
-        ElementUtilities.addElementTo("div", parentDiv, {class: "break"});
+        ElementUtilities.addBreak(parentDiv);
         this.pickerDiv = ElementUtilities.addElementTo("div", parentDiv, {id: "picker-div"}, null),
 
         // Show the picker initially by default.

@@ -2,6 +2,13 @@
 // checking, setting aspects of HTML elements.
 class ElementUtilities {
 
+    static addBreak(element) {
+        // A div with class "break" forces whatever comes after this div
+        // to be on a "new line" when the containing div is display: flex.
+        // See: https://tobiasahlin.com/blog/flexbox-break-to-new-row/
+        ElementUtilities.addElementTo("div", element, {class: "break"});
+    }
+
     static addClass(element, classNameOrList) {
 
         let elementClass = element.getAttribute('class'),

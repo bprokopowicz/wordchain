@@ -263,6 +263,12 @@ hr {
     overflow-x: hidden;
 }
 
+#copyright-div {
+    font-size: .75rem;
+    margin-top: 20px;
+    text-align: center;
+}
+
 /*
 ** -----------------------------
 ** Header (the WordChain banner)
