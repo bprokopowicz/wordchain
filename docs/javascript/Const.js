@@ -115,7 +115,7 @@ export const BACKUP_DAILY_GAME_TARGET = "broken";
 export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 5 * 1000;
 
 // How to break up a list of solution words with <br> tags every Nth word
-export const DISPLAY_SOLUTION_WORDS_PER_LINE=4
+export const DISPLAY_SOLUTION_WORDS_PER_LINE = 4
 
 // Constants for sharing graphic and stats screen
 // Emoji code strings for share string

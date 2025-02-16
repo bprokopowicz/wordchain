@@ -13,6 +13,8 @@ import * as Const from './Const.js';
 **    Integer: number of games solved by the user.
 ** gamesLost
 **    Integer: number of games that ended because of too many wrong moves.
+** streak
+**    Integer: number of consecutive daily games won.
 ** 0 .. <Const.TOO_MANY_WRONG_MOVES>
 **    Integer: Number of games that had 0, 1, ... wrong moves.
 */
@@ -148,7 +150,9 @@ class StatsDisplay extends AuxiliaryDisplay {
             // A bit of a misnomer, but the value for 0 is a star.
             shareString += Const.NUMBERS[gameInfo.numWrongMoves];
         }
-        shareString += "\n\n";
+
+        // Add a line for the streak.
+        shareString += `\nStreak: ${this.dailyStreak}\n`;
 
         // Now, construct the graphic showing the lengths of the user's
         // played words, colored red or green to indicate whether that word
@@ -199,7 +203,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         shareString += emoji.repeat(targetLength) + "\n";
 
         // Add the URL to the game and send the trimmed result.
-        shareString += "\n" + Const.SHARE_URL_ROOT;
+        shareString += Const.SHARE_URL_ROOT;
         return shareString.trim();
     }
 
@@ -268,6 +272,10 @@ class StatsDisplay extends AuxiliaryDisplay {
         addStat(dailyStats.gamesStarted, "Started", this.statsContainer);
         addStat(dailyStats.gamesWon, "Won", this.statsContainer);
         addStat(dailyStats.gamesLost, "Lost", this.statsContainer);
+        addStat(dailyStats.streak, "Streak", this.statsContainer);
+
+        // Save the streak in case the user shares.
+        this.dailyStreak = dailyStats.streak;
 
         // Next we'll display a bar graph showing how many games there were at each "wrong moves value",
         // i.e. 0 .. <Const.TOO_MANY_WRONG_MOVES> *and* "games that ended because of too many

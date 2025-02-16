@@ -48,38 +48,38 @@ class DailyGameDisplay extends GameDisplay {
           ['here', 'after'],
           ['foster', 'tub'],
           ['ice', 'roping'],
-	  ['paint', 'abroad'],
-	  ['singer', 'prizes'],
-	  ['host', 'barber'],
-	  ['fast', 'driver'],
-	  ['boat', 'dealer'],
-	  ['base', 'early'], // 40
-	  ['moat', 'palace'],
-	  ['hoist', 'single'],
-	  ['mint', 'ponies'],
-	  ['astral', 'weeks'],
-	  ['tart', 'ballot'],
-	  ['cake', 'breath'],
-	  ['dog', 'camper'],
-	  ['sinus', 'deride'],
-	  ['hero', 'loving'],
-	  ['paint', 'remove'], //50
-	  ['table', 'center'],
-	  ['word', 'pusher'],
-	  ['drink', 'shaken'],
-	  ['lost', 'skiers'],
-	  ['bare', 'mascot'],
-	  ['boiled', 'chosen'],
-	  ['tired', 'losing'],
-	  ['soft', 'create'],
-	  ['solid', 'groovy'],
-	  ['nearby', 'grave'], //60
-	  ['smoky', 'aliens'],
-	  ['warm', 'lather'],
-	  ['least', 'heroic'],
-	  ['fine', 'sprawl'],
-	  ['pray', 'harder'],
-	  ['cream', 'heater'],
+          ['paint', 'abroad'],
+          ['singer', 'prizes'],
+          ['host', 'barber'],
+          ['fast', 'driver'],
+          ['boat', 'dealer'],
+          ['base', 'early'], // 40
+          ['moat', 'palace'],
+          ['hoist', 'single'],
+          ['mint', 'ponies'],
+          ['astral', 'weeks'],
+          ['tart', 'ballot'],
+          ['cake', 'breath'],
+          ['dog', 'camper'],
+          ['sinus', 'deride'],
+          ['hero', 'loving'],
+          ['paint', 'remove'], //50
+          ['table', 'center'],
+          ['word', 'pusher'],
+          ['drink', 'shaken'],
+          ['lost', 'skiers'],
+          ['bare', 'mascot'],
+          ['boiled', 'chosen'],
+          ['tired', 'losing'],
+          ['soft', 'create'],
+          ['solid', 'groovy'],
+          ['nearby', 'grave'], //60
+          ['smoky', 'aliens'],
+          ['warm', 'lather'],
+          ['least', 'heroic'],
+          ['fine', 'sprawl'],
+          ['pray', 'harder'],
+          ['cream', 'heater'],
     ];
 
     /* ----- Construction ----- */
@@ -90,7 +90,8 @@ class DailyGameDisplay extends GameDisplay {
         let initialStats = {
             gamesStarted: 0,
             gamesWon:     0,
-            gamesLost:    0
+            gamesLost:    0,
+            streak:       0,
         }
 
         // Now create a stat for each number of wrong moves, and initialize
@@ -133,13 +134,13 @@ class DailyGameDisplay extends GameDisplay {
         const recoveredDailyGameNumber = Persistence.getDailyGameNumber();
         const [priorStartWord, priorTargetWord] = [this.startWord, this.targetWord];
 
-	// if the daily game number doesn't get calculated (bug) it will be assigned as the known 'broken game'.
-	let calcDailyGameNumber = Const.BROKEN_DAILY_GAME_NUMBER;
+        // if the daily game number doesn't get calculated (bug) it will be assigned as the known 'broken game'.
+        let calcDailyGameNumber = Const.BROKEN_DAILY_GAME_NUMBER;
 
         if (this.overrideGameWordsFromTestVars()) {
             this.dailyGameNumber = Const.TEST_DAILY_GAME_NUMBER;
         } else  {
-            // Determine the game number for right now. 
+            // Determine the game number for right now.
             calcDailyGameNumber = this.calculateGameNumber();
 
             if (calcDailyGameNumber < 0 || calcDailyGameNumber >= DailyGameDisplay.GameWords.length) {
@@ -147,10 +148,17 @@ class DailyGameDisplay extends GameDisplay {
                 this.dailyGameNumber = Const.BROKEN_DAILY_GAME_NUMBER;
                 [this.startWord, this.targetWord]  = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
             } else {
-                // Set up the new game words from the GameWords list.  
+                // Set up the new game words from the GameWords list.
                 this.dailyGameNumber = calcDailyGameNumber;
                 [this.startWord, this.targetWord] = DailyGameDisplay.GameWords[this.dailyGameNumber];
             }
+        }
+
+        // If the user has never played before, initialize the last won
+        // game number; it's got to be an int because later code will add to it
+        // to determine the user's streak.
+        if (! Persistence.hasLastWonDailyGameNumber()) {
+            Persistence.saveLastWonDailyGameNumber(-1);
         }
 
         // at this point, we have this.dailyGameNumber and start and target words set.
@@ -168,7 +176,7 @@ class DailyGameDisplay extends GameDisplay {
 
         Persistence.saveDailyGameNumber(this.dailyGameNumber);
 
-        // if the persistence data is old, delete it before creating today's game
+        // If the persistence data is old, delete it before creating today's game.
         // Also, if we are playing a test game, and the words have changed, start the game over
         if ((recoveredDailyGameNumber !== this.dailyGameNumber) || (this.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER)) {
             Const.GL_DEBUG && this.logDebug("recovered daily game is either older or not found, or test game changed; starting a new game", "daily");
@@ -180,7 +188,7 @@ class DailyGameDisplay extends GameDisplay {
             }
         }
 
-        // now, construct a game from start to target, including any recovered played steps if they
+        // Now, construct a game from start to target, including any recovered played steps if they
         // weren't just cleared because the game changed.
 
         let recoveredDailyGameStateIfAny = Persistence.getDailyGameState();
@@ -264,13 +272,12 @@ class DailyGameDisplay extends GameDisplay {
     }
 
     getSolutionShown() {
-        const ret =  Persistence.getDailySolutionShown();
+        const ret = Persistence.getDailySolutionShown();
         Const.GL_DEBUG && this.logDebug("DailyGameDisplay.getSolutionShown() returns: ", ret, "daily");
         return ret;
     }
 
     /* ----- Callbacks ----- */
-
 
     // when a game is finished, we update persistent counters of games played, failed, and
     // a counter of the number of wrong moves (e.g. another 2-wrong-move game was just played)
@@ -278,11 +285,29 @@ class DailyGameDisplay extends GameDisplay {
         if (this.game.isOver()) {
             if (gameResult == Const.OK) {
                 this.incrementStat("gamesWon");
+
+                // Get the user's last won game number so we can set the 'streak' stat.
+                let lastWonGameNumber = Persistence.getLastWonDailyGameNumber();
+
+                // Is this the next game?
+                if (lastWonGameNumber + 1 === this.dailyGameNumber) {
+                    this.incrementStat('streak');
+                } else {
+                    this.setStat('streak', 1);
+                }
+
+                // Save the current game number as the last won.
+                Persistence.saveLastWonDailyGameNumber(this.dailyGameNumber);
             }
+
             let wrongMoveCount = this.game.numWrongMoves();
             if (wrongMoveCount >= Const.TOO_MANY_WRONG_MOVES) {
                 this.incrementStat("gamesLost");
+
+                // Sadness ... streak is over.
+                this.setStat('streak', 0);
             }
+
             // increment the specific-number-of-wrong-moves counter
             this.incrementStat(wrongMoveCount);
         }
@@ -322,6 +347,16 @@ class DailyGameDisplay extends GameDisplay {
         if (!this.gameIsBroken()) {
             let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
             dailyStats[whichStat] += 1;
+            Persistence.saveDailyStats(dailyStats);
+        }
+    }
+
+    // Set the given stat to the given value, update the stats cookie, and update the stats display content.
+    setStat(whichStat, statValue) {
+        // Only update stats if this is a valid daily game.
+        if (!this.gameIsBroken()) {
+            let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
+            dailyStats[whichStat] = statValue;
             Persistence.saveDailyStats(dailyStats);
         }
     }

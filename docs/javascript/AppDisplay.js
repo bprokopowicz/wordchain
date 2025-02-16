@@ -1,5 +1,4 @@
 import { BaseLogger } from './BaseLogger.js';
-import { Cookie } from './Cookie.js';
 import { DailyGameDisplay } from './DailyGameDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { HelpDisplay } from './HelpDisplay.js';
@@ -37,7 +36,7 @@ class AppDisplay extends BaseLogger {
         this.colorblindMode   = Persistence.getColorblindMode();
 
         // Confirmation mode is true by default.
-        if (! Cookie.has(Cookie.CONFIRMATION_MODE)) {
+        if (! Persistence.hasConfirmationMode()) {
             this.confirmationMode = true;
             Persistence.saveConfirmationMode(this.confirmationMode);
         } else {

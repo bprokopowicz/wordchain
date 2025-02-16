@@ -17,10 +17,12 @@
 **
 **     DailyGameNumber
 **        Integer: calculated daily game number based on current time.
+**     LastWonDailyGameNumber
+**        Integer: the DailyGameNumber that the user last won; used to determine streak stat.
 **     DailyGameWordsPlayed
 **        List: words played including start word (and target if game is over).
 **     DailyStats (also used in StatsDisplay)
-**        Object: see explanation of properties in DailyStats.
+**        Object: see explanation of properties in StatsDisplay.
 **     DailySolutionShown:
 **        Boolean: saved to true when user clicks 'Solution'.  Applies to the current game number only.
 **
@@ -68,6 +70,7 @@ class Cookie {
     static COLORBLIND_MODE = "ColorblindMode";
     static CONFIRMATION_MODE = "ConfirmationMode";
     static DAILY_GAME_NUMBER = "DailyGameNumber";
+    static LAST_WON_DAILY_GAME_NUMBER = "LastWonDailyGameNumber";
     static DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
     static DAILY_STATS = "DailyStats";
     static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
@@ -100,6 +103,7 @@ class Cookie {
         Cookie.DAILY_GAME_WORDS_PLAYED,
         Cookie.DAILY_STATS,
         Cookie.DAILY_SOLUTION_SHOWN,
+        Cookie.LAST_WON_DAILY_GAME_NUMBER,
         Cookie.PRACTICE_GAME_START,
         Cookie.PRACTICE_GAME_TARGET,
         Cookie.PRACTICE_GAME_WORDS_PLAYED,

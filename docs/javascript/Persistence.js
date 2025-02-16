@@ -60,6 +60,22 @@ class Persistence {
         Cookie.remove(Cookie.DAILY_GAME_NUMBER);
     }
 
+    static getLastWonDailyGameNumber() {
+        return Cookie.getInt(Cookie.LAST_WON_DAILY_GAME_NUMBER);
+    }
+
+    static hasLastWonDailyGameNumber() {
+        return Cookie.has(Cookie.LAST_WON_DAILY_GAME_NUMBER);
+    }
+
+    static saveLastWonDailyGameNumber(gameNumber) {
+        Cookie.save(Cookie.LAST_WON_DAILY_GAME_NUMBER, gameNumber);
+    }
+
+    static clearLastWonDailyGameNumber() {
+        Cookie.remove(Cookie.LAST_WON_DAILY_GAME_NUMBER);
+    }
+
     // Practice game state
 
     static clearPracticeGameState() {
@@ -129,6 +145,10 @@ class Persistence {
 
     static getConfirmationMode() {
         return Cookie.getBoolean(Cookie.CONFIRMATION_MODE)
+    }
+
+    static hasConfirmationMode() {
+        return Cookie.has(Cookie.CONFIRMATION_MODE);
     }
 
     static saveConfirmationMode(confirmationMode) {
