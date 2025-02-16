@@ -46,12 +46,27 @@ class Game extends BaseLogger {
 
         const originalDict = new WordChainDict();
         const bestSolution = Solver.solve(originalDict, this.startWord, this.targetWord);
-        return bestSolution.getSolutionWords().join('⇒');
+        const wordList =  bestSolution.getSolutionWords()
+        return this.listAsStringWithBreaks(wordList);
     }
 
     getUserSolutionWords() {
         const userSolution = this.playedSteps;
-        return userSolution.getSolutionWords().join('⇒');
+        const wordList =  userSolution.getSolutionWords()
+        return this.listAsStringWithBreaks(wordList);
+    }
+
+    listAsStringWithBreaks(wordList) {
+        let res = "";
+        for (let i = 0; i < wordList.length-1; i++) {
+            res = res + wordList[i]+ '⇒';
+            // add a break tag every N words
+            if ((i+1) % Const.DISPLAY_SOLUTION_WORDS_PER_LINE == 0) {
+                res = res + "<br>";
+            }
+        }
+        // now, add the last word, with no trailing separator
+        return res + wordList[wordList.length-1];
     }
 
     // Choose a random start/target that has a solution between

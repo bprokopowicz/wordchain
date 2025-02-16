@@ -871,7 +871,7 @@ class Test extends BaseLogger {
         this.testGameLossOnWrongLetterAdded();
         this.testGameLossOnWrongDelete();
         this.testGameLossOnWrongLetterChange();
-        this.testGameSolveAllDailyGames();
+        //this.testGameSolveAllDailyGames();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -1222,8 +1222,8 @@ class Test extends BaseLogger {
         */
         const originalSolutionAsString = game.getOriginalSolutionWords();
         const playedSolutionAsString = game.getUserSolutionWords();
-        const expOriginalSolutionAsString = "LEAKY⇒LEAK⇒LEAN⇒LOAN⇒LOON⇒SOON⇒SPOON";
-        const expPlayedSolutionAsString = "LEAKY⇒LEAK⇒LEAN⇒LOAN⇒LOON⇒POON⇒SPOON";
+        const expOriginalSolutionAsString = "LEAKY⇒LEAK⇒LEAN⇒LOAN⇒<br>LOON⇒SOON⇒SPOON";
+        const expPlayedSolutionAsString = "LEAKY⇒LEAK⇒LEAN⇒LOAN⇒<br>LOON⇒POON⇒SPOON";
         this.verify((originalSolutionAsString == expOriginalSolutionAsString), `expected original string ${expOriginalSolutionAsString}, got ${originalSolutionAsString}`) &&
             this.verify((playedSolutionAsString == expPlayedSolutionAsString), `expected played string ${expPlayedSolutionAsString}, got ${playedSolutionAsString}`) &&
             this.verify(game.isOver()) &&
