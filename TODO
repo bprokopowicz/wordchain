@@ -19,9 +19,6 @@ Maybe Do
 Second Beta TODO
 ================
 
-- Set up at hostinger.com with domain WordChainGame.com
-  - Use index.html at the root instead of docs/html/WordChainBundle.html?
-- More daily game words
 - Execute automated tests and manual test use cases:
   - Safari iPhone
   - Safari iPad
