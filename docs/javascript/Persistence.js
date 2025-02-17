@@ -29,7 +29,24 @@ class Persistence {
     }
 
     static getDailyStatsOrElse(defaultStats) {
-        return Cookie.getJsonOrElse(Cookie.DAILY_STATS, defaultStats);
+        let stats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, defaultStats);
+        if ( stats === defaultStats) {
+            return stats;
+        }
+        // sanity checking on the recovered stats, in case some are missing (e.g. new version adds a stat)
+        if (!stats.gamesStarted) {
+            stats.gamesStarted = 0;
+        }
+        if (!stats.gamesWon) {
+            stats.gamesWon = 0;
+        }
+        if (!stats.gamesLost) {
+            stats.gamesLost = 0;
+        }
+        if (!stats.streak) {
+            stats.streak = 0;
+        }
+        return stats;
     }
 
     static saveDailyStats(dailyStats) {

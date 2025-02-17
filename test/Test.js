@@ -77,7 +77,6 @@ class Test extends BaseLogger {
         this.fullDict = new WordChainDict(globalWordList);
         this.scrabbleDict = new WordChainDict(scrabbleWordList);
         this.messages = [];
-        //this.openTheTestAppWindow();
         console.log("The Test singleton: ", this);
     }
 
@@ -223,8 +222,12 @@ class Test extends BaseLogger {
         // is a new tab. In iOS/Safari this doesn't work -- we get failures to
         // download some source files and we don't know why!
         if (! this.getNewAppWindow()) {
+            // This is the URL of the wordchain app that the tests will open.  If we are running unbundled,
+            // we will open the unbundled version of the app.
+            // If we are bundled, we open the development (bundled) version of the app.
+            // TODO: there is no mode for Test.js to use the 'live' version of the app, via index.html
             const url = this.isBundled ?
-                '/index.html' :
+                '/indexDevelopment.html' :
                 '/indexUnbundled.html';
             const windowFeatures = "width=300,height=400";
             const windowName = "AppDisplayTest";
@@ -239,6 +242,21 @@ class Test extends BaseLogger {
         this.logDebug("calling resetSingletonObject.  newAppWindow:", this.getNewAppWindow(), "test");
         this.getNewAppWindow().theAppDisplay.resetSingletonObject();
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+    }
+
+    openAndGetTheStatsDisplay() {
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const statsDisplay = appDisplay.statsDisplay;
+        const mockEvent = new MockEvent(null);  // not used in called function
+        statsDisplay.openAuxiliaryCallback(mockEvent);
+        return statsDisplay;
+    }
+
+    closeTheStatsDisplay() {
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const statsDisplay = appDisplay.statsDisplay;
+        const mockEvent = new MockEvent(null);  // not used in called function
+        statsDisplay.closeAuxiliaryCallback(mockEvent);
     }
 
     runAppTest(testFunc) {
@@ -468,22 +486,19 @@ class Test extends BaseLogger {
         this.playLetter(1, "P"); // BOOR -> POOR
     }
 
-    // compares the current stats cookie and stats screen content with expected and calculated values.
+    // compares the current stats cookie AND stats screen content with expected and calculated values.
     // Also, asserts that gamesStarted >= gamesWon+gamesLost
+
+    static statsContainer = null;
 
     verifyStats(expDailyStats) {
 
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
-        const statsDisplay = appDisplay.statsDisplay;
-
         // get the saved stats cookie
-        let dailyStats = Persistence.getDailyStatsOrElse(null);
-        this.logDebug("verifyStats() dailyStats", dailyStats, "test");
+        let savedDailyStats = Persistence.getDailyStatsOrElse(null);
+        this.logDebug("verifyStats() savedDailyStats", savedDailyStats, "test");
 
         // open the stats window.  This should compute the shareString and start the countdown clock
-        let statsSrcElement = new MockEventSrcElement(statsDisplay);
-        let statsMockEvent = new MockEvent(statsSrcElement);
-        statsDisplay.openAuxiliaryCallback(statsMockEvent);
+        const statsDisplay = this.openAndGetTheStatsDisplay();
 
         // the statsContainer is a GUI element with at least 3 children: Played, Won and Lost
         let statsContainer = statsDisplay.statsContainer;
@@ -491,51 +506,55 @@ class Test extends BaseLogger {
         // the statsDistribution is a GUI element with one bar for each possible number of wrong moves: 0 .. Const.TOO_MANY_WRONG_MOVES
         let statsDistribution = statsDisplay.statsDistribution;
 
-        this.logDebug("verifyStats() statsContainer", statsContainer, "test");
-        this.logDebug("verifyStats() statsDistribution", statsDistribution, "test");
+        this.logDebug("verifyStats() statsContainer:", statsContainer, "test");
+        this.logDebug("verifyStats() global statsContainer:", this.statsContainer, "test");
+        this.logDebug("verifyStats() statsDistribution:", statsDistribution, "test");
 
-        let expContainerLen = 3;
+        let expContainerLen = 4;
         let actContainerLen = statsContainer.children.length;
 
         let expDistributionLen = Const.TOO_MANY_WRONG_MOVES + 1;
         let actDistributionLen = statsDistribution.children.length;
 
-        // three calculated text values we expect to find on the stats screen:
-        let expPlayedText = `${expDailyStats.gamesStarted}\nStarted`;
-        let actPlayedText = statsContainer.children[0].innerText.trim();
+        // four calculated text values we expect to find on the stats screen.  They are labels and values for Played, Won, Lost, and Streak
+        let expStartedText = `${expDailyStats.gamesStarted}Started`;
+        let actStartedText = statsContainer.children[0].children[0].innerText.trim() + statsContainer.children[0].children[1].innerText.trim();
 
-        let completionPercent = 0;
-        if (dailyStats.gamesStarted > 0) {
-        }
+        let expWonText = `${expDailyStats.gamesWon}Won`;
+        let actWonText = statsContainer.children[1].children[0].innerText.trim() + statsContainer.children[1].children[1].innerText.trim();
 
-        let expWonText = `${dailyStats.gamesWon}\nWon`;
-        let actWonText = statsContainer.children[1].innerText.trim();
+        let expLostText = `${expDailyStats.gamesLost}Lost`;
+        let actLostText = statsContainer.children[2].children[0].innerText.trim() + statsContainer.children[2].children[1].innerText.trim();
 
-        let expLostText = `${expDailyStats.gamesLost}\nLost`;
-        let actLostText = statsContainer.children[2].innerText.trim();
+        let expStreakText = `${expDailyStats.streak}Streak`;
+        let actStreakText = statsContainer.children[3].children[0].innerText.trim() + statsContainer.children[3].children[1].innerText.trim();
 
         let testRes =
             this.verify(actContainerLen==expContainerLen, `expected statsContainer.children.length==${expContainerLen}, got ${actContainerLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
             this.verify(actDistributionLen==expDistributionLen, `expected statsDistribution.children.length==${expDistributionLen}, got ${actDistributionLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
-            this.verify(dailyStats.gamesStarted==expDailyStats.gamesStarted, `expected dailyStats.gamesStarted==${expDailyStats.gamesStarted}, got ${dailyStats.gamesStarted}`) &&
-            this.verify(dailyStats.gamesWon==expDailyStats.gamesWon, `expected dailyStats.gamesWon==${expDailyStats.gamesWon}, got ${dailyStats.gamesWon}`) &&
-            this.verify(dailyStats.gamesShown==expDailyStats.gamesShown, `expected dailyStats.gamesShown==${expDailyStats.gamesShown}, got ${dailyStats.gamesShown}`) &&
-            this.verify(dailyStats.gamesLost==expDailyStats.gamesLost, `expected dailyStats.gamesLost==${expDailyStats.gamesLost}, got ${dailyStats.gamesLost}`) &&
-            this.verify(actPlayedText==expPlayedText, `expected statsContainer.children.0.innerText==${expPlayedText}, got ${actPlayedText}`) &&
-            this.verify(dailyStats.gamesStarted >= dailyStats.gamesWon + dailyStats.gamesLost, `assertion failed: #started not >= #won+#lost`);
+            this.verify(savedDailyStats.gamesStarted==expDailyStats.gamesStarted, `expected savedDailyStats.gamesStarted==${expDailyStats.gamesStarted}, got ${savedDailyStats.gamesStarted}`) &&
+            this.verify(savedDailyStats.gamesWon==expDailyStats.gamesWon, `expected savedDailyStats.gamesWon==${expDailyStats.gamesWon}, got ${savedDailyStats.gamesWon}`) &&
+            this.verify(savedDailyStats.gamesLost==expDailyStats.gamesLost, `expected savedDailyStats.gamesLost==${expDailyStats.gamesLost}, got ${savedDailyStats.gamesLost}`) &&
+            this.verify(savedDailyStats.streak==expDailyStats.streak, `expected savedDailyStats.streak==${expDailyStats.streak}, got ${savedDailyStats.streak}`) &&
+            this.verify(actStartedText==expStartedText, `expected statsContainer.children[0] to have ${expStartedText}, got ${actStartedText}`) &&
+            this.verify(actWonText==expWonText, `expected statsContainer.children[1] to have ${expWonText}, got ${actWonText}`) &&
+            this.verify(actLostText==expLostText, `expected statsContainer.children[2] to have ${expLostText}, got ${actLostText}`) &&
+            this.verify(actStreakText==expStreakText, `expected statsContainer.children[3] to have ${expStreakText}, got ${actStreakText}`) &&
+            this.verify(savedDailyStats.gamesStarted >= savedDailyStats.gamesWon + savedDailyStats.gamesLost, `assertion failed: #started not >= #won+#lost`);
 
         for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
             // check the stats blob
             testRes = testRes &&
-                this.verify(dailyStats[wrongMoves]==expDailyStats[wrongMoves], `expected dailyStats.${wrongMoves}==${expDailyStats[wrongMoves]}, got ${dailyStats[wrongMoves]}`);
+                this.verify(savedDailyStats[wrongMoves]==expDailyStats[wrongMoves], `expected savedDailyStats.${wrongMoves}==${expDailyStats[wrongMoves]}, got ${savedDailyStats[wrongMoves]}`);
 
-            // check the DOM contents
+            // check the DOM contents of the stats screen for the distribution of wrong-move counts.
             let actDistributionText = statsDistribution.children[wrongMoves].innerText.trim();
-            let expDistributionText = Const.NUMBERS[wrongMoves] + "\n" + expDailyStats[wrongMoves];
+            let expDistributionText = Const.NUMBERS[wrongMoves] + "\n" +  expDailyStats[wrongMoves]; // on Feb 15, 2025, the new-line character disappeared, at least in chrome.
             testRes = testRes &&
                 this.verify(actDistributionText==expDistributionText, `expected statsDistribution.children.${wrongMoves}.innerText=='${expDistributionText}', got '${actDistributionText}'`);
         }
 
+        this.closeTheStatsDisplay();
         return testRes;
     }
 
@@ -628,7 +647,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15849;
+        const expectedMinDictSize = 15848;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -1392,6 +1411,7 @@ class Test extends BaseLogger {
         }
     }
 
+
     // confirmation is a function of the GameDisplay so to test it we need to be playing a game
     changeMindOnSelectedLettersTest() {
         this.testName = "changeMindOnSelectedLetters";
@@ -1442,34 +1462,37 @@ class Test extends BaseLogger {
         this.playTheCannedDailyGameOnce();
 
         // game is done.  Let's see what the saved stats and words played are:
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
-        const statsDisplay = appDisplay.statsDisplay;
-
-        // open the stats window.  This should compute the shareString, start the countdown clock
-        let statsSrcElement = new MockEventSrcElement(statsDisplay);
-        let statsMockEvent = new MockEvent(statsSrcElement);
-        statsDisplay.openAuxiliaryCallback(statsMockEvent);
+        const statsDisplay = this.openAndGetTheStatsDisplay();
 
         // create an expected DailyStats blob
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
         expDailyStats.gamesStarted = 1;
         expDailyStats.gamesWon = 1;
+        expDailyStats.gamesLost = 0;
+        expDailyStats.streak = 1;
         expDailyStats[0] = 1;  // the only completed game has 0 errors
 
         let testResults = this.verifyStats(expDailyStats);
 
         // now, get and check the share string:
 
+        let statsSrcElement = new MockEventSrcElement(statsDisplay);
+        let statsMockEvent = new MockEvent(statsSrcElement);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
+        this.closeTheStatsDisplay();
         testResults &&
-            this.verify((actShareString.indexOf(expShareString) === 0), `expected share string=='${expShareString}', got '${actShareString}'`) &&
+            this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with '${expShareString}', got '${actShareString}'`) &&
             this.verify((actShareString.indexOf(Const.SHARE_URL_ROOT) > 0), `expected to see url root ${Const.SHARE_URL_ROOT} in share string, got '${actShareString}'`) &&
             this.success();
     }
 
     // multiGameStatsTest plays the daily game 3 times and
     // then checks both the stats cookie, and the elements in the StatsContainer.
+    // In order to test the streak, it is necessary to play a different game number each time.  For this test,
+    // we simulate by setting the LastWonGameNumber in storage to one less than the current daily game number before re-playing
+    // Each replay is of the same calculated game number, so we set the LastWonGameNumber to be one less than this, so it looks
+    // like a continuing win streak;
 
     multiGameStatsTest() {
         this.testName = "MultiGameStats";
@@ -1480,6 +1503,7 @@ class Test extends BaseLogger {
             // Re-open open the test window, and repeat
             // Don't let the game pick up where it left off, which is a finished game.
             // Don't clear all the cookies because we are accumulating stats data with them across games here.
+            Persistence.saveLastWonDailyGameNumber(Persistence.getDailyGameNumber()-1);
             Persistence.clearDailyGameNumber();
             this.resetTheTestAppWindow();
             this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
@@ -1489,12 +1513,16 @@ class Test extends BaseLogger {
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
         expDailyStats.gamesStarted = 3;
         expDailyStats.gamesWon = 3;
+        expDailyStats.gamesLost = 0;
+        expDailyStats.streak = 3;
         expDailyStats[0] = 3;  // all 3 games have 0 errors
         this.verifyStats(expDailyStats) && this.success();
     }
 
 
     // a test that makes 0, 1, or 2 errors depending on which iteration
+    // See multiGameStatsTest for how we make the multiple games appear to be a winning streak by
+    // manually adjusting the last won game number.
 
     multiGameMixedResultsStatsTest() {
         this.testName = "MultiGameMixedResultsStats";
@@ -1515,7 +1543,8 @@ class Test extends BaseLogger {
             this.playLetter(1, "P"); // BOO? -> POOR
             // now, play the same game again, if we have another round to go.
             if (gameCounter != 2) {
-                Persistence.clearDailyGameNumber();
+                Persistence.saveLastWonDailyGameNumber(Persistence.getDailyGameNumber()-1); // make it look like a win streak
+                Persistence.clearDailyGameNumber(); // force same game to play
                 this.resetTheTestAppWindow();
             }
         }
@@ -1524,6 +1553,8 @@ class Test extends BaseLogger {
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
         expDailyStats.gamesStarted = 3;
         expDailyStats.gamesWon = 3;
+        expDailyStats.gamesLost = 0;
+        expDailyStats.streak = 3;
         expDailyStats[0] = 1;
         expDailyStats[1] = 1;
         expDailyStats[2] = 1;
@@ -1532,7 +1563,7 @@ class Test extends BaseLogger {
 
     // multiIncompleteGameStatsTest plays the daily game 3 times:
     // one failed, one successful, one incomplete and the solution shown.
-    // Checks both the stats cookie, and the elements in the StatsContainer.
+    // Checks both the saved stats, and the elements in the StatsContainer.
 
     multiIncompleteGameStatsTest() {
         this.testName = "MultiIncompleteGameStats";
@@ -1605,12 +1636,7 @@ class Test extends BaseLogger {
             const gameIsWinner = game.isWinner();
             const dailyGameSolutionShown = this.gameDisplay.getSolutionShown();
 
-            const appDisplay = this.getNewAppWindow().theAppDisplay;
-            const statsDisplay = appDisplay.statsDisplay;
-            // open the stats window.  The share button should not be shown
-            const statsSrcElement = new MockEventSrcElement(statsDisplay);
-            const statsMockEvent = new MockEvent(statsSrcElement);
-            statsDisplay.openAuxiliaryCallback(statsMockEvent);
+            const statsDisplay = this.openAndGetTheStatsDisplay();
             const actualShareButtonDisplayStyle = statsDisplay.shareButton.style.display;
             const expShareButtonDisplayStyle = "none";
 
@@ -1619,6 +1645,7 @@ class Test extends BaseLogger {
                 this.verify(actualShareButtonDisplayStyle == expShareButtonDisplayStyle, "expected share button display style: ", expShareButtonDisplayStyle, ", got: ", actualShareButtonDisplayStyle) &&
 
                 this.success();
+            this.closeTheStatsDisplay();
         }
     }
 
@@ -1636,25 +1663,27 @@ class Test extends BaseLogger {
         this.playLetter(1, "P"); // BOOR -> POOR
 
         // game is done.  Let's see what the saved stats and words played are:
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
-        const statsDisplay = appDisplay.statsDisplay;
+        const statsDisplay = this.openAndGetTheStatsDisplay();
 
-        let statsSrcElement = new MockEventSrcElement(statsDisplay);
-        let statsMockEvent = new MockEvent(statsSrcElement);
-        statsDisplay.openAuxiliaryCallback(statsMockEvent);
 
         //  write the share string and verify it:
         // TODO: this only verifies the shareString contents, not whether the share is copied to clipboard or the devices
         // 'share' mechanism.  the clipboard.writeText() call is async, and the catch() clause doesn't
         // execute on error in the callpath of stats.Display.shareCallback().  The error is handled async; the call
         // to shareCallback() always returns the calculated shareString, NOT whether it was written to the clipboard.
-        let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 1️⃣\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
 
-        this.verify((actShareString.indexOf(expShareString) === 0), `expected share string=='${expShareString}', got '${actShareString}'`) &&
+        const statsSrcElement = new MockEventSrcElement(statsDisplay);
+        const statsMockEvent = new MockEvent(statsSrcElement);
+        const actShareString = statsDisplay.shareCallback(statsMockEvent);
+        const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 1️⃣\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
+        this.closeTheStatsDisplay();
+
+        this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with ='${expShareString}', got '${actShareString}'`) &&
             this.success();
 
     }
+
+    // this test verifies that after failing a game, the game is over, the share shows the mad face and wrong moves, and the streak is at zero.
 
     dailyGameTooManyMistakesShareTest() {
         this.testName = "DailyGameTooManyMistakesShare";
@@ -1681,21 +1710,23 @@ class Test extends BaseLogger {
         this.verify(game.isOver(), "after 5 wrong moves, game is not over!");
 
         // game is done.  Let's see what the saved stats and words played are:
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
-        const statsDisplay = appDisplay.statsDisplay;
-
         // open the stats window.  This should compute the shareString, start the countdown clock
+        const statsDisplay = this.openAndGetTheStatsDisplay();
+
+        //  get the share string.  Note that after the final mistake, no more words are shown (unplayed) leading to the target.
+
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
-
-        //  get the share string.  Note that after the final mistake, no more words are shown (unplayed) leading to the target.
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
+        this.closeTheStatsDisplay();
 
-        this.verify((actShareString.indexOf(expShareString) === 0), `expected share string=='${expShareString}', got '${actShareString}'`) &&
+        this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with '${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
+
+    // this test verifies that the share is good on a game that ends with a last-step delete.  It is the first game played, and verifies that the streak is 1.
 
     dailyGameEndsOnDeleteShareTest() {
         this.testName = "DailyGameEndsOnDeleteShare";
@@ -1706,7 +1737,6 @@ class Test extends BaseLogger {
 
         // The newly re-opened URL should be showing the daily game START -> END
         const game = this.gameDisplay.game;
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
 
         // START -> END
         // solution: START STAT SEAT SENT SEND END
@@ -1721,18 +1751,18 @@ class Test extends BaseLogger {
         this.verify(game.isOver(), "game should be over!");
 
         // game is done.  Let's see what the saved stats and words played are:
-        const statsDisplay = appDisplay.statsDisplay;
-
         // open the stats window.  This should compute the shareString, start the countdown clock
+        const statsDisplay = this.openAndGetTheStatsDisplay();
+
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
-        statsDisplay.openAuxiliaryCallback(statsMockEvent);
 
         //  get the share string.  use-case: the last play is a Delete
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Const.TEST_DAILY_GAME_NUMBER} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪`;
+        let expShareString = `WordChain #${Const.TEST_DAILY_GAME_NUMBER} ⭐\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪`;
 
-        this.verify((actShareString.indexOf(expShareString)===0), `expected share string=='${expShareString}', got '${actShareString}'`) &&
+        this.closeTheStatsDisplay();
+        this.verify((actShareString.indexOf(expShareString)===0), `expected share string to start with ${expShareString}', got '${actShareString}'`) &&
             this.success();
     }
 
@@ -1930,6 +1960,7 @@ class Test extends BaseLogger {
         }
     }
 
+    // verifies a game ending that includes a genius move.  Checks the share, including the streak.
     geniusMoveAndShareTest() {
         this.testName = "GeniusMoveAndShare";
 
@@ -1942,15 +1973,14 @@ class Test extends BaseLogger {
         let resultP1 = this.playLetter(1, "P");       // HOOR -> POOR
 
         // let's look at the share ...
-        let statsDisplay = this.getNewAppWindow().theAppDisplay.statsDisplay;
-        this.logDebug("theAppDisplay", this.getNewAppWindow().theAppDisplay, "test");
-        this.logDebug("gameDisplay", this.gameDisplay, "test");
-        this.logDebug("theAppDisplay.statsDisplay", statsDisplay, "test");
+        let statsDisplay = this.openAndGetTheStatsDisplay();
+        this.logDebug("statsDisplay", statsDisplay, "test");
 
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\n\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟪🟪🟪🟪`;
+        this.closeTheStatsDisplay();
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
             this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
