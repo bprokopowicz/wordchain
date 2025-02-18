@@ -29,10 +29,11 @@ class HelpDisplay extends AuxiliaryDisplay {
         When you are to change a letter, a scrollable list of letter buttons
         appears at the top of the game and the letter to be changed has
         a thicker outline in the current word.
-        The plus/minus/letter buttons are initially yellow.
-        By default, these buttons become gray on your first click/tap
+        The plus/minus/letter buttons are yellow.
+        By default, when you click/tap them, your move is entered.
+        You can turn on "confirmation mode" in the settings, in which case
+        these buttons become gray on your first click/tap
         and you must click/tap again to confirm your selection.
-        This "confirmation mode" can be turned off in the settings.
         </p>
         <p>
         WordChain shows empty letter cells for the rest of the shortest solution,

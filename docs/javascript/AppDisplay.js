@@ -35,9 +35,9 @@ class AppDisplay extends BaseLogger {
         this.darkTheme        = Persistence.getDarkTheme();
         this.colorblindMode   = Persistence.getColorblindMode();
 
-        // Confirmation mode is true by default.
+        // Confirmation mode is false by default.
         if (! Persistence.hasConfirmationMode()) {
-            this.confirmationMode = true;
+            this.confirmationMode = false;
             Persistence.saveConfirmationMode(this.confirmationMode);
         } else {
             this.confirmationMode = Persistence.getConfirmationMode();
