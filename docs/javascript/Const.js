@@ -31,8 +31,8 @@ export const COPYRIGHT = "Copyright \u{00A9} 2025 WordChainFun"
 
 // Constants for practice game word selection screen
 // TODO-PRODUCTION: Uncomment
-//export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
-export let PRACTICE_GAMES_PER_DAY = 1000;    // For beta testing
+export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
+//export let PRACTICE_GAMES_PER_DAY = 1000;    // For beta testing
 export const PRACTICE_STEPS_MINIMUM = 6;
 export const PRACTICE_STEPS_MAXIMUM = 8;
 export const PRACTICE_DIFFICULTY_MINIMUM = 20;
