@@ -285,7 +285,6 @@ class Test extends BaseLogger {
     //   Const.UNEXPECTED_ERROR if app is in ConfirmationMode but picker doesn't return NEEDS_CONFIRMATION on first click
     //   some other error if the picker.selectionCallback fails
 
-
     playLetter(position, letter, optionalLetter=letter) {
         this.logDebug(`playLetter(${position}, ${letter}, ${optionalLetter})`, "test");
         this.gameDisplay.letterPicker.saveLetterPosition(position);
@@ -1411,9 +1410,11 @@ class Test extends BaseLogger {
         }
     }
 
-
     // confirmation is a function of the GameDisplay so to test it we need to be playing a game
     changeMindOnSelectedLettersTest() {
+        // restore default confirmation mode
+        this.getNewAppWindow().theAppDisplay.confirmationMode = true;
+
         this.testName = "changeMindOnSelectedLetters";
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
@@ -1896,7 +1897,7 @@ class Test extends BaseLogger {
         let resultInsertI1 = this.insertLetter(1, "I");  // PLOT -> PxLOT
 
         // restore default confirmation mode
-        this.getNewAppWindow().theAppDisplay.confirmationMode = true;
+        this.getNewAppWindow().theAppDisplay.confirmationMode = false;
 
         this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
             this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
