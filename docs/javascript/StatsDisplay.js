@@ -254,6 +254,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         {
             console.error("StatsDisplay.updateStatsContent(): no daily stats!");
             this.appDisplay.showToast(Const.NO_STATS);
+            return;
         }
 
         // Clear out the containers that we're about to add to.
