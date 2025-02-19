@@ -75,6 +75,9 @@ class AppDisplay extends BaseLogger {
         this.startNewGameIntervalCheck();
 
         window.theAppDisplayIsReady = true;
+
+        this.showedNoDaily = false;
+        this.showNoDaily();
     }
 
     startNewGameIntervalCheck() {
@@ -261,6 +264,7 @@ class AppDisplay extends BaseLogger {
         let isNewDailyGame = this.dailyGameDisplay.updateDailyGameData();
         if (isNewDailyGame) {
             this.showToast(Const.NEW_DAILY_GAME);
+            this.showNoDaily();
         }
     }
 
@@ -375,6 +379,14 @@ class AppDisplay extends BaseLogger {
             this.enableSolutionButton();
         } else {
             this.disableSolutionButton();
+        }
+    }
+
+    // Show a "no daily game" toast if we haven't already.
+    showNoDaily() {
+        if (!this.showedNoDaily && Persistence.getDailyGameNumber() === Const.BROKEN_DAILY_GAME_NUMBER) {
+            this.showedNoDaily = true;
+            this.showToast(Const.NO_DAILY);
         }
     }
 

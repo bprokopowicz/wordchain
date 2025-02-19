@@ -13,74 +13,7 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Class Variables ----- */
 
-    static GameWords = [
-          ['fish', 'grater'],
-          ['space', 'statin'],
-          ['short', 'poor'], // MUST BE AT INDEX 2 FOR TESTING
-          ['flue', 'trance'],
-          ['salted', 'fish'],
-          ['tasty', 'owl'],
-          ['harm', 'bikini'],
-          ['play', 'ahead'],
-          ['really', 'solve'],
-          ['hard', 'kicker'], //10
-          ['leaky', 'spoon'],
-          ['tasty', 'mascot'],
-          ['free', 'sample'],
-          ['smelly', 'gym'],
-          ['rice', 'arena'],
-          ['hard', 'sinker'],
-          ['loud', 'momma'],
-          ['forgot', 'how'],
-          ['jaunty', 'estate'],
-          ['luck', 'babies'], //20
-          ['mind', 'hugger'],
-          ['beach', 'house'],
-          ['plate', 'acorns'],
-          ['smelly', 'date'],
-          ['wish', 'corner'],
-          ['case', 'sewing'],
-          ['word', 'chase'],
-          ['braid', 'rafter'],
-          ['poke', 'fumble'],
-          ['shock', 'bagger'], //30
-          ['ripe', 'mixers'],
-          ['here', 'after'],
-          ['foster', 'tub'],
-          ['ice', 'roping'],
-          ['paint', 'abroad'],
-          ['singer', 'prizes'],
-          ['host', 'barber'],
-          ['fast', 'driver'],
-          ['boat', 'dealer'],
-          ['base', 'early'], // 40
-          ['moat', 'palace'],
-          ['hoist', 'single'],
-          ['mint', 'ponies'],
-          ['astral', 'weeks'],
-          ['tart', 'ballot'],
-          ['cake', 'breath'],
-          ['dog', 'camper'],
-          ['sinus', 'deride'],
-          ['hero', 'loving'],
-          ['paint', 'remove'], //50
-          ['table', 'center'],
-          ['word', 'pusher'],
-          ['drink', 'shaken'],
-          ['lost', 'skiers'],
-          ['bare', 'mascot'],
-          ['boiled', 'chosen'],
-          ['tired', 'losing'],
-          ['soft', 'create'],
-          ['solid', 'groovy'],
-          ['nearby', 'grave'], //60
-          ['smoky', 'aliens'],
-          ['warm', 'lather'],
-          ['least', 'heroic'],
-          ['fine', 'sprawl'],
-          ['pray', 'harder'],
-          ['cream', 'heater'],
-    ];
+    static GameWords = Const.DAILY_GAMES;
 
     /* ----- Construction ----- */
 
@@ -144,7 +77,7 @@ class DailyGameDisplay extends GameDisplay {
             calcDailyGameNumber = this.calculateGameNumber();
 
             if (calcDailyGameNumber < 0 || calcDailyGameNumber >= DailyGameDisplay.GameWords.length) {
-                // the calculated game number is not valid. Something went awry; use the backup.
+                // The calculated game number is not valid. Something went awry; use the backup.
                 this.dailyGameNumber = Const.BROKEN_DAILY_GAME_NUMBER;
                 [this.startWord, this.targetWord]  = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
             } else {
@@ -165,9 +98,10 @@ class DailyGameDisplay extends GameDisplay {
         // let's see if that is a new game or the game already being played.
 
         Const.GL_DEBUG && this.logDebug("updateDailyGameData(): calcDailyGameNumber: ", calcDailyGameNumber,
-                " recoveredDailyGameNumber: ", recoveredDailyGameNumber,
-                " this.dailyGameNumber: ", this.dailyGameNumber,
-                " startWord: ", this.startWord, " targetWord: ", this.targetWord, "daily");
+                "recoveredDailyGameNumber:", recoveredDailyGameNumber,
+                "this.dailyGameNumber:", this.dailyGameNumber,
+                "priorStartWord:", priorStartWord, "priorTargetWord:", priorTargetWord,
+                "startWord:", this.startWord, "targetWord:", this.targetWord, "daily");
 
         if ((this.startWord == priorStartWord) && (this.targetWord == priorTargetWord)) {
             // the same words are already being played
@@ -186,6 +120,12 @@ class DailyGameDisplay extends GameDisplay {
                 // New daily game!  Update stats relating to starting a new daily game.
                 this.incrementStat("gamesStarted");
             }
+        }
+
+        // If the user didn't win this one, and we're about to switch to a
+        // new daily game, the streak is over.
+        if (this.game && !this.game.isWinner() && this.dailyGameNumber != Const.BROKEN_DAILY_GAME_NUMBER) {
+            this.setStat('streak', 0);
         }
 
         // Now, construct a game from start to target, including any recovered played steps if they
