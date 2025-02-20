@@ -12,6 +12,7 @@ class PracticeGameDisplay extends GameDisplay {
         super(appDisplay, gameDiv, pickerDiv, "practice-picker");
 
         this.practiceGamesPerDay = Const.PRACTICE_GAMES_PER_DAY; // can be overridden using testing vars
+
         // Are we debugging the number of practice games allowed?
         this.maxGamesIntervalMs = 24 * 60 *60 * 1000; // one day in ms
         if (Persistence.hasTestMinutesPerDay()) {
@@ -23,7 +24,7 @@ class PracticeGameDisplay extends GameDisplay {
         }
 
         // We use timestamps to ensure the user doesn't play more than the maximum
-        // number of timestamps per day:
+        // number of games per day.
 
         if (this.anyGamesRemaining()) {
             this.updateWords();
@@ -34,17 +35,16 @@ class PracticeGameDisplay extends GameDisplay {
         this.practiceGamesPerDay = n;
     }
 
-    // this is a pure virtual function in the base class.  It is called after any play that adds a new
+    // This is a pure virtual function in the base class. It is called after any play that adds a new
     // word to the solution (delete or letter picked).
-
     updateGameInProgressPersistence(gameResult) {
         if (Game.moveIsValid(gameResult)) {
             Persistence.savePracticeGameState(this.gameState);
         }
     }
 
-    // this is a virtual function that tells the display if the user requested the solution for the (practice) game in progress
-
+    // This is a virtual function that tells the display if the user requested the solution for
+    // the (practice) game in progress.
     getSolutionShown() {
         const ret = Persistence.getPracticeSolutionShown();
         Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.getSolutionShown() returns: ", ret, "practice");
@@ -75,6 +75,8 @@ class PracticeGameDisplay extends GameDisplay {
 
             // Save 'this' as the callback obj.
             ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
+        } else {
+            this.appDisplay.disablePracticeButton();
         }
     }
 
@@ -95,18 +97,19 @@ class PracticeGameDisplay extends GameDisplay {
 
         let practiceGameTimestamps = Persistence.getPracticeTimestamps();
 
-        // remove any any games that have aged out.
+        // Remove any any games that have aged out.
 
         practiceGameTimestamps = practiceGameTimestamps
             .filter(timestamp => (now-timestamp) < this.maxGamesIntervalMs);
 
-        // update the cookie now that we have removed any expired timestamps
+        // Update the cookie now that we have removed any expired timestamps
         Persistence.savePracticeTimestamps(practiceGameTimestamps);
 
-        // return value indicates if there are any practice games left today.
-        let ret = (practiceGameTimestamps.length < this.practiceGamesPerDay);
-        Const.GL_DEBUG && this.logDebug("anyGamesRemaining(): ", ret, "practice");
-        return ret;
+        // Return value indicates if there are any practice games left today.
+        let thereAreGamesRemaining = (practiceGameTimestamps.length < this.practiceGamesPerDay);
+        Const.GL_DEBUG && this.logDebug("anyGamesRemaining(): ", thereAreGamesRemaining, "practice");
+
+        return thereAreGamesRemaining;
     }
 
     addNewPracticeGameTimestamp() {
@@ -120,7 +123,7 @@ class PracticeGameDisplay extends GameDisplay {
         Persistence.savePracticeTimestamps(practiceGameTimestamps);
     }
 
-    // updateWords creates a practice game.  It should not be possible to call it if there are no more
+    // updateWords() creates a practice game.  It should not be possible to call it if there are no more
     // practice games left.
     // - If there are test vars to define the start and target, they will be used.
     // - If there is no practice game in progress in persistance, we get a new practice puzzle.
@@ -154,6 +157,11 @@ class PracticeGameDisplay extends GameDisplay {
 
         // Now we're ready to construct (and display) the game.
         this.constructGame(this.startWord, this.targetWord, gameState);
+    }
+
+    // This is a pure virtual function in the base class.
+    wasShown() {
+        return Persistence.getPracticeSolutionShown();
     }
 }
 

@@ -329,8 +329,10 @@ class GameDisplay extends BaseLogger {
                 userSolutionWords = this.game.getUserSolutionWords();
 
             if (originalSolutionWords == userSolutionWords) {
-                ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                    "Your solution is the same as WordChain's original solution!");
+                if (! this.wasShown()) {
+                    ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
+                        "Your solution is the same as WordChain's original solution!");
+                }
             } else {
                 ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
                     "WordChain's original solution:");

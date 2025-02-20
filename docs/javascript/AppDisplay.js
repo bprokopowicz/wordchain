@@ -72,30 +72,35 @@ class AppDisplay extends BaseLogger {
         this.setColors();
 
         // Now, start the interval timer to check for new games:
-        this.startNewGameIntervalCheck();
+        this.startTimingCheckInterval();
 
         window.theAppDisplayIsReady = true;
 
         this.showedNoDaily = false;
         this.showNoDaily();
+
+        this.updatePracticeGameStatus();
     }
 
-    startNewGameIntervalCheck() {
-        Const.GL_DEBUG && this.logDebug("startNewGameIntervalCheck() called", "display");
+    startTimingCheckInterval() {
+        Const.GL_DEBUG && this.logDebug("startTimingCheckInterval() called", "display");
         // Stop any timer already running.
-        this.stopNewGameIntervalCheck();
+        this.stopTimingCheckInterval();
 
-        // Set a timer to check whether it's time for a new Daily game periodically.
+        // Set a timer to check periodically whether:
+        // - it's time for a new Daily game
+        // - it's time to enable Practice games
         this.checkDailyIntervalTimer = setInterval(() => {
                 this.checkForNewDailyGame();
+                this.updatePracticeGameStatus();
                 }, Const.DAILY_GAME_CHANGE_CHECK_INTERVAL);
-        Const.GL_DEBUG && this.logDebug("startNewGameIntervalCheck() created timer id: ", this.checkDailyIntervalTimer,  "display");
+        Const.GL_DEBUG && this.logDebug("startTimingCheckInterval() created timer id: ", this.checkDailyIntervalTimer,  "display");
     }
 
-    stopNewGameIntervalCheck() {
-        Const.GL_DEBUG && this.logDebug("stopNewGameIntervalCheck() called", "display");
+    stopTimingCheckInterval() {
+        Const.GL_DEBUG && this.logDebug("stopTimingCheckInterval() called", "display");
         if (this.checkDailyIntervalTimer) {
-            Const.GL_DEBUG && this.logDebug("stopNewGameIntervalCheck() clearing old timer id: ", this.checkDailyIntervalTimer, "display");
+            Const.GL_DEBUG && this.logDebug("stopTimingCheckInterval() clearing old timer id: ", this.checkDailyIntervalTimer, "display");
             clearInterval(this.checkDailyIntervalTimer);
             this.checkDailyIntervalTimer = null;
         }
@@ -114,7 +119,7 @@ class AppDisplay extends BaseLogger {
     resetSingletonObject() {
         // so that we don't keep adding #root-div to the same document on each reset:
         document.getElementById("root-div").remove();
-        this.stopNewGameIntervalCheck();
+        this.stopTimingCheckInterval();
         this.statsDisplay.stopCountdownClock();
         AppDisplay.singletonObject = new AppDisplay();
     }
@@ -207,7 +212,6 @@ class AppDisplay extends BaseLogger {
         this.gameButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "game-button-div"});
         this.createGameButtons();
 
-        // TODO-PRODUCTION: Add a logo icon.
         const titleDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "title-div"});
         ElementUtilities.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
 
@@ -274,6 +278,22 @@ class AppDisplay extends BaseLogger {
 
     isDailyGameBroken() {
         return this.dailyGameDisplay.gameIsBroken();
+    }
+
+    disablePracticeButton() {
+        const buttonText = this.switchGamesButton.innerHTML;
+        if (buttonText == "Practice") {
+            ElementUtilities.addClass(this.switchGamesButton, "header-button-disabled");
+        }
+        this.switchGamesButton.practiceEnabled = false;
+    }
+
+    enablePracticeButton() {
+        const buttonText = this.switchGamesButton.innerHTML;
+        if (buttonText == "Practice") {
+            ElementUtilities.removeClass(this.switchGamesButton, "header-button-disabled");
+        }
+        this.switchGamesButton.practiceEnabled = true;
     }
 
     disableSolutionButton() {
@@ -408,18 +428,20 @@ class AppDisplay extends BaseLogger {
 
         // Toggle the button text to Practice.
         this.switchGamesButton.innerHTML = "Practice";
+        if (! this.switchGamesButton.practiceEnabled) {
+            this.disablePracticeButton();
+        }
 
         this.currentGameDisplay = this.dailyGameDisplay;
         this.setSolutionStatus();
     }
 
+    // We used to create the practice game here, but moved it to the constructor,
+    // so that there is no pause when switching to the practice game for the first time.
+    // If the user has already played the maximum number of games, we disallow any more.
     switchToPracticeGame() {
-        // We used to create the practice game here, but moved it to the constructor,
-        // so that there is no pause when switching to the practice game for the first time.
-        // If the user has already played the maximum number of games, we disallow any more.
-        if (! this.practiceGameDisplay.anyGamesRemaining()) {
-            this.showToast(Const.TOO_MANY_GAMES);
-            return;
+        if (! this.switchGamesButton.practiceEnabled) {
+            return
         }
 
         // Hide daily and show practice.
@@ -433,6 +455,16 @@ class AppDisplay extends BaseLogger {
 
         this.currentGameDisplay = this.practiceGameDisplay;
         this.setSolutionStatus();
+
+        // This will retrieve the words from the cookies if there are any, and create
+        // a new game and set them if not.
+        this.practiceGameDisplay.updateWords();
+    }
+
+    updatePracticeGameStatus() {
+        if (this.practiceGameDisplay.anyGamesRemaining()) {
+            this.enablePracticeButton();
+        }
     }
 }
 

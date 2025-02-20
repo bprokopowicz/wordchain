@@ -179,9 +179,8 @@ class DailyGameDisplay extends GameDisplay {
         return false;
     }
 
-    // valid daily game numbers run from 0 to GameWords.length-1.  If the calculated value is outside that range,
+    // Valid daily game numbers run from 0 to GameWords.length-1.  If the calculated value is outside that range,
     // a place-holder game is used.
-
     calculateGameNumber() {
         const nowTimestamp = (new Date()).getTime();
         const msElapsed = nowTimestamp - this.baseTimestamp;
@@ -200,6 +199,8 @@ class DailyGameDisplay extends GameDisplay {
         return msUntilNextGame;
     }
 
+    /* ----- Persistence Handling ----- */
+
     // this is a virtual function of the base class.  It is called when the base class adds a new word
     // to a solution (delete or letter picked).
 
@@ -210,14 +211,6 @@ class DailyGameDisplay extends GameDisplay {
             Persistence.saveDailyGameState(this.gameState);
         }
     }
-
-    getSolutionShown() {
-        const ret = Persistence.getDailySolutionShown();
-        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.getSolutionShown() returns: ", ret, "daily");
-        return ret;
-    }
-
-    /* ----- Callbacks ----- */
 
     // when a game is finished, we update persistent counters of games played, failed, and
     // a counter of the number of wrong moves (e.g. another 2-wrong-move game was just played)
@@ -253,6 +246,26 @@ class DailyGameDisplay extends GameDisplay {
         }
     }
 
+    // Increment the given stat, update the stats cookie, and update the stats display content.
+    incrementStat(whichStat) {
+        // Only update stats if this is a valid daily game.
+        if (!this.gameIsBroken()) {
+            let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
+            dailyStats[whichStat] += 1;
+            Persistence.saveDailyStats(dailyStats);
+        }
+    }
+
+    // Set the given stat to the given value, update the stats cookie, and update the stats display content.
+    setStat(whichStat, statValue) {
+        // Only update stats if this is a valid daily game.
+        if (!this.gameIsBroken()) {
+            let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
+            dailyStats[whichStat] = statValue;
+            Persistence.saveDailyStats(dailyStats);
+        }
+    }
+
     /* ----- Utilities ----- */
 
     gameIsBroken() {
@@ -281,35 +294,27 @@ class DailyGameDisplay extends GameDisplay {
         return gameInfo;
     }
 
-    // Increment the given stat, update the stats cookie, and update the stats display content.
-    incrementStat(whichStat) {
-        // Only update stats if this is a valid daily game.
-        if (!this.gameIsBroken()) {
-            let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
-            dailyStats[whichStat] += 1;
-            Persistence.saveDailyStats(dailyStats);
-        }
+    getSolutionShown() {
+        const ret = Persistence.getDailySolutionShown();
+        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.getSolutionShown() returns: ", ret, "daily");
+        return ret;
     }
 
-    // Set the given stat to the given value, update the stats cookie, and update the stats display content.
-    setStat(whichStat, statValue) {
-        // Only update stats if this is a valid daily game.
-        if (!this.gameIsBroken()) {
-            let dailyStats = Persistence.getDailyStatsOrElse(DailyGameDisplay.NewDailyStatsBlob());
-            dailyStats[whichStat] = statValue;
-            Persistence.saveDailyStats(dailyStats);
-        }
-    }
 
     // Called from AppDisplay when "Solution" button is clicked.
     showSolution() {
+        Persistence.saveDailyGameState(this.gameState);
+        Persistence.saveDailySolutionShown();
+
         // TODO-PRODUCTION: Add an "are you sure?"
         Const.GL_DEBUG && this.logDebug("DailyGameDisplay.showSolution() called.", "daily");
         this.game.finishGame();
         this.showGameAfterMove();
+    }
 
-        Persistence.saveDailyGameState(this.gameState);
-        Persistence.saveDailySolutionShown();
+    // This is a pure virtual function in the base class.
+    wasShown() {
+        return Persistence.getDailySolutionShown();
     }
 }
 

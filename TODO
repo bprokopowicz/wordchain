@@ -9,7 +9,6 @@ Must Do
 - How to manage daily game words long-term?
 - Address/remove any TODO-PRODUCTION
 - Change Const.WORD_CHAIN_EPOCH_DATE
-- Fix Const.PRACTICE_GAMES_PER_DAY
 - Remove all rare words from standard dictionary (done through 'B') 1/29
 
 Maybe Do
@@ -25,6 +24,8 @@ Second Beta TODO
   - Chrome Mac
 - Seek user input on:
   - Should the game automatically select the very last letter?
+  - Should we limit the number of practice games per day? 
+    If so, is the limit of 3 appropriate?
   - Show Solution button:
     - Should it require confirmation?
     - Should letters in "shown" rows be a different color to indicate the user

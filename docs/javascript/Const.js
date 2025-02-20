@@ -20,27 +20,27 @@ export function GET_GL_DEBUG(value) {
 */
 
 // Constants for URLs.
-export const SHARE_URL_ROOT = "https://WordChainFun.com/";
-export const DICT_URL = "https:/docs/resources/WordChainDict";
+export const SHARE_URL_ROOT    = "https://WordChainFun.com/";
+export const DICT_URL          = "https:/docs/resources/WordChainDict";
 export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
-export const EMAIL_URL = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
-export const FAQ_URL   = "/FAQ.html";
+export const EMAIL_URL         = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
+export const FAQ_URL           = "/FAQ.html";
 
 // Our very own copyright!
 export const COPYRIGHT = "Copyright \u{00A9} 2025 WordChainFun"
 
 // Constants for practice game word selection screen
-// TODO-PRODUCTION: Uncomment
-//export const PRACTICE_GAMES_PER_DAY = 3;       // Real value
-export let PRACTICE_GAMES_PER_DAY = 1000;    // For beta testing
-export const PRACTICE_STEPS_MINIMUM = 6;
-export const PRACTICE_STEPS_MAXIMUM = 8;
-export const PRACTICE_DIFFICULTY_MINIMUM = 20;
-export const PRACTICE_TARGET_WORD_LEN = 0;     // 0 means any target word length is OK
-export const PRACTICE_REQ_WORD_LEN_1 = 4;
-export const PRACTICE_REQ_WORD_LEN_2 = 6;
+export const PRACTICE_GAMES_PER_DAY        = 3;
+export const PRACTICE_STEPS_MINIMUM        = 6;
+export const PRACTICE_STEPS_MAXIMUM        = 8;
+export const PRACTICE_DIFFICULTY_MINIMUM   = 20;
+export const PRACTICE_TARGET_WORD_LEN      = 0;     // 0 means any target word length is OK
+export const PRACTICE_REQ_WORD_LEN_1       = 4;
+export const PRACTICE_REQ_WORD_LEN_2       = 6;
 export const PRACTICE_MIN_CHOICES_PER_STEP = 2;
-export const PRACTICE_START_WORDS = ["FACE", "GRASP", "SPACE", "PLATE", "TRAIL", "PLANT", "HOUSE", "SNORE", "SNOW", "BROIL", "WRITE", "SONG", "FISH", "WASH", "SINK"];
+export const PRACTICE_START_WORDS          = [
+    "FACE", "GRASP", "SPACE", "PLATE", "TRAIL", "PLANT", "HOUSE", "SNORE",
+    "SNOW", "BROIL", "WRITE", "SONG", "FISH", "WASH", "SINK"];
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
@@ -53,7 +53,6 @@ export const GAME_WON            = "Solved! You win!";
 export const GAME_LOST           = "Too many wrong moves";
 export const PICK_NEW_LETTER     = "Pick a different letter";      // Displayed when user selects the letter already in the cell to be changed.
 export const UNEXPECTED_ERROR    = "Yikes! Something went wrong";
-export const TOO_MANY_GAMES      = `Only ${PRACTICE_GAMES_PER_DAY} games allowed per day`;
 export const NO_DAILY            = "Unable to create daily game;<br>here is a fun back-up";
 export const SHARE_FAILED        = "Failed to share";
 export const SHARE_COPIED        = "Copied to clipboard";
