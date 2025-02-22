@@ -359,6 +359,10 @@ class AppDisplay extends BaseLogger {
         this.disablePracticeButton();
     }
 
+    refreshStats() {
+        this.statsDisplay.refresh();
+    }
+
     // Set color properties according to the Dark Theme and Colorblind Mode settings.
     setColors() {
         // Change the document class name to switch the colors in general.

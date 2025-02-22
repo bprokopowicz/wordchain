@@ -135,6 +135,9 @@ class DailyGameDisplay extends GameDisplay {
         Const.GL_DEBUG && this.logDebug("NEW DAILY GAME! recoveredDailyGameStateIfAny:", recoveredDailyGameStateIfAny, "daily");
         this.constructGame(this.startWord, this.targetWord, recoveredDailyGameStateIfAny);
 
+        // Refresh the stats display in case it is open.
+        this.appDisplay.refreshStats();
+
         return true;
     }
 

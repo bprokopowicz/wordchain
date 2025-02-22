@@ -207,6 +207,10 @@ class StatsDisplay extends AuxiliaryDisplay {
         return shareString.trim();
     }
 
+    refresh() {
+        this.updateStatsContent();
+    }
+
     // This is called when the user opens the Stats screen; it displays a
     // countdown clock until the next daily game is available.
     startCountdownClock() {

@@ -236,7 +236,11 @@ class Test extends BaseLogger {
             const windowFeatures = "width=300,height=400";
             const windowName = "AppDisplayTest";
             this.newWindow = window.open(url, windowName, windowFeatures);
-            this.getNewAppWindow().console = console;
+
+            // NOTE: newWindow may come back null or inoperative if pop-ups are blocked!
+            // This will result in this error in the console:
+            //     Cannot set properties of null (setting 'console')
+            this.newWindow.console = console;
             this.logDebug("opened the one and only pop-up window: ", this.newWindow, ", at url: ", url, "test");
         }
     }
