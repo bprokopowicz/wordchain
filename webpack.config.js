@@ -1,8 +1,8 @@
 var WebpackObfuscator = require('webpack-obfuscator');
 module.exports = {
     entry: {
-        wordchain: './docs/javascript/AppDisplayBundled.js',
-        testing: './test/TestBundled.js',
+        wordchain: './docs/javascript/BundledAppDisplay.js',
+        testing: './test/BundledTest.js',
     },
     output: {
         filename: '[name]-bundled.js',

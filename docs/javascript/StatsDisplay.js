@@ -62,7 +62,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
         this.shareButton = ElementUtilities.addElementTo(
             "button", buttonDiv,
-            {class: "wordchain-button game-button"},
+            {class: "app-button non-header-button"},
             "Share");
 
         // use 'this' as the callback object to the callback function for the shareButton element so that we can access ourself

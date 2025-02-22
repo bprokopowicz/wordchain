@@ -10,13 +10,13 @@ class HelpDisplay extends AuxiliaryDisplay {
 
         const helpHTML = `
         <h1 style="display: flex; justify-content: space-between; align-items: center;">
-            <button class="wordchain-button game-button">
+            <button class="app-button non-header-button">
                 <a href="${Const.FAQ_URL}" target="_blank">FAQ</a>
             </button>
             <label>
             HOW TO PLAY
             </label>
-            <button class="wordchain-button game-button">
+            <button class="app-button non-header-button">
                 <a href="${Const.FAQ_URL}" target="_blank">FAQ</a>
             </button>
         </h1>

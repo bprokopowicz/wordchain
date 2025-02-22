@@ -67,6 +67,7 @@ class AppDisplay extends BaseLogger {
 
         // Now, create all the screens. This will create all the divs listed above.
         this.createScreens();
+        this.setSolutionStatus();
 
         // Now set the colors based on darkTheme and colorblindMode.
         this.setColors();
@@ -139,8 +140,8 @@ class AppDisplay extends BaseLogger {
         // these the game and picker divs be shown/hidden as appropriate.
         this.lowerDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "lower-div"});
         this.createGameDiv(this.lowerDiv);
-        this.dailyGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "daily-game-div"});
-        this.practiceGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "practice-game-div"});
+        this.dailyGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "daily-game-div", class: "game-div"});
+        this.practiceGameDiv = ElementUtilities.addElementTo("div", this.gameDiv, {id: "practice-game-div", class: "game-div"});
 
         // The auxiliary-div contains all the auxiliary screens.
         this.auxiliaryDiv = ElementUtilities.addElementTo("div", this.rootDiv, {id: "auxiliary-div", class: "auxiliary-div"});
@@ -188,15 +189,19 @@ class AppDisplay extends BaseLogger {
         // Button to switch between Daily and Practice games.
         this.switchGamesButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
-            {id: "switch-games", class: "wordchain-button header-button"},
+            {id: "switch-games", class: "app-button header-button"},
             "Practice");
-
         ElementUtilities.setButtonCallback(this.switchGamesButton, this, this.switchGamesCallback);
+
+        // Disable the practice button initially, if there are more games available
+        // it will get enabled almost immediately: we start an interval timer in
+        // constructor() and it will enable the button if there are games available.
+        this.disablePracticeButton();
 
         // Button to show the solution.
         this.solutionButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
-            {id: "show-solution", class: "wordchain-button header-button"},
+            {id: "show-solution", class: "app-button header-button"},
             "Solution");
 
         // Pass 'this' to the callback for the solutionButton element so that we can access ourself.
@@ -204,7 +209,9 @@ class AppDisplay extends BaseLogger {
     }
 
     createHeaderDiv() {
-        // This div is the one we style as none or flex to hide/show the div.
+        // This div is one we style as none or flex to hide/show the div.
+        // NOTE: It is important to set the style explicitly so that the
+        // hide/show code in AuxiliaryDisplay will work properly.
         this.headerDiv = ElementUtilities.addElementTo("div", this.upperDiv, {id: "header-div"});
         this.headerDiv.style.display = "flex";
 
@@ -226,18 +233,23 @@ class AppDisplay extends BaseLogger {
         // next to the picker grid, so add a break.
         ElementUtilities.addBreak(lowerDiv);
 
-        // This div is the one we style as none or flex to hide/show the div.
-        this.gameDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "game-div"}, null);
+        // This div is one we style as none or flex to hide/show the div.
+        // NOTE: It is important to set the style explicitly so that the
+        // hide/show code in AuxiliaryDisplay will work properly.
+        this.gameDiv = ElementUtilities.addElementTo("div", lowerDiv, {id: "mama-game-div", class: "game-div"}, null);
         this.gameDiv.style.display = "flex";
     }
 
     createPickerDiv(parentDiv) {
         // This div is the one we style as none or flex to hide/show the div.
         ElementUtilities.addBreak(parentDiv);
-        this.pickerDiv = ElementUtilities.addElementTo("div", parentDiv, {id: "picker-div"}, null),
+        this.pickerDiv = ElementUtilities.addElementTo("div", parentDiv, {id: "picker-div"}, null);
 
-        // Show the picker initially by default.
+        // This div is one we style as none or flex to hide/show the div.
+        // NOTE: It is important to set the style explicitly so that the
+        // hide/show code in AuxiliaryDisplay will work properly.
         this.pickerDiv.style.display = "flex";
+
     }
 
     /* ----- Callbacks ----- */
@@ -280,10 +292,18 @@ class AppDisplay extends BaseLogger {
         return this.dailyGameDisplay.gameIsBroken();
     }
 
+    disableButton(button) {
+        ElementUtilities.addClass(button, "button-disabled");
+    }
+
+    enableButton(button) {
+        ElementUtilities.removeClass(button, "button-disabled");
+    }
+
     disablePracticeButton() {
         const buttonText = this.switchGamesButton.innerHTML;
         if (buttonText == "Practice") {
-            ElementUtilities.addClass(this.switchGamesButton, "header-button-disabled");
+            this.disableButton(this.switchGamesButton);
         }
         this.switchGamesButton.practiceEnabled = false;
     }
@@ -291,18 +311,18 @@ class AppDisplay extends BaseLogger {
     enablePracticeButton() {
         const buttonText = this.switchGamesButton.innerHTML;
         if (buttonText == "Practice") {
-            ElementUtilities.removeClass(this.switchGamesButton, "header-button-disabled");
+            this.enableButton(this.switchGamesButton);
         }
         this.switchGamesButton.practiceEnabled = true;
     }
 
     disableSolutionButton() {
-        ElementUtilities.addClass(this.solutionButton, "header-button-disabled");
+        this.disableButton(this.solutionButton);
         this.solutionButton.enabled = false;
     }
 
     enableSolutionButton() {
-        ElementUtilities.removeClass(this.solutionButton, "header-button-disabled");
+        this.enableButton(this.solutionButton);
         this.solutionButton.enabled = true;
     }
 
@@ -331,6 +351,12 @@ class AppDisplay extends BaseLogger {
 
     isDarkTheme() {
         return this.darkTheme;
+    }
+
+    // PracticeGameDisplay calls this when the user finishes a game
+    // and there are no more remaining in this 24-hour period.
+    practiceGamesUsedUp() {
+        this.disablePracticeButton();
     }
 
     // Set color properties according to the Dark Theme and Colorblind Mode settings.
@@ -456,14 +482,17 @@ class AppDisplay extends BaseLogger {
         this.currentGameDisplay = this.practiceGameDisplay;
         this.setSolutionStatus();
 
-        // This will retrieve the words from the cookies if there are any, and create
-        // a new game and set them if not.
-        this.practiceGameDisplay.updateWords();
+        // This will begin the game, counting it toward the user's games per day.
+        this.practiceGameDisplay.startGame();
     }
 
     updatePracticeGameStatus() {
         if (this.practiceGameDisplay.anyGamesRemaining()) {
             this.enablePracticeButton();
+
+            // Notify the display that games are available so that the New Game
+            // button can be enabled.
+            this.practiceGameDisplay.practiceGamesAvailable();
         }
     }
 }

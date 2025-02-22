@@ -10,7 +10,6 @@
 ** ===============
 */
 
-
 /*
 ** These colors are defined for :root to enable implementation of both
 ** dark and colorblind mode. We define properties for "good" and "bad"
@@ -18,6 +17,7 @@
 ** dark and light variants for the colors used for any properties
 ** that are affected by dark and light mode. All of these colors will
 ** be used in the javascript code to effect theme and colorblind changes.
+** See AppDisplay.setColors().
 */
 :root {
 
@@ -68,36 +68,22 @@
 */
 :root,
 :root.light-mode {
-    /* ===== Colors used to define other properties ===== */
+    /* ===== Basic Colors===== */
     --primary-fg:               Black;
-    --primary-fg-disabled:      LightGray;
     --secondary-fg:             White;
-
     --primary-bg:               White;
     --secondary-bg:             Black;
-
     --user-input-fg:            Black;
     --user-input-bg:            #ffff00;    /* yellow */
 
-    /* ===== Header ===== */
-    --header-button-bg:         LightGray;
-    --header-button-fg-disabled:#9c9ea0;
+    /* ===== Header and Buttons ===== */
     --header-bg:                #97b2d5;    /* slate blue */
+    --button-fg-disabled:       #9c9ea0;    /* lightish gray */
+    --button-bg:                LightGray;
 
-    /* Currently not used in v2 */
-    --active-button-bg:         SlateGray;
-    --inactive-button-bg:       LightGray;
-
-    /* ===== Cells, Letters, Buttons below Cells ===== */
+    /* ===== Cells, Letters, Buttons ===== */
     --cell-border:              var(--primary-fg);
     --target-word-bg:           #d09ade;    /* pale purple */
-    --game-button-bg:           LightGray;
-
-    /* These properties are affected by changes in the Colorblind Mode setting */
-    --non-colorblind-good-bg:   var(--non-colorblind-good-bg-light);
-    --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-light);
-    --non-colorblind-genius-bg: var(--non-colorblind-genius-bg-light);
-    --non-colorblind-dodo-bg:   var(--non-colorblind-dodo-bg-light);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
@@ -111,35 +97,22 @@
 }
 
 :root.dark-mode {
-    /* ===== Colors used to define other properties ===== */
+    /* ===== Basic Colors===== */
     --primary-fg:               White;
-    --primary-fg-disabled:      #555555;    /* very dark greenish gray */
     --secondary-fg:             Black;
-
     --primary-bg:               #1d1d1f;    /* very dark blueish gray */
     --secondary-bg:             White;
-
     --user-input-fg:            White;
     --user-input-bg:            #c6c60d;    /* mustard-y yellow */
 
-    /* ===== Header ===== */
-    --header-button-bg:         #49515a;    /* dark blueish gray */
+    /* ===== Header and Buttons ===== */
     --header-bg:                Black;
+    --button-fg-disabled:       #7f7b7b;    /* darkish gray */
+    --button-bg:                #49515a;    /* dark blueish gray */
 
-    /* Currently not used in v2 */
-    --active-button-bg:         #858b90;    /* light blueish gray */
-    --inactive-button-bg:       #49515a;    /* dark blueish gray */
-
-    /* ===== Cells, Letters, Buttons below Cells ===== */
+    /* ===== Cells, Letters, Buttons ===== */
     --cell-border:              White;
     --target-word-bg:           #b319ff;    /* medium purple */
-    --game-button-bg:           #49515a;    /* dark blueish gray */
-
-    /* These properties are affected by changes in the Colorblind Mode setting */
-    --non-colorblind-good-bg:   var(--non-colorblind-good-bg-dark);
-    --non-colorblind-bad-bg:    var(--non-colorblind-bad-bg-dark);
-    --non-colorblind-genius-bg: var(--non-colorblind-genius-bg-dark);
-    --non-colorblind-dodo-bg:   var(--non-colorblind-dodo-bg-dark);
 
     /* ===== Toast ===== */
     --toast-bg:                 var(--secondary-bg);
@@ -212,36 +185,32 @@ hr {
 }
 
 /*
+** The copyright at the bottom of the game and auxiliary screens,
+** contained in root-div.
+*/
+#copyright-div {
+    font-size: .75rem;
+    margin-top: 20px;
+    text-align: center;
+    color: var(--primary-fg);
+    background: var(--background-fg);
+}
+
+/*
 ** ===========
 ** Game screen
 ** ===========
 */
 
-.wordchain-button {
-    font-size: .75rem;
-    padding: .3rem;
-    margin: .2rem;
-    border-width: 0;
-    border-radius: .5rem;
-    color: var(--primary-fg);
-    color: var(--primary-fg);
-}
-
-.wordchain-button:focus {
-    outline: none;
-}
-
-/*
-** Shell around the content below the WordChain banner.
-*/
-
+/* This holds the WordChain banner and the letter picker, contained in root-div. */
 #upper-div {
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
     position: sticky;
     top: 0;
 }
 
+/* This holds the mama-game-div, contained in root-div */
 #lower-div {
     display: flex;
     /*
@@ -256,19 +225,16 @@ hr {
     width: 100%;
 }
 
-#game-div {
+/* This holds daily/practice-game-div -- these are hidden/shown when the Practic/Daily button is clicked. */
+#mama-game-div {
+}
+
+/* Styling for mama/practice/daily-game-div. */
+.game-div {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     overflow-x: hidden;
-}
-
-#copyright-div {
-    font-size: .75rem;
-    margin-top: 20px;
-    text-align: center;
-    color: var(--primary-fg);
-    background: var(--background-fg);
 }
 
 /*
@@ -295,15 +261,6 @@ hr {
     align-items: center;
 }
 
-.header-button {
-    font-weight: bold;
-    background: var(--header-button-bg);
-}
-
-.header-button-disabled {
-    color: var(--header-button-fg-disabled);
-}
-
 #title-div {
     width: 40%;
     display: flex;
@@ -324,42 +281,64 @@ hr {
     align-items: center;
 }
 
+/*
+** ----------------------
+** General Button Styling
+** ----------------------
+*/
+
+.app-button {
+    font-size: .75rem;
+    padding: .3rem;
+    margin: .2rem;
+    border-width: 0;
+    border-radius: .5rem;
+    color: var(--primary-fg);
+    color: var(--primary-fg);
+}
+
+.app-button:focus {
+    outline: none;
+}
+
+.header-button {
+    font-weight: bold;
+    background: var(--button-bg);
+}
+
+/* Buttons for help, stats, settings in the header */
 .aux-button {
-    background: var(--header-button-bg);
+    background: var(--button-bg);
     border-radius: 50%;
     border-width: 0;
     padding: .15rem;
     margin: .2rem;
 }
 
+/* Holds images for help, stats, settings in the header */
 svg {
     display: block;
     margin: auto;
     fill: var(--primary-fg);
 }
 
-/* Currently not used in v2 */
-.active-button {
-    background: var(--active-button-bg);
-    color: var(--secondary-fg);
-}
-
-/* Currently not used in v2 */
-.not-active {
-    background: var(--inactive-button-bg);
+.non-header-button {
+    font-size: 1.5rem;
+    font-weight: bold;
     color: var(--primary-fg);
+    background: var(--button-bg);
 }
 
-/*
-** -----------------
-** Confirmation Mode
-** -----------------
-*/
+.button-disabled {
+    color: var(--button-fg-disabled) !important;
+}
 
+/* For confirmation mode */
 .button-unselected {
     background: var(--user-input-bg) !important;
 }
 
+/* For confirmation mode */
 .button-unconfirmed {
     background: var(--confirmation-bg) !important;
 }
@@ -369,6 +348,9 @@ svg {
 ** Cell Grid, Cells, Buttons Below the Grid
 ** ----------------------------------------
 */
+
+.game-grid-div {
+}
 
 .table-div {
     display: flex;
@@ -523,13 +505,7 @@ button.action-button {
     font-weight: bold;
 }
 
-.game-button {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--primary-fg);
-    background: var(--game-button-bg);
-}
-
+/* Container for any buttons (or perhaps other stuff) right below the game grid. */
 .post-game-div {
     display: flex;
     align-items: center;
@@ -537,11 +513,12 @@ button.action-button {
 }
 
 /*
-** ----------------------------------------
+** ------------
 ** Game results
-** ----------------------------------------
+** ------------
 */
 
+/* This div has the score, original solution, and icon divs. */
 .results-div {
     color: var(--primary-fg);
     background: var(--background-fg);
@@ -601,7 +578,10 @@ button.action-button {
 ** for the daily and practice games.
 */
 #picker-div {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-items: center;
     background: var(--primary-bg);
     width: 100%;
     padding-top: 10px;
@@ -611,11 +591,16 @@ button.action-button {
 /*
 ** The classes below apply to both the daily and practice games pickers,
 ** i.e. each of the pickers has a div with class picker-outer-div and
-** a div with class picker-inner-div..
+** a div with class picker-inner-div.
 */
 
 .picker-outer-div {
     width: 325px;
+    /*
+    ** It is essential to have a height here, or else the picker space
+    ** will go away when picker-inner-div is hidden!
+    */
+    height: 110px;
 }
 
 .picker-inner-div {
@@ -954,9 +939,15 @@ input.setting-radio {
 
 
 /*
-*******************************
-** Override Styling for Tablets
-*******************************
+*******************
+** Override Styling
+*******************
+*/
+
+/*
+** =======
+** Tablets
+** =======
 */
 
 @media only screen and (min-width: 600px) {
@@ -973,7 +964,7 @@ input.setting-radio {
         margin: .5rem;
     }
 
-    .wordchain-button {
+    .app-button {
         font-size: 1.25rem;
         padding: .3rem;
         margin: .5rem;
@@ -992,9 +983,9 @@ input.setting-radio {
 }
 
 /*
-**************************************
-** Override Styling for Larger Screens
-**************************************
+** ======
+** Phones
+** ======
 */
 
 /*
@@ -1011,7 +1002,7 @@ input.setting-radio {
         --cell-margin: 3px;
     }
 
-    #game-div {
+    .game-div {
         margin-left: 25px;
 
         /* Allow horizontal scrolling just in case things widen past Samsung viewport. */
@@ -1020,10 +1011,12 @@ input.setting-radio {
 }
 
 /*
-** Changes to for large screens like laptop.
+** =================================
+** Large screens like laptop/desktop
+** =================================
 */
-@media only screen and (min-width: 991px) {
 
+@media only screen and (min-width: 991px) {
     table {
         border-spacing: .9rem;
     }

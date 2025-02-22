@@ -19,8 +19,8 @@
 **        Integer: calculated daily game number based on current time.
 **     LastWonDailyGameNumber
 **        Integer: the DailyGameNumber that the user last won; used to determine streak stat.
-**     DailyGameWordsPlayed
-**        List: words played including start word (and target if game is over).
+**     DailyGameState
+**        List: "tuples": (word, wasPlayed, correctness)
 **     DailyStats (also used in StatsDisplay)
 **        Object: see explanation of properties in StatsDisplay.
 **     DailySolutionShown:
@@ -32,8 +32,8 @@
 **        String: Current practice game start word
 **     PracticeGameTarget
 **        String: Current practice game target word
-**     PracticeGameWordsPlayed
-**        List: words played including start word (and target if game is over).
+**     PracticeGameState
+**        List: "tuples": (word, wasPlayed, correctness)
 **     PracticeGameTimestamps
 **        List: Epoch timestamps of when practice words were started, used to limit the
 **        number of practice games allowed in a day.
@@ -71,12 +71,12 @@ class Cookie {
     static CONFIRMATION_MODE = "ConfirmationMode";
     static DAILY_GAME_NUMBER = "DailyGameNumber";
     static LAST_WON_DAILY_GAME_NUMBER = "LastWonDailyGameNumber";
-    static DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
+    static DAILY_GAME_STATE = "DailyGameState";
     static DAILY_STATS = "DailyStats";
     static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
     static PRACTICE_GAME_START = "PracticeGameStart";
     static PRACTICE_GAME_TARGET = "PracticeGameTarget";
-    static PRACTICE_GAME_WORDS_PLAYED = "PracticeGameWordsPlayed";
+    static PRACTICE_GAME_STATE = "PracticeGameState";
     static PRACTICE_GAME_TIMESTAMPS = "PracticeGameTimestamps";
     static PRACTICE_SOLUTION_SHOWN = "PracticeSolutionShown";
 
@@ -100,13 +100,13 @@ class Cookie {
         Cookie.COLORBLIND_MODE,
         Cookie.CONFIRMATION_MODE,
         Cookie.DAILY_GAME_NUMBER,
-        Cookie.DAILY_GAME_WORDS_PLAYED,
+        Cookie.DAILY_GAME_STATE,
         Cookie.DAILY_STATS,
         Cookie.DAILY_SOLUTION_SHOWN,
         Cookie.LAST_WON_DAILY_GAME_NUMBER,
         Cookie.PRACTICE_GAME_START,
         Cookie.PRACTICE_GAME_TARGET,
-        Cookie.PRACTICE_GAME_WORDS_PLAYED,
+        Cookie.PRACTICE_GAME_STATE,
         Cookie.PRACTICE_GAME_TIMESTAMPS,
         Cookie.PRACTICE_SOLUTION_SHOWN,
         Cookie.TEST_INT,

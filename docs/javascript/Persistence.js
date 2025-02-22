@@ -17,15 +17,15 @@ class Persistence {
     }
 
     static clearDailyGameState() {
-        Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, []);
+        Cookie.saveJson(Cookie.DAILY_GAME_STATE, []);
     }
 
     static getDailyGameState() {
-        return Cookie.getJsonOrElse(Cookie.DAILY_GAME_WORDS_PLAYED, []);
+        return Cookie.getJsonOrElse(Cookie.DAILY_GAME_STATE, []);
     }
 
     static saveDailyGameState(gameState) {
-        Cookie.saveJson(Cookie.DAILY_GAME_WORDS_PLAYED, gameState);
+        Cookie.saveJson(Cookie.DAILY_GAME_STATE, gameState);
     }
 
     static getDailyStatsOrElse(defaultStats) {
@@ -96,15 +96,15 @@ class Persistence {
     // Practice game state
 
     static clearPracticeGameState() {
-        Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
+        Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, []);
     }
 
     static getPracticeGameState() {
-        return Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_WORDS_PLAYED, []);
+        return Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_STATE, []);
     }
 
     static savePracticeGameState(gameState) {
-        Cookie.saveJson(Cookie.PRACTICE_GAME_WORDS_PLAYED, gameState);
+        Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, gameState);
     }
 
     static clearPracticeGameDef() {

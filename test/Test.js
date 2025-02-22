@@ -190,7 +190,11 @@ class Test extends BaseLogger {
         this.successCount += 1;
     }
 
-    verify(truthValue, message) {
+    verify() {
+        const args = [...arguments],
+              truthValue = args.shift(),
+              message = args.join(" ");
+
         if (! truthValue) {
             this.messages.push(`<font color="red">${this.testName}: Failed: ${message}</font color="red">`);
             this.failureCount += 1;
@@ -239,7 +243,7 @@ class Test extends BaseLogger {
 
     resetTheTestAppWindow() {
         // This is a cheat to create a "new singleton" so that we get a fresh AppDisplay.
-        this.logDebug("calling resetSingletonObject.  newAppWindow:", this.getNewAppWindow(), "test");
+        this.logDebug("resetTheTestAppWindow(): calling resetSingletonObject.  newAppWindow:", this.getNewAppWindow(), "test");
         this.getNewAppWindow().theAppDisplay.resetSingletonObject();
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
     }
@@ -248,6 +252,7 @@ class Test extends BaseLogger {
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const statsDisplay = appDisplay.statsDisplay;
         const mockEvent = new MockEvent(null);  // not used in called function
+        this.logDebug("openAndGetTheStatsDisplay(): appDisplay:", appDisplay, "statsDisplay:", statsDisplay, "test");
         statsDisplay.openAuxiliaryCallback(mockEvent);
         return statsDisplay;
     }
@@ -1903,7 +1908,7 @@ class Test extends BaseLogger {
             this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
             this.verify((resultI2Wrong === Const.WRONG_MOVE), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
             this.verify((resultO2 === Const.OK), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
-            this.verify((resultInsertP0 === Const.OK), `insert P@0 returns ${resultInsertP0}, not ${Const.OK}`) &&
+            this.verify((resultInsertP0 == Const.OK), `insert P@0 returns ${resultInsertP0}, not ${Const.OK}`) &&
             this.verify((resultInsertI1 === Const.OK), `insert I@1 returns ${resultInsertI1}, not ${Const.OK}`) &&
             this.success();
     }
@@ -1919,46 +1924,63 @@ class Test extends BaseLogger {
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
 
         // play and solve N practice games in a row.
-        // showSolution calls showMove(userRequestedSolution=true), and this rebuilds the whole game GUI, including
+        // showSolution() calls showMove(userRequestedSolution=true), and this rebuilds the whole game GUI, including
         // the post-game-div to hold a 'new game' button if there are any more practice games allowed.
-        this.logDebug(this.testName, ": showing solution", "test");
-        this.gameDisplay.showSolution();
 
-        const mockEvent = null; // the event is not actually touched by the callback
-        let soFarSoGood = true;
-        const testPracticeGamesPerDay = 3;
+        const mockEvent = null, // the event is not actually touched by the callback
+              testPracticeGamesPerDay = 3;
+
         this.gameDisplay.setPracticeGamesPerDay(testPracticeGamesPerDay);
+
+        let soFarSoGood = true;
+
+        // Verify that setPracticeGamesPerDay() above does what we think it does.
         soFarSoGood = this.verify(this.gameDisplay.practiceGamesPerDay == testPracticeGamesPerDay,
                 `expected practice games per day to be ${testPracticeGamesPerDay}, got: ${this.gameDisplay.practiceGamesPerDay}`, "test");
-        for (let gamesStarted=1; gamesStarted < testPracticeGamesPerDay; gamesStarted++) {
+
+        // We come into the loop with the first game already started;
+        // it is started when the app starts.
+        for (let gamesStarted=1; gamesStarted <= testPracticeGamesPerDay; gamesStarted++) {
+
             if (!soFarSoGood) {
                 break; // stop testing on the first failure
             }
-            this.logDebug(this.testName, ": gamesStarted:", gamesStarted, "test");
-            // New Game button should be there.  The postGameDiv is reconstructed on every refresh of the display after a move
-            // or solution.
-            const postGameDiv = this.gameDisplay.postGameDiv;
-            const children = postGameDiv.children;
 
-            if ( this.verify(children.length == 1, "expected 1 children, got: ", children.length) &&
-                    this.verify( (children[0].textContent == "New Game"), "expected textContent=New Game, got: ", children[0].textContent) &&
-                    this.verify(this.gameDisplay.anyGamesRemaining(), "After showing ", gamesStarted, " games, anyGamesRemaining should still be true")
-               ) {
-                // pretend to click the new game button.
-                this.gameDisplay.newGameCallback(mockEvent);
-                //do we need to wait a while? No, that callback handler runs synchronously.
-                this.gameDisplay.showSolution();
+            // do we need to wait a while? No, that callback handler runs synchronously.
+            this.gameDisplay.showSolution();
+
+            // New Game button should be there, but not on the last game. The postGameDiv is reconstructed on every refresh of the display after a move
+            // or solution.
+            const postGameDiv = this.gameDisplay.postGameDiv,
+                  children = postGameDiv.children;
+
+            if (! this.verify(children.length == 1, "expected 1 child, got:", children.length)) {
+                break;
+            }
+
+            const childButtonClass = children[0].getAttribute("class"),
+                  childIsDisabled = childButtonClass && childButtonClass.indexOf("button-disabled") >= 0,
+                  childText = children[0].textContent;
+
+            if (gamesStarted < testPracticeGamesPerDay) {
+                // Not last game
+                if ( this.verify( (childText == "New Game"), "expected textContent=New Game, got: ", childText) &&
+                        this.verify( !childIsDisabled, "New Game button was disabled and expected it to be enabled") &&
+                        this.verify(this.gameDisplay.anyGamesRemaining(), "After showing ", gamesStarted, " games, anyGamesRemaining should still be true")
+                   ) {
+                    // pretend to click the new game button.
+                    this.gameDisplay.newGameCallback(mockEvent);
+                } else {
+                    soFarSoGood = false;
+                }
             } else {
-                soFarSoGood = false;
+                // Last game
+                soFarSoGood = this.verify(childIsDisabled, "New Game button was enabled and expected it to be disabled") &&
+                              this.verify(!this.gameDisplay.anyGamesRemaining(), "After showing ", gamesStarted, " games, anyGamesRemaining should be false")
             }
         }
-        // now there should be no New Game button
-        if (soFarSoGood) {
-            const postGameDiv = this.gameDisplay.postGameDiv;
-            this.verify(!this.gameDisplay.anyGamesRemaining(), "After showing too many games, anyGamesRemaining should be false") &&
-                this.verify(postGameDiv.children.length == 0, "After showing too many games, expected 0 children, got: ", postGameDiv.children.length) &&
-                this.success();
-        }
+
+        soFarSoGood && this.success();
     }
 
     // verifies a game ending that includes a genius move.  Checks the share, including the streak.

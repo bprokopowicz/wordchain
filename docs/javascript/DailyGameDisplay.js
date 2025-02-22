@@ -303,13 +303,14 @@ class DailyGameDisplay extends GameDisplay {
 
     // Called from AppDisplay when "Solution" button is clicked.
     showSolution() {
-        Persistence.saveDailyGameState(this.gameState);
-        Persistence.saveDailySolutionShown();
-
         // TODO-PRODUCTION: Add an "are you sure?"
         Const.GL_DEBUG && this.logDebug("DailyGameDisplay.showSolution() called.", "daily");
         this.game.finishGame();
         this.showGameAfterMove();
+
+        Persistence.saveDailyGameState(this.gameState);
+        Persistence.saveDailySolutionShown();
+
     }
 
     // This is a pure virtual function in the base class.

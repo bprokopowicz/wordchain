@@ -34,6 +34,16 @@ class GameDisplay extends BaseLogger {
         // This will be used to keep track of a user's selection if we are in confirmation mode.
         this.selectedButton = null;
 
+        // Create an element that holds the game grid.
+        this.gameGridDiv = ElementUtilities.addElementTo("div", this.gameDiv, {class: "game-grid-div"}),
+
+        // Create an element that to contain buttons (or whatever) after the display of
+        // elements for the game.
+        this.postGameDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break post-game-div"});
+
+        // Create an element to contain game results (score, WordChain solution).
+        this.resultsDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break results-div"});
+
         // Derived class constructor must call constructGame().
     }
 
@@ -57,7 +67,7 @@ class GameDisplay extends BaseLogger {
     letterPicked(letter, letterPosition) {
         Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
 
-        if (this.game.isOver()) {
+        if (this.gameIsOver()) {
             console.error("GameDisplay.letterPicked(): game is already over");
             return Const.UNEXPECTED_ERROR;
         }
@@ -190,21 +200,16 @@ class GameDisplay extends BaseLogger {
     }
 
     showGameAfterMove(skipToast=false) {
-        const gameContainer = ElementUtilities.addElementTo("div", this.gameDiv, {class: "game-container"}),
-              tableDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "table-div"}),
+        // Delete old game container content; we're about to recreate it.
+        ElementUtilities.deleteChildren(this.gameGridDiv);
+
+        const tableDiv = ElementUtilities.addElementTo("div", this.gameGridDiv, {class: "table-div"}),
               tableElement = ElementUtilities.addElementTo("table", tableDiv, {class: "table-game"});
 
         // See whether the user requested the solution.
         // Daily and Practice subclasses manage this separately in a pure virtual function getSolutionShown()
         let userRequestedSolution = this.getSolutionShown();
         Const.GL_DEBUG && this.logDebug("showGameAfterMove() userRequestedSolution=", userRequestedSolution, "game");
-
-        // Create an element that can be used to add buttons (or whatever) after the display of
-        // elements for the game.
-        this.postGameDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "break post-game-div"});
-
-        // Create an element that can be used to add game results (score, WordChain solution).
-        this.resultsDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "break results-div"});
 
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
@@ -281,26 +286,18 @@ class GameDisplay extends BaseLogger {
         }
         this.wrongMoves = wrongMoveCount;
 
-        // Delete old move and add new one.
-        ElementUtilities.deleteChildren(this.gameDiv);
-        ElementUtilities.addElementTo(gameContainer, this.gameDiv);
-
         if (this.pickerEnabled) {
             this.enablePicker();
         } else {
             this.disablePicker();
         }
 
-        if (this.game.isOver()) {
-            // Create an element that subclasses can use in their additionalGameOverActions()
-            // to add buttons (or whatever) immediately after the display of elements for the game.
-            this.postGameDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "break post-game-div"});
-
-            // Create divs to go in the results div.
-            var resultsDiv = ElementUtilities.addElementTo("div", gameContainer, {class: "break results-div"}),
-                scoreDiv = ElementUtilities.addElementTo("div", resultsDiv, {class: "break score-div"}),
-                originalSolutionDiv = ElementUtilities.addElementTo("div", resultsDiv, {class: "break original-solution-div"}),
-                iconDiv = ElementUtilities.addElementTo("div", resultsDiv, {class: "break icon-div"});
+        if (this.gameIsOver()) {
+            // Delete old results and create new divs to go in the results div.
+            ElementUtilities.deleteChildren(this.resultsDiv);
+            var scoreDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break score-div"}),
+                originalSolutionDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break original-solution-div"}),
+                iconDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break icon-div"});
 
             if (!userRequestedSolution) {
                 if (!skipToast) {
@@ -358,7 +355,7 @@ class GameDisplay extends BaseLogger {
 
         Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): event: ", event, "callback");
 
-        if (this.game.isOver()) {
+        if (this.gameIsOver()) {
             console.error("GameDisplay.additionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
         }
@@ -379,7 +376,7 @@ class GameDisplay extends BaseLogger {
 
         Const.GL_DEBUG && this.logDebug("GameDisplay.deletionClickCallback(): event: ", event, "callback");
 
-        if (this.game.isOver()) {
+        if (this.gameIsOver()) {
             console.error("GameDisplay.deletionClickCallback(): game is already over");
             return Const.UNEXPECTED_ERROR;
         }
@@ -462,6 +459,10 @@ class GameDisplay extends BaseLogger {
         }
 
         return element;
+    }
+
+    gameIsOver() {
+        return this.game.isOver();
     }
 
     // A list summarizing the moves of the game.
