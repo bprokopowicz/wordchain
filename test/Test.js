@@ -1889,7 +1889,7 @@ class Test extends BaseLogger {
 
         this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
         this.logDebug("Switching to practice game", "test");
-        this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
         this.getNewAppWindow().theAppDisplay.confirmationMode = confirm;
 
         this.logDebug("Done switching to practice game", "test");
@@ -1921,7 +1921,7 @@ class Test extends BaseLogger {
         this.testName = "PracticeGameLimit";
         this.logDebug("Switching to practice game", "test");
         Persistence.saveTestPracticeGameWords("TEST", "PILOT");
-        this.getNewAppWindow().theAppDisplay.switchToPracticeGame();
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
         this.logDebug("Done switching to practice game", "test");
 
         // the active gameDisplay in this test needs to be refreshed after switching to the practice game
@@ -1963,7 +1963,7 @@ class Test extends BaseLogger {
             }
 
             const childButtonClass = children[0].getAttribute("class"),
-                  childIsDisabled = childButtonClass && childButtonClass.indexOf("button-disabled") >= 0,
+                  childIsDisabled = children[0].disabled,
                   childText = children[0].textContent;
 
             if (gamesStarted < testPracticeGamesPerDay) {

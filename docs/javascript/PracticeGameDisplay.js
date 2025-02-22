@@ -33,7 +33,7 @@ class PracticeGameDisplay extends GameDisplay {
             {id: "new-game", class: "app-button non-header-button"},
             "New Game");
         ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
-        this.appDisplay.disableButton(this.newGameButton);
+        ElementUtilities.disableButton(this.newGameButton);
 
         // We use timestamps to ensure the user doesn't play more than the maximum
         // number of games per day.
@@ -67,7 +67,6 @@ class PracticeGameDisplay extends GameDisplay {
 
     // newGameCallback() should only be exposed to the user if we already know that there are practice games remaining.
     newGameCallback(event) {
-
         // Clear out info from current game.
         ElementUtilities.deleteChildren(this.resultsDiv);
         ElementUtilities.deleteChildren(this.originalSolutionDiv);
@@ -90,9 +89,9 @@ class PracticeGameDisplay extends GameDisplay {
         Persistence.clearPracticeGameDef();
 
         if (this.anyGamesRemaining()) {
-            this.appDisplay.enableButton(this.newGameButton);
+            ElementUtilities.enableButton(this.newGameButton);
         } else {
-            this.appDisplay.disableButton(this.newGameButton);
+            ElementUtilities.disableButton(this.newGameButton);
 
             // Notify AppDisplay that there are no more games so it can
             // disable its practice button.
@@ -152,7 +151,7 @@ class PracticeGameDisplay extends GameDisplay {
     practiceGamesAvailable() {
         // Enable only if we're not in the middle of a game.
         if (this.gameIsOver()) {
-            this.appDisplay.enableButton(this.newGameButton);
+            ElementUtilities.enableButton(this.newGameButton);
         }
     }
 
@@ -205,7 +204,7 @@ class PracticeGameDisplay extends GameDisplay {
 
         // Disable the New Games button because we're either in a new game
         // or a recovered game and the button is only enabled when a game is over.
-        this.appDisplay.disableButton(this.newGameButton);
+        ElementUtilities.disableButton(this.newGameButton);
 
         // Now we're ready to construct (and display) the game.
         this.constructGame(this.startWord, this.targetWord, gameState);

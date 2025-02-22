@@ -90,6 +90,14 @@ class ElementUtilities {
         }
     }
 
+    static disableButton(button) {
+        button.disabled = true;
+    }
+
+    static enableButton(button) {
+        button.disabled = false;
+    }
+
     // Used only in Test.js
     static getElement(elementId, mustExist=true) {
         const element = document.getElementById(elementId);

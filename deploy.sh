@@ -1,5 +1,5 @@
 branch=$(git branch | grep '^\*' | awk '{print $2}')
-echo -e "\nDo you want to deploy on branch: ${branch}?"
+echo -e "\nConfirming that you want to deploy on branch: ${branch} ..."
 
 PS3="Continue? "
 select answer in yes no

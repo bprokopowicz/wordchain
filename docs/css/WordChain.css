@@ -329,8 +329,12 @@ svg {
     background: var(--button-bg);
 }
 
-.button-disabled {
+button:disabled {
     color: var(--button-fg-disabled) !important;
+}
+
+button:enabled {
+    color: var(--primary-fg) !important;
 }
 
 /* For confirmation mode */

@@ -186,17 +186,28 @@ class AppDisplay extends BaseLogger {
     }
 
     createGameButtons() {
-        // Button to switch between Daily and Practice games.
-        this.switchGamesButton = ElementUtilities.addElementTo(
+        // Buttons to switch between Daily and Practice games.
+        // Only one is showing at any given time.
+        this.switchToDailyGameButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
-            {id: "switch-games", class: "app-button header-button"},
-            "Practice");
-        ElementUtilities.setButtonCallback(this.switchGamesButton, this, this.switchGamesCallback);
+            {id: "switch-to-daily-game", class: "app-button header-button"},
+            "Daily");
+        ElementUtilities.setButtonCallback(this.switchToDailyGameButton, this, this.switchToDailyGameCallback);
 
-        // Disable the practice button initially, if there are more games available
+        this.switchToPracticeGameButton = ElementUtilities.addElementTo(
+            "button", this.gameButtonDiv,
+            {id: "switch-to-practice-game", class: "app-button header-button"},
+            "Practice");
+        ElementUtilities.setButtonCallback(this.switchToPracticeGameButton, this, this.switchToPracticeGameCallback);
+
+        // We start on the daily game screen, so the Practice button should be visible.
+        ElementUtilities.hide(this.switchToDailyGameButton);
+        ElementUtilities.show(this.switchToPracticeGameButton);
+
+        // Disable the Practice button initially; if there are more games available
         // it will get enabled almost immediately: we start an interval timer in
         // constructor() and it will enable the button if there are games available.
-        this.disablePracticeButton();
+        ElementUtilities.disableButton(this.switchToPracticeGameButton);
 
         // Button to show the solution.
         this.solutionButton = ElementUtilities.addElementTo(
@@ -256,19 +267,48 @@ class AppDisplay extends BaseLogger {
 
     // Callback for the Solution button.
     solutionCallback(event) {
-        if (this.solutionButton.enabled) {
-            this.currentGameDisplay.showSolution();
-        }
+        this.currentGameDisplay.showSolution();
+        this.setSolutionStatus();
     }
 
-    // Callback for the Switch Games button.
-    switchGamesCallback(event) {
-        const buttonText = event.srcElement.innerText;
-        if (buttonText === "Practice") {
-            this.switchToPracticeGame();
-        } else {
-            this.switchToDailyGame();
-        }
+    switchToDailyGameCallback(__event) {
+        // Hide practice and show daily.
+        ElementUtilities.hide(this.practiceGameDiv);
+        ElementUtilities.hide(this.practicePickerDiv);
+        ElementUtilities.show(this.dailyGameDiv);
+        ElementUtilities.show(this.dailyPickerDiv);
+
+        // On the daily game screen, the Practice button is visible.
+        // updatePracticeGameStatus will enable the button if there
+        // are practice games available.
+        this.updatePracticeGameStatus();
+        ElementUtilities.show(this.switchToPracticeGameButton);
+        ElementUtilities.hide(this.switchToDailyGameButton);
+
+        this.setSolutionStatus();
+        this.currentGameDisplay = this.dailyGameDisplay;
+    }
+
+    // We used to create the practice game here, but moved it to the constructor,
+    // so that there is no pause when switching to the practice game for the first time.
+    // If the user has already played the maximum number of games, we disallow any more.
+    switchToPracticeGameCallback(__event) {
+
+        // Hide daily and show practice.
+        ElementUtilities.hide(this.dailyGameDiv);
+        ElementUtilities.hide(this.dailyPickerDiv);
+        ElementUtilities.show(this.practiceGameDiv);
+        ElementUtilities.show(this.practicePickerDiv);
+
+        // On the practice game screen, the Daily button is visible.
+        ElementUtilities.show(this.switchToDailyGameButton);
+        ElementUtilities.hide(this.switchToPracticeGameButton);
+
+        this.setSolutionStatus();
+
+        // This will begin the game, counting it toward the user's games per day.
+        this.practiceGameDisplay.startGame();
+        this.currentGameDisplay = this.practiceGameDisplay;
     }
 
     /* ----- Utilities ----- */
@@ -290,40 +330,6 @@ class AppDisplay extends BaseLogger {
 
     isDailyGameBroken() {
         return this.dailyGameDisplay.gameIsBroken();
-    }
-
-    disableButton(button) {
-        ElementUtilities.addClass(button, "button-disabled");
-    }
-
-    enableButton(button) {
-        ElementUtilities.removeClass(button, "button-disabled");
-    }
-
-    disablePracticeButton() {
-        const buttonText = this.switchGamesButton.innerHTML;
-        if (buttonText == "Practice") {
-            this.disableButton(this.switchGamesButton);
-        }
-        this.switchGamesButton.practiceEnabled = false;
-    }
-
-    enablePracticeButton() {
-        const buttonText = this.switchGamesButton.innerHTML;
-        if (buttonText == "Practice") {
-            this.enableButton(this.switchGamesButton);
-        }
-        this.switchGamesButton.practiceEnabled = true;
-    }
-
-    disableSolutionButton() {
-        this.disableButton(this.solutionButton);
-        this.solutionButton.enabled = false;
-    }
-
-    enableSolutionButton() {
-        this.enableButton(this.solutionButton);
-        this.solutionButton.enabled = true;
     }
 
     // Return the given CSS property value.
@@ -356,7 +362,7 @@ class AppDisplay extends BaseLogger {
     // PracticeGameDisplay calls this when the user finishes a game
     // and there are no more remaining in this 24-hour period.
     practiceGamesUsedUp() {
-        this.disablePracticeButton();
+        ElementUtilities.disableButton(this.switchToPracticeGameButton);
     }
 
     refreshStats() {
@@ -426,9 +432,9 @@ class AppDisplay extends BaseLogger {
         // Enable or disable the solution button.
         if (this.currentGameDisplay && this.currentGameDisplay.canShowSolution())
         {
-            this.enableSolutionButton();
+            ElementUtilities.enableButton(this.solutionButton);
         } else {
-            this.disableSolutionButton();
+            ElementUtilities.disableButton(this.solutionButton);
         }
     }
 
@@ -449,50 +455,9 @@ class AppDisplay extends BaseLogger {
         }, duration);
     }
 
-    switchToDailyGame() {
-        // Hide practice and show daily.
-        ElementUtilities.hide(this.practiceGameDiv);
-        ElementUtilities.hide(this.practicePickerDiv);
-        ElementUtilities.show(this.dailyGameDiv);
-        ElementUtilities.show(this.dailyPickerDiv);
-
-        // Toggle the button text to Practice.
-        this.switchGamesButton.innerHTML = "Practice";
-        if (! this.switchGamesButton.practiceEnabled) {
-            this.disablePracticeButton();
-        }
-
-        this.currentGameDisplay = this.dailyGameDisplay;
-        this.setSolutionStatus();
-    }
-
-    // We used to create the practice game here, but moved it to the constructor,
-    // so that there is no pause when switching to the practice game for the first time.
-    // If the user has already played the maximum number of games, we disallow any more.
-    switchToPracticeGame() {
-        if (! this.switchGamesButton.practiceEnabled) {
-            return
-        }
-
-        // Hide daily and show practice.
-        ElementUtilities.hide(this.dailyGameDiv);
-        ElementUtilities.hide(this.dailyPickerDiv);
-        ElementUtilities.show(this.practiceGameDiv);
-        ElementUtilities.show(this.practicePickerDiv);
-
-        // Toggle the button text to Daily.
-        this.switchGamesButton.innerHTML = "Daily";
-
-        this.currentGameDisplay = this.practiceGameDisplay;
-        this.setSolutionStatus();
-
-        // This will begin the game, counting it toward the user's games per day.
-        this.practiceGameDisplay.startGame();
-    }
-
     updatePracticeGameStatus() {
         if (this.practiceGameDisplay.anyGamesRemaining()) {
-            this.enablePracticeButton();
+            ElementUtilities.enableButton(this.switchToPracticeGameButton);
 
             // Notify the display that games are available so that the New Game
             // button can be enabled.
