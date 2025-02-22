@@ -67,6 +67,12 @@ class PracticeGameDisplay extends GameDisplay {
 
     // newGameCallback() should only be exposed to the user if we already know that there are practice games remaining.
     newGameCallback(event) {
+
+        // Clear out info from current game.
+        ElementUtilities.deleteChildren(this.resultsDiv);
+        ElementUtilities.deleteChildren(this.originalSolutionDiv);
+
+        // Create the new game.
         this.updateWords();
 
         // We will add a timestamp in this case, because newGameCallback()
@@ -96,12 +102,15 @@ class PracticeGameDisplay extends GameDisplay {
 
     // Called from AppDisplay when "Solution" button is clicked.
     showSolution() {
+        // First we need to save that the solution was shown, because showGameAfterMove()
+        // uses it to create the "original solution" message.
+        Persistence.savePracticeSolutionShown();
+
         // TODO-PRODUCTION: Add an "are you sure?"
         this.game.finishGame();
         this.showGameAfterMove();
 
         Persistence.savePracticeGameState(this.gameState);
-        Persistence.savePracticeSolutionShown();
     }
 
     // anyGamesRemaining() cleans up the saved list of recently played games' timestamps.

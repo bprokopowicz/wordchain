@@ -328,13 +328,13 @@ class GameDisplay extends BaseLogger {
             if (originalSolutionWords == userSolutionWords) {
                 if (! this.wasShown()) {
                     ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                        "Your solution is the same as WordChain's original solution!");
+                        "You found WordChain's original solution!");
                 }
             } else {
                 ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                    "WordChain's original solution:");
-                ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                    originalSolutionWords);
+                    `WordChain's original solution:<br>${originalSolutionWords}`);
+                //ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
+                //    originalSolutionWords);
             }
 
             Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,

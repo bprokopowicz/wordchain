@@ -306,13 +306,16 @@ class DailyGameDisplay extends GameDisplay {
 
     // Called from AppDisplay when "Solution" button is clicked.
     showSolution() {
+        // First we need to save that the solution was shown, because showGameAfterMove()
+        // uses it to create the "original solution" message.
+        Persistence.saveDailySolutionShown();
+
         // TODO-PRODUCTION: Add an "are you sure?"
         Const.GL_DEBUG && this.logDebug("DailyGameDisplay.showSolution() called.", "daily");
         this.game.finishGame();
         this.showGameAfterMove();
 
         Persistence.saveDailyGameState(this.gameState);
-        Persistence.saveDailySolutionShown();
 
     }
 

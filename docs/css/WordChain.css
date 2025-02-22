@@ -544,10 +544,11 @@ button.action-button {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding-top: 30px;
 }
 
 .original-solution-label {
+    padding-top: 30px;
+    padding-left: 10px;
 }
 
 .icon-div {
@@ -600,7 +601,7 @@ button.action-button {
     ** It is essential to have a height here, or else the picker space
     ** will go away when picker-inner-div is hidden!
     */
-    height: 110px;
+    height: 55px;
 }
 
 .picker-inner-div {
@@ -1027,5 +1028,13 @@ input.setting-radio {
 
     .auxiliary-content-div {
         width: 40%;
+    }
+
+    .picker-outer-div {
+        /*
+        ** It is essential to have a height here, or else the picker space
+        ** will go away when picker-inner-div is hidden!
+        */
+        height: 110px;
     }
 }
