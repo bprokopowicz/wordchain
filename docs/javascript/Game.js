@@ -27,7 +27,7 @@ class Game extends BaseLogger {
             this.remainingSteps.removeFirstStep();
         } else {
             // we have a list of all the words, as tuples (word, wasPlayed, moveRating)
-            Const.GL_DEBUG && this.logDebug(`Re-constructing game from existing steps: ${stepsOfSolution.join()}`, "game");
+            Const.GL_DEBUG && this.logDebug("Re-constructing game from existing steps:", stepsOfSolution.join(), "game");
             let justThePlayedSteps = stepsOfSolution.filter((tup)=>tup[1]).map((tup)=> new SolutionStep(tup[0], tup[1], tup[2]));
             this.playedSteps = new Solution(justThePlayedSteps, this.targetWord);
 
@@ -88,7 +88,7 @@ class Game extends BaseLogger {
 
         if (puzzles.length > 0) {
             rand = Math.floor(Math.random() * puzzles.length);
-            Const.GL_DEBUG && logger.logDebug(`found ${puzzles.length} puzzles starting with ${startWord}.  Choosing #${rand}`, "game");
+            Const.GL_DEBUG && logger.logDebug("found",  puzzles.length, "puzzles starting with", startWord, "Choosing #", rand, "game");
             let puzzle = puzzles[rand];
             Const.GL_DEBUG && logger.logDebug("selected random puzzle: " + puzzle.toStr(), "game");
             return [puzzle.getStart(), puzzle.getLastWord()];
@@ -111,6 +111,12 @@ class Game extends BaseLogger {
         }
         this.remainingSteps.removeAllSteps();
     }
+
+    // utility to get the remaining steps in a way that tests can play them
+    // returns a list of tuples: (action, position, letter) 
+    // action is ADD, CHANGE, or DELETE,
+    // position is an integer
+    // letter is the letter to apply the change or add to.
 
     // returns a list to display all the steps of the puzzle.
     getDisplayInstructions() {
@@ -202,30 +208,14 @@ class Game extends BaseLogger {
         return new DisplayInstruction(targetWord, displayType, changePosition, moveRating);
     }
 
-    // how to display the last word that needs to be changed to give the next word.
-    displayInstructionForPlayingFromWordToWord(lastWordPlayed, nextWord, lastWordMoveRating) {
-        if (nextWord.length == lastWordPlayed.length) {
-            // which letter changed?
-            let changedCharIndex = -1;
-            for (let i=0; i<lastWordPlayed.length; i++) {
-                if (nextWord[i] != lastWordPlayed[i]) {
-                    changedCharIndex = i;
-                    break;
-                }
-            }
-            if (changedCharIndex == -1) {
-                throw new Error(`${nextWord} and ${lastWordPlayed} should differ by one letter but don't`);
-            }
-            return new DisplayInstruction(lastWordPlayed, Const.CHANGE, changedCharIndex+1, lastWordMoveRating);
-        } else if (nextWord.length == lastWordPlayed.length+1) {
-            // we display '+'s to let the user add a hole
-            return new DisplayInstruction(lastWordPlayed, Const.ADD, 0, lastWordMoveRating);
-        } else if (nextWord.length == lastWordPlayed.length-1) {
-            // we display '-'s to let the user delete a letter
-            return new DisplayInstruction(lastWordPlayed, Const.DELETE, 0, lastWordMoveRating);
-        } else {
-            throw new Error(`${nextWord} and ${lastWordPlayed} have more than 1 letter length difference.`);
+    // how to display the previous word, which needs to be changed, to give the next word.
+    displayInstructionForPlayingFromWordToWord(prevWord, nextWord, lastWordMoveRating) {
+        let oneStepTransformation = Solver.getTransformationStep(prevWord, nextWord);
+        if (oneStepTransformation === null) {
+            throw new Error (`can't get from ${prevWord} to ${nextWord} in one step`);
         }
+        let [operation, position, letter] = oneStepTransformation;
+        return new DisplayInstruction(prevWord, operation, position, lastWordMoveRating);
     }
 
     // Returns the number of actually played wrong moves, including dodo moves.
@@ -245,7 +235,7 @@ class Game extends BaseLogger {
     // 4) replace the remaining steps list with the newly calculated list.
     addWordIfExists(word) {
         if (this.dictionary.isWord(word) || this.scrabbleDictionary.isWord(word)) {
-            Const.GL_DEBUG && this.logDebug(`Trying to play word ${word}`, "game");
+            Const.GL_DEBUG && this.logDebug("Trying to play word",  word, "game");
             const isScrabbleOnlyWord = !this.dictionary.isWord(word);
             // special case: if the user plays a scrabbleOnlyWord, we add that word to the normal dictionary, so that
             // the game solver can play that word if the best solution involves back-tracking out of it
@@ -277,8 +267,8 @@ class Game extends BaseLogger {
             }
             this.remainingSteps = newRemainingSteps;
             this.playedSteps.addWord(word, isPlayed, moveRating);
-            Const.GL_DEBUG && this.logDebug(`After adding ${word} the played steps are: ${this.playedSteps.toStr()}`, "game");
-            Const.GL_DEBUG && this.logDebug(`After adding ${word} the remaining steps are: ${this.remainingSteps.toStr()}`, "game");
+            Const.GL_DEBUG && this.logDebug("After adding", word, "the played steps are:", this.playedSteps.toStr(), "game");
+            Const.GL_DEBUG && this.logDebug("After adding", word, "the remaining steps are:", this.remainingSteps.toStr(), "game");
             return moveRating;
         } else {
             return Const.NOT_A_WORD;

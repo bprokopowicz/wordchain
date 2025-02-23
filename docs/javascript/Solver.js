@@ -109,7 +109,7 @@ class Solver {
             puzzle.target=puzzle.getLastWord();
             // must use dict, not local copy, since we are deleting words as we search the tree of solutions
             if (Solver.isDesired(dict, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoicesPerStep)) {
-	            Const.GL_DEBUG && Solver.logger.logDebug("found suitable puzzle ", puzzle, "solver");
+                Const.GL_DEBUG && Solver.logger.logDebug("found suitable puzzle ", puzzle, "solver");
                 desiredPuzzles.push(puzzle);
             }
             // keep looking if not too long already
@@ -152,6 +152,60 @@ class Solver {
             return false;
         }
         return true;
+    }
+
+    // a utility function to determine how to get from word A to word B in one-step,
+    // if it's possible.
+    // Returns:
+    //   [action, position, letter]:
+    //       action = CHANGE,ADD, or DELETE
+    //       position = 1-based letter index to change, delete, or insert (after).  Uses 0 for insert before the first letter
+    //       letter = the letter to change to or insert.  Not used on DELETE actions
+    //   null:
+    //       if you can't get from a to b in one operation
+
+    static getTransformationStep(wordA, wordB) {
+        if (wordA.length === wordB.length) {
+            for (let i = 0; i < wordA.length; i++) {
+                if (wordA[i] != wordB[i]) {
+                    if (wordA.substr(i+1) === wordB.substr(i+1)) {
+                        // rest of strings past i match.
+                        return [Const.CHANGE, i+1, wordB[i]]; // one-indexed result
+                    } else {
+                        return null; // there are two or more mismatches
+                    }
+                }
+            }
+            return null;
+        } else if (wordA.length === wordB.length + 1) {
+            // wordB is shorter
+            for (let i = 0; i < wordA.length; i++) {
+                if (wordA[i] != wordB[i]) {
+                    // do the strings match if we remove letter at 'i' from a?
+                    if (wordA.substr(i+1) === wordB.substr(i)) {
+                        return [Const.DELETE, i+1, null];
+                    } else {
+                        return null; // there are two or more mismatches
+                    }
+                }
+            }
+            return null;
+        } else if (wordA.length+1 === wordB.length) {
+            // wordA is shorter
+            for (let i = 0; i < wordA.length; i++) {
+                if (wordA[i] != wordB[i]) {
+                    // do the strings match after the insertion point
+                    if (wordA.substr(i) === wordB.substr(i+1)) {
+                        return [Const.ADD, i, wordB[i] ];
+                    } else {
+                        return null; // there are two or more mismatches
+                    }
+                }
+            }
+            // didn't find a change in the first wordA.length letters.  Add after the end of wordA.
+            return [Const.ADD, wordA.length, wordB[wordA.length]];
+        }
+        return null;
     }
 }
 
