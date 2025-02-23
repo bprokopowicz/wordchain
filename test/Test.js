@@ -186,7 +186,6 @@ class Test extends BaseLogger {
         this.testingStartTime = Date.now();
     }
 
-
     showResults() {
         let elapsedTime = (Date.now() - this.testingStartTime);
 
@@ -519,6 +518,35 @@ class Test extends BaseLogger {
         this.playLetter(4, "R"); // BOOT -> BOOR
         this.playLetter(1, "P"); // BOOR -> POOR
     }
+    
+    playTransformation(transformation) {
+        this.logDebug("Playing transformation", transformation, "test");
+        if (transformation[0] === Const.ADD) {
+            this.insertLetter(transformation[1], transformation[2]);
+        } else if (transformation[0] === Const.DELETE) {
+            this.deleteLetter(transformation[1]);
+        } else {
+            this.playLetter(transformation[1], transformation[2]);
+        }
+    }
+
+    finishTheCurrentGame() {
+        const game = this.gameDisplay.game;
+        let prevWord = game.playedSteps.getLastWord();
+        const nextWords = game.remainingSteps.getSolutionWords();; 
+        this.logDebug("finishTheCurrentGame() from ", prevWord, "through", nextWords, "test");
+        // play from the last played word to the first remaining word.
+        for (let nextWord of nextWords) {
+            const transformation = Solver.getTransformationStep(prevWord, nextWord);
+            if (transformation == null) {
+                console.log("ERROR: no single-step from ", lastPlayedWord, "to", nextWord);
+                return false;
+            }
+            this.playTransformation(transformation);
+            prevWord = nextWord;
+        }
+        return true;
+    }
 
     // compares the current stats cookie AND stats screen content with expected and calculated values.
     // Also, asserts that gamesStarted >= gamesWon+gamesLost
@@ -636,6 +664,7 @@ class Test extends BaseLogger {
             this.success();
     }
 
+
     testDictAdders() {
         this.testName = "DictAdders";
         const smallDict = new WordChainDict(this.smallList);
@@ -714,6 +743,7 @@ class Test extends BaseLogger {
 
     runSolverTests() {
         const startTestTime = Date.now();
+        this.testOneStepTransformations();
         this.testSolverIdentitySequence();
         this.testSolverOneStep();
         this.testSolverMultiStep();
@@ -725,6 +755,25 @@ class Test extends BaseLogger {
         this.testPuzzleFinder();
         const endTestTime = Date.now();
         this.logDebug(`solver tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
+    }
+
+    testOneStepTransformations() {
+        this.testName = "SolverOneStepTransformations";
+        const r1 = Solver.getTransformationStep("dog", "doge");
+        const r2 = Solver.getTransformationStep("dog", "gdog");
+        const r3 = Solver.getTransformationStep("dog", "dig");
+        const r4 = Solver.getTransformationStep("doXg", "dog");
+        const r5 = Solver.getTransformationStep("dog", "cat");
+        const r6 = Solver.getTransformationStep("dog", "dots");
+        const r7 = Solver.getTransformationStep("house", "host");
+        this.verify ((r1 != null) && (r1[0] === Const.ADD) && (r1[1] === 3) && (r1[2] === 'e'), "expected [add,3,e], got", r1) &&
+            this.verify ((r2 != null) && (r2[0] === Const.ADD) && (r2[1] === 0) && (r2[2] === 'g'), "expected [add,0,g], got", r2) &&
+            this.verify ((r3 != null) && (r3[0] === Const.CHANGE) && (r3[1] === 2) && (r3[2] === 'i'), "expected [change,2,i], got", r3) &&
+            this.verify ((r4 != null) && (r4[0] === Const.DELETE) && (r4[1] === 3) && (r4[2] === null), "expected [delete,3,null], got", r4) &&
+            this.verify((r5 == null), "expected no one-step from dog to cat, got", r5) &&
+            this.verify((r6== null), "expected no one-step from dog to dots, got", r6) &&
+            this.verify((r7== null), "expected no one-step from house to hose, got", r7) &&
+            this.success();
     }
 
     testSolverIdentitySequence() {
@@ -1337,7 +1386,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings =
-            `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FEST,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FAST,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FRAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FEAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(future,word:FAT,changePosition:0),<br>(future,word:FATE,changePosition:0),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:0),<br>(played,word:SALTED,moveRating:${Const.WRONG_MOVE})`;
+            `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FEST,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FAST,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FRAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FEAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(future,word:FAT,changePosition:3),<br>(future,word:FATE,changePosition:4),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:2),<br>(played,word:SALTED,moveRating:${Const.WRONG_MOVE})`;
 
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
                 this.verify(r2 == Const.WRONG_MOVE, `expected r2=${Const.WRONG_MOVE}, got ${r2}`) &&
@@ -1376,7 +1425,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings =
-            `(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:DATED,moveRating:${Const.WRONG_MOVE}),<br>(played,word:DATE,moveRating:ok),<br>(played,word:MATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:RATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:LATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FATE,moveRating:ok),<br>(played,word:ATE,moveRating:${Const.DODO_MOVE}),<br>(future,word:FATE,changePosition:0),<br>(future,word:FAT,changePosition:0),<br>(future,word:FAST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:${Const.WRONG_MOVE})`
+            `(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:DATED,moveRating:${Const.WRONG_MOVE}),<br>(played,word:DATE,moveRating:ok),<br>(played,word:MATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:RATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:LATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FATE,moveRating:ok),<br>(played,word:ATE,moveRating:${Const.DODO_MOVE}),<br>(future,word:FATE,changePosition:4),<br>(future,word:FAT,changePosition:2),<br>(future,word:FAST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:${Const.WRONG_MOVE})`
             this.verify(game.isOver(), "game should be over after too many wrong moves") &&
             this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
             this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
@@ -1392,6 +1441,7 @@ class Test extends BaseLogger {
 
     getAppTests() {
         return [
+            this.finishGameTest,
             this.multiGameStatsTest,
             this.multiGameMixedResultsStatsTest,
             this.multiIncompleteGameStatsTest,
@@ -1448,12 +1498,18 @@ class Test extends BaseLogger {
         }
     }
 
+    finishGameTest() {
+        this.testName = "FinishGameTest";
+        this.verify(this.finishTheCurrentGame(), " did not finish the game") &&
+            this.success();;
+    }
+
     // confirmation is a function of the GameDisplay so to test it we need to be playing a game
     changeMindOnSelectedLettersTest() {
         // restore default confirmation mode
         this.getNewAppWindow().theAppDisplay.confirmationMode = true;
 
-        this.testName = "changeMindOnSelectedLetters";
+        this.testName = "ChangeMindOnSelectedLetters";
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
         // but we play  SHORT SHOOT SHOT HOT POT POO POOR
@@ -1979,15 +2035,21 @@ class Test extends BaseLogger {
                 break; // stop testing on the first failure
             }
 
-            // do we need to wait a while? No, that callback handler runs synchronously.
-            this.gameDisplay.showSolution();
+            // test finishing the current game by either winning or showSolution.
+            if (gamesStarted % 2 == 0) {
+                this.logDebug("ending game by showing solution", "test");
+                this.gameDisplay.showSolution();
+            } else {
+                this.logDebug("ending game by finishing it", "test");
+                this.finishTheCurrentGame();
+            }
 
             // New Game button should be there, but not on the last game. The postGameDiv is reconstructed on every refresh of the display after a move
             // or solution.
             const postGameDiv = this.gameDisplay.postGameDiv,
                   children = postGameDiv.children;
 
-            if (! this.verify(children.length == 1, "expected 1 child, got:", children.length)) {
+            if (! this.verify(children.length == 1, "on game", gamesStarted, "expected 1 child, got:", children.length)) {
                 break;
             }
 
@@ -1997,9 +2059,9 @@ class Test extends BaseLogger {
 
             if (gamesStarted < testPracticeGamesPerDay) {
                 // Not last game
-                if ( this.verify( (childText == "New Game"), "expected textContent=New Game, got: ", childText) &&
-                        this.verify( !childIsDisabled, "New Game button was disabled and expected it to be enabled") &&
-                        this.verify(this.gameDisplay.anyGamesRemaining(), "After showing ", gamesStarted, " games, anyGamesRemaining should still be true")
+                if ( this.verify( (childText == "New Game"), "on game", gamesStarted, "expected textContent=New Game, got: ", childText) &&
+                        this.verify( !childIsDisabled, "on game", gamesStarted, "New Game button was disabled and expected it to be enabled") &&
+                        this.verify(this.gameDisplay.anyGamesRemaining(), "on game", gamesStarted, " games, anyGamesRemaining should still be true")
                    ) {
                     // pretend to click the new game button.
                     this.gameDisplay.newGameCallback(mockEvent);
@@ -2008,8 +2070,8 @@ class Test extends BaseLogger {
                 }
             } else {
                 // Last game
-                soFarSoGood = this.verify(childIsDisabled, "New Game button was enabled and expected it to be disabled") &&
-                              this.verify(!this.gameDisplay.anyGamesRemaining(), "After showing ", gamesStarted, " games, anyGamesRemaining should be false")
+                soFarSoGood = this.verify(childIsDisabled, "on game", gamesStarted, "New Game button was enabled and expected it to be disabled") &&
+                              this.verify(!this.gameDisplay.anyGamesRemaining(), "on game", gamesStarted, " games, anyGamesRemaining should be false")
             }
         }
 
