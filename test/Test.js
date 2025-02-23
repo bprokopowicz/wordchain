@@ -103,6 +103,24 @@ class Test extends BaseLogger {
         ElementUtilities.addElementTo("p", this.outerDiv);
     }
 
+    addAppTestSelector() {
+        const appTests = this.getAppTests(),
+              appTestNames = appTests.map((item) => { return item.name; });
+
+        this.appTestNameToFunction = new Map();
+        for (let appTestFunc of appTests) {
+            this.appTestNameToFunction.set(appTestFunc.name, appTestFunc);
+        }
+
+        ElementUtilities.addElementTo("label", this.outerDiv, {for: "testSelector", class: "testButton"}, "Select Test(s)");
+        let appTestSelect = ElementUtilities.addElementTo("select", this.outerDiv, {name: "appTests", id: "testSelector"});
+        this.appTestSelect = appTestSelect;
+
+        appTestNames.forEach(function(item) {
+            ElementUtilities.addElementTo("option", appTestSelect, {value: item}, item);
+        })
+    }
+
     /*
     ** Overall Testing Framework
     */
@@ -117,14 +135,16 @@ class Test extends BaseLogger {
         this.addTitle("WordChain Test Suite<br>Allow 20+ seconds to complete. Browser popups must be allowed." + debugWarning + bundledStatus);
 
 
-        var runAll         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
-            runDict        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
-            runSolver      = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSolver",      class: "testButton" }, "Run Solver Tests"),
-            runGame        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",        class: "testButton" }, "Run Game Tests"),
-            runApp         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",         class: "testButton" }, "Run App Tests");
+        var runAll          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
+            runDict         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
+            runSolver       = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSolver",      class: "testButton" }, "Run Solver Tests"),
+            runGame         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",        class: "testButton" }, "Run Game Tests"),
+            runApp          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",         class: "testButton" }, "Run App Tests"),
+            selector        = this.addAppTestSelector(),
+            runSelectedTest = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSelectedTest", class: "testButton" }, "Run Selected App Test");
 
 
-        for (let button of [runAll, runDict, runSolver, runGame, runApp]) {
+        for (let button of [runAll, runDict, runSolver, runGame, runApp, runSelectedTest]) {
             ElementUtilities.setButtonCallback(button, this, this.runTestsCallback);
         }
 
@@ -145,9 +165,15 @@ class Test extends BaseLogger {
             this.runGameTests();
         }
         if (buttonId == "runAll" || buttonId == "runApp") {
+            // runAppTests() will run all the functions in this.appTestList.
+            this.appTestList = this.getAppTests();
             this.runAppTests(); // this will take care of calling showResults() when it is finished asynchronously
         } else {
             this.showResults(); // this will apply to any synchronous tests (dict, solver, game)
+        }
+        if (buttonId == "runSelectedTest") {
+            this.appTestList = [this.appTestNameToFunction.get(this.appTestSelect.value)];
+            this.runAppTests();
         }
     }
 
@@ -1364,6 +1390,28 @@ class Test extends BaseLogger {
     **
     */
 
+    getAppTests() {
+        return [
+            this.multiGameStatsTest,
+            this.multiGameMixedResultsStatsTest,
+            this.multiIncompleteGameStatsTest,
+            this.dailyGameNormalFinishStatsTest,
+            this.dailyGameUnfinishedRestartNextDayTest,
+            this.dailyGameTooManyMistakesShareTest,
+            this.dailyGameEndsOnDeleteShareTest,
+            this.dailyGameRestartAfterDohTest,
+            this.dailyGameRestartTest,
+            this.dailyGameOneMistakeShareTest,
+            this.dailyGameShowSolutionTest,
+            this.practiceGameTest,
+            this.practiceGameTestNoConfirm,
+            this.practiceGameLimitTest,
+            this.geniusMoveAndShareTest,
+            this.cookieRestartTest,
+            this.changeMindOnSelectedLettersTest,
+        ];
+    }
+
     runAppTests() {
 
         let newWindow = this.getNewAppWindow();
@@ -1374,25 +1422,6 @@ class Test extends BaseLogger {
             return;
         }
         this.logDebug("window for App tests is ready.", "test");
-        this.appTestList = [
-                this.multiGameStatsTest,
-                this.multiGameMixedResultsStatsTest,
-                this.multiIncompleteGameStatsTest,
-                this.dailyGameNormalFinishStatsTest,
-                this.dailyGameUnfinishedRestartNextDayTest,
-                this.dailyGameTooManyMistakesShareTest,
-                this.dailyGameEndsOnDeleteShareTest,
-                this.dailyGameRestartAfterDohTest,
-                this.dailyGameRestartTest,
-                this.dailyGameOneMistakeShareTest,
-                this.dailyGameShowSolutionTest,
-                this.practiceGameTest,
-                this.practiceGameTestNoConfirm,
-                this.practiceGameLimitTest,
-                this.geniusMoveAndShareTest,
-                this.cookieRestartTest,
-                this.changeMindOnSelectedLettersTest,
-        ];
 
         this.runTheNextTest();
     }
