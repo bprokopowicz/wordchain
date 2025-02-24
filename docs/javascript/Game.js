@@ -215,6 +215,11 @@ class Game extends BaseLogger {
             throw new Error (`can't get from ${prevWord} to ${nextWord} in one step`);
         }
         let [operation, position, letter] = oneStepTransformation;
+        if ((operation == Const.ADD) || (operation == Const.DELETE)) {
+            // DisplayInstruction for ADD/DELETE sets position to zero, which the GameDisplay interprets as
+            // no cell should be highlighted
+            position = 0;
+        }
         return new DisplayInstruction(prevWord, operation, position, lastWordMoveRating);
     }
 

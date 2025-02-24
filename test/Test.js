@@ -1317,11 +1317,6 @@ class Test extends BaseLogger {
         result = game.playAdd(0);
         result = game.playLetter(1,"S");
         // next 3 give .. SOON->SPOON
-        /*
-        result = game.playLetter(1,"S");
-        result = game.playAdd(1);
-        result = game.playLetter(2,"P");
-        */
         const originalSolutionAsString = game.getOriginalSolutionWords();
         const playedSolutionAsString = game.getUserSolutionWords();
         const expOriginalSolutionAsString = "LEAKY⇒LEAK⇒LEAN⇒LOAN⇒<br>LOON⇒SOON⇒SPOON";
@@ -1386,7 +1381,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings =
-            `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FEST,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FAST,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FRAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FEAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(future,word:FAT,changePosition:3),<br>(future,word:FATE,changePosition:4),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:2),<br>(played,word:SALTED,moveRating:${Const.WRONG_MOVE})`;
+            `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FEST,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FAST,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FRAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FEAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(future,word:FAT,changePosition:0),<br>(future,word:FATE,changePosition:0),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:0),<br>(played,word:SALTED,moveRating:${Const.WRONG_MOVE})`;
 
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
                 this.verify(r2 == Const.WRONG_MOVE, `expected r2=${Const.WRONG_MOVE}, got ${r2}`) &&
@@ -1425,7 +1420,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings =
-            `(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:DATED,moveRating:${Const.WRONG_MOVE}),<br>(played,word:DATE,moveRating:ok),<br>(played,word:MATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:RATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:LATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FATE,moveRating:ok),<br>(played,word:ATE,moveRating:${Const.DODO_MOVE}),<br>(future,word:FATE,changePosition:4),<br>(future,word:FAT,changePosition:2),<br>(future,word:FAST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:${Const.WRONG_MOVE})`
+            `(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:DATED,moveRating:${Const.WRONG_MOVE}),<br>(played,word:DATE,moveRating:ok),<br>(played,word:MATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:RATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:LATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FATE,moveRating:ok),<br>(played,word:ATE,moveRating:${Const.DODO_MOVE}),<br>(future,word:FATE,changePosition:4),<br>(future,word:FAT,changePosition:0),<br>(future,word:FAST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:${Const.WRONG_MOVE})`
             this.verify(game.isOver(), "game should be over after too many wrong moves") &&
             this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
             this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
