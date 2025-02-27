@@ -600,10 +600,14 @@ button.action-button {
 */
 
 .picker-outer-div {
+    /*
+    ** Width should result in a bit of space around the picker.
+    */
     width: 325px;
     /*
     ** It is essential to have a height here, or else the picker space
-    ** will go away when picker-inner-div is hidden!
+    ** will go away when picker-inner-div is hidden! Leave just enough
+    ** for the scroll bar to look OK.
     */
     height: 55px;
 }
@@ -1021,7 +1025,7 @@ input.setting-radio {
 ** =================================
 */
 
-@media only screen and (min-width: 991px) {
+@media only screen and (width > 450px) {
     table {
         border-spacing: .9rem;
     }
@@ -1036,8 +1040,12 @@ input.setting-radio {
 
     .picker-outer-div {
         /*
-        ** It is essential to have a height here, or else the picker space
-        ** will go away when picker-inner-div is hidden!
+        ** A little wider on large screen so we can get 5-6 buttons in the picker.
+        */
+        width: 400px;
+        /*
+        ** Much taller on large screen so when you narrow it, the game grid doesn't
+        ** obstruct the picker.
         */
         height: 110px;
     }

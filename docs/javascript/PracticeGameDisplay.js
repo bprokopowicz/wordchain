@@ -43,6 +43,14 @@ class PracticeGameDisplay extends GameDisplay {
         }
     }
 
+    // This is a virtual function that tells the display if the user requested the solution for
+    // the (practice) game in progress.
+    getSolutionShown() {
+        const ret = Persistence.getPracticeSolutionShown();
+        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.getSolutionShown() returns: ", ret, "practice");
+        return ret;
+    }
+
     setPracticeGamesPerDay(n) {
         this.practiceGamesPerDay = n;
     }
@@ -53,14 +61,6 @@ class PracticeGameDisplay extends GameDisplay {
         if (Game.moveIsValid(gameResult)) {
             Persistence.savePracticeGameState(this.gameState);
         }
-    }
-
-    // This is a virtual function that tells the display if the user requested the solution for
-    // the (practice) game in progress.
-    getSolutionShown() {
-        const ret = Persistence.getPracticeSolutionShown();
-        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.getSolutionShown() returns: ", ret, "practice");
-        return ret;
     }
 
     /* ----- Callbacks ----- */

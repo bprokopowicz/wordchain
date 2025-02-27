@@ -65,6 +65,9 @@ class AppDisplay extends BaseLogger {
         // Div for toast pop-ups; child of root-div.
         this.toastDiv    = null;
 
+        // This will be set after the game displays are constructed.
+        this.currentGameDisplay = null;
+
         // Now, create all the screens. This will create all the divs listed above.
         this.createScreens();
         this.setSolutionStatus();
@@ -285,8 +288,11 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.switchToPracticeGameButton);
         ElementUtilities.hide(this.switchToDailyGameButton);
 
-        this.setSolutionStatus();
         this.currentGameDisplay = this.dailyGameDisplay;
+
+        // This must come after we set currentGameDisplay, because it uses
+        // currentGameDisplay to determine what the status is.
+        this.setSolutionStatus();
     }
 
     // We used to create the practice game here, but moved it to the constructor,
@@ -300,15 +306,18 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.practiceGameDiv);
         ElementUtilities.show(this.practicePickerDiv);
 
+
         // On the practice game screen, the Daily button is visible.
         ElementUtilities.show(this.switchToDailyGameButton);
         ElementUtilities.hide(this.switchToPracticeGameButton);
 
-        this.setSolutionStatus();
-
         // This will begin the game, counting it toward the user's games per day.
         this.practiceGameDisplay.startGame();
         this.currentGameDisplay = this.practiceGameDisplay;
+
+        // This must come after we set currentGameDisplay, because it uses
+        // currentGameDisplay to determine what the status is.
+        this.setSolutionStatus();
     }
 
     /* ----- Utilities ----- */
@@ -321,6 +330,8 @@ class AppDisplay extends BaseLogger {
         if (isNewDailyGame) {
             this.showToast(Const.NEW_DAILY_GAME);
             this.showNoDaily();
+            this.statsDisplay.refresh();
+            this.statsDisplay.updateShareButton();
         }
     }
 
@@ -419,7 +430,7 @@ class AppDisplay extends BaseLogger {
 
         // Re-show the moves to make the color changes take effect.
         // Pass true to indicate that toast display should be skipped.
-        const skipToast=true;
+        const skipToast = true;
         this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove(skipToast);
     }
 
@@ -429,8 +440,13 @@ class AppDisplay extends BaseLogger {
     }
 
     setSolutionStatus() {
+        // Don't deal with the button if we don't yet have a current display.
+        if (! this.currentGameDisplay) {
+            return;
+        }
+
         // Enable or disable the solution button.
-        if (this.currentGameDisplay && this.currentGameDisplay.canShowSolution())
+        if (this.currentGameDisplay.canShowSolution())
         {
             ElementUtilities.enableButton(this.solutionButton);
         } else {

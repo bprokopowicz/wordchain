@@ -100,6 +100,9 @@ class GameDisplay extends BaseLogger {
         Const.GL_DEBUG && this.logDebug ("GameDisplay.constructGame(): start: ", start, " target: ", target, " gameState: ", gameState, "game");
         this.game = new Game(start, target, gameState);
         this.showGameAfterMove();
+
+        // Scroll to the top of the window so that the user sees the start word.
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     displayAdd(displayInstruction, isStartWord) {

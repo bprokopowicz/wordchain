@@ -315,6 +315,8 @@ class DailyGameDisplay extends GameDisplay {
         this.game.finishGame();
         this.showGameAfterMove();
 
+        this.setStat('streak', 0);
+
         Persistence.saveDailyGameState(this.gameState);
 
     }
