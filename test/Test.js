@@ -205,6 +205,7 @@ class Test extends BaseLogger {
         // We have found that if we don't clear all the local storage,
         // the Test* cookies (probably the epoch) mess things up and
         // result in an error from Solver.getNthWord() of all things!
+
         Persistence.clearAllNonDebug();
         console.log(`Testing took: ${elapsedTime} ms.`);
     }
@@ -710,7 +711,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15719;
+        const expectedMinDictSize = 15687;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;

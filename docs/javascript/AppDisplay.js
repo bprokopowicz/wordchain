@@ -306,13 +306,11 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.practiceGameDiv);
         ElementUtilities.show(this.practicePickerDiv);
 
-
         // On the practice game screen, the Daily button is visible.
         ElementUtilities.show(this.switchToDailyGameButton);
         ElementUtilities.hide(this.switchToPracticeGameButton);
 
-        // This will begin the game, counting it toward the user's games per day.
-        this.practiceGameDisplay.startGame();
+        this.practiceGameDisplay.recordGameTimestampIfNeeded();
         this.currentGameDisplay = this.practiceGameDisplay;
 
         // This must come after we set currentGameDisplay, because it uses

@@ -36,11 +36,12 @@ class PracticeGameDisplay extends GameDisplay {
         ElementUtilities.disableButton(this.newGameButton);
 
         // We use timestamps to ensure the user doesn't play more than the maximum
-        // number of games per day.
-        this.needToAddTimestamp = false;
-        if (this.anyGamesRemaining()) {
-            this.updateWords();
-        }
+        // number of games per day. We're creating a practice game ahead of time, but
+        // we're not going to add the timestamp until the user actually switches to
+        // the practice game screen; createOrRestoreGame() will set this flag to false
+        // if it recovers a game in progress.
+        this.needToAddTimestamp = true;
+        this.createOrRestoreGame();
     }
 
     // This is a virtual function that tells the display if the user requested the solution for
@@ -71,13 +72,10 @@ class PracticeGameDisplay extends GameDisplay {
         ElementUtilities.deleteChildren(this.resultsDiv);
         ElementUtilities.deleteChildren(this.originalSolutionDiv);
 
-        // Create the new game.
-        this.updateWords();
-
-        // We will add a timestamp in this case, because newGameCallback()
-        // will only be called when a game is over; otherwise, the button
-        // is disabled.
-        this.startGame();
+        // Note that newGameCallback() will only be called when a game is over;
+        // otherwise, the button is disabled.
+        this.createGame();
+        this.addNewPracticeGameTimestamp();
     }
 
     /* ----- Utilities ----- */
@@ -155,16 +153,33 @@ class PracticeGameDisplay extends GameDisplay {
         }
     }
 
-    // Called when the user switches to the Practice game or clicks New Game button.
-    startGame() {
+    // Called when the user switches to the Practice game.
+    recordGameTimestampIfNeeded() {
         if (this.needToAddTimestamp) {
             this.addNewPracticeGameTimestamp();
             this.needToAddTimestamp = false;
         }
     }
 
-    // updateWords() creates a practice game. It should not be possible to call it if there are no more
-    // practice games left.
+    // Called from newGameCallback() and createOrRestoreGame() during construction.
+    createGame() {
+        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.createGame()", "test");
+        Persistence.clearPracticeSolutionShown();
+        Persistence.clearPracticeGameState();
+
+        if (Persistence.hasTestPracticeGameWords()) {
+            [this.startWord, this.targetWord] = Persistence.getTestPracticeGameWords();
+            Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.createGame() setting game from test vars to ", this.startWord, this.targetWord, "test");
+        } else {
+            [this.startWord, this.targetWord] = Game.getPracticePuzzle();
+            Persistence.savePracticeGameDef(this.startWord, this.targetWord);
+        }
+
+        this.startGameAndDisableNewGameButton();
+    }
+
+    // createOrRestoreGame() is called from constructor() to pre-create a practice game
+    // or restore an in-progress game from cookies.
     //
     // - If there are test vars to define the start and target, they will be used.
     // - If there is no practice game in progress in persistance, we get a new practice puzzle.
@@ -174,39 +189,31 @@ class PracticeGameDisplay extends GameDisplay {
     // right away and we shouldn't count that towards their games per day until
     // they actually start to play the game. Here, we're going to note that we
     // need to count it (i.e. need to add a timestamp).
-    updateWords() {
+    createOrRestoreGame() {
 
-        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.updateWords()", "test");
+        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.createOrRestoreGame()", "test");
         Persistence.clearPracticeSolutionShown();
-        let gameState = [];
 
-        if (Persistence.hasTestPracticeGameWords()) {
-            [this.startWord, this.targetWord] = Persistence.getTestPracticeGameWords();
-            Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.updateWords() setting game from test vars to ", this.startWord, this.targetWord, "test");
-            this.needToAddTimestamp = true;
+        // See if we have words for a practice game in progress
+        [this.startWord, this.targetWord] = Persistence.getPracticeGameDef();
+        if (this.startWord && this.startWord.length !== 0) {
+            // We did have start/target words; get any words already played.
+            // Don't add a timestamp for this recovered game-in-progress
+            // if/when the user switches to the practice game screen.
+            this.needToAddTimestamp = false;
+            this.startGameAndDisableNewGameButton();
         } else {
-            // See if we have words for a practice game in progress
-            [this.startWord, this.targetWord] = Persistence.getPracticeGameDef();
-
-            if (!this.startWord || this.startWord.length === 0) {
-                // No words in the cookie; get new ones from the Game class and save them.
-                [this.startWord, this.targetWord] = Game.getPracticePuzzle();
-                this.needToAddTimestamp = true;
-
-                Persistence.savePracticeGameDef(this.startWord, this.targetWord);
-                Persistence.clearPracticeGameState();
-            } else {
-                // We did have start/target words; get any words already played.
-                // Don't add a timestamp for this recovered game-in-progress.
-                gameState = Persistence.getPracticeGameState();
-            }
+            this.createGame();
         }
+    }
 
-        // Disable the New Games button because we're either in a new game
-        // or a recovered game and the button is only enabled when a game is over.
+    startGameAndDisableNewGameButton() {
+        let gameState = Persistence.getPracticeGameState();
+
+        // Disable the New Games button until the game is over.
         ElementUtilities.disableButton(this.newGameButton);
 
-        // Now we're ready to construct (and display) the game.
+        // Construct (and display) the game.
         this.constructGame(this.startWord, this.targetWord, gameState);
     }
 

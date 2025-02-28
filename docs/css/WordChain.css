@@ -381,6 +381,10 @@ button:enabled {
     background: var(--user-input-bg);
 }
 
+.td-game-active {
+    background: var(--user-input-bg);
+}
+
 .td-game {
     padding-top: 7px;
     padding-bottom: 7px;
@@ -426,7 +430,7 @@ button:enabled {
 }
 
 .letter-cell-change {
-    border-width: .2rem;
+    border-width: .25rem;
     /*border-style: dashed;*/
 }
 
@@ -434,7 +438,7 @@ button:enabled {
 }
 
 .letter-cell-future-change {
-    border-width: .2rem;
+    border-width: .25rem;
 }
 
 .letter-cell-played {
@@ -954,10 +958,60 @@ input.setting-radio {
 */
 
 /*
-** =======
-** Tablets
-** =======
+** ======
+** Phones
+** ======
 */
+
+/*
+** Changes to address clipping issue on Samsumg or other devices that are narrower
+** than our iPhones.
+**
+**     iPhone 14 pro: viewport width 393 px.
+**     Galaxy S21: viewport width 360 px.
+*/
+@media only screen and (width < 390px) {
+    :root {
+        --cell-size: 22px;
+        --action-cell-size: 13px;
+        --cell-margin: 3px;
+    }
+
+    .game-div {
+        margin-left: 25px;
+
+        /* Allow horizontal scrolling just in case things widen past Samsung viewport. */
+        overflow-x: auto;
+    }
+}
+
+/*
+** ========================================
+** Medium screens like tablets (and larger)
+** ========================================
+*/
+
+@media only screen and (width > 450px) {
+    table {
+        border-spacing: .9rem;
+    }
+
+    button.action-button {
+        padding-bottom: 4px;
+    }
+
+    .picker-outer-div {
+        /*
+        ** A little wider on larger screens so we can get 5-6 buttons in the picker.
+        */
+        width: 400px;
+        /*
+        ** Much taller on larger screens so when you narrow it, the game grid doesn't
+        ** obstruct the picker.
+        */
+        height: 110px;
+    }
+}
 
 @media only screen and (min-width: 600px) {
     table {
@@ -987,66 +1041,33 @@ input.setting-radio {
     .letter-cell {
         font-size: 1.5rem;
     }
-
-    /* TODO: May need to add cell classes here */
 }
 
 /*
-** ======
-** Phones
-** ======
+** ===================================================
+** Larger screens like laptop/desktop and some tablets
+** ===================================================
 */
 
 /*
-** Changes to address clipping issue on Samsumg or other devices that are narrower
-** than our iPhones.
-**
-**     iPhone 14 pro: viewport width 393 px.
-**     Galaxy S21: viewport width 360 px.
+** Adjust width of auxiliary screen content so that lines are not too long
+** when the browser window is stretched wide and not too short when narrow.
 */
-@media only screen and (width < 390px) {
-    :root {
-        --cell-size: 22px;
-        --action-cell-size: 13px;
-        --cell-margin: 3px;
-    }
-
-    .game-div {
-        margin-left: 25px;
-
-        /* Allow horizontal scrolling just in case things widen past Samsung viewport. */
-        overflow-x: auto;
-    }
-}
-
-/*
-** =================================
-** Large screens like laptop/desktop
-** =================================
-*/
-
-@media only screen and (width > 450px) {
-    table {
-        border-spacing: .9rem;
-    }
-
-    button.action-button {
-        padding-bottom: 4px;
-    }
-
+@media only screen and (width <= 1000px) {
     .auxiliary-content-div {
-        width: 40%;
-    }
-
-    .picker-outer-div {
-        /*
-        ** A little wider on large screen so we can get 5-6 buttons in the picker.
-        */
-        width: 400px;
-        /*
-        ** Much taller on large screen so when you narrow it, the game grid doesn't
-        ** obstruct the picker.
-        */
-        height: 110px;
+        width: 90%;
     }
 }
+
+@media only screen and (width > 1000px) and (width <= 1300px) {
+    .auxiliary-content-div {
+        width: 70%;
+    }
+}
+
+@media only screen and (width > 1300px) {
+    .auxiliary-content-div {
+        width: 50%;
+    }
+}
+
