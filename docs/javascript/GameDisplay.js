@@ -87,7 +87,11 @@ class GameDisplay extends BaseLogger {
     /* ----- Game ----- */
 
     addTd() {
-        return ElementUtilities.addElementTo("td", this.rowElement, {class: 'td-game'});
+        const newTd = ElementUtilities.addElementTo("td", this.rowElement, {class: 'td-game'});
+        if (this.rowElement.displayAsActiveRow) {
+            ElementUtilities.addClass(newTd, "td-game-active");
+        }
+        return newTd;
     }
 
     canShowSolution() {
@@ -153,8 +157,10 @@ class GameDisplay extends BaseLogger {
         const hideAdditionCells = true;
         this.displayCommon(displayInstruction, getActiveLetterCell, hideAdditionCells);
 
-        // Now we add an extra <tr> element for the deletion cell row.
+        // Now we add an extra <tr> element for the deletion cell row. It is this row
+        // that is highlighted as active rather than the letter cells.
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
+        this.rowElement.displayAsActiveRow = true;
 
         // We need to use a copy of 'this' as 'me' in the body of this local function.
         function getDeletionCell(letter, letterPosition) {
@@ -244,21 +250,25 @@ class GameDisplay extends BaseLogger {
                 displayInstruction.moveRating
                 ]);
 
+            this.rowElement.displayAsActiveRow = false;
+
             // These instructions all indicate the active word.
             // Note that the active word has also been played.
             if (displayInstruction.displayType === Const.ADD) {
+                this.rowElement.displayAsActiveRow = true;
                 this.displayAdd(displayInstruction, isStartWord);
-                ElementUtilities.addClass(this.rowElement, "tr-game-active");
 
             } else if (displayInstruction.displayType === Const.CHANGE) {
+                this.rowElement.displayAsActiveRow = true;
                 this.displayChange(displayInstruction, isStartWord);
-                ElementUtilities.addClass(this.rowElement, "tr-game-active");
 
             } else if (displayInstruction.displayType === Const.DELETE) {
-                // This method adds another row, so unlike the others,
-                // it needs access to the table element.
+                // displayDelete() adds a second row for the minuses, so unlike the other
+                // cases it needs access to the table element. The current rowElement
+                // will contain the letters, which we don't want to be displayed as the
+                // active row, so we don't set displayAsActiveRow to true here; rather,
+                // that will be set to true for the row of minuses.
                 this.displayDelete(displayInstruction, tableElement, isStartWord);
-                ElementUtilities.addClass(this.rowElement, "tr-game-active");
 
             // These instructions indicate a word other than the active one.
             } else if (displayInstruction.displayType === Const.FUTURE) {

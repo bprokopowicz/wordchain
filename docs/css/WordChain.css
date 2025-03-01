@@ -377,10 +377,6 @@ button:enabled {
     display: block;
 }
 
-.tr-game-active {
-    background: var(--user-input-bg);
-}
-
 .td-game-active {
     background: var(--user-input-bg);
 }

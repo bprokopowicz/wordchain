@@ -112,7 +112,8 @@ class Test extends BaseLogger {
             this.appTestNameToFunction.set(appTestFunc.name, appTestFunc);
         }
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {for: "testSelector", class: "testButton"}, "Select Test(s)");
+        ElementUtilities.addElementTo("p", this.outerDiv);
+        ElementUtilities.addElementTo("label", this.outerDiv, {for: "testSelector", class: "testButton"}, "Select Test");
         let appTestSelect = ElementUtilities.addElementTo("select", this.outerDiv, {name: "appTests", id: "testSelector"});
         this.appTestSelect = appTestSelect;
 
@@ -142,6 +143,7 @@ class Test extends BaseLogger {
             runApp          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",         class: "testButton" }, "Run App Tests"),
             selector        = this.addAppTestSelector(),
             runSelectedTest = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSelectedTest", class: "testButton" }, "Run Selected App Test");
+            ElementUtilities.addElementTo("p", this.outerDiv);
 
 
         for (let button of [runAll, runDict, runSolver, runGame, runApp, runSelectedTest]) {
