@@ -1,4 +1,3 @@
-echo "Testing merge of hot fix"
 echo -e "\n\n=====> Running npm install ..."
 npm install
 
