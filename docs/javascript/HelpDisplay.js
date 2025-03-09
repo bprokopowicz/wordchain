@@ -36,9 +36,10 @@ class HelpDisplay extends AuxiliaryDisplay {
         and you must click/tap again to confirm your selection.
         </p>
         <p>
-        WordChain shows empty letter cells for the rest of the shortest solution,
-        which can help you decide what to do next.
-        When a letter should be changed, the outline around the letter to change is thicker.
+        WordChain shows empty letter cells for the rest of the shortest solution
+        from the current point in the game,
+        with thicker outlines on letters in that solution that will change;
+        this information provides a hint as to how best to solve the game.
         </p>
         <p>
         If your played word increases the number of steps from the start to the target word,

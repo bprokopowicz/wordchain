@@ -30,10 +30,12 @@
     --colorblind-bad-bg-light:          #ff9200;    /* orange */
     --colorblind-genius-bg-light:       #f0ce15;    /* gold */
     --colorblind-dodo-bg-light:         #ff9200;    /* orange; was brownish */
+    --colorblind-shown-bg-light:        #9c9ea0;    /* gray */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
     --non-colorblind-bad-bg-light:      #f87474;    /* red */
     --non-colorblind-genius-bg-light:   #f0ce15;    /* gold */
     --non-colorblind-dodo-bg-light:     #f87474;    /* red; was brownish */
+    --non-colorblind-shown-bg-light:    #9c9ea0;    /* gray */
 
     /*
     ** Dark Mode Colors
@@ -44,10 +46,12 @@
     --colorblind-bad-bg-dark:           #d58b04;    /* orange */
     --colorblind-genius-bg-dark:        #f0ce15;    /* gold */
     --colorblind-dodo-bg-dark :         #d58b04;    /* orange; was brownish */
+    --colorblind-shown-bg-dark:         #9c9ea0;    /* gray */
     --non-colorblind-good-bg-dark:      #28c128;    /* green */
     --non-colorblind-bad-bg-dark:       #d33433;    /* red */
     --non-colorblind-genius-bg-dark:    #f0ce15;    /* gold */
     --non-colorblind-dodo-bg-dark :     #d33433;    /* red; was brownish */
+    --non-colorblind-shown-bg-dark:     #9c9ea0;    /* gray */
 }
 
 /*
@@ -423,6 +427,10 @@ button:enabled {
 
 .letter-cell-dodo {
     background: var(--played-word-dodo-bg);
+}
+
+.letter-cell-shown {
+    background: var(--played-word-shown-bg);
 }
 
 .letter-cell-change {

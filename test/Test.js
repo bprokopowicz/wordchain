@@ -212,7 +212,7 @@ class Test extends BaseLogger {
         console.log(`Testing took: ${elapsedTime} ms.`);
     }
 
-    success(testName) {
+    hadNoErrors(testName) {
         this.messages.push(`<font color="green">${this.testName} (${this.testAssertionCount})</font color="green">`);
         this.testAssertionCount = 0;
         this.successCount += 1;
@@ -551,6 +551,16 @@ class Test extends BaseLogger {
         return true;
     }
 
+    showRemainingWords() {
+        const game = this.gameDisplay.game,
+              mockEvent = null,
+              numMoves = game.remainingSteps.numWords();
+
+        for (let i = 0; i <= numMoves; i++) {
+            this.gameDisplay.showNextMoveCallback(mockEvent);
+        }
+    }
+
     // compares the current stats cookie AND stats screen content with expected and calculated values.
     // Also, asserts that gamesStarted >= gamesWon+gamesLost
 
@@ -664,7 +674,7 @@ class Test extends BaseLogger {
             this.verify(tinyDict.isWord("APPLE"), "APPLE is not a word") &&
             this.verify(tinyDict.isWord("apPlE"), "apPlE is not a word") &&
             this.verify(!tinyDict.isWord("PEACH"), "PEACH is a word") &&
-            this.success();
+            this.hadNoErrors();
     }
 
 
@@ -679,7 +689,7 @@ class Test extends BaseLogger {
         this.verify(cadAdders.has("SCAD"), "'SCAD' is not in 'CAD' adders") &&
             this.verify(badAdders.has("BALD"), "'BALD' is not in 'BAD' adders") &&
             this.verify(batAdders.has("BATE"), "'BATE' is not in 'BAT' adders") &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testDictRemovers() {
@@ -693,7 +703,7 @@ class Test extends BaseLogger {
         this.verify(ccadRemovers.has("CAD"), "'CAD' is not in 'CCAD' removers") &&
             this.verify(baldRemovers.has("BAD"), "'BAD' is not in 'BALD' removers") &&
             this.verify(bateRemovers.has("BAT"), "'BAT' is not in 'BATE' removers") &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testDictReplacements() {
@@ -706,7 +716,7 @@ class Test extends BaseLogger {
         this.verify(cadReplacements.has("BAD"), "'BAD' is not in 'CAD' replacements") &&
             this.verify(badReplacements.has("BID"), "'BID' is not in 'BAD' replacements") &&
             this.verify(badReplacements.has("BAT"), "'BAT' is not in 'BAD' replacements") &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testDictFull() {
@@ -729,7 +739,7 @@ class Test extends BaseLogger {
             this.verify(!this.fullDict.isWord("ZIZZAMATIZZATEEZYMAN"), "'ZIZZAMATIZZATEEZYMAN' should not be in dict") &&
             this.verify((addersSize == expectedAddersSize), `adders has ${addersSize} words; expected ${expectedAddersSize}`) &&
             this.verify((replacementsSize == expectedReplacementsSize), `adders has ${replacementsSize} words; expected ${expectedReplacementsSize}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testScrabbleDict() {
@@ -737,7 +747,7 @@ class Test extends BaseLogger {
         this.verify (this.scrabbleDict.isWord("aargh"), "aargh is missing in scrabble dict") &&
         this.verify (this.scrabbleDict.isWord("zzz"), "zzz is missing in scrabble dict") &&
         this.verify (!this.scrabbleDict.isWord("zzzbrother"), "zzzbrother should not be in scrabble dict") &&
-        this.success();
+        this.hadNoErrors();
     }
 
     /*
@@ -776,7 +786,7 @@ class Test extends BaseLogger {
             this.verify((r5 == null), "expected no one-step from dog to cat, got", r5) &&
             this.verify((r6== null), "expected no one-step from dog to dots, got", r6) &&
             this.verify((r7== null), "expected no one-step from house to hose, got", r7) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testSolverIdentitySequence() {
@@ -785,11 +795,11 @@ class Test extends BaseLogger {
         const dict = new WordChainDict(["BAD", "BAT", "CAD", "CAT", "DOG"]);
         const solution = Solver.solve(dict, "BAT", "BAT");
 
-        this.verify(solution.success(), `error in solving 'BAT' to 'BAT': ${solution.getError()}`) &&
+        this.verify(solution.hadNoErrors(), `error in solving 'BAT' to 'BAT': ${solution.getError()}`) &&
             this.verify((solution.numSteps() === 0), "solution for 'BAT' to 'BAT' is not 0") &&
             this.verify((solution.getStart() === 'BAT'), "first word for 'BAT' to 'BAT' is not 'BAT'") &&
             this.verify((solution.getTarget() === 'BAT'), "last word for 'BAT' to 'BAT' is not 'BAT'") &&
-            this.success();
+            this.hadNoErrors();
         const endTestTime = Date.now();
         this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -811,14 +821,14 @@ class Test extends BaseLogger {
         const endTestTime = Date.now();
         this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
-        this.verify(solutionBadBade.success(), `error on adder 'BAD' to 'BADE': ${solutionBadBade.getError()}`) &&
-            this.verify(solutionBadeBad.success(), `error on remover 'BADE' to 'BAD': ${solutionBadeBad.getError()}`) &&
-            this.verify(solutionBatCat.success(), `error on replacer 'BAT' to 'CAT': ${solutionBatCat.getError()}`) &&
+        this.verify(solutionBadBade.hadNoErrors(), `error on adder 'BAD' to 'BADE': ${solutionBadBade.getError()}`) &&
+            this.verify(solutionBadeBad.hadNoErrors(), `error on remover 'BADE' to 'BAD': ${solutionBadeBad.getError()}`) &&
+            this.verify(solutionBatCat.hadNoErrors(), `error on replacer 'BAT' to 'CAT': ${solutionBatCat.getError()}`) &&
             this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'BAD' to 'BADE': ${solutionBadBade.getSolutionSteps()}`) &&
             this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'BADE' to 'BAD': ${solutionBadeBad.getSolutionSteps()}`) &&
             this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'BAT' to 'CAT': ${solutionBatCat.getSolutionSteps()}`) &&
-            this.verify(!solutionNope.success(), "expected failure for 'BAT' to 'DOG'")&&
-            this.success();
+            this.verify(!solutionNope.hadNoErrors(), "expected failure for 'BAT' to 'DOG'")&&
+            this.hadNoErrors();
 
     }
 
@@ -833,11 +843,11 @@ class Test extends BaseLogger {
         const endTestTime = Date.now();
         this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
-        this.verify(solutionBatScad.success(), `error on 'BAT' to 'SCAD': ${solutionBatScad.getError()}`) &&
-            this.verify(solutionScadBat.success(), `error on 'SCAD' to 'BAT': ${solutionScadBat.getError()}`) &&
+        this.verify(solutionBatScad.hadNoErrors(), `error on 'BAT' to 'SCAD': ${solutionBatScad.getError()}`) &&
+            this.verify(solutionScadBat.hadNoErrors(), `error on 'SCAD' to 'BAT': ${solutionScadBat.getError()}`) &&
             this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'BAT' to 'SCAD': ${solutionBatScad.getSolutionSteps()}`) &&
             this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'SCAD' to 'BAT': ${solutionScadBat.getSolutionSteps()}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testSolverLongChain() {
@@ -851,9 +861,9 @@ class Test extends BaseLogger {
         const endTestTime = Date.now();
         this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
-        this.verify(solutionTacoBimbo.success(), `error on 'TACO' to 'BIMBO': ${solutionTacoBimbo.getError()}`) &&
+        this.verify(solutionTacoBimbo.hadNoErrors(), `error on 'TACO' to 'BIMBO': ${solutionTacoBimbo.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `foundWords: ${foundWords} is not as expected: ${expectedWords}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testDifficultyCalcs() {
@@ -875,10 +885,10 @@ class Test extends BaseLogger {
         */
 
         solution.calculateDifficulty(this.fullDict);
-        this.verify(solution.success(), `error on 'BLUE' to 'BAGGY': ${solution.getError()}`) &&
+        this.verify(solution.hadNoErrors(), `error on 'BLUE' to 'BAGGY': ${solution.getError()}`) &&
             this.verify(solution.difficulty == 18, `expected difficulty 18, got ${solution.difficulty}`) &&
             this.verify(solution.nChoicesEasiestStep == expectedNumberChoices, `expected easiest step nChoices ${expectedNumberChoices}, got ${solution.nChoicesEasiestStep}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testSolverBothDirections() {
@@ -901,7 +911,7 @@ class Test extends BaseLogger {
         this.verify((solutionMatzoBall.getError()=== "No solution"), `expected quick 'No solution' on 'MATZO' TO 'BALL': ${solutionMatzoBall.getError()}`) &&
         this.verify((solutionBallMatzo.getError()=== "No solution"), `expected slow 'No solution' on 'BALL' TO 'MATZO': ${solutionBallMatzo.getError()}`) &&
         this.verify((50*elapsedForwardTime < elapsedReverseTime), `expected fast path ${elapsedForwardTime} to be at least 50x shorter than reverse path ${elapsedReverseTime}`) &&
-        this.success();
+        this.hadNoErrors();
     }
 
     testSolverSearchNoSolution() {
@@ -912,7 +922,7 @@ class Test extends BaseLogger {
         this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
 
         this.verify(!triedSearchNoSolution.isSolved(), `expected 'No solution' on 'FROG' to 'ECHO'`) &&
-        this.success();
+        this.hadNoErrors();
     }
 
     testPuzzleFinder() {
@@ -948,7 +958,7 @@ class Test extends BaseLogger {
             this.verify(solution.hasWordOfLength(reqWordLen2), `solution missing word of length ${reqWordLen2}`) &&
             this.verify(solution.difficulty >= minDifficulty, `solution to easy: ${difficulty} is not at least ${minDifficulty}`) &&
             this.verify(solution.nChoicesEasiestStep >= minChoicesPerStep, `solution's easiest step should be >= ${minChoicesPerStep}, not ${solution.nChoicesEasiestStep}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     /*
@@ -972,10 +982,12 @@ class Test extends BaseLogger {
         this.testGameRequiringWordReplay();
         this.testGameRequiringScrabbleWordReplay();
         this.testGameFinish();
+        this.testGameShowEveryMove();
         this.testGameFinishAlternatePath();
         this.testGameLossOnWrongLetterAdded();
         this.testGameLossOnWrongDelete();
         this.testGameLossOnWrongLetterChange();
+        // Play every Daily game defined -- takes a long time!
         //this.testGameSolveAllDailyGames();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
@@ -992,7 +1004,7 @@ class Test extends BaseLogger {
                 return; // short-circuit the test if any puzzle fails.
             }
         }
-        this.success();
+        this.hadNoErrors();
     }
 
     testGameCorrectFirstWord() {
@@ -1004,7 +1016,7 @@ class Test extends BaseLogger {
 
         const playResult = game.playDelete(1);
         this.verify((playResult === Const.OK), "Word played not OK") &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameDeleteWrongLetter() {
@@ -1016,7 +1028,7 @@ class Test extends BaseLogger {
 
         const playResult = game.playDelete(3);
         this.verify((playResult === Const.NOT_A_WORD), "NOT_A_WORD after deleting wrong letter") &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameDeleteBadPosition() {
@@ -1028,7 +1040,7 @@ class Test extends BaseLogger {
 
         const playResult = game.playDelete(6);
         this.verify((playResult === Const.BAD_POSITION), "Delete attempted at bad position") &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameDifferentWordFromInitialSolution() {
@@ -1054,7 +1066,7 @@ class Test extends BaseLogger {
         if (!this.verify((newPlayedWord === "BADE"), `Played word 1 should be BADE, not: ${newPlayedWord}`))  return;
         const newSolutionWord0 = game.remainingSteps.getNthWord(0);
         this.verify((newSolutionWord0 === "BAD"), `New solution should continue with BAD, not: ${newSolutionWord0}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameCompleteSmallDict() {
@@ -1068,7 +1080,7 @@ class Test extends BaseLogger {
         const game = new Game("BAD", "SCAD", fullSolutionAsTuples, smallDict);
 
         this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameCompleteFullDict() {
@@ -1080,7 +1092,7 @@ class Test extends BaseLogger {
         const game = new Game("bad", "word", fullSolutionAsTuples, this.fullDict);
 
         this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameNotShortestSolutionBug() {
@@ -1088,9 +1100,9 @@ class Test extends BaseLogger {
         const solution = Solver.solve(this.fullDict, "BROKEN", "BAKED");
         const foundWords = solution.getSolutionSteps().map((step)=>step.word);
         const expectedWords = [ "BROKEN", "BROKE", "BRAKE", "BAKE", "BAKED" ];
-        this.verify(solution.success(), `error on 'BROKEN' to 'BAKED': ${solution.getError()}`) &&
+        this.verify(solution.hadNoErrors(), `error on 'BROKEN' to 'BAKED': ${solution.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `solution: ${foundWords} is not expected: ${expectedWords}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameDisplayInstructions() {
@@ -1129,7 +1141,7 @@ class Test extends BaseLogger {
         this.verify((afterPlayLetterTInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after play letter T instruction[1] is ${afterPlayLetterTInstructions[1].toStr()}`) &&
         this.verify((afterPlayLetterTInstructions[2].toStr() === `(played,word:BAD,moveRating:${Const.OK})`), `after play letter T instruction[2] is ${afterPlayLetterTInstructions[2].toStr()}`) &&
         this.verify((afterPlayLetterTInstructions[3].toStr() === `(played,word:BAT,moveRating:${Const.OK})`), `after play letter T instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameDisplayInstructionsMistakes() {
@@ -1157,7 +1169,7 @@ class Test extends BaseLogger {
         this.verify((cadToCarInstructions[2].toStr() === "(change,word:CAR,changePosition:3)"), `after playing R, instruction[1] is ${cadToCarInstructions[2].toStr()}`) &&
         this.verify((cadToCarInstructions[3].toStr() === "(future,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCarInstructions[3].toStr()}`) &&
         this.verify((cadToCarInstructions[4].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCarInstructions[4].toStr()}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameDisplayInstructionsDifferentPath() {
@@ -1176,7 +1188,7 @@ class Test extends BaseLogger {
         this.verify((cadToCatInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after playing R, instruction[1] is ${cadToCatInstructions[1].toStr()}`) &&
         this.verify((cadToCatInstructions[2].toStr() === "(change,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCatInstructions[3].toStr()}`) &&
         this.verify((cadToCatInstructions[3].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCatInstructions[3].toStr()}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameUsingScrabbleWord() {
@@ -1194,7 +1206,7 @@ class Test extends BaseLogger {
         this.verify((displayInstructionsAfterSAG[1].toStr() === `(played,word:SCAG,moveRating:${Const.WRONG_MOVE})`), `after playing SAG, instruction[1] is ${displayInstructionsAfterSAG[1].toStr()}`) &&
         this.verify((displayInstructionsAfterSAG[2].toStr() === "(change,word:SAG,changePosition:3)"), `after playing SAG, instruction[2] is ${displayInstructionsAfterSAG[2].toStr()}`) &&
         this.verify((displayInstructionsAfterSAG[3].toStr() === "(future,word:SAT,changePosition:1)"), `after playing SAG, instruction[3] is ${displayInstructionsAfterSAG[3].toStr()}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameUsingGeniusMove() {
@@ -1209,7 +1221,7 @@ class Test extends BaseLogger {
         const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
         this.verify((scadToScagResult === Const.GENIUS_MOVE), `playLetter(4,G) expected ${Const.GENIUS_MOVE}, got ${scadToScagResult}`) &&
         this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameUsingDodoMove() {
@@ -1236,7 +1248,7 @@ class Test extends BaseLogger {
         const paneToPanedChangeResult = game.playLetter(5, "D"); // PANE to PANED; correct
         if (!this.verify((paneToPanedChangeResult === Const.OK), `playLetter(5, E) returns ${paneToPanedChangeResult}, not WRONG_MOVE`)) return;
 
-        this.success();
+        this.hadNoErrors();
     }
 
     testGameRequiringWordReplay() {
@@ -1253,7 +1265,7 @@ class Test extends BaseLogger {
         this.verify((blissToBlipsResult === Const.DODO_MOVE), `playLetter(4,P) expected ${Const.DODO_MOVE}, got ${blissToBlipsResult}`) &&
         this.verify((displayInstructions.length === expectedDisplayLength),
                 `expected display instructions length=${expectedDisplayLength}, got ${displayInstructions.length}`) &&
-        this.success();
+        this.hadNoErrors();
     }
 
     testGameRequiringScrabbleWordReplay() {
@@ -1280,7 +1292,7 @@ class Test extends BaseLogger {
         this.verify((result === Const.DODO_MOVE), `playing add 'D' at 2 expected: ${Const.DODO_MOVE}, got: ${result}`) &&
         this.verify((displayInstructions.length === expectedDisplayLength),
                 `expected display instructions length==${expectedDisplayLength}, got: ${displayInstructions.length}`) &&
-        this.success();
+        this.hadNoErrors();
     }
 
     testGameFinish() {
@@ -1302,7 +1314,21 @@ class Test extends BaseLogger {
             this.verify((originalSolutionAsString == expOriginalSolutionAsString), `expected original string ${expOriginalSolutionAsString}, got ${originalSolutionAsString}`) &&
             this.verify((playedSolutionAsString == expPlayedSolutionAsString), `expected played string ${expPlayedSolutionAsString}, got ${playedSolutionAsString}`) &&
             this.verify(game.isOver()) &&
-            this.success();
+            this.hadNoErrors();
+    }
+
+    testGameShowEveryMove() {
+        this.testName = "GameShowEveryMove";
+
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, this.fullDict);
+
+        game.showUnplayedMoves();
+
+        const displayInstructionsAfterFinish = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
+        this.verify((displayInstructionsAfterFinish.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructionsAfterFinish.length}`) &&
+            this.verify(game.isOver(), 'expected game to be over, but it is not') &&
+            this.hadNoErrors();
     }
 
     testGameFinishAlternatePath() {
@@ -1327,7 +1353,7 @@ class Test extends BaseLogger {
         this.verify((originalSolutionAsString == expOriginalSolutionAsString), `expected original string ${expOriginalSolutionAsString}, got ${originalSolutionAsString}`) &&
             this.verify((playedSolutionAsString == expPlayedSolutionAsString), `expected played string ${expPlayedSolutionAsString}, got ${playedSolutionAsString}`) &&
             this.verify(game.isOver()) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     testGameLossOnWrongLetterChange() {
@@ -1360,7 +1386,7 @@ class Test extends BaseLogger {
                 this.verify(game.isOver(), "game should be over after too many wrong moves") &&
                 this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
                 this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
-                this.success();
+                this.hadNoErrors();
     }
 
     testGameLossOnWrongLetterAdded() {
@@ -1404,7 +1430,7 @@ class Test extends BaseLogger {
                 this.verify(game.isOver(), "game should be over after too many wrong moves") &&
                 this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
                 this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
-                this.success();
+                this.hadNoErrors();
     }
 
 
@@ -1427,7 +1453,7 @@ class Test extends BaseLogger {
             this.verify(game.isOver(), "game should be over after too many wrong moves") &&
             this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
             this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     /*
@@ -1450,7 +1476,8 @@ class Test extends BaseLogger {
             this.dailyGameRestartAfterDohTest,
             this.dailyGameRestartTest,
             this.dailyGameOneMistakeShareTest,
-            this.dailyGameShowSolutionTest,
+            // TODO
+            //this.dailyGameShowSolutionTest,
             this.practiceGameTest,
             this.practiceGameTestNoConfirm,
             this.practiceGameLimitTest,
@@ -1499,7 +1526,7 @@ class Test extends BaseLogger {
     finishGameTest() {
         this.testName = "FinishGameTest";
         this.verify(this.finishTheCurrentGame(), " did not finish the game") &&
-            this.success();;
+            this.hadNoErrors();;
     }
 
     // confirmation is a function of the GameDisplay so to test it we need to be playing a game
@@ -1523,7 +1550,7 @@ class Test extends BaseLogger {
             this.verify(changeLetterResult2 == Const.OK, "after HOT to POT, expected: ", Const.OK, " got: ", changeLetterResult1) &&
             this.verify(changeLetterResult3 == Const.OK, "after POT to POO, expected: ", Const.OK, " got: ", changeLetterResult1) &&
             this.verify(insertLetterResult1 == Const.OK, "after changing mind from POO ->  xPOO to POOx->POOR, expected: ", Const.OK, " got: ", insertLetterResult1) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     // start playing daily game for day 2, and then continue on day 3.  It should be a new, unplayed game.
@@ -1545,7 +1572,7 @@ class Test extends BaseLogger {
         this.verify(start == expStart, "After restart, expected start word: ", expStart, ", got: ", start) &&
             this.verify(target == expTarget, "After restart, expected target word: ", expTarget, ", got: ", target) &&
             this.verify(gameNumber == expGameNumber, "Expected daily game number", expGameNumber, " after restarting next day, got", gameNumber) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     dailyGameNormalFinishStatsTest() {
@@ -1577,7 +1604,7 @@ class Test extends BaseLogger {
         testResults &&
             this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with '${expShareString}', got '${actShareString}'`) &&
             this.verify((actShareString.indexOf(Const.SHARE_URL_ROOT) > 0), `expected to see url root ${Const.SHARE_URL_ROOT} in share string, got '${actShareString}'`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     // multiGameStatsTest plays the daily game 3 times and
@@ -1609,7 +1636,7 @@ class Test extends BaseLogger {
         expDailyStats.gamesLost = 0;
         expDailyStats.streak = 3;
         expDailyStats[0] = 3;  // all 3 games have 0 errors
-        this.verifyStats(expDailyStats) && this.success();
+        this.verifyStats(expDailyStats) && this.hadNoErrors();
     }
 
 
@@ -1651,7 +1678,7 @@ class Test extends BaseLogger {
         expDailyStats[0] = 1;
         expDailyStats[1] = 1;
         expDailyStats[2] = 1;
-        this.verifyStats(expDailyStats) && this.success();
+        this.verifyStats(expDailyStats) && this.hadNoErrors();
     }
 
     // multiIncompleteGameStatsTest plays the daily game 3 times:
@@ -1676,13 +1703,11 @@ class Test extends BaseLogger {
                 // play a full game
                 this.playTheCannedDailyGameOnce();
             } else if (gameCounter == 0) {
-                // play an incomplete game and request the solution
-                // game: SHORT -> POOR
+                // play an incomplete game and show all the remaining words:
+                // SHORT -> POOR
                 this.playLetter(4, "O"); // SHORT -> SHOOT
                 this.deleteLetter(1);    // SHOOT -> HOOT
                 this.playLetter(1, "B"); // HOOT -> BOOT
-                                         // give up - show the solution
-                this.gameDisplay.showSolution();
             }
             if (gameCounter != 2) {
                 Persistence.clearDailyGameNumber();
@@ -1695,9 +1720,9 @@ class Test extends BaseLogger {
         expDailyStats.gamesStarted = 3;
         expDailyStats.gamesLost = 1;
         expDailyStats.gamesWon = 1;
-        expDailyStats[0] = 1;  // complete game has 0 errors
-        expDailyStats[Const.TOO_MANY_WRONG_MOVES] = 1;  // failed game has TOO_MANY_WRONG_MOVE errors
-        this.verifyStats(expDailyStats) && this.success();
+        expDailyStats[Const.TOO_MANY_WRONG_MOVES] = 1;  // Game 2 (loss) has TOO_MANY_WRONG_MOVE errors
+        expDailyStats[0] = 1;  // Game 1 (won) has 0 errors
+        this.verifyStats(expDailyStats) && this.hadNoErrors();
     }
 
     dailyGameShowSolutionTest() {
@@ -1737,7 +1762,7 @@ class Test extends BaseLogger {
                 this.verify(dailyGameSolutionShown == true, `Expected daily game solution shown: true, got: ${dailyGameSolutionShown}`) &&
                 this.verify(actualShareButtonDisplayStyle == expShareButtonDisplayStyle, "expected share button display style: ", expShareButtonDisplayStyle, ", got: ", actualShareButtonDisplayStyle) &&
 
-                this.success();
+                this.hadNoErrors();
             this.closeTheStatsDisplay();
         }
     }
@@ -1772,7 +1797,7 @@ class Test extends BaseLogger {
         this.closeTheStatsDisplay();
 
         this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with ='${expShareString}', got '${actShareString}'`) &&
-            this.success();
+            this.hadNoErrors();
 
     }
 
@@ -1812,11 +1837,11 @@ class Test extends BaseLogger {
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n🟪🟪🟪🟪`;
         this.closeTheStatsDisplay();
 
         this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with '${expShareString}', got '${actShareString}'`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     // this test verifies that the share is good on a game that ends with a last-step delete.  It is the first game played, and verifies that the streak is 1.
@@ -1856,7 +1881,7 @@ class Test extends BaseLogger {
 
         this.closeTheStatsDisplay();
         this.verify((actShareString.indexOf(expShareString)===0), `expected share string to start with ${expShareString}', got '${actShareString}'`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     dailyGameRestartTest() {
@@ -1906,7 +1931,7 @@ class Test extends BaseLogger {
             this.logDebug("restored daily game after finishing it; display instructions are: ",
                     game.getDisplayInstructions(), "test");
             this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
-                this.success();
+                this.hadNoErrors();
         }
     }
 
@@ -1955,7 +1980,7 @@ class Test extends BaseLogger {
                 this.verify((di[4].toStr() === `(played,word:BOOT,moveRating:${Const.OK})`), `di[4] is ${di[4].toStr()}`) &&
                 this.verify((di[5].toStr() === `(played,word:BOOR,moveRating:${Const.OK})`), `di[5] is ${di[5].toStr()}`) &&
                 this.verify((di[6].toStr() === `(played,word:POOR,moveRating:${Const.OK})`), `di[6] is ${di[6].toStr()}`) &&
-                this.success();
+                this.hadNoErrors();
         }
     }
 
@@ -1997,7 +2022,7 @@ class Test extends BaseLogger {
             this.verify((resultO2 === Const.OK), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
             this.verify((resultInsertP0 == Const.OK), `insert P@0 returns ${resultInsertP0}, not ${Const.OK}`) &&
             this.verify((resultInsertI1 === Const.OK), `insert I@1 returns ${resultInsertI1}, not ${Const.OK}`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     practiceGameLimitTest() {
@@ -2035,8 +2060,8 @@ class Test extends BaseLogger {
 
             // test finishing the current game by either winning or showSolution.
             if (gamesStarted % 2 == 0) {
-                this.logDebug("ending game by showing solution", "test");
-                this.gameDisplay.showSolution();
+                this.logDebug("ending game by showing remaining words", "test");
+                this.showRemainingWords();
             } else {
                 this.logDebug("ending game by finishing it", "test");
                 this.finishTheCurrentGame();
@@ -2047,18 +2072,22 @@ class Test extends BaseLogger {
             const postGameDiv = this.gameDisplay.postGameDiv,
                   children = postGameDiv.children;
 
-            if (! this.verify(children.length == 1, "on game", gamesStarted, "expected 1 child, got:", children.length)) {
+            if (! this.verify(children.length == 2, "on game", gamesStarted, "expected 2 children, got:", children.length)) {
                 break;
             }
 
-            const childButtonClass = children[0].getAttribute("class"),
-                  childIsDisabled = children[0].disabled,
-                  childText = children[0].textContent;
+            const child1IsDisabled = children[0].disabled,
+                  child1Text = children[0].textContent,
+                  child2IsDisabled = children[1].disabled,
+                  child2Text = children[1].textContent;
 
             if (gamesStarted < testPracticeGamesPerDay) {
                 // Not last game
-                if ( this.verify( (childText == "New Game"), "on game", gamesStarted, "expected textContent=New Game, got: ", childText) &&
-                        this.verify( !childIsDisabled, "on game", gamesStarted, "New Game button was disabled and expected it to be enabled") &&
+                if ( 
+                        this.verify( (child1Text == "Show Next Move"), "on game", gamesStarted, "expected textContent=Show Next Move, got: ", child1Text) &&
+                        this.verify( child1IsDisabled, "on game", gamesStarted, "Show Next Move button was enabled and expected it to be disabled") &&
+                        this.verify( (child2Text == "New Game"), "on game", gamesStarted, "expected textContent=New Game, got: ", child2Text) &&
+                        this.verify( !child2IsDisabled, "on game", gamesStarted, "New Game button was disabled and expected it to be enabled") &&
                         this.verify(this.gameDisplay.anyGamesRemaining(), "on game", gamesStarted, " games, anyGamesRemaining should still be true")
                    ) {
                     // pretend to click the new game button.
@@ -2068,12 +2097,12 @@ class Test extends BaseLogger {
                 }
             } else {
                 // Last game
-                soFarSoGood = this.verify(childIsDisabled, "on game", gamesStarted, "New Game button was enabled and expected it to be disabled") &&
-                              this.verify(!this.gameDisplay.anyGamesRemaining(), "on game", gamesStarted, " games, anyGamesRemaining should be false")
+                soFarSoGood = this.verify(child2IsDisabled, "on last game", gamesStarted, "New Game button was enabled and expected it to be disabled") &&
+                              this.verify(!this.gameDisplay.anyGamesRemaining(), "on last game", gamesStarted, " games, anyGamesRemaining should be false")
             }
         }
 
-        soFarSoGood && this.success();
+        soFarSoGood && this.hadNoErrors();
     }
 
     // verifies a game ending that includes a genius move.  Checks the share, including the streak.
@@ -2103,7 +2132,7 @@ class Test extends BaseLogger {
             this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
             this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
             this.verify((actShareString.indexOf(expShareString) === 0), `sharestring: expected '${expShareString}', got '${actShareString}'`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
     cookieRestartTest() {
@@ -2129,7 +2158,7 @@ class Test extends BaseLogger {
             this.verify((testObjRestored.nums[0] == 3), `testObjRestored[0]is ${testObjRestored[0]}, not 3`) &&
             this.verify((testObjRestored.nums[1] == 5), `testObjRestored[1]is ${testObjRestored[1]}, not 5`) &&
             this.verify((testObjRestored.field == "hello"), `testObjRestored.field is '${testObjRestored.field}', not hello`) &&
-            this.success();
+            this.hadNoErrors();
     }
 
 

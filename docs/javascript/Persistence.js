@@ -53,18 +53,6 @@ class Persistence {
         Cookie.saveJson(Cookie.DAILY_STATS, dailyStats);
     }
 
-    static getDailySolutionShown() {
-        return Cookie.getBoolean(Cookie.DAILY_SOLUTION_SHOWN);
-    }
-
-    static saveDailySolutionShown() {
-        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, true);
-    }
-
-    static clearDailySolutionShown() {
-        Cookie.save(Cookie.DAILY_SOLUTION_SHOWN, false);
-    }
-
     static getDailyGameNumber() {
         return Cookie.getInt(Cookie.DAILY_GAME_NUMBER);
     }
@@ -128,18 +116,6 @@ class Persistence {
     static savePracticeTimestamps(timestamps) {
         Cookie.save(Cookie.PRACTICE_GAME_TIMESTAMPS, JSON.stringify(timestamps));
     };
-
-    static getPracticeSolutionShown() {
-        return Cookie.getBoolean(Cookie.PRACTICE_SOLUTION_SHOWN);
-    }
-
-    static savePracticeSolutionShown() {
-        Cookie.save(Cookie.PRACTICE_SOLUTION_SHOWN, true);
-    }
-
-    static clearPracticeSolutionShown() {
-        Cookie.save(Cookie.PRACTICE_SOLUTION_SHOWN, false);
-    }
 
 
     // GUI settings

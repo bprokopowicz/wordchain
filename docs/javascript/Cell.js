@@ -95,6 +95,9 @@ class LetterCell extends Cell {
         else if (moveRating == Const.DODO_MOVE) {
             this.addClass("letter-cell-dodo");
         }
+        else if (moveRating == Const.SHOWN_MOVE) {
+            this.addClass("letter-cell-shown");
+        }
         else {
             this.addClass("letter-cell-bad");
         }

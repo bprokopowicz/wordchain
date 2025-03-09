@@ -30,7 +30,7 @@ class PracticeGameDisplay extends GameDisplay {
         // when the game is over.
         this.newGameButton = ElementUtilities.addElementTo(
             "button", this.postGameDiv,
-            {id: "new-game", class: "app-button non-header-button"},
+            {class: "app-button non-header-button"},
             "New Game");
         ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
         ElementUtilities.disableButton(this.newGameButton);
@@ -42,14 +42,6 @@ class PracticeGameDisplay extends GameDisplay {
         // if it recovers a game in progress.
         this.needToAddTimestamp = true;
         this.createOrRestoreGame();
-    }
-
-    // This is a virtual function that tells the display if the user requested the solution for
-    // the (practice) game in progress.
-    getSolutionShown() {
-        const ret = Persistence.getPracticeSolutionShown();
-        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.getSolutionShown() returns: ", ret, "practice");
-        return ret;
     }
 
     setPracticeGamesPerDay(n) {
@@ -95,19 +87,6 @@ class PracticeGameDisplay extends GameDisplay {
             // disable its practice button.
             this.appDisplay.practiceGamesUsedUp();
         }
-    }
-
-    // Called from AppDisplay when "Solution" button is clicked.
-    showSolution() {
-        // First we need to save that the solution was shown, because showGameAfterMove()
-        // uses it to create the "original solution" message.
-        Persistence.savePracticeSolutionShown();
-
-        // TODO-PRODUCTION: Add an "are you sure?"
-        this.game.finishGame();
-        this.showGameAfterMove();
-
-        Persistence.savePracticeGameState(this.gameState);
     }
 
     // anyGamesRemaining() cleans up the saved list of recently played games' timestamps.
@@ -164,7 +143,6 @@ class PracticeGameDisplay extends GameDisplay {
     // Called from newGameCallback() and createOrRestoreGame() during construction.
     createGame() {
         Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.createGame()", "test");
-        Persistence.clearPracticeSolutionShown();
         Persistence.clearPracticeGameState();
 
         if (Persistence.hasTestPracticeGameWords()) {
@@ -192,7 +170,6 @@ class PracticeGameDisplay extends GameDisplay {
     createOrRestoreGame() {
 
         Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.createOrRestoreGame()", "test");
-        Persistence.clearPracticeSolutionShown();
 
         // See if we have words for a practice game in progress
         [this.startWord, this.targetWord] = Persistence.getPracticeGameDef();
@@ -215,11 +192,6 @@ class PracticeGameDisplay extends GameDisplay {
 
         // Construct (and display) the game.
         this.constructGame(this.startWord, this.targetWord, gameState);
-    }
-
-    // This is a pure virtual function in the base class.
-    wasShown() {
-        return Persistence.getPracticeSolutionShown();
     }
 }
 

@@ -8,12 +8,28 @@
 //
 // See Const.js for definitions of constant strings for the displayTypes.
 class DisplayInstruction {
-    // word:           string is ignored for future; only length of it is used
-    // displayType:    add, delete, change, future, played, target
-    // changePosition: relevant only for change and future; 1..word.length
-    // moveRating:     OK, WRONG_MOVE, GENIUS_MOVE, DODO_MOVE; not relevant for future or target
     //
-    // add, delete, change are used for the active word.
+    // word: string is ignored for future; only length of it is used
+    //
+    // displayType: add, delete, change, future, played, target
+    //     add:    word should be displayed as the active word and color based on moveRating, with plus signs
+    //     delete: word should be displayed as the active word and color based on moveRating, with minus signs
+    //     change: word should be displayed as the active word and color based on moveRating, with thick outline at changePosition
+    //     future: word should be displayed with no color or letter, with thick outline at changePosition
+    //     played: word should be diplayed with color based on moveRating (includes start word)
+    //     target: word should be displayed with "target color" and this type is not sent
+    //             for the target word if the game is over; instead, displayType will be 'played'
+    //
+    // changePosition: relevant only for change and future; 1..word.length
+    //
+    // moveRating: OK, WRONG_MOVE, GENIUS_MOVE, DODO_MOVE, SHOWN_MOVE
+    //             (not relevant for future or target displayType)
+    //     OK:         a word that did NOT increase the solution length
+    //     WRONG_MOVE  a word that increased the solution length by 1
+    //     GENIUS_MOVE a word that was in the Scrabble dictionary and causes the solution to get shorter
+    //     DODO_MOVE   a word that increased the solution length by 2
+    //     SHOWN_MOVE  a word given to the player when he/she clicks 'Show Next Move' or when the game is lost
+    //
     constructor(word, displayType, changePosition, moveRating) {
         this.word = word;
         this.wordLength = word.length;

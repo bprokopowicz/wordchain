@@ -41,6 +41,13 @@ class GameDisplay extends BaseLogger {
         // elements for the game.
         this.postGameDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break post-game-div"});
 
+        // Add Show Next Move button to postGameDiv.
+        this.showNextMoveButton = ElementUtilities.addElementTo(
+            "button", this.postGameDiv,
+            {class: "app-button non-header-button"},
+            "Show Next Move");
+        ElementUtilities.setButtonCallback(this.showNextMoveButton, this, this.showNextMoveCallback);
+
         // Create an element to contain game results (score, WordChain solution).
         this.resultsDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break results-div"});
 
@@ -79,7 +86,9 @@ class GameDisplay extends BaseLogger {
 
         let gameResult = this.game.playLetter(letterPosition, letter);
         this.processGameResult(gameResult);
-        // if the sub-class wants to persist anything after a letter is picked, it should do it by overriding this "pure-virtual" call.
+
+        // If the sub-class wants to persist anything after a letter is picked,
+        // it should do it by overriding this "pure-virtual" call.
         this.updateGameInProgressPersistence(gameResult);
         return gameResult;
     }
@@ -92,11 +101,6 @@ class GameDisplay extends BaseLogger {
             ElementUtilities.addClass(newTd, "td-game-active");
         }
         return newTd;
-    }
-
-    canShowSolution() {
-        // We can only show the solution if it isn't already shown or if the game is not won.
-        return !(this.getSolutionShown() || this.game.isWinner())
     }
 
     // Called from derived class!
@@ -198,12 +202,6 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell);
     }
 
-    getSolutionShown() {
-        // this is a "pure virtual" function that should never be called directly.
-        error.log("GameDisplay.getSolutionShown() should never be called.  Only call subclass implementations");
-        return false;
-    }
-
     isConfirmationMode() {
         return this.appDisplay.isConfirmationMode();
     }
@@ -215,11 +213,6 @@ class GameDisplay extends BaseLogger {
         const tableDiv = ElementUtilities.addElementTo("div", this.gameGridDiv, {class: "table-div"}),
               tableElement = ElementUtilities.addElementTo("table", tableDiv, {class: "table-game"});
 
-        // See whether the user requested the solution.
-        // Daily and Practice subclasses manage this separately in a pure virtual function getSolutionShown()
-        let userRequestedSolution = this.getSolutionShown();
-        Const.GL_DEBUG && this.logDebug("showGameAfterMove() userRequestedSolution=", userRequestedSolution, "game");
-
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
         // We'll build up the game state from the displayInstruction objects
@@ -227,11 +220,16 @@ class GameDisplay extends BaseLogger {
         // a cookie.
         this.gameState = [];
 
+        if (this.gameIsOver()) {
+            this.game.showUnplayedMoves();
+        }
+
         let displayInstructions = this.game.getDisplayInstructions();
 
         // all words are played words until we hit the first future or target word:
 
         let isStartWord = true,
+            showSameAsWordChainMessage = true,
             activeMoveRating = null;
 
         for (let displayInstruction of displayInstructions) {
@@ -250,7 +248,12 @@ class GameDisplay extends BaseLogger {
                 displayInstruction.moveRating
                 ]);
 
+            if (displayInstruction.moveRating !== Const.OK) {
+                showSameAsWordChainMessage = false;
+            }
+
             this.rowElement.displayAsActiveRow = false;
+            //console.log("displayType:", displayInstruction.displayType, "moveRating:", displayInstruction.moveRating);
 
             // These instructions all indicate the active word.
             // Note that the active word has also been played.
@@ -312,20 +315,19 @@ class GameDisplay extends BaseLogger {
                 originalSolutionDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break original-solution-div"}),
                 iconDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break icon-div"});
 
-            if (!userRequestedSolution) {
-                if (!skipToast) {
-                    if (this.game.isWinner()) {
-                        this.appDisplay.showToast(Const.GAME_WON);
-                    } else {
-                        this.appDisplay.showToast(Const.GAME_LOST);
-                    }
+            if (!skipToast) {
+                if (this.game.isWinner()) {
+                    this.appDisplay.showToast(Const.GAME_WON);
+                } else {
+                    this.appDisplay.showToast(Const.GAME_LOST);
                 }
-
-                const scoreText = Const.SCORE_TEXT[this.wrongMoves];
-                ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
             }
 
+            const scoreText = Const.SCORE_TEXT[this.wrongMoves];
+            ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
+
             this.disablePicker();
+            ElementUtilities.disableButton(this.showNextMoveButton);
 
             // If the derived class defined a function to do additional things when
             // the game is over, call the function.
@@ -339,15 +341,15 @@ class GameDisplay extends BaseLogger {
                 userSolutionWords = this.game.getUserSolutionWords();
 
             if (originalSolutionWords == userSolutionWords) {
-                if (! this.wasShown()) {
+                // We don't want to show this message if the user clicked
+                // 'Show Next Move' to reveal a word (or all words!).
+                if (showSameAsWordChainMessage) {
                     ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
                         "You found WordChain's original solution!");
                 }
             } else {
                 ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
                     `WordChain's original solution:<br>${originalSolutionWords}`);
-                //ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                //    originalSolutionWords);
             }
 
             Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,
@@ -355,10 +357,9 @@ class GameDisplay extends BaseLogger {
 
             ElementUtilities.addElementTo("img", iconDiv, {src: "/docs/images/favicon.png", class: "word-chain-icon"});
             ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
+        } else {
+            ElementUtilities.enableButton(this.showNextMoveButton);
         }
-
-        // Enable or disable the Solution button.
-        this.appDisplay.setSolutionStatus();
     }
 
     /* ----- Callbacks ----- */
@@ -404,6 +405,25 @@ class GameDisplay extends BaseLogger {
         this.processGameResult(gameResult);
         this.updateGameInProgressPersistence(gameResult);
         return gameResult;
+    }
+
+    showNextMoveCallback(event) {
+
+        Const.GL_DEBUG && this.logDebug("GameDisplay.showNextMoveCallback(): event: ", event, "callback");
+
+        if (this.gameIsOver()) {
+            console.error("GameDisplay.showNextMoveCallback(): last move already shown");
+            return Const.UNEXPECTED_ERROR;
+        }
+
+        let gameResult = this.game.showNextMove();
+        this.showGameAfterMove();
+        this.updateGameInProgressPersistence(gameResult);
+
+        // Disable if no more moves remaining.
+        if (this.gameIsOver()) {
+            ElementUtilities.disableButton(this.showNextMoveButton);
+        }
     }
 
     /* ----- Utilities ----- */

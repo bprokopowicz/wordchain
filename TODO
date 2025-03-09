@@ -9,7 +9,7 @@ Must Do
 - How to manage daily game words long-term?
 - Address/remove any TODO-PRODUCTION
 - Change Const.WORD_CHAIN_EPOCH_DATE
-- Remove all rare words from standard dictionary (done through 'B') 1/29
+- Remove all rare words from standard dictionary (done through 'J')
 
 Maybe Do
 ---------
@@ -22,20 +22,6 @@ Second Beta TODO
   - Safari iPhone
   - Safari iPad
   - Chrome Mac
-- Seek user input on:
-  - Should the game automatically select the very last letter?
-  - Should we limit the number of practice games per day? 
-    If so, is the limit of 3 appropriate?
-  - Show Solution button:
-    - Should it require confirmation?
-    - Should letters in "shown" rows be a different color to indicate the user
-      didn't enter them (currently shown green, maybe show gray)?
-  - What would you think of having a hint button that would make the next
-    optimal move?
-    - If you think that would be a good addition, should we limit the number
-      of hints per game?
-    - Regardless of number of hints, they  would have to show up in the share
-      somehow, such as a different color (gray?) in the graphic.
 
 Maybe Someday
 =============

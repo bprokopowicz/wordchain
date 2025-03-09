@@ -258,7 +258,7 @@ class Solution extends BaseLogger {
 
     numWrongMoves() {
         return this.solutionSteps.filter(
-                (step)=>((step.moveRating == Const.WRONG_MOVE) || (step.moveRating == Const.DODO_MOVE))
+                (step)=>((step.moveRating == Const.WRONG_MOVE) || (step.moveRating == Const.DODO_MOVE) || (step.moveRating == Const.SHOWN_MOVE))
                 ).length;
     }
 
@@ -346,6 +346,10 @@ class Solution extends BaseLogger {
         return this.getNthWord(this.solutionSteps.length - 1);
     }
 
+    getLastStep() {
+        return this.solutionSteps[this.solutionSteps.length - 1];
+    }
+
     // use case: removing a step containing a word with a hole before replacing it with
     // the word without the hole.
     removeLastStep() {
@@ -377,8 +381,18 @@ class Solution extends BaseLogger {
         return this.target;
     }
 
+    // Indicates that the last step reached the target.
+    // The last step could be played or shown.
+    isTargetReached() {
+        return this.target === this.getLastWord();
+    }
+
+    // Solved indicates user reached the target without using
+    // 'Show Next Move' on the last step,i.e. that the game was won.
     isSolved() {
-        return this.success() && (this.target === this.getLastWord());
+        return ((this.hadNoErrors()) &&
+                (this.isTargetReached()) &&
+                (this.getLastStep().moveRating != Const.SHOWN_MOVE));
     }
 
     // the number of "steps" taken in this solution.  The first word is a given and doesn't
@@ -429,7 +443,7 @@ class Solution extends BaseLogger {
         return longestLen;
     }
 
-    success() {
+    hadNoErrors() {
         return this.errorMessage.length === 0;
     }
 

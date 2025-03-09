@@ -115,7 +115,6 @@ class DailyGameDisplay extends GameDisplay {
         if ((recoveredDailyGameNumber !== this.dailyGameNumber) || (this.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER)) {
             Const.GL_DEBUG && this.logDebug("recovered daily game is either older or not found, or test game changed; starting a new game", "daily");
             Persistence.clearDailyGameState();
-            Persistence.clearDailySolutionShown();
             if (!this.gameIsBroken()) {
                 // New daily game!  Update stats relating to starting a new daily game.
                 this.incrementStat("gamesStarted");
@@ -238,6 +237,10 @@ class DailyGameDisplay extends GameDisplay {
 
             let wrongMoveCount = this.game.numWrongMoves();
             if (wrongMoveCount >= Const.TOO_MANY_WRONG_MOVES) {
+                // Failed games show the remaining words, which count as wrong steps,
+                // but we don't want to count that in the stat.
+                wrongMoveCount = Const.TOO_MANY_WRONG_MOVES;
+
                 this.incrementStat("gamesLost");
 
                 // Sadness ... streak is over.
@@ -295,35 +298,6 @@ class DailyGameDisplay extends GameDisplay {
         gameInfo.dailyGameNumber = this.dailyGameNumber;
 
         return gameInfo;
-    }
-
-    getSolutionShown() {
-        const ret = Persistence.getDailySolutionShown();
-        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.getSolutionShown() returns: ", ret, "daily");
-        return ret;
-    }
-
-
-    // Called from AppDisplay when "Solution" button is clicked.
-    showSolution() {
-        // First we need to save that the solution was shown, because showGameAfterMove()
-        // uses it to create the "original solution" message.
-        Persistence.saveDailySolutionShown();
-
-        // TODO-PRODUCTION: Add an "are you sure?"
-        Const.GL_DEBUG && this.logDebug("DailyGameDisplay.showSolution() called.", "daily");
-        this.game.finishGame();
-        this.showGameAfterMove();
-
-        this.setStat('streak', 0);
-
-        Persistence.saveDailyGameState(this.gameState);
-
-    }
-
-    // This is a pure virtual function in the base class.
-    wasShown() {
-        return Persistence.getDailySolutionShown();
     }
 }
 

@@ -191,6 +191,8 @@ class StatsDisplay extends AuxiliaryDisplay {
             } else if (moveRating === Const.DODO_MOVE) {
                 // These used to be brown squares, but they were off-putting.
                 emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+            } else if (moveRating === Const.SHOWN_MOVE) {
+                emoji = colorblindMode ? Const.GRAY_SQUARE : Const.GRAY_SQUARE;
             }
 
             // Now repeat that emoji for the length of the word and add a newline,
@@ -240,7 +242,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     // has been shown. If the solution was shown or the daily game isn't over,
     // the player is not allowed to share.
     updateShareButton() {
-        if (Persistence.getDailySolutionShown() || ! this.appDisplay.isDailyGameOver() || this.appDisplay.isDailyGameBroken()) {
+        if (! this.appDisplay.isDailyGameOver() || this.appDisplay.isDailyGameBroken()) {
             this.shareButton.style.display = "none";
         } else {
             this.shareButton.style.display = "block";

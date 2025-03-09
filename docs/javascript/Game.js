@@ -132,8 +132,8 @@ class Game extends BaseLogger {
             instructions.push(this.instructionForPlayedWord(i));
         }
 
-        // now the active word if still working
-        if (! this.playedSteps.isSolved()) {
+        // now the active word if we're still working
+        if (this.remainingSteps.numSteps() >= 0) {
             instructions.push(this.instructionForLastPlayedWord());
         }
 
@@ -230,13 +230,13 @@ class Game extends BaseLogger {
 
     // Return true if game is over; false otherwise.
     isOver() {
-        return this.playedSteps.isSolved() || this.numWrongMoves() >= Const.TOO_MANY_WRONG_MOVES;
+        return this.playedSteps.isTargetReached() || this.numWrongMoves() >= Const.TOO_MANY_WRONG_MOVES;
     }
 
     // when you add a word
     // 1) solve from played word to target, using full dictionary.  This gives the remaining steps
     // 2) if the new remaining steps' length is one less than the current remaining steps, then step is correct
-    // 3) add the new step (correct or not) as played to the list of played steps..
+    // 3) add the new step (correct or not) as played to the list of played steps.
     // 4) replace the remaining steps list with the newly calculated list.
     addWordIfExists(word) {
         if (this.dictionary.isWord(word) || this.scrabbleDictionary.isWord(word)) {
@@ -347,6 +347,26 @@ class Game extends BaseLogger {
         }
         Const.GL_DEBUG && this.logDebug("playLetter(): new word is: ", newWord, "game");
         return this.addWordIfExists(newWord)
+    }
+
+    // reveal any unplayed words.  This moves the remaining steps into the played steps and labels
+    // them as SHOWN_MOVE
+    showUnplayedMoves() {
+        while (this.remainingSteps.numWords() > 0) {
+            this.showNextMove();
+        }
+    }
+
+    showNextMove() {
+        // plays the next word in the solution for the player.  The move is rated as
+        // SHOWN_MOVE
+        const word = this.remainingSteps.getNthWord(0),
+              moveRating = Const.SHOWN_MOVE,
+              isPlayed = true;
+
+        this.playedSteps.addWord(word, isPlayed, moveRating);
+        this.remainingSteps.removeFirstStep();
+        return moveRating;
     }
 
     // Return true if the game has been won; false otherwise.

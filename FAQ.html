@@ -11,10 +11,11 @@
         <h2>How do I interpret the share graphic?</h2>
         <p>
         The WordChain score is how many <b>more</b> steps than
-        WordChain's calculated <b>best solution</b> you used.
-        If there were no extra steps, that is depicted with a star.
-        If there were 5 extra steps (a lost game), that is depicted with a confounded emoji.
-        Otherwise, there is a number emoji indicating how many extra steps you made.
+        WordChain's calculated <b>best solution</b> you used,
+        plus the number times you clicked 'Show Next Move'.
+        If there were no extra/shown steps, that is depicted with a star.
+        If there were 5 extra/shown steps (a lost game), that is depicted with a confounded emoji.
+        Otherwise, there is a number emoji indicating how many extra/shown steps you made.
         The squares show the progression of the game:
         </p>
             <ul>
@@ -28,6 +29,10 @@
             <li>
             The red squares (orange in Colorblind Mode) indicate that the word played at that step was not
             an optimal choice, causing your solution to take more steps than the best solution.
+            </li>
+            <li>
+            The gray squares indicate a word shown with the 'Show Next Move' button
+            or words at the end of a lost game.
             </li>
             <li>
             The gold squares indicate a GENIUS MOVE!
@@ -126,6 +131,21 @@
         may or may not be as good as the best next move;
         if not you will get a penalty.
         </p>
+
+        <h2>Why can't I use a keyboard to enter letters when I am on a device that has one?</h2>
+        <p>
+        We made a design decision to keep the interface as consistent as possible
+        across device types so that the playing experience is similar wherever you play.
+        That said, we recognize that the letter picker works more naturally on a device with a touch screen.
+        <p>
+
+        <h2>Why do some of the blank letter cells have thick outlines?</h2>
+        <p>
+        WordChain shows blank letter cells for the shortest solution from the current point in the game,
+        which provide a hint as to how best to solve it.
+        In words where the the move is to change a letter,
+        the outline of the letter that should be changed is thicker;
+        this provides a further solving hint.
 
         <h2>Why does the Share button use the clipboard?</h2>
         <p>

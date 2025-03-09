@@ -70,7 +70,6 @@ class AppDisplay extends BaseLogger {
 
         // Now, create all the screens. This will create all the divs listed above.
         this.createScreens();
-        this.setSolutionStatus();
 
         // Now set the colors based on darkTheme and colorblindMode.
         this.setColors();
@@ -194,13 +193,13 @@ class AppDisplay extends BaseLogger {
         this.switchToDailyGameButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
             {id: "switch-to-daily-game", class: "app-button header-button"},
-            "Daily");
+            "Switch to Daily");
         ElementUtilities.setButtonCallback(this.switchToDailyGameButton, this, this.switchToDailyGameCallback);
 
         this.switchToPracticeGameButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
             {id: "switch-to-practice-game", class: "app-button header-button"},
-            "Practice");
+            "Switch to Practice");
         ElementUtilities.setButtonCallback(this.switchToPracticeGameButton, this, this.switchToPracticeGameCallback);
 
         // We start on the daily game screen, so the Practice button should be visible.
@@ -211,15 +210,6 @@ class AppDisplay extends BaseLogger {
         // it will get enabled almost immediately: we start an interval timer in
         // constructor() and it will enable the button if there are games available.
         ElementUtilities.disableButton(this.switchToPracticeGameButton);
-
-        // Button to show the solution.
-        this.solutionButton = ElementUtilities.addElementTo(
-            "button", this.gameButtonDiv,
-            {id: "show-solution", class: "app-button header-button"},
-            "Solution");
-
-        // Pass 'this' to the callback for the solutionButton element so that we can access ourself.
-        ElementUtilities.setButtonCallback(this.solutionButton, this, this.solutionCallback);
     }
 
     createHeaderDiv() {
@@ -268,12 +258,6 @@ class AppDisplay extends BaseLogger {
 
     /* ----- Callbacks ----- */
 
-    // Callback for the Solution button.
-    solutionCallback(event) {
-        this.currentGameDisplay.showSolution();
-        this.setSolutionStatus();
-    }
-
     switchToDailyGameCallback(__event) {
         // Hide practice and show daily.
         ElementUtilities.hide(this.practiceGameDiv);
@@ -289,10 +273,6 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.hide(this.switchToDailyGameButton);
 
         this.currentGameDisplay = this.dailyGameDisplay;
-
-        // This must come after we set currentGameDisplay, because it uses
-        // currentGameDisplay to determine what the status is.
-        this.setSolutionStatus();
     }
 
     // We used to create the practice game here, but moved it to the constructor,
@@ -312,10 +292,6 @@ class AppDisplay extends BaseLogger {
 
         this.practiceGameDisplay.recordGameTimestampIfNeeded();
         this.currentGameDisplay = this.practiceGameDisplay;
-
-        // This must come after we set currentGameDisplay, because it uses
-        // currentGameDisplay to determine what the status is.
-        this.setSolutionStatus();
     }
 
     /* ----- Utilities ----- */
@@ -404,11 +380,13 @@ class AppDisplay extends BaseLogger {
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("colorblind-bad-bg-dark"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("colorblind-genius-bg-dark"));
                 this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("colorblind-dodo-bg-dark"));
+                this.setCssProperty("played-word-shown-bg",  AppDisplay.getCssProperty("colorblind-shown-bg-dark"));
             } else {
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("colorblind-good-bg-light"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("colorblind-bad-bg-light"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("colorblind-genius-bg-light"));
                 this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("colorblind-dodo-bg-light"));
+                this.setCssProperty("played-word-shown-bg",  AppDisplay.getCssProperty("colorblind-shown-bg-light"));
             }
         } else {
             // Colorblind Mode is not checked: restore the affected properties based on whether
@@ -418,11 +396,13 @@ class AppDisplay extends BaseLogger {
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("non-colorblind-bad-bg-dark"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("non-colorblind-genius-bg-dark"));
                 this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("non-colorblind-dodo-bg-dark"));
+                this.setCssProperty("played-word-shown-bg",  AppDisplay.getCssProperty("colorblind-shown-bg-dark"));
             } else {
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("non-colorblind-good-bg-light"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("non-colorblind-bad-bg-light"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("non-colorblind-genius-bg-light"));
                 this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("non-colorblind-dodo-bg-light"));
+                this.setCssProperty("played-word-shown-bg",  AppDisplay.getCssProperty("colorblind-shown-bg-light"));
             }
         }
 
@@ -435,21 +415,6 @@ class AppDisplay extends BaseLogger {
     // Set the given CSS property to the specified value.
     setCssProperty(property, value) {
         document.documentElement.style.setProperty(`--${property}`, value);
-    }
-
-    setSolutionStatus() {
-        // Don't deal with the button if we don't yet have a current display.
-        if (! this.currentGameDisplay) {
-            return;
-        }
-
-        // Enable or disable the solution button.
-        if (this.currentGameDisplay.canShowSolution())
-        {
-            ElementUtilities.enableButton(this.solutionButton);
-        } else {
-            ElementUtilities.disableButton(this.solutionButton);
-        }
     }
 
     // Show a "no daily game" toast if we haven't already.
