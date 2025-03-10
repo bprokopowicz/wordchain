@@ -212,7 +212,7 @@ class Test extends BaseLogger {
         console.log(`Testing took: ${elapsedTime} ms.`);
     }
 
-    hadNoErrors(testName) {
+    hadNoErrors() {
         this.messages.push(`<font color="green">${this.testName} (${this.testAssertionCount})</font color="green">`);
         this.testAssertionCount = 0;
         this.successCount += 1;
@@ -521,7 +521,7 @@ class Test extends BaseLogger {
         this.playLetter(4, "R"); // BOOT -> BOOR
         this.playLetter(1, "P"); // BOOR -> POOR
     }
-    
+
     playTransformation(transformation) {
         this.logDebug("Playing transformation", transformation, "test");
         if (transformation[0] === Const.ADD) {
@@ -536,7 +536,7 @@ class Test extends BaseLogger {
     finishTheCurrentGame() {
         const game = this.gameDisplay.game;
         let prevWord = game.playedSteps.getLastWord();
-        const nextWords = game.remainingSteps.getSolutionWords();; 
+        const nextWords = game.remainingSteps.getSolutionWords();;
         this.logDebug("finishTheCurrentGame() from ", prevWord, "through", nextWords, "test");
         // play from the last played word to the first remaining word.
         for (let nextWord of nextWords) {
@@ -556,7 +556,7 @@ class Test extends BaseLogger {
               mockEvent = null,
               numMoves = game.remainingSteps.numWords();
 
-        for (let i = 0; i <= numMoves; i++) {
+        for (let i = 0; i < numMoves; i++) {
             this.gameDisplay.showNextMoveCallback(mockEvent);
         }
     }
@@ -1476,8 +1476,11 @@ class Test extends BaseLogger {
             this.dailyGameRestartAfterDohTest,
             this.dailyGameRestartTest,
             this.dailyGameOneMistakeShareTest,
-            // TODO
-            //this.dailyGameShowSolutionTest,
+            this.dailyGameShowNextMoveStatsTest,
+            this.dailyGameResultsDivOnWinTest,
+            this.dailyGameResultsDivOnExactWinTest,
+            this.dailyGameResultsDivWithShownTest,
+            this.dailyGameResultsDivOnLossTest,
             this.practiceGameTest,
             this.practiceGameTestNoConfirm,
             this.practiceGameLimitTest,
@@ -1725,46 +1728,193 @@ class Test extends BaseLogger {
         this.verifyStats(expDailyStats) && this.hadNoErrors();
     }
 
-    dailyGameShowSolutionTest() {
-        // we verify the following
-        // DailyStats has 1 played, 0 completed, 1 shown, 0 failed
-        // You can't play the daily game again if cookies are not cleared.
+    dailyGameResultsDivOnWinTest() {
+        this.testName = "DailyGameResultsDivOnWin";
+        // play and finish the daily game with 1 wrong, 1 shown, move
+        // verify the score is 2, and that word chains original solution is shown
 
-        this.testName = "DailyGameShowSolution";
+        const mockEvent = null; // not used by callback
 
-         // The newly opened URL should be showing the test daily game by default:
-
+        // The newly opened URL should be showing the test daily game by default:
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+        // we play:  SHORT SHOOT HOOT BOOT(shown) BOOK(wrong) BOOR POOR
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
-        this.gameDisplay.showSolution();
-        this.resetTheTestAppWindow();
+        this.deleteLetter(1);    // SHOOT -> HOOT
+        this.playLetter(1, "B"); // HOOT  -> BOOT
+        this.gameDisplay.showNextMoveCallback(mockEvent); // reveals BOOR
+        this.playLetter(4, "K"); // BOOR -> BOOK WRONG
+        this.playLetter(4, "R"); // BOOK -> BOOR
+        this.playLetter(1, "P"); // solved; results should be displayed
 
-        // create an expected DailyStats blob
+        const resultsDiv = this.gameDisplay.resultsDiv
+        const children = resultsDiv.children
+        if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
+            return
+        const scoreDiv = children[0]
+        const expScoreStr = "Score: 2 wrong words"
+        const actScoreStr = scoreDiv.textContent
+
+        const originalSolutionDiv = children[1]
+        const originalSolutionLabel = originalSolutionDiv.children[0]
+        const expSolutionStr = "WordChain's original solution:SHORT⇒SHOOT⇒HOOT⇒BOOT⇒BOOR⇒POOR"
+        const actSolutionStr = originalSolutionLabel.textContent
+        this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&
+        this.verify(actSolutionStr == expSolutionStr, "expected score string:", expSolutionStr, "got:", actSolutionStr) &&
+        this.hadNoErrors()
+    }
+
+    dailyGameResultsDivOnExactWinTest() {
+        // we play the canned daily game once, perfectly.
+        // verify that the score displayed is 0 -- no mistakes
+        // verify that the message is You found WordChain's original solution
+        this.testName = "DailyGameResultsDivOnExactWinDiv";
+
+        this.playTheCannedDailyGameOnce();
+
+        const resultsDiv = this.gameDisplay.resultsDiv;
+        const children = resultsDiv.children;
+        if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
+            return;
+        const scoreDiv = children[0];
+        const expScoreStr = "Score: 0 -- no mistakes!";
+        const actScoreStr = scoreDiv.textContent;
+
+        const originalSolutionDiv = children[1];
+        const originalSolutionLabel = originalSolutionDiv.children[0];
+        const expSolutionStr = "You found WordChain's original solution!";
+        const actSolutionStr = originalSolutionLabel.textContent;
+        this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&
+            this.verify(actSolutionStr == expSolutionStr, "expected score string:", expSolutionStr, "got:", actSolutionStr) &&
+            this.hadNoErrors();
+    }
+
+    dailyGameResultsDivWithShownTest() {
+        this.testName = "DailyGameResultsDivWithShown";
+        // play and finish the daily game with 1 shown, move
+        // verify the score is 1, and that word chains original solution is not shown, because it is the same as the displayed game
+
+        const mockEvent = null; // not used by callback
+
+        // The newly opened URL should be showing the test daily game by default:
+        // SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+        // we play:  SHORT SHOOT HOOT BOOT(shown) BOOK(wrong) BOOR POOR
+
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.deleteLetter(1);    // SHOOT -> HOOT
+        this.playLetter(1, "B"); // HOOT  -> BOOT
+        this.gameDisplay.showNextMoveCallback(mockEvent); // reveals BOOR
+        this.playLetter(1, "P"); // solved; results should be displayed
+
+        const resultsDiv = this.gameDisplay.resultsDiv;
+        const children = resultsDiv.children;
+        if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
+            return;
+        const scoreDiv = children[0];
+        const expScoreStr = "Score: 1 wrong word";
+        const actScoreStr = scoreDiv.textContent;
+
+        const originalSolutionDiv = children[1];
+        this.verify(originalSolutionDiv.children.length == 0, "expected no children in original solution div, found:", originalSolutionDiv.children.length) &&
+            this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&
+            this.hadNoErrors();
+    }
+
+    dailyGameResultsDivOnLossTest() {
+        this.testName = "DailyGameResultsDivOnLoss";
+        // play and finish the daily game with 5 errors, non shown
+        // verify the score is 1, and that word chains original solution is shown
+
+        const mockEvent = null; // not used by callback
+
+        // The newly opened URL should be showing the test daily game by default:
+        // SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+        // we play:  SHORT SHOOT HOOT BOOT BOOK-wrong BOOB-wrong BOOT-wrong BOOK-wrong BOOT-wrong
+
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.deleteLetter(1);    // SHOOT -> HOOT
+        this.playLetter(1, "B"); // HOOT -> BOOT
+        this.playLetter(4, "K"); // BOOT -> BOOK  D'OH wrong move 1
+        this.playLetter(4, "B"); // BOOK -> BOOB  D'OH wrong move 2
+        this.playLetter(4, "T"); // BOOB -> BOOT  D'OH wrong move 3
+        this.playLetter(4, "K"); // BOOT -> BOOK  D'OH wrong move 4
+        this.playLetter(4, "T"); // BOOK -> BOOT  D'OH wrong move 5
+
+        // game should be over if Const.TOO_MANY_WRONG_MOVES is 5
+        const game = this.gameDisplay.game;
+        if (!this.verify(game.isOver(), "after 5 wrong moves, game is not over!"))
+            return
+
+
+        const resultsDiv = this.gameDisplay.resultsDiv
+        const children = resultsDiv.children
+
+        const scoreDiv = children[0]
+        const expScoreStr = "Score: 5 YOU LOSE"
+        const actScoreStr = scoreDiv.textContent
+
+        const originalSolutionDiv = children[1]
+        const originalSolutionLabel = originalSolutionDiv.children[0]
+        const expSolutionStr = "WordChain's original solution:SHORT⇒SHOOT⇒HOOT⇒BOOT⇒BOOR⇒POOR"
+        const actSolutionStr = originalSolutionLabel.textContent
+
+        this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&
+        this.verify(actSolutionStr == expSolutionStr, "expected score string:", expSolutionStr, "got:", actSolutionStr) && 
+            this.hadNoErrors()
+    }
+
+
+    dailyGameShowNextMoveStatsTest() {
+        // we verify the following
+        // Play the daily game, with 2 wrong words and then 3 shown words to lose
+        // Target word should be loss (display instruction PLAYED,WRONG_MOVE)
+        // Remaining words after the 3rd shown move are also shown
+        // Streak reset to 0
+        // Share is correct
+        // ShowNextMove button is disabled
+        // DailyStats has 1 played, 1 lost
+
+        this.testName = "DailyGameShowNextMoveStats";
+        const mockEvent = null; // not used by callback
+
+        // The newly opened URL should be showing the test daily game by default:
+        // SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+        // we play:  SHORT SHOOT SHOO(wrong) SHOOT(wrong) SHOO(wrong) SHOOK(show) SPOOK(show)
+        // at that point, the game ends and the solution is shown ... SPOOR(shown) POOR(target, wrong)
+
+        this.playLetter(4, "O"); // SHORT -> SHOOT
+        this.deleteLetter(5);      // SHOOT -> SHOO wrong
+        this.insertLetter(4, "T"); // SHOO-> SHOOT wrong
+        this.deleteLetter(5);      // SHOOT -> SHOO wrong
+        this.gameDisplay.showNextMoveCallback(mockEvent); // reveals SHOOK
+        this.gameDisplay.showNextMoveCallback(mockEvent); // reveals SPOOK, game should end
+
         let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
         // stats are zero by default
         expDailyStats.gamesStarted = 1;
-        let testResults = this.verifyStats(expDailyStats);
-        this.logDebug("finishDailyGameShowSolutionTest testResults: ", testResults, "test");
+        expDailyStats.gamesLost = 1;
+        expDailyStats[5] = 1;  // the only completed game has 5 wrong moves (3 errors, 2 shown moves)
+        let statsTestResult = this.verifyStats(expDailyStats);
+        this.logDebug("statsTestResult: ", statsTestResult, "test");
 
-        if (testResults) {
-            // the new game should be in a solved state
+        if (statsTestResult) {
             let game = this.gameDisplay.game;
             const gameIsWinner = game.isWinner();
-            const dailyGameSolutionShown = this.gameDisplay.getSolutionShown();
-
             const statsDisplay = this.openAndGetTheStatsDisplay();
-            const actualShareButtonDisplayStyle = statsDisplay.shareButton.style.display;
-            const expShareButtonDisplayStyle = "none";
-
-            this.verify(gameIsWinner, "game not recovered in solved state after showing solution.") &&
-                this.verify(dailyGameSolutionShown == true, `Expected daily game solution shown: true, got: ${dailyGameSolutionShown}`) &&
-                this.verify(actualShareButtonDisplayStyle == expShareButtonDisplayStyle, "expected share button display style: ", expShareButtonDisplayStyle, ", got: ", actualShareButtonDisplayStyle) &&
-
-                this.hadNoErrors();
+            const statsSrcElement = new MockEventSrcElement(statsDisplay);
+            const statsMockEvent = new MockEvent(statsSrcElement);
+            const actShareString = statsDisplay.shareCallback(statsMockEvent);
             this.closeTheStatsDisplay();
+            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜⬜\n⬜⬜⬜⬜⬜\n⬜⬜⬜⬜⬜\n🟪🟪🟪🟪\n`
+            this.verify(!gameIsWinner, "game should not be a winner.") &&
+            this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with ='${expShareString}', got '${actShareString}'`) &&
+            this.hadNoErrors();
         }
+        this.closeTheStatsDisplay();
     }
 
     dailyGameOneMistakeShareTest() {
@@ -2083,7 +2233,7 @@ class Test extends BaseLogger {
 
             if (gamesStarted < testPracticeGamesPerDay) {
                 // Not last game
-                if ( 
+                if (
                         this.verify( (child1Text == "Show Next Move"), "on game", gamesStarted, "expected textContent=Show Next Move, got: ", child1Text) &&
                         this.verify( child1IsDisabled, "on game", gamesStarted, "Show Next Move button was enabled and expected it to be disabled") &&
                         this.verify( (child2Text == "New Game"), "on game", gamesStarted, "expected textContent=New Game, got: ", child2Text) &&
@@ -2128,7 +2278,7 @@ class Test extends BaseLogger {
         this.closeTheStatsDisplay();
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
-            this.verify((resultDelete1 === Const.OK), `playDelete(1) returns ${resultDelete1}, not ${Const.OK}`) &&
+            this.verify((resultDelete1 === Const.OK), `deleteLetter(1) returns ${resultDelete1}, not ${Const.OK}`) &&
             this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
             this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
             this.verify((actShareString.indexOf(expShareString) === 0), `sharestring: expected '${expShareString}', got '${actShareString}'`) &&

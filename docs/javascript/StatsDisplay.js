@@ -128,7 +128,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         //  over:            true if the game is over (user has found target word or too many steps)
         //  numWrongMoves:   how many more steps it took to solve than the minimum
         //  moveSummary:     array of arrays containing for each move:
-        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius/unplayed(FUTURE)
+        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius/unplayed(FUTURE)/revealed(SHOWN_MOVE)
         //      length of the move's word
         //  dailyGameNumber: the current game number
         const gameInfo = this.appDisplay.getDailyGameInfo();
