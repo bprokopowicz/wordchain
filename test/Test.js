@@ -1602,7 +1602,7 @@ class Test extends BaseLogger {
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩`;
         this.closeTheStatsDisplay();
         testResults &&
             this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with '${expShareString}', got '${actShareString}'`) &&
@@ -1853,7 +1853,7 @@ class Test extends BaseLogger {
         const children = resultsDiv.children
 
         const scoreDiv = children[0]
-        const expScoreStr = "Score: 5 YOU LOSE"
+        const expScoreStr = "Score: 5 -- too many mistakes!"
         const actScoreStr = scoreDiv.textContent
 
         const originalSolutionDiv = children[1]
@@ -1909,7 +1909,7 @@ class Test extends BaseLogger {
             const statsMockEvent = new MockEvent(statsSrcElement);
             const actShareString = statsDisplay.shareCallback(statsMockEvent);
             this.closeTheStatsDisplay();
-            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜⬜\n⬜⬜⬜⬜⬜\n⬜⬜⬜⬜⬜\n🟪🟪🟪🟪\n`
+            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜⬜\n⬜⬜⬜⬜⬜\n⬜⬜⬜⬜⬜\n🟥🟥🟥🟥\n`;
             this.verify(!gameIsWinner, "game should not be a winner.") &&
             this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with ='${expShareString}', got '${actShareString}'`) &&
             this.hadNoErrors();
@@ -1943,7 +1943,7 @@ class Test extends BaseLogger {
         const statsSrcElement = new MockEventSrcElement(statsDisplay);
         const statsMockEvent = new MockEvent(statsSrcElement);
         const actShareString = statsDisplay.shareCallback(statsMockEvent);
-        const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 1️⃣\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟪🟪🟪🟪`;
+        const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 1️⃣\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟩🟩🟩🟩`;
         this.closeTheStatsDisplay();
 
         this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with ='${expShareString}', got '${actShareString}'`) &&
@@ -1987,7 +1987,7 @@ class Test extends BaseLogger {
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n🟥🟥🟥🟥`;
         this.closeTheStatsDisplay();
 
         this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with '${expShareString}', got '${actShareString}'`) &&
@@ -2027,7 +2027,7 @@ class Test extends BaseLogger {
 
         //  get the share string.  use-case: the last play is a Delete
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Const.TEST_DAILY_GAME_NUMBER} ⭐\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟪🟪🟪`;
+        let expShareString = `WordChain #${Const.TEST_DAILY_GAME_NUMBER} ⭐\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩`;
 
         this.closeTheStatsDisplay();
         this.verify((actShareString.indexOf(expShareString)===0), `expected share string to start with ${expShareString}', got '${actShareString}'`) &&
@@ -2274,7 +2274,7 @@ class Test extends BaseLogger {
         let statsSrcElement = new MockEventSrcElement(statsDisplay);
         let statsMockEvent = new MockEvent(statsSrcElement);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟪🟪🟪🟪`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} ⭐\nStreak: 1\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟩🟩🟩🟩`;
         this.closeTheStatsDisplay();
 
         this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&

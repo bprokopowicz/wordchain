@@ -225,7 +225,7 @@ class Game extends BaseLogger {
 
     // Returns the number of actually played wrong moves, including dodo moves.
     numWrongMoves() {
-        return this.playedSteps.numWrongMoves();
+        return Math.min(this.playedSteps.numWrongMoves(), Const.TOO_MANY_WRONG_MOVES);
     }
 
     // Return true if game is over; false otherwise.

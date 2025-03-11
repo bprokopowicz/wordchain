@@ -139,16 +139,19 @@ class StatsDisplay extends AuxiliaryDisplay {
             return null;
         }
 
-        let shareString = `WordChain #${gameInfo.dailyGameNumber} `;
+        let shareString = `WordChain #${gameInfo.dailyGameNumber} `,
+            gameWon;
 
         // Determine what emoji to use to show the user's "score".
         if (gameInfo.numWrongMoves >= Const.TOO_MANY_WRONG_MOVES) {
             // Too many wrong moves.
             shareString += Const.CONFOUNDED;
+            gameWon = false;
         } else {
             // Show the emoji in NUMBERS corresponding to how many wrong moves.
             // A bit of a misnomer, but the value for 0 is a star.
             shareString += Const.NUMBERS[gameInfo.numWrongMoves];
+            gameWon = true;
         }
 
         // Add a line for the streak.
@@ -201,7 +204,11 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Now, add the target
-        emoji = Const.PURPLE_SQUARE;
+        if (gameWon) {
+            emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
+        } else {
+            emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+        }
         shareString += emoji.repeat(targetLength) + "\n";
 
         // Add the URL to the game and send the trimmed result.
