@@ -1261,10 +1261,14 @@ class Test extends BaseLogger {
         const expectedDisplayLength = 6;
         const blissToBlipsResult = game.playLetter(4,"P");
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be BLISS, BLIPS, BLISS, BLESS, LESS, LEST
+        game.finishGame();
+        const score = game.numWrongMoves();
+        const expScore = 1; // one penalty for the dodo move, even though it added two steps
         this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
         this.verify((blissToBlipsResult === Const.DODO_MOVE), `playLetter(4,P) expected ${Const.DODO_MOVE}, got ${blissToBlipsResult}`) &&
+        this.verify(score == expScore, "expected score:", expScore, "got", score) &&
         this.verify((displayInstructions.length === expectedDisplayLength),
-                `expected display instructions length=${expectedDisplayLength}, got ${displayInstructions.length}`) &&
+                "expected display instructions length=", expectedDisplayLength, "got", displayInstructions.length) &&
         this.hadNoErrors();
     }
 
