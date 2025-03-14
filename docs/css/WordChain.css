@@ -1032,9 +1032,24 @@ input.setting-radio {
     }
 
     .app-button {
-        font-size: 1.25rem;
         padding: .3rem;
         margin: .5rem;
+    }
+
+    /*
+    ** Make the button font larger on larger screens, but at around 670px,
+    ** the size needs be smaller so that the "Switch to" buttons don't wrap.
+    */
+    @media (width <= 670px) {
+        .app-button {
+            font-size: 1.0rem;
+        }
+    }
+
+    @media (width > 670px) {
+        .app-button {
+            font-size: 1.25rem;
+        }
     }
 
     :root {
