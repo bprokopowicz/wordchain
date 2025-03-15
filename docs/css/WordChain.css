@@ -184,7 +184,12 @@ hr {
     flex-direction: column;
     justify-content: flex-start;
     background: var(--primary-bg);
-    height: 100%;
+    /*
+    ** If we have height: 100% here, the header is only sticky to a point in
+    ** landscape mode -- it seams to cause root-dive to have a fixed height
+    ** that is shorter than its contents! This causes scrolling to be funky,
+    ** but only in landscape mode. Go figure.
+    */
     width: 100%;
 }
 
@@ -211,7 +216,7 @@ hr {
     flex-direction: column;
     justify-content: center;
     position: sticky;
-    top: 0;
+    top: 0px;
 }
 
 /* This holds the mama-game-div, contained in root-div */
@@ -292,7 +297,7 @@ hr {
 */
 
 .app-button {
-    font-size: .75rem;
+    font-size: .70rem;
     padding: .3rem;
     margin: .2rem;
     border-width: 0;
@@ -397,6 +402,34 @@ button:enabled {
     padding: 0px;
 }
 
+/*
+** This style is used with letter-outer-cell and action-outer-cell
+** to ensure that the deletion line up properly under their corresponding
+** letters. Having the same width, border-width, and margins is the key!
+*/
+.outer-cell {
+    width: var(--cell-size);
+    border-width: .25rem !important;
+    margin-right: var(--cell-margin);
+    margin-left: var(--cell-margin);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/*
+** This cell's border is invisible when the letter is not one that should be changed
+** and visible when it should be changed. By having the transparent border in the
+** non-change case we ensure that the cells line up properly in the grid.
+** This class must be used along with class outer-cell.
+*/
+.letter-outer-cell {
+    border-color: transparent;
+}
+
+/*
+** This (inner) cell is what changes color when the user guesses words.
+*/
 .letter-cell {
     width: var(--cell-size);
     height: var(--cell-size);
@@ -404,8 +437,6 @@ button:enabled {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: var(--cell-margin);
-    margin-left: var(--cell-margin);
 }
 
 /*
@@ -433,16 +464,21 @@ button:enabled {
     background: var(--played-word-shown-bg);
 }
 
+/*
+** Used with letter-outer-cell.
+*/
 .letter-cell-change {
-    border-width: .25rem;
-    /*border-style: dashed;*/
+    border-color: var(--cell-border);
 }
 
 .letter-cell-future {
 }
 
+/*
+** Used with letter-outer-cell.
+*/
 .letter-cell-future-change {
-    border-width: .25rem;
+    border-color: var(--cell-border);
 }
 
 .letter-cell-played {
@@ -474,29 +510,24 @@ button.action-button {
     touch-action: none;
 }
 
+/*
+** This class must be used along with class outer-cell.
+*/
 .action-outer-cell {
-    width: var(--cell-size);    /* Must have same width as .letter-cell */
     height: var(--action-cell-size);
-    border: solid;
-    border-width: .1rem;
     border-color: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: var(--cell-margin);
-    margin-left: var(--cell-margin);
 }
 
 .action-cell {
     width: var(--action-cell-size);
     height: var(--action-cell-size);
+    color: var(--user-input-fg);
     border: solid;
     border-width: .1rem;
+    border-color: var(--cell-border);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--user-input-fg);
-    border-color: var(--cell-border);
 }
 
 .action-cell-addition {

@@ -3,20 +3,20 @@ import { ElementUtilities } from './ElementUtilities.js';
 
 class Cell {
     constructor() {
+        this.outerCellContainer = null;
         this.cellContainer = null;
         this.cellContents = null;
     }
 
-    addClass(classNameOrList) {
-        ElementUtilities.addClass(this.cellContainer, classNameOrList);
-    }
-
-    addContentsClass(classNameOrList) {
-        ElementUtilities.addClass(this.cellContents, classNameOrList);
+    addClass(classNameOrList, element) {
+        if (! element) {
+            element = this.outerCellContainer;
+        }
+        ElementUtilities.addClass(element, classNameOrList);
     }
 
     getElement() {
-        return this.cellContainer;
+        return this.outerCellContainer;
     }
 }
 
@@ -29,20 +29,24 @@ class ActionCell extends Cell {
 
         let addButtonTo;
         if (deletion) {
-            this.cellContainer = ElementUtilities.createElement("div", {class: 'circle action-outer-cell'});
-            this.cellInnerContainer = ElementUtilities.addElementTo("div", this.cellContainer);
-            addButtonTo = this.cellInnerContainer;
+            // Class outer-cell ensures that the deletion button takes as much
+            // space as a letter so it is properly centered underneath the letter.
+            this.outerCellContainer = ElementUtilities.createElement("div", {class: 'circle outer-cell action-outer-cell'});
+            this.cellContainer = ElementUtilities.addElementTo("div", this.outerCellContainer);
+            addButtonTo = this.cellContainer;
 
         } else {
-            this.cellContainer = ElementUtilities.createElement("div");
-            addButtonTo = this.cellContainer;
+            // No outer/inner cell for the addition buttons -- we want them
+            // to be narrower so as not to use so much real estate.
+            this.outerCellContainer = ElementUtilities.createElement("div");
+            addButtonTo = this.outerCellContainer;
         }
 
         ElementUtilities.addClass(addButtonTo, `circle action-cell ${Const.UNSELECTED_STYLE}`);
 
         this.cellContents = ElementUtilities.addElementTo("button", addButtonTo, {class: 'action-button'}, this.symbol);
         ElementUtilities.setButtonCallback(this.cellContents, callbackObj, callbackFunc);
-        this.addContentsClass("action");
+        this.addClass("action", this.cellContents);
     }
 }
 
@@ -51,11 +55,11 @@ class AdditionCell extends ActionCell {
         super("+", callbackObj, callbackFunc, false);
 
         if (hidden) {
-            this.cellContainer.style.visibility = "hidden";
+            this.outerCellContainer.style.visibility = "hidden";
         } else {
             // Add to the button element so we can get it when the event comes.
             this.cellContents.setAttribute("additionPosition", additionPosition);
-            this.addClass("action-cell-addition");
+            this.addClass("action-cell-addition", this.outerCellContainer);
         }
     }
 }
@@ -66,7 +70,7 @@ class DeletionCell extends ActionCell {
 
         // Add to the button element so we can get it when the event comes.
         this.cellContents.setAttribute("deletionPosition", deletionPosition);
-        this.addClass("action-cell-deletion");
+        this.addClass("action-cell-deletion", this.outerCellContainer);
     }
 }
 
@@ -78,28 +82,28 @@ class LetterCell extends Cell {
 
         this.letter = letter;
 
-        this.cellContainer = ElementUtilities.createElement("div");
+        this.outerCellContainer = ElementUtilities.createElement("div", {class: "circle outer-cell letter-outer-cell"});
+        this.cellContainer = ElementUtilities.addElementTo("div", this.outerCellContainer, {class: "circle letter-cell"});
         this.cellContents = ElementUtilities.addElementTo("div", this.cellContainer, {}, this.letter);
 
-        this.addClass(["circle", "letter-cell"]);
-        this.addContentsClass("letter");
+        this.addClass("letter", this.cellContents);
     }
 
     addCorrectnessClass(moveRating) {
         if (moveRating == Const.OK) {
-            this.addClass("letter-cell-good");
+            this.addClass("letter-cell-good", this.cellContainer);
         }
         else if (moveRating == Const.GENIUS_MOVE) {
-            this.addClass("letter-cell-genius");
+            this.addClass("letter-cell-genius", this.cellContainer);
         }
         else if (moveRating == Const.DODO_MOVE) {
-            this.addClass("letter-cell-dodo");
+            this.addClass("letter-cell-dodo", this.cellContainer);
         }
         else if (moveRating == Const.SHOWN_MOVE) {
-            this.addClass("letter-cell-shown");
+            this.addClass("letter-cell-shown", this.cellContainer);
         }
         else {
-            this.addClass("letter-cell-bad");
+            this.addClass("letter-cell-bad", this.cellContainer);
         }
     }
 }
@@ -109,14 +113,15 @@ class ActiveLetterCell extends LetterCell {
         super(letter);
 
         if (firstWord) {
-            this.addClass("letter-cell-start");
+            this.addClass("letter-cell-start", this.cellContainer);
+        } else {
+            this.addCorrectnessClass(moveRating);
         }
 
-        this.addCorrectnessClass(moveRating);
-
         // This will only be true if the user is expected to pick a letter.
+        // We'll set the *outer* cell's styling to be visible (i.e. not transparent).
         if (letterPosition === changePosition) {
-            this.addClass("letter-cell-change");
+            this.addClass("letter-cell-change", this.outerCellContainer);
 
             // Save the letter position so we can get it when the event comes.
             letterPicker.saveLetterPosition(letterPosition);
@@ -128,11 +133,12 @@ class FutureLetterCell extends LetterCell {
     constructor(letter, letterPosition, changePosition) {
         super("");
 
-        this.addClass("letter-cell-future");
+        this.addClass("letter-cell-future", this.cellContainer);
 
         if (letterPosition === changePosition)
         {
-            this.addClass("letter-cell-future-change");
+            // We'll set the *outer* cell's styling to be visible (i.e. not transparent).
+            this.addClass("letter-cell-future-change", this.outerCellContainer);
         }
     }
 }
@@ -142,7 +148,7 @@ class PlayedLetterCell extends LetterCell {
         super(letter);
 
         if (firstWord) {
-            this.addClass("letter-cell-start");
+            this.addClass("letter-cell-start", this.cellContainer);
         } else {
             this.addCorrectnessClass(moveRating);
         }
@@ -152,7 +158,7 @@ class PlayedLetterCell extends LetterCell {
 class TargetLetterCell extends LetterCell {
     constructor(letter) {
         super(letter);
-        this.addClass("letter-cell-target");
+        this.addClass("letter-cell-target", this.cellContainer);
     }
 }
 
