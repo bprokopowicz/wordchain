@@ -51,6 +51,8 @@ class GameDisplay extends BaseLogger {
         // Create an element to contain game results (score, WordChain solution).
         this.resultsDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break results-div"});
 
+        this.lastActiveMoveWasAdd = false;
+
         // Derived class constructor must call constructGame().
     }
 
@@ -121,7 +123,7 @@ class GameDisplay extends BaseLogger {
 
         function getCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord);
+                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord, me.lastActiveMoveWasAdd);
         }
 
         const hideAdditionCells = false;
@@ -136,7 +138,7 @@ class GameDisplay extends BaseLogger {
 
         function getCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord);
+                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord, me.lastActiveMoveWasAdd);
         }
 
         // changePosition goes 1..wordLength, so need to subtract 1.
@@ -154,7 +156,7 @@ class GameDisplay extends BaseLogger {
 
         function getActiveLetterCell(letter, letterPosition) {
             return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord);
+                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord, me.lastActiveMoveWasAdd);
         }
 
         // First, display the letter cells.
@@ -253,17 +255,21 @@ class GameDisplay extends BaseLogger {
             }
 
             this.rowElement.displayAsActiveRow = false;
-            //console.log("displayType:", displayInstruction.displayType, "moveRating:", displayInstruction.moveRating);
+            //console.log("word:", displayInstruction.word, "displayType:", displayInstruction.displayType);
+            //console.log("moveRating:", displayInstruction.moveRating, "lastActiveMoveWasAdd:", this.lastActiveMoveWasAdd);
+            //console.log("-----");
 
             // These instructions all indicate the active word.
             // Note that the active word has also been played.
             if (displayInstruction.displayType === Const.ADD) {
                 this.rowElement.displayAsActiveRow = true;
                 this.displayAdd(displayInstruction, isStartWord);
+                this.lastActiveMoveWasAdd = true;
 
             } else if (displayInstruction.displayType === Const.CHANGE) {
                 this.rowElement.displayAsActiveRow = true;
                 this.displayChange(displayInstruction, isStartWord);
+                this.lastActiveMoveWasAdd = false;
 
             } else if (displayInstruction.displayType === Const.DELETE) {
                 // displayDelete() adds a second row for the minuses, so unlike the other
@@ -272,6 +278,7 @@ class GameDisplay extends BaseLogger {
                 // active row, so we don't set displayAsActiveRow to true here; rather,
                 // that will be set to true for the row of minuses.
                 this.displayDelete(displayInstruction, tableElement, isStartWord);
+                this.lastActiveMoveWasAdd = false;
 
             // These instructions indicate a word other than the active one.
             } else if (displayInstruction.displayType === Const.FUTURE) {

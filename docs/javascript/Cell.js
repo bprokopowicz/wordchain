@@ -109,13 +109,18 @@ class LetterCell extends Cell {
 }
 
 class ActiveLetterCell extends LetterCell {
-    constructor(letter, letterPosition, letterPicker, moveRating, changePosition, firstWord) {
+    constructor(letter, letterPosition, letterPicker, moveRating, changePosition, firstWord, wordFollowsAdd) {
         super(letter);
 
         if (firstWord) {
             this.addClass("letter-cell-start", this.cellContainer);
         } else {
-            this.addCorrectnessClass(moveRating);
+            // No correctness class when selecting the position where a letter is
+            // to be added; in that case we show the letter cell as transparent
+            // (and the "active background" shows through).
+            if (! wordFollowsAdd) {
+                this.addCorrectnessClass(moveRating);
+            }
         }
 
         // This will only be true if the user is expected to pick a letter.
