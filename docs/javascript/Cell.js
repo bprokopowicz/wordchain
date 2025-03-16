@@ -90,7 +90,7 @@ class LetterCell extends Cell {
     }
 
     addCorrectnessClass(moveRating) {
-        if (moveRating == Const.OK) {
+        if (moveRating == Const.OK || moveRating == Const.SCRABBLE_WORD) {
             this.addClass("letter-cell-good", this.cellContainer);
         }
         else if (moveRating == Const.GENIUS_MOVE) {

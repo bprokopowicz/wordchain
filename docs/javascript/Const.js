@@ -60,6 +60,7 @@ export const SHARE_INSECURE      = "Cannot share in insecure environment";
 export const NO_STATS            = "Stats unavailable";
 export const WRONG_MOVE          = "D'oh! You added a step";
 export const GENIUS_MOVE         = "Genius play!";
+export const SCRABBLE_WORD       = "Advanced word!";
 export const DODO_MOVE           = "Ugh! You added two steps!";
 export const SHOWN_MOVE          = "Best next move";
 export const BAD_POSITION        = "Bad letter position";

@@ -22,13 +22,14 @@ class DisplayInstruction {
     //
     // changePosition: relevant only for change and future; 1..word.length
     //
-    // moveRating: OK, WRONG_MOVE, GENIUS_MOVE, DODO_MOVE, SHOWN_MOVE
+    // moveRating: OK, WRONG_MOVE, GENIUS_MOVE, SCRABBLE_WORD, DODO_MOVE, SHOWN_MOVE
     //             (not relevant for future or target displayType)
-    //     OK:         a word that did NOT increase the solution length
-    //     WRONG_MOVE  a word that increased the solution length by 1
-    //     GENIUS_MOVE a word that was in the Scrabble dictionary and causes the solution to get shorter
-    //     DODO_MOVE   a word that increased the solution length by 2
-    //     SHOWN_MOVE  a word given to the player when he/she clicks 'Show Next Move' or when the game is lost
+    //     OK:           a word that did NOT increase the solution length
+    //     WRONG_MOVE    a word that increased the solution length by 1
+    //     GENIUS_MOVE   a word that was in the Scrabble dictionary and causes the solution to get shorter
+    //     SCRABBLE_WORD a word that was in the Scrabble dictionary, but does not cause the solution to get shorter
+    //     DODO_MOVE     a word that increased the solution length by 2
+    //     SHOWN_MOVE    a word given to the player when he/she clicks 'Show Next Move' or when the game is lost
     //
     constructor(word, displayType, changePosition, moveRating) {
         this.word = word;

@@ -563,6 +563,7 @@ class GameDisplay extends BaseLogger {
         } else if (gameResult !== Const.OK) {
             // D'OH, Genius moves are possible results as of Oct 2024.
             // Ugh, Dodo moves are possible results as of Nov 2024.
+            // YAY, Scrabble Word moves are possible results as of Mar 2025.
             this.appDisplay.showToast(gameResult);
         }
 

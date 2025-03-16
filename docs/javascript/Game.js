@@ -269,6 +269,8 @@ class Game extends BaseLogger {
                 moveRating = Const.DODO_MOVE;
             } else if (newRemainingSteps.numSteps() > (nCurrentRemainingSteps-1)) {
                 moveRating = Const.WRONG_MOVE;
+            } else if (isScrabbleOnlyWord) {
+                moveRating = Const.SCRABBLE_WORD;
             }
             this.remainingSteps = newRemainingSteps;
             this.playedSteps.addWord(word, isPlayed, moveRating);
@@ -290,10 +292,11 @@ class Game extends BaseLogger {
         return Game.locationOfHole(word) >= 0;
     }
 
-    // the GUI needs to know if a played word was acceptable (OK, GENIUS_MOVE, DODO_MOVE, or WRONG_MOVE) vs invalid (NOT_A_WORD or technical
+    // the GUI needs to know if a played word was acceptable (OK, GENIUS_MOVE, SCRABBLE_WORD, DODO_MOVE, or WRONG_MOVE) vs invalid (NOT_A_WORD or technical
     // problems like BAD_POSITION)
     static moveIsValid(moveRating) {
-        return (moveRating == Const.OK) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE);
+        return (moveRating == Const.OK) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.SCRABBLE_WORD) ||
+               (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE);
     }
 
     // addPosition is from 0 to last word played's length

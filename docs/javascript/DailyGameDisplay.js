@@ -218,7 +218,7 @@ class DailyGameDisplay extends GameDisplay {
     // a counter of the number of wrong moves (e.g. another 2-wrong-move game was just played)
     updateDailyGameStatsIfDone(gameResult) {
         if (this.game.isOver()) {
-            if (gameResult == Const.OK) {
+            if ((gameResult == Const.OK) || (gameResult == Const.GENIUS_MOVE) || (gameResult == Const.SCRABBLE_WORD)) {
                 this.incrementStat("gamesWon");
 
                 // Get the user's last won game number so we can set the 'streak' stat.

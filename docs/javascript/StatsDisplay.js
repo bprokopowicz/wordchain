@@ -183,7 +183,7 @@ class StatsDisplay extends AuxiliaryDisplay {
             }
 
             // Determine which color square to display for this word.
-            if (moveRating === Const.OK) {
+            if (moveRating === Const.OK || moveRating === Const.SCRABBLE_WORD) {
                 // Word didn't increase the count; pick color indicating "good".
                 emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
             } else if (moveRating === Const.WRONG_MOVE) {
