@@ -39,20 +39,14 @@ class StatsDisplay extends AuxiliaryDisplay {
         // ----- Stats Content -----
 
         ElementUtilities.addElementTo("h1", contentDiv, {align: "center"}, "DAILY GAME STATISTICS");
+        ElementUtilities.addElementTo("hr", contentDiv);
+
         this.statsContainer = ElementUtilities.addElementTo("div", contentDiv, {class: "stats-container-div"});
 
         ElementUtilities.addElementTo("hr", contentDiv);
 
         ElementUtilities.addElementTo("h1", contentDiv, {align: "center"}, "WRONG MOVES COUNTS");
         this.statsDistribution = ElementUtilities.addElementTo("div", contentDiv, {class: "distribution-div"});
-
-        ElementUtilities.addElementTo("hr", contentDiv);
-
-        // ----- Countdown Clock-----
-
-        ElementUtilities.addElementTo("h1", contentDiv, {align: "center"}, "DAILY GAME CHANGES IN");
-        const countdown = ElementUtilities.addElementTo("div", contentDiv, {class: "countdown-div"});
-        this.countdownClock = ElementUtilities.addElementTo("div", countdown, {class: "countdown-clock"});
 
         ElementUtilities.addElementTo("hr", contentDiv);
 
@@ -67,6 +61,16 @@ class StatsDisplay extends AuxiliaryDisplay {
 
         // use 'this' as the callback object to the callback function for the shareButton element so that we can access ourself
         ElementUtilities.setButtonCallback(this.shareButton, this, this.shareCallback);
+
+        ElementUtilities.addElementTo("hr", contentDiv);
+
+        // ----- Countdown Clock-----
+
+        ElementUtilities.addElementTo("h1", contentDiv, {align: "center"}, "DAILY GAME CHANGES IN");
+        const countdown = ElementUtilities.addElementTo("div", contentDiv, {class: "countdown-div"});
+        this.countdownClock = ElementUtilities.addElementTo("div", countdown, {class: "countdown-clock"});
+
+        ElementUtilities.addElementTo("hr", contentDiv);
     }
 
     /*
