@@ -37,8 +37,8 @@ class HelpDisplay extends AuxiliaryDisplay {
         </p>
         <p>
         WordChain shows empty letter cells for the rest of the shortest solution
-        from the current point in the game,
-        with thicker outlines on letters in that solution that will change;
+        path from the current point in the game,
+        with thicker outlines on letters in that solution path that will change;
         this information provides a hint as to how best to solve the game.
         </p>
         <p>

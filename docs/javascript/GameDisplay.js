@@ -352,11 +352,11 @@ class GameDisplay extends BaseLogger {
                 // 'Show Next Move' to reveal a word (or all words!).
                 if (showSameAsWordChainMessage) {
                     ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                        "You found WordChain's original solution!");
+                        "You found WordChain's solution!");
                 }
             } else {
                 ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                    `WordChain's original solution:<br>${originalSolutionWords}`);
+                    `WordChain's solution:<br>${originalSolutionWords}`);
             }
 
             Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,
