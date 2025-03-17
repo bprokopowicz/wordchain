@@ -976,7 +976,8 @@ class Test extends BaseLogger {
         this.testGameDisplayInstructions();
         this.testGameDisplayInstructionsMistakes();
         this.testGameDisplayInstructionsDifferentPath();
-        this.testGameUsingScrabbleWord();
+        this.testGameUsingScrabbleWordMistake();
+        this.testGameUsingScrabbleWordOK();
         this.testGameUsingGeniusMove();
         this.testGameUsingDodoMove();
         this.testGameRequiringWordReplay();
@@ -1191,8 +1192,20 @@ class Test extends BaseLogger {
             this.hadNoErrors();
     }
 
-    testGameUsingScrabbleWord() {
-        this.testName = "GameUsingScrabbleWord";
+    testGameUsingScrabbleWordOK() {
+        this.testName = "GameUsingScrabbleWordOK";
+        const smallDict = new WordChainDict(["BAD", "BAT", "CAT", "MAR", "CAR"]);
+        const steps = [];
+        // shortest solution is BAD,BAT,CAT,CAR  alt using scrabble: BAD,MAD,MAR,CAR  MAD is the genius word
+        // or, using the scrabble dictionsary: SCAD,CAD
+        const game = new Game("BAD", "CAR", steps, smallDict);
+        const badToMadResult = game.playLetter(1,"M");
+        this.verify (badToMadResult === Const.SCRABBLE_WORD, "BAD->MAD should return", Const.SCRABBLE_WORD, "got", badToMadResult) &&
+            this.hadNoErrors();
+    }
+
+    testGameUsingScrabbleWordMistake() {
+        this.testName = "GameUsingScrabbleWordMistake";
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
         const steps = [];
         const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT
@@ -1762,7 +1775,7 @@ class Test extends BaseLogger {
 
         const originalSolutionDiv = children[1]
         const originalSolutionLabel = originalSolutionDiv.children[0]
-        const expSolutionStr = "WordChain's original solution:SHORT⇒SHOOT⇒HOOT⇒BOOT⇒BOOR⇒POOR"
+        const expSolutionStr = "WordChain's solution:SHORT⇒SHOOT⇒HOOT⇒BOOT⇒BOOR⇒POOR"
         const actSolutionStr = originalSolutionLabel.textContent
         this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&
         this.verify(actSolutionStr == expSolutionStr, "expected score string:", expSolutionStr, "got:", actSolutionStr) &&
@@ -1772,7 +1785,7 @@ class Test extends BaseLogger {
     dailyGameResultsDivOnExactWinTest() {
         // we play the canned daily game once, perfectly.
         // verify that the score displayed is 0 -- no mistakes
-        // verify that the message is You found WordChain's original solution
+        // verify that the message is You found WordChain's solution
         this.testName = "DailyGameResultsDivOnExactWinDiv";
 
         this.playTheCannedDailyGameOnce();
@@ -1787,7 +1800,7 @@ class Test extends BaseLogger {
 
         const originalSolutionDiv = children[1];
         const originalSolutionLabel = originalSolutionDiv.children[0];
-        const expSolutionStr = "You found WordChain's original solution!";
+        const expSolutionStr = "You found WordChain's solution!";
         const actSolutionStr = originalSolutionLabel.textContent;
         this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&
             this.verify(actSolutionStr == expSolutionStr, "expected score string:", expSolutionStr, "got:", actSolutionStr) &&
@@ -1862,7 +1875,7 @@ class Test extends BaseLogger {
 
         const originalSolutionDiv = children[1]
         const originalSolutionLabel = originalSolutionDiv.children[0]
-        const expSolutionStr = "WordChain's original solution:SHORT⇒SHOOT⇒HOOT⇒BOOT⇒BOOR⇒POOR"
+        const expSolutionStr = "WordChain's solution:SHORT⇒SHOOT⇒HOOT⇒BOOT⇒BOOR⇒POOR"
         const actSolutionStr = originalSolutionLabel.textContent
 
         this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&

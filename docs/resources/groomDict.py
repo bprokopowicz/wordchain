@@ -11,14 +11,14 @@ SRC=../../../../DictionarySource
 """
 
 def main():
+    if len(sys.argv) < 5:
+        print("USAGE: groomDict.py inFile extraWordsFile removeWordsFile outFile")
+        sys.exit(1)
+
     inFileName     = sys.argv[1]
     extraFileName  = sys.argv[2]
     removeFileName = sys.argv[3]
     outFileName    = sys.argv[4]
-
-    if len(sys.argv) < 5:
-        print("USAGE: groomDict.py inFile extraWordsFile removeWordsFile outFile")
-        sys.exit(1)
 
     with open(inFileName, "r") as inFile:
         numGoodLines = 0 
