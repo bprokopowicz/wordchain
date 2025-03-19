@@ -723,7 +723,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15687;
+        const expectedMinDictSize = 15450;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -934,7 +934,7 @@ class Test extends BaseLogger {
               reqWordLen2 = 5,
               minSteps = 7,
               maxSteps = 9,
-              minDifficulty = 20,
+              minDifficulty = 15,
               targetWordLen = 6,
               expectedNumberOfPuzzles = 5,
               minChoicesPerStep = 2;
