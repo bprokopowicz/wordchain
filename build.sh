@@ -8,6 +8,8 @@ confirm() {
         if [[ ${answer} != "yes" ]]
         then
             exit 1
+        else
+            break
         fi
     done
 }
