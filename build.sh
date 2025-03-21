@@ -77,6 +77,13 @@ updateHtml() {
     sed -e "s/YYYYMMDDHHMMSS/${timestamp}/" ${htmlTemplate} > ${htmlFile}
 }
 
+verifyRepoCleanOrExit() {
+    if [[ -n "$(git status --porcelain)" ]]
+    then
+        outputError "Repo must be clean to proceed!"
+    fi
+}
+
 ######
 # MAIN
 ######
@@ -86,13 +93,14 @@ then
     outputError "You must be in the same directory as this script."
 fi
 
-makeBundles
-
-# If we're not deploying, we're done.
 if [[ "${1}" != "-d" ]]
 then
+    makeBundles
     exit 0
 fi
+
+verifyRepoCleanOrExit
+makeBundles
 
 branch=$(git branch | grep '^\*' | awk '{print $2}')
 if [[ "${branch}" != "master" ]]
