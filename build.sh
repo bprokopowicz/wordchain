@@ -19,7 +19,7 @@ copyBundledToLive() {
     cp dist/testing-bundled.js dist/testing-${timestamp}.js
 
     updateHtml ${timestamp} indexTemplate.html
-    updateHtml ${timestamp} testingTemplate.html
+    updateHtml ${timestamp} TestingTemplate.html
 }
 
 createProdBranch() {
