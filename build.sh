@@ -13,9 +13,13 @@ confirm() {
 }
 
 copyBundledToLive() {
-    outputMessage "Copying dist \*-bundled.js to \*-live.js ..."
-    cp dist/wordchain-bundled.js dist/wordchain-live.js
-    cp dist/testing-bundled.js dist/testing-live.js
+    timestamp=$(date "+%Y-%m-%d-%H:%M:%S")
+    outputMessage "Copying dist \*-bundled.js to \*-${timestamp}.js ..."
+    cp dist/wordchain-bundled.js dist/wordchain-${timestamp}.js
+    cp dist/testing-bundled.js dist/testing-${timestamp}.js
+
+    updateHtml ${timestamp} indexTemplate.html
+    updateHtml ${timestamp} testingTemplate.html
 }
 
 createProdBranch() {
@@ -55,6 +59,22 @@ outputError() {
 outputMessage() {
     message=${1}
     echo -e "\n=====> ${message}"
+}
+
+# Replace timestamp placeholder with actual current timestamp.
+#
+# Arguments:
+#   - timestamp: string in format: YYYY-MM-DD-HH:MM:SS
+#   - template file name: must contain 'Template' which is removed
+#     to create the output file name.
+#
+updateHtml() {
+    timestamp=${1}
+    htmlTemplate=${2}
+
+    htmlFile=${htmlTemplate/Template/}
+
+    sed -e "s/YYYYMMDDHHMMSS/${timestamp}/" ${htmlTemplate} > ${htmlFile}
 }
 
 ######
