@@ -28,7 +28,7 @@ createProdBranch() {
     branchName=$(date "+prod-%Y-%m-%d")
 
     git status
-    confirm "Confirm that exactly 4 files changed and you want to deploy to prod."
+    confirm "Confirm that there are exactly 2 modified and 4 new files AND that you want to deploy to prod."
 
     outputMessage "Creating branch '${branchName}'"
     git checkout -b ${branchName}
