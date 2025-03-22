@@ -391,9 +391,8 @@ class Solution extends BaseLogger {
     // on the last step,i.e. that the game was won.
     isSolved() {
         const lastMoveRating = this.getLastStep().moveRating;
-        return (this.hadNoErrors()) &&
-            (this.isTargetReached()) &&
-            ((lastMoveRating == Const.OK) || (lastMoveRating == Const.GENIUS_MOVE));
+        return this.hadNoErrors() && this.isTargetReached() &&
+            ((lastMoveRating == Const.OK) || (lastMoveRating == Const.GENIUS_MOVE) || (lastMoveRating == Const.SCRABBLE_WORD));
     }
 
     // the number of "steps" taken in this solution.  The first word is a given and doesn't
