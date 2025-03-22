@@ -387,12 +387,13 @@ class Solution extends BaseLogger {
         return this.target === this.getLastWord();
     }
 
-    // Solved indicates user reached the target without using
-    // 'Show Next Move' on the last step,i.e. that the game was won.
+    // Solved indicates user reached the target using an OK or GENIUS move
+    // on the last step,i.e. that the game was won.
     isSolved() {
-        return ((this.hadNoErrors()) &&
-                (this.isTargetReached()) &&
-                (this.getLastStep().moveRating != Const.SHOWN_MOVE));
+        const lastMoveRating = this.getLastStep().moveRating;
+        return (this.hadNoErrors()) &&
+            (this.isTargetReached()) &&
+            ((lastMoveRating == Const.OK) || (lastMoveRating == Const.GENIUS_MOVE));
     }
 
     // the number of "steps" taken in this solution.  The first word is a given and doesn't

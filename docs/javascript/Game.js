@@ -296,7 +296,7 @@ class Game extends BaseLogger {
     // problems like BAD_POSITION)
     static moveIsValid(moveRating) {
         return (moveRating == Const.OK) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.SCRABBLE_WORD) ||
-               (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE);
+               (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE) || (moveRating == Const.SHOWN_MOVE);
     }
 
     // addPosition is from 0 to last word played's length

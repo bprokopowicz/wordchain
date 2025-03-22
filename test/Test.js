@@ -1843,6 +1843,8 @@ class Test extends BaseLogger {
         this.testName = "DailyGameResultsDivOnLoss";
         // play and finish the daily game with 5 errors, non shown
         // verify the score is 1, and that word chains original solution is shown
+        // AND, verify that after restarting, the display instructions show the 
+        // game as lost
 
         const mockEvent = null; // not used by callback
 
@@ -1878,8 +1880,14 @@ class Test extends BaseLogger {
         const expSolutionStr = "WordChain's solution:SHORT⇒SHOOT⇒HOOT⇒BOOT⇒BOOR⇒POOR"
         const actSolutionStr = originalSolutionLabel.textContent
 
+        // re-open the app window
+        this.resetTheTestAppWindow();
+        // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
+        const restartedGame = this.gameDisplay.game;
+        const restartedDi = restartedGame.getDisplayInstructions();
         this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&
         this.verify(actSolutionStr == expSolutionStr, "expected score string:", expSolutionStr, "got:", actSolutionStr) && 
+        this.verify(restartedDi[10].moveRating == Const.WRONG_MOVE, "expected move rating:", Const.WRONG_MOVE, "got:", restartedDi[10].moveRating) &&
             this.hadNoErrors()
     }
 
