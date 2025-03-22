@@ -103,6 +103,8 @@ fi
 
 verifyRepoCleanOrExit
 makeBundles
+git add .
+git commit -m "build.sh adding bundles to master; automated"
 
 branch=$(git branch | grep '^\*' | awk '{print $2}')
 if [[ "${branch}" != "master" ]]
