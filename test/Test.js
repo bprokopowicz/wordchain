@@ -1908,13 +1908,15 @@ class Test extends BaseLogger {
         // The newly opened URL should be showing the test daily game by default:
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
-        // we play:  SHORT SHOOT SHOO(wrong) SHOOT(wrong) SHOO(wrong) SHOOK(show) SPOOK(show)
+        // we play:  SHORT SHOOT SHOO(dodo) SHOOT(ok) SHOO(dodo) SHOOT(ok) SHOO (dodo) SHOOK(show) SPOOK(show)
         // at that point, the game ends and the solution is shown ... SPOOR(shown) POOR(target, wrong)
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
-        this.deleteLetter(5);      // SHOOT -> SHOO wrong
-        this.insertLetter(4, "T"); // SHOO-> SHOOT wrong
-        this.deleteLetter(5);      // SHOOT -> SHOO wrong
+        this.deleteLetter(5);      // SHOOT -> SHOO DODO
+        this.insertLetter(4, "T"); // SHOO-> SHOOT OK
+        this.deleteLetter(5);      // SHOOT -> SHOO DODO
+        this.insertLetter(4, "T"); // SHOO-> SHOOT OK
+        this.deleteLetter(5);      // SHOOT -> SHOO DODO
         this.gameDisplay.showNextMoveCallback(mockEvent); // reveals SHOOK
         this.gameDisplay.showNextMoveCallback(mockEvent); // reveals SPOOK, game should end
 
@@ -1934,7 +1936,7 @@ class Test extends BaseLogger {
             const statsMockEvent = new MockEvent(statsSrcElement);
             const actShareString = statsDisplay.shareCallback(statsMockEvent);
             this.closeTheStatsDisplay();
-            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜⬜\n⬜⬜⬜⬜⬜\n⬜⬜⬜⬜⬜\n🟥🟥🟥🟥\n`;
+            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO} 😖\nStreak: 0\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n🟥🟥🟥🟥`;
             this.verify(!gameIsWinner, "game should not be a winner.") &&
             this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with ='${expShareString}', got '${actShareString}'`) &&
             this.hadNoErrors();
