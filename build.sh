@@ -143,7 +143,7 @@ then
     outputError "You must be in the same directory as this script."
 fi
 
-if [[ "${1}" != "-d" ]]
+if [[ -z "${1}" ]]
 then
     makeBundles
     exit 0
