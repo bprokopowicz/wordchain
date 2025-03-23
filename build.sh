@@ -21,6 +21,57 @@ createProdBranch() {
     git checkout -b ${branchName}
 }
 
+deployHotFix() {
+    branch=$(git branch | grep '^\*' | awk '{print $2}')
+    if [[ "${branch}" == "master" ]]
+    then
+        outputError "You cannot be on the master branch when deploying a hot fix."
+    fi
+
+    verifyRepoCleanOrExit
+    makeBundles
+
+    git status
+    confirm "Confirm that there are 2 modified files."
+
+    git add .
+    git commit -m "build.sh adding bundles to master; automated"
+    git push
+
+    pushTimestampedFiles
+
+    outputMessage "You are still on the prod branch!"
+    verifyRepoCleanOrExit
+}
+
+deployNewRelease() {
+    branch=$(git branch | grep '^\*' | awk '{print $2}')
+    if [[ "${branch}" != "master" ]]
+    then
+        outputError "You must be on master branch to deploy a release."
+    fi
+
+    verifyRepoCleanOrExit
+
+    makeBundles
+
+    git status
+    confirm "Confirm that there are 2 modified files."
+
+    git add .
+    git commit -m "build.sh adding bundles to master; automated"
+    git push
+
+    createProdBranch
+    pushTimestampedFiles
+
+    # At this point we're on the prod branch; switch back to master.
+
+    outputMessage "Switching back to master branch, which should be clean."
+    git checkout master
+    verifyRepoCleanOrExit
+}
+
 makeBundles() {
     outputMessage "Running npm install ..."
     npm install
@@ -98,32 +149,18 @@ then
     exit 0
 fi
 
-branch=$(git branch | grep '^\*' | awk '{print $2}')
-if [[ "${branch}" != "master" ]]
+if [[ "${1}" == "-d" ]]
 then
-    outputError "Must be on master branch"
+    deployNewRelease()
+elif [[ "${1}" == "-h" ]]
+then
+    deployHotFix()
+else
+    outputError "Unsupported argument '${$1}'."
 fi
 
-verifyRepoCleanOrExit
 
-makeBundles
-
-git status
-confirm "Confirm that there are 2 modified files."
-
-git add .
-git commit -m "build.sh adding bundles to master; automated"
-git push
-
-createProdBranch
-pushTimestampedFiles
-
-# At this point we're on the prod branch.
-
-
-
-
-exit
+exit 0
 
 
 branch=$(git branch | grep '^\*' | awk '{print $2}')
