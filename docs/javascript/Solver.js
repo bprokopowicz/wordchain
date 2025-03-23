@@ -390,7 +390,11 @@ class Solution extends BaseLogger {
     // Solved indicates user reached the target using an OK or GENIUS move
     // on the last step,i.e. that the game was won.
     isSolved() {
-        const lastMoveRating = this.getLastStep().moveRating;
+        const lastMove = this.getLastStep();
+        if (!lastMove) {
+            return false;
+        }
+        const lastMoveRating = lastMove.moveRating;
         return this.hadNoErrors() && this.isTargetReached() &&
             ((lastMoveRating == Const.OK) || (lastMoveRating == Const.GENIUS_MOVE) || (lastMoveRating == Const.SCRABBLE_WORD));
     }

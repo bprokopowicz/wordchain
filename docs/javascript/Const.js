@@ -180,16 +180,26 @@ export const SETTINGS_PATH = "M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0
 export const STATS_PATH = "M16,11V3H8v6H2v12h20V11H16z M10,5h4v14h-4V5z M4,11h4v8H4V11z M20,19h-4v-6h4V19z";
 
 export const DAILY_GAMES = [
+      ['word', 'chain'],
       ['fish', 'grater'],
+      ['short', 'poor'], // MUST BE AT INDEX 2, ZERO-BASED, FOR TESTING
+      ['jumble', 'killer'],
+      ['timer', 'pacing'],
+      ['hot', 'pocket'],
+      ['math', 'urges'],
+      ['pass', 'fumble'],
+      ['side', 'worker'],
+      ['park', 'tramps'],
+      ['plain', 'dealer'],
+      ['test', 'agree'],
       ['space', 'statin'],
-      ['short', 'poor'], // MUST BE AT INDEX 2 FOR TESTING
       ['flue', 'trance'],
       ['salted', 'fish'],
       ['tasty', 'owl'],
       ['harm', 'bikini'],
       ['play', 'ahead'],
       ['really', 'solve'],
-      ['hard', 'kicker'], //10
+      ['hard', 'kicker'], //20
       ['leaky', 'spoon'],
       ['tasty', 'mascot'],
       ['free', 'sample'],
@@ -199,7 +209,7 @@ export const DAILY_GAMES = [
       ['loud', 'momma'],
       ['forgot', 'how'],
       ['jaunty', 'estate'],
-      ['luck', 'babies'], //20
+      ['luck', 'babies'], //30
       ['mind', 'hugger'],
       ['beach', 'house'],
       ['plate', 'acorns'],
@@ -209,7 +219,7 @@ export const DAILY_GAMES = [
       ['word', 'chase'],
       ['braid', 'rafter'],
       ['poke', 'fumble'],
-      ['shock', 'bagger'], //30
+      ['shock', 'bagger'], //40
       ['ripe', 'mixers'],
       ['here', 'after'],
       ['foster', 'tub'],
@@ -219,7 +229,7 @@ export const DAILY_GAMES = [
       ['host', 'barber'],
       ['fast', 'driver'],
       ['boat', 'dealer'],
-      ['base', 'early'], // 40
+      ['base', 'early'], // 50
       ['moat', 'palace'],
       ['hoist', 'single'],
       ['mint', 'ponies'],
@@ -229,7 +239,7 @@ export const DAILY_GAMES = [
       ['dog', 'camper'],
       ['sinus', 'deride'],
       ['hero', 'loving'],
-      ['paint', 'remove'], //50
+      ['paint', 'remove'], //60
       ['table', 'center'],
       ['word', 'pusher'],
       ['drink', 'shaken'],
@@ -239,7 +249,7 @@ export const DAILY_GAMES = [
       ['tired', 'losing'],
       ['soft', 'create'],
       ['solid', 'groovy'],
-      ['nearby', 'grave'], //60
+      ['nearby', 'grave'], //70
       ['smoky', 'aliens'],
       ['warm', 'lather'],
       ['least', 'heroic'],
