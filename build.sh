@@ -17,9 +17,6 @@ confirm() {
 createProdBranch() {
     branchName=$(date "+prod-%Y-%m-%d")
 
-    git status
-    confirm "Confirm that there are 2 modified and 4 new files AND that you want to deploy to prod."
-
     outputMessage "Creating branch '${branchName}'"
     git checkout -b ${branchName}
 }
@@ -54,6 +51,9 @@ pushTimestampedFiles() {
 
     updateHtml ${timestamp} indexTemplate.html
     updateHtml ${timestamp} testingTemplate.html
+
+    git status
+    confirm "Confirm that there are 2 modified and 4 new files AND that you want to deploy to prod."
 
     git add .
     git commit -m "build.sh initial commit on branch ${branchName}; automated"
