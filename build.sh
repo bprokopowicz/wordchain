@@ -14,31 +14,14 @@ confirm() {
     done
 }
 
-copyBundledToLive() {
-    timestamp=$(date "+%Y-%m-%d-%H:%M:%S")
-    outputMessage "Copying dist \*-bundled.js to \*-${timestamp}.js ..."
-    cp dist/wordchain-bundled.js dist/wordchain-${timestamp}.js
-    cp dist/testing-bundled.js dist/testing-${timestamp}.js
-
-    updateHtml ${timestamp} indexTemplate.html
-    updateHtml ${timestamp} testingTemplate.html
-}
-
 createProdBranch() {
     branchName=$(date "+prod-%Y-%m-%d")
 
     git status
-    confirm "Confirm that there are exactly 2 modified and 4 new files AND that you want to deploy to prod."
+    confirm "Confirm that there are 2 modified and 4 new files AND that you want to deploy to prod."
 
     outputMessage "Creating branch '${branchName}'"
     git checkout -b ${branchName}
-
-    git add .
-    git commit -m "initial commit on branch ${branchName}"
-    git push --set-upstream origin ${branchName}
-
-    outputMessage "Switching to branch 'master'"
-    git checkout master
 }
 
 makeBundles() {
@@ -61,6 +44,20 @@ outputError() {
 outputMessage() {
     message=${1}
     echo -e "\n=====> ${message}"
+}
+
+pushTimestampedFiles() {
+    timestamp=$(date "+%Y-%m-%d-%H:%M:%S")
+    outputMessage "Copying dist \*-bundled.js to \*-${timestamp}.js ..."
+    cp dist/wordchain-bundled.js dist/wordchain-${timestamp}.js
+    cp dist/testing-bundled.js dist/testing-${timestamp}.js
+
+    updateHtml ${timestamp} indexTemplate.html
+    updateHtml ${timestamp} testingTemplate.html
+
+    git add .
+    git commit -m "build.sh initial commit on branch ${branchName}; automated"
+    git push --set-upstream origin ${branchName}
 }
 
 # Replace timestamp placeholder with actual current timestamp.
@@ -101,18 +98,41 @@ then
     exit 0
 fi
 
+branch=$(git branch | grep '^\*' | awk '{print $2}')
+if [[ "${branch}" != "master" ]]
+then
+    outputError "Must be on master branch"
+fi
+
 verifyRepoCleanOrExit
+
 makeBundles
+
+git status
+confirm "Confirm that there are 2 modified files."
+
 git add .
 git commit -m "build.sh adding bundles to master; automated"
+git push
+
+createProdBranch
+pushTimestampedFiles
+
+# At this point we're on the prod branch.
+
+
+
+
+exit
+
 
 branch=$(git branch | grep '^\*' | awk '{print $2}')
 if [[ "${branch}" != "master" ]]
 then
     confirm "Confirm that you want to deploy a hot fix on branch: ${branch}."
-    copyBundledToLive
+    pushTimestampedFiles
     # TODO: write a function to add/commit/push
 else
-    copyBundledToLive
+    pushTimestampedFiles
     createProdBranch
 fi
