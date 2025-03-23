@@ -1,27 +1,20 @@
 Known Bugs
 ==========
 
+- If Daily game is in progress and we redefine the start/target words for that game
+  number in a prd update, it screws up any game in progress or finished that started
+  with the previous definition.
+
 Production TODO
 ===============
 
 Must Do
 -------
-- How to manage daily game words long-term?
-- Address/remove any TODO-PRODUCTION
 - Change Const.WORD_CHAIN_EPOCH_DATE
-- Remove all rare words from standard dictionary (done through 'J')
 
 Maybe Do
 ---------
 - Consider changing Practice game window to align with Daily game window
-
-Second Beta TODO
-================
-
-- Execute automated tests and manual test use cases:
-  - Safari iPhone
-  - Safari iPad
-  - Chrome Mac
 
 Maybe Someday
 =============

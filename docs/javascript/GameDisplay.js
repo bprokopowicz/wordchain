@@ -566,7 +566,6 @@ class GameDisplay extends BaseLogger {
         if (gameResult === Const.BAD_LETTER_POSITION) {
             console.error(gameResult);
             this.appDisplay.showToast(Const.UNEXPECTED_ERROR);
-            // TODO-PRODUCTION: Should end the game or some such ...
         } else if (gameResult !== Const.OK) {
             // D'OH, Genius moves are possible results as of Oct 2024.
             // Ugh, Dodo moves are possible results as of Nov 2024.

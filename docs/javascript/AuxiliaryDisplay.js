@@ -42,7 +42,6 @@ class AuxiliaryDisplay extends BaseLogger {
         // Now, the create the svg element.
         // NOTE: We used to have property viewBox: "0 0 24 24" but this caused the svg image
         // not to show in Firefox; removing it seems to work in environments we've tested.
-        // TODO-PRODUCTION: Should make the width controllable.
         const svg = ElementUtilities.addElementTo("svg", button,
             {style: "width: 24px; height: 24px;", stroke: "None",});
 
