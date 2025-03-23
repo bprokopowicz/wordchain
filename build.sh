@@ -53,7 +53,7 @@ pushTimestampedFiles() {
     updateHtml ${timestamp} testingTemplate.html
 
     git status
-    confirm "Confirm that there are 2 modified and 4 new files AND that you want to deploy to prod."
+    confirm "Confirm that there are 2 modified and 2 new files AND that you want to deploy to prod."
 
     git add .
     git commit -m "build.sh initial commit on branch ${branchName}; automated"
