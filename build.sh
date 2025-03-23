@@ -28,16 +28,11 @@ deployHotFix() {
         outputError "You cannot be on the master branch when deploying a hot fix."
     fi
 
+    confirm "Confirm that build.sh on current branch is identical to build.sh on master branch."
+
     verifyRepoCleanOrExit
-    makeBundles
 
-    git status
-    confirm "Confirm that there are 2 modified files."
-
-    git add .
-    git commit -m "build.sh adding bundles to master; automated"
-    git push
-
+    makeAndPushBundles
     pushTimestampedFiles
 
     outputMessage "You are still on the prod branch!"
@@ -53,15 +48,7 @@ deployNewRelease() {
 
     verifyRepoCleanOrExit
 
-    makeBundles
-
-    git status
-    confirm "Confirm that there are 2 modified files."
-
-    git add .
-    git commit -m "build.sh adding bundles to master; automated"
-    git push
-
+    makeAndPushBundles
     createProdBranch
     pushTimestampedFiles
 
@@ -70,6 +57,17 @@ deployNewRelease() {
     outputMessage "Switching back to master branch, which should be clean."
     git checkout master
     verifyRepoCleanOrExit
+}
+
+makeAndPushBundles() {
+    makeBundles
+
+    git status
+    confirm "Confirm that there are 2 modified files."
+
+    git add .
+    git commit -m "build.sh adding bundles to master; automated"
+    git push
 }
 
 makeBundles() {
@@ -146,30 +144,14 @@ fi
 if [[ -z "${1}" ]]
 then
     makeBundles
-    exit 0
-fi
-
-if [[ "${1}" == "-d" ]]
+elif [[ "${1}" == "-d" ]]
 then
     deployNewRelease
 elif [[ "${1}" == "-h" ]]
 then
     deployHotFix
 else
-    outputError "Unsupported argument '${$1}'."
+    outputError "Invalid argument '${1}'; USAGE: ./build.sh [-d|-h]"
 fi
-
 
 exit 0
-
-
-branch=$(git branch | grep '^\*' | awk '{print $2}')
-if [[ "${branch}" != "master" ]]
-then
-    confirm "Confirm that you want to deploy a hot fix on branch: ${branch}."
-    pushTimestampedFiles
-    # TODO: write a function to add/commit/push
-else
-    pushTimestampedFiles
-    createProdBranch
-fi
