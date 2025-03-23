@@ -151,10 +151,10 @@ fi
 
 if [[ "${1}" == "-d" ]]
 then
-    deployNewRelease()
+    deployNewRelease
 elif [[ "${1}" == "-h" ]]
 then
-    deployHotFix()
+    deployHotFix
 else
     outputError "Unsupported argument '${$1}'."
 fi
