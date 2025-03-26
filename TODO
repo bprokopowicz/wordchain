@@ -29,6 +29,7 @@ Maybe Someday
 - Create a back-end that delivers the daily and practice games
 - Cookies: make secure? Obfuscate? Save in back-end DB?
 - Mode where future rows do not have change cells outlined thicker. (harder)
+- Remove words from dictionary if they have no neighbors.
 - Address slow handler violations:
      [Violation] 'click' handler took XXXms
         (can happen when switching to Practice game or starting new Practice game)

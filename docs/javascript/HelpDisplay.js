@@ -50,7 +50,8 @@ class HelpDisplay extends AuxiliaryDisplay {
         moves you made, from 0 to ${Const.TOO_MANY_WRONG_MOVES}.
         </p>
         <h3>
-        Every day there will be a new daily WordChain game.
+        Every day there will be a new daily WordChain game --
+        share your daily game results from the Stats screen.
         You can play up to ${Const.PRACTICE_GAMES_PER_DAY} practice games per day.
         </h3>
         <p>

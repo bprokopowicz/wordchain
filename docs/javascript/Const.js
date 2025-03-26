@@ -102,8 +102,8 @@ export const MAX_WORD_LENGTH = 6;
 // to Beta and Production.
 // The date is defined by year,month,day with time defaulting to 00:00:00 (midnight) LOCAL TIME
 export const WORD_CHAIN_EPOCH_YEAR = 2025;
-export const WORD_CHAIN_EPOCH_MONTH = 0;   // 0-based month (january)
-export const WORD_CHAIN_EPOCH_DAY = 17;    // 1-based day (the first)
+export const WORD_CHAIN_EPOCH_MONTH = 2;   // 0-based month (january)
+export const WORD_CHAIN_EPOCH_DAY = 26;    // 1-based day (the first)
 export const WORD_CHAIN_EPOCH_HOURS = 0;   // midnight
 export const WORD_CHAIN_EPOCH_MINUTES = 0; // top of hour
 export const WORD_CHAIN_EPOCH_DATE = new Date(WORD_CHAIN_EPOCH_YEAR, WORD_CHAIN_EPOCH_MONTH, WORD_CHAIN_EPOCH_DAY, WORD_CHAIN_EPOCH_HOURS,WORD_CHAIN_EPOCH_MINUTES);

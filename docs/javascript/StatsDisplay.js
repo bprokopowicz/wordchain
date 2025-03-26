@@ -143,7 +143,7 @@ class StatsDisplay extends AuxiliaryDisplay {
             return null;
         }
 
-        let shareString = `WordChain #${gameInfo.dailyGameNumber} `,
+        let shareString = `WordChain #${gameInfo.dailyGameNumber + 1} `,
             gameWon;
 
         // Determine what emoji to use to show the user's "score".
