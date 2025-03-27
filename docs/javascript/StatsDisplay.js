@@ -97,6 +97,28 @@ class StatsDisplay extends AuxiliaryDisplay {
         const shareString = this.getShareString();
         if (shareString)
         {
+            // We are currently copying to clipboard rather than the commented
+            // out "direct share first" code below because Facebook annoyingly
+            // won't properly share text along with a URL. When a URL is included
+            // in the text OR when it is included with a separate 'url' property
+            // in the object passed to navigator.share(), Facebook ONLY shows
+            // a clickable URL (sans our icon!) -- no share graphic!
+            // This approach requires users to paste their share to the app of
+            // their choice -- and both the graphic and a clickable URL will appear.
+            let copiedToClipboard = false;
+            if (typeof navigator.clipboard === "object") {
+                navigator.clipboard.writeText(`${shareString}\n${Const.SHARE_URL}`);
+                copiedToClipboard = true;
+                this.appDisplay.showToast(Const.SHARE_TO_PASTE);
+            } else {
+                this.appDisplay.showToast(Const.SHARE_INSECURE);
+            }
+
+            /*
+            NOTE: If we uncomment this code to do a direct share, we will need to use
+            Const.SHARE_URL_FOR_FB in the share string. We may want to write the share
+            graphic with the real URL to the clipboard clipboard after this if-else if-else.
+
             Const.GL_DEBUG && this.logDebug("shareCallback() navigator: ", navigator, "daily");
             // Are we in a *secure* environment that has a "share" button, like a smart phone?
             let shareData = { text: shareString, };
@@ -104,8 +126,10 @@ class StatsDisplay extends AuxiliaryDisplay {
                 // Yes -- use the button to share the shareString.
                 navigator.share(shareData)
                 .catch((error) => {
-                    this.appDisplay.showToast(Const.SHARE_FAILED);
-                    console.error("Failed to share: ", error);
+                    if (error.toString().indexOf("cancellation") < 0) {
+                        console.error("Failed to share: ", error);
+                        this.appDisplay.showToast(Const.SHARE_FAILED);
+                    }
                 });
             // Are we in a *secure* environment that has access to clipboard (probably on a laptop/desktop)?
             } else if (typeof navigator.clipboard === "object") {
@@ -115,6 +139,7 @@ class StatsDisplay extends AuxiliaryDisplay {
             } else {
                 this.appDisplay.showToast(Const.SHARE_INSECURE);
             }
+            */
         }
         return shareString; // used in testing only
     }
@@ -216,7 +241,10 @@ class StatsDisplay extends AuxiliaryDisplay {
         shareString += emoji.repeat(targetLength) + "\n";
 
         // Add the URL to the game and send the trimmed result.
-        shareString += Const.SHARE_URL_ROOT;
+        // Note that in shareCallback() we are ONLY copying to the
+        // clipboard; if we ever go back to doing a "direct share"
+        // we will want to append Const.SHARE_URL_FOR_FB, a "faux" URL.
+        shareString += Const.SHARE_URL;
         return shareString.trim();
     }
 

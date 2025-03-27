@@ -20,7 +20,8 @@ export function GET_GL_DEBUG(value) {
 */
 
 // Constants for URLs.
-export const SHARE_URL_ROOT    = "https://WordChainFun.com/";
+export const SHARE_URL         = "https://WordChainFun.com/"; // The real URL
+export const SHARE_URL_FOR_FB  = "WordChainFun dot com"; // Facebook won't share both a graphic and a URL!
 export const DICT_URL          = "https:/docs/resources/WordChainDict";
 export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
 export const EMAIL_URL         = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
@@ -57,6 +58,7 @@ export const UNEXPECTED_ERROR    = "Yikes! Something went wrong";
 export const NO_DAILY            = "Unable to create daily game;<br>here is a fun back-up";
 export const SHARE_FAILED        = "Failed to share";
 export const SHARE_COPIED        = "Copied to clipboard";
+export const SHARE_TO_PASTE      = "Copied; paste into text, FB, etc.";
 export const SHARE_INSECURE      = "Cannot share in insecure environment";
 export const NO_STATS            = "Stats unavailable";
 export const WRONG_MOVE          = "D'oh! You added a step";
