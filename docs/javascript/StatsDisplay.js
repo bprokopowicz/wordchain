@@ -107,7 +107,7 @@ class StatsDisplay extends AuxiliaryDisplay {
             // their choice -- and both the graphic and a clickable URL will appear.
             let copiedToClipboard = false;
             if (typeof navigator.clipboard === "object") {
-                navigator.clipboard.writeText(`${shareString}\n${Const.SHARE_URL}`);
+                navigator.clipboard.writeText(`${shareString}`);
                 copiedToClipboard = true;
                 this.appDisplay.showToast(Const.SHARE_TO_PASTE);
             } else {
