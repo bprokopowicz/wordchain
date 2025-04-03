@@ -29,7 +29,7 @@ class GameDisplay extends BaseLogger {
         // only if it was played).
         this.gameState = [];
 
-        this.wrongMoves = null;
+        this.numPenalties = null;
 
         // This will be used to keep track of a user's selection if we are in confirmation mode.
         this.selectedButton = null;
@@ -301,13 +301,13 @@ class GameDisplay extends BaseLogger {
 
         // Were there more wrong words than the last time we showed a move?
         // If so, we need to show a toast message.
-        const wrongMoveCount = this.game.numWrongMoves();
-        if (this.wrongMoves != null && wrongMoveCount > this.wrongMoves && !skipToast) {
+        const penaltyCount = this.game.numPenalties();
+        if (this.numPenalties != null && penaltyCount > this.numPenalties && !skipToast) {
             // Just in case moveRating never got set (which would be a bug)
             // check for null and use WRONG_MOVE if null.
             this.appDisplay.showToast(activeMoveRating || Const.WRONG_MOVE);
         }
-        this.wrongMoves = wrongMoveCount;
+        this.numPenalties = penaltyCount;
 
         if (this.pickerEnabled) {
             this.enablePicker();
@@ -330,7 +330,7 @@ class GameDisplay extends BaseLogger {
                 }
             }
 
-            const scoreText = Const.SCORE_TEXT[this.wrongMoves];
+            const scoreText = Const.SCORE_TEXT[this.numPenalties];
             ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
 
             this.disablePicker();

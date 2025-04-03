@@ -256,7 +256,7 @@ class Solution extends BaseLogger {
     }
 
 
-    numWrongMoves() {
+    numPenalties() {
         return this.solutionSteps.filter(
                 (step)=>((step.moveRating == Const.WRONG_MOVE) || (step.moveRating == Const.DODO_MOVE) || (step.moveRating == Const.SHOWN_MOVE))
                 ).length;
@@ -395,8 +395,8 @@ class Solution extends BaseLogger {
             return false;
         }
         const lastMoveRating = lastMove.moveRating;
-        return this.hadNoErrors() && this.isTargetReached() &&
-            ((lastMoveRating == Const.OK) || (lastMoveRating == Const.GENIUS_MOVE) || (lastMoveRating == Const.SCRABBLE_WORD));
+        return this.hadNoErrors() && this.isTargetReached() && (this.numPenalties() < Const.TOO_MANY_PENALTIES) &&
+            ((lastMoveRating == Const.OK) || (lastMoveRating == Const.GENIUS_MOVE) || (lastMoveRating == Const.SCRABBLE_WORD) || (lastMoveRating == Const.SHOWN_MOVE));
     }
 
     // the number of "steps" taken in this solution.  The first word is a given and doesn't

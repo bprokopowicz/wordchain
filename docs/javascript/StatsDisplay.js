@@ -15,7 +15,7 @@ import * as Const from './Const.js';
 **    Integer: number of games that ended because of too many wrong moves.
 ** streak
 **    Integer: number of consecutive daily games won.
-** 0 .. <Const.TOO_MANY_WRONG_MOVES>
+** 0 .. <Const.TOO_MANY_PENALTIES>
 **    Integer: Number of games that had 0, 1, ... wrong moves.
 */
 
@@ -155,7 +155,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         // over is true):
         //
         //  over:            true if the game is over (user has found target word or too many steps)
-        //  numWrongMoves:   how many more steps it took to solve than the minimum
+        //  numPenalties:    how many more steps and shows it took to solve vs the minimum
         //  moveSummary:     array of arrays containing for each move:
         //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius/unplayed(FUTURE)/revealed(SHOWN_MOVE)
         //      length of the move's word
@@ -172,14 +172,14 @@ class StatsDisplay extends AuxiliaryDisplay {
             gameWon;
 
         // Determine what emoji to use to show the user's "score".
-        if (gameInfo.numWrongMoves >= Const.TOO_MANY_WRONG_MOVES) {
+        if (gameInfo.numPenalties >= Const.TOO_MANY_PENALTIES) {
             // Too many wrong moves.
             shareString += Const.CONFOUNDED;
             gameWon = false;
         } else {
             // Show the emoji in NUMBERS corresponding to how many wrong moves.
             // A bit of a misnomer, but the value for 0 is a star.
-            shareString += Const.NUMBERS[gameInfo.numWrongMoves];
+            shareString += Const.NUMBERS[gameInfo.numPenalties];
             gameWon = true;
         }
 
@@ -324,13 +324,13 @@ class StatsDisplay extends AuxiliaryDisplay {
         this.dailyStreak = dailyStats.streak;
 
         // Next we'll display a bar graph showing how many games there were at each "wrong moves value",
-        // i.e. 0 .. <Const.TOO_MANY_WRONG_MOVES> *and* "games that ended because of too many
+        // i.e. 0 .. <Const.TOO_MANY_PENALTIES> *and* "games that ended because of too many
         // wrong moves". First, determine the maximum value among all the "wrong moves values"
         // to use to in calculating the length of the bars.
         let maxWrongWordsValue = 0;
-        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
-            if (dailyStats[wrongMoves] > maxWrongWordsValue) {
-                maxWrongWordsValue = dailyStats[wrongMoves];
+        for (let numPenalties = 0; numPenalties <= Const.TOO_MANY_PENALTIES; numPenalties++) {
+            if (dailyStats[numPenalties] > maxWrongWordsValue) {
+                maxWrongWordsValue = dailyStats[numPenalties];
             }
         }
 
@@ -354,9 +354,9 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Add a bar for each of the possible values; the emojis for these are in Const.NUMBERS.
-        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
-            const barValue = dailyStats[wrongMoves];
-            addBar(barValue, Const.NUMBERS[wrongMoves], this.statsDistribution);
+        for (let numPenalties = 0; numPenalties <= Const.TOO_MANY_PENALTIES; numPenalties++) {
+            const barValue = dailyStats[numPenalties];
+            addBar(barValue, Const.NUMBERS[numPenalties], this.statsDistribution);
         }
     }
 }

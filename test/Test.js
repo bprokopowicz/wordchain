@@ -191,10 +191,11 @@ class Test extends BaseLogger {
     showResults() {
         let elapsedTime = (Date.now() - this.testingStartTime);
 
+        let color = this.failureCount > 0 ? "red" : "green";
         let results = [
             "",
             `Successful test scenarios: ${this.successCount}`,
-            `Failed tests scenarios: ${this.failureCount}`,
+            `<font color="${color}">Failed tests scenarios: ${this.failureCount}</font color="${color}"`,
             `Total assertions verified: ${this.totalAssertionCount}`,
             `Elapsed time : ${elapsedTime} milliseconds.`,
             "",
@@ -578,7 +579,7 @@ class Test extends BaseLogger {
         // the statsContainer is a GUI element with at least 3 children: Played, Won and Lost
         let statsContainer = statsDisplay.statsContainer;
 
-        // the statsDistribution is a GUI element with one bar for each possible number of wrong moves: 0 .. Const.TOO_MANY_WRONG_MOVES
+        // the statsDistribution is a GUI element with one bar for each possible number of wrong moves: 0 .. Const.TOO_MANY_PENALTIES
         let statsDistribution = statsDisplay.statsDistribution;
 
         this.logDebug("verifyStats() statsContainer:", statsContainer, "test");
@@ -588,7 +589,7 @@ class Test extends BaseLogger {
         let expContainerLen = 4;
         let actContainerLen = statsContainer.children.length;
 
-        let expDistributionLen = Const.TOO_MANY_WRONG_MOVES + 1;
+        let expDistributionLen = Const.TOO_MANY_PENALTIES + 1;
         let actDistributionLen = statsDistribution.children.length;
 
         // four calculated text values we expect to find on the stats screen.  They are labels and values for Played, Won, Lost, and Streak
@@ -617,7 +618,7 @@ class Test extends BaseLogger {
             this.verify(actStreakText==expStreakText, `expected statsContainer.children[3] to have ${expStreakText}, got ${actStreakText}`) &&
             this.verify(savedDailyStats.gamesStarted >= savedDailyStats.gamesWon + savedDailyStats.gamesLost, `assertion failed: #started not >= #won+#lost`);
 
-        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
+        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_PENALTIES; wrongMoves++) {
             // check the stats blob
             testRes = testRes &&
                 this.verify(savedDailyStats[wrongMoves]==expDailyStats[wrongMoves], `expected savedDailyStats.${wrongMoves}==${expDailyStats[wrongMoves]}, got ${savedDailyStats[wrongMoves]}`);
@@ -983,6 +984,7 @@ class Test extends BaseLogger {
         this.testGameRequiringWordReplay();
         this.testGameRequiringScrabbleWordReplay();
         this.testGameFinish();
+        this.testGameShowTargetMove();
         this.testGameShowEveryMove();
         this.testGameFinishAlternatePath();
         this.testGameLossOnWrongLetterAdded();
@@ -1275,7 +1277,7 @@ class Test extends BaseLogger {
         const blissToBlipsResult = game.playLetter(4,"P");
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be BLISS, BLIPS, BLISS, BLESS, LESS, LEST
         game.finishGame();
-        const score = game.numWrongMoves();
+        const score = game.numPenalties();
         const expScore = 1; // one penalty for the dodo move, even though it added two steps
         this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
         this.verify((blissToBlipsResult === Const.DODO_MOVE), `playLetter(4,P) expected ${Const.DODO_MOVE}, got ${blissToBlipsResult}`) &&
@@ -1342,11 +1344,29 @@ class Test extends BaseLogger {
 
         game.showUnplayedMoves();
 
-        const displayInstructionsAfterFinish = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
-        this.verify((displayInstructionsAfterFinish.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructionsAfterFinish.length}`) &&
+        const displayInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
+        this.verify((displayInstructions.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructions.length}`) &&
+            this.verify((displayInstructions[3].toStr() === "(played,word:BAT,moveRating:ok)"), `after show next move, instruction[3] is ${displayInstructions[3].toStr()}`) &&
             this.verify(game.isOver(), 'expected game to be over, but it is not') &&
             this.hadNoErrors();
     }
+
+    testGameShowTargetMove() {
+        this.testName = "GameShowTargetMove";
+
+        const steps = [];
+        const game = new Game("SCAD", "BAT", steps, this.fullDict);
+        game.playDelete(1);     // SCAD -> CAD
+        game.playLetter(1,"B"); // CAD -> BAD
+        const showNextMoveResult = game.showNextMove();
+
+        const displayInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
+        this.verify((displayInstructions.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructions.length}`) &&
+            this.verify(game.isOver(), 'expected game to be over, but it is not') &&
+            this.verify((displayInstructions[3].toStr() === "(played,word:BAT,moveRating:ok)"), `after show next move, instruction[3] is ${displayInstructions[3].toStr()}`) &&
+            this.hadNoErrors();
+    }
+
 
     testGameFinishAlternatePath() {
         this.testName = "GameFinishAlternatePath";
@@ -1740,7 +1760,7 @@ class Test extends BaseLogger {
         expDailyStats.gamesStarted = 3;
         expDailyStats.gamesLost = 1;
         expDailyStats.gamesWon = 1;
-        expDailyStats[Const.TOO_MANY_WRONG_MOVES] = 1;  // Game 2 (loss) has TOO_MANY_WRONG_MOVE errors
+        expDailyStats[Const.TOO_MANY_PENALTIES] = 1;  // Game 2 (loss) has TOO_MANY_PENALTIES errors
         expDailyStats[0] = 1;  // Game 1 (won) has 0 errors
         this.verifyStats(expDailyStats) && this.hadNoErrors();
     }
@@ -1862,7 +1882,7 @@ class Test extends BaseLogger {
         this.playLetter(4, "K"); // BOOT -> BOOK  D'OH wrong move 4
         this.playLetter(4, "T"); // BOOK -> BOOT  D'OH wrong move 5
 
-        // game should be over if Const.TOO_MANY_WRONG_MOVES is 5
+        // game should be over if Const.TOO_MANY_PENALTIES is 5
         const game = this.gameDisplay.game;
         if (!this.verify(game.isOver(), "after 5 wrong moves, game is not over!"))
             return
@@ -2001,7 +2021,7 @@ class Test extends BaseLogger {
 
         this.playLetter(4, "T"); // BOOK -> BOOT  D'OH wrong move 5
 
-        // game should be over if Const.TOO_MANY_WRONG_MOVES is 5
+        // game should be over if Const.TOO_MANY_PENALTIES is 5
         this.verify(game.isOver(), "after 5 wrong moves, game is not over!");
 
         // game is done.  Let's see what the saved stats and words played are:

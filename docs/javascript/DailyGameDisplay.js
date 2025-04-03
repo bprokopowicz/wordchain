@@ -28,9 +28,9 @@ class DailyGameDisplay extends GameDisplay {
         }
 
         // Now create a stat for each number of wrong moves, and initialize
-        // their values to 0. The stat properties for these is 0..TOO_MANY_WRONG_MOVES.
-        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_WRONG_MOVES; wrongMoves++) {
-            initialStats[wrongMoves] = 0;
+        // their values to 0. The stat properties for these is 0..TOO_MANY_PENALTIES.
+        for (let numPenalties = 0; numPenalties <= Const.TOO_MANY_PENALTIES; numPenalties++) {
+            initialStats[numPenalties] = 0;
         }
         return initialStats;
     }
@@ -235,11 +235,11 @@ class DailyGameDisplay extends GameDisplay {
                 Persistence.saveLastWonDailyGameNumber(this.dailyGameNumber);
             }
 
-            let wrongMoveCount = this.game.numWrongMoves();
-            if (wrongMoveCount >= Const.TOO_MANY_WRONG_MOVES) {
+            let penaltyCount = this.game.numPenalties();
+            if (penaltyCount >= Const.TOO_MANY_PENALTIES) {
                 // Failed games show the remaining words, which count as wrong steps,
                 // but we don't want to count that in the stat.
-                wrongMoveCount = Const.TOO_MANY_WRONG_MOVES;
+                penaltyCount = Const.TOO_MANY_PENALTIES;
 
                 this.incrementStat("gamesLost");
 
@@ -248,7 +248,7 @@ class DailyGameDisplay extends GameDisplay {
             }
 
             // increment the specific-number-of-wrong-moves counter
-            this.incrementStat(wrongMoveCount);
+            this.incrementStat(penaltyCount);
         }
     }
 
@@ -285,7 +285,7 @@ class DailyGameDisplay extends GameDisplay {
     getGameInfo() {
         //  Construct an object for StatsDisplay with these properties:
         //  over:            true if the game is over (user has found target word or too many steps)
-        //  numWrongMoves:   how many more steps it took to solve than the minimum
+        //  numPenalties:   how many extra steps and shows it took to solve vs the minimum
         //  moveSummary:     array of arrays containing for each move:
         //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius/dodo
         //      length of the move's word
@@ -293,7 +293,7 @@ class DailyGameDisplay extends GameDisplay {
         let gameInfo = {};
 
         gameInfo.over = this.gameIsOver();
-        gameInfo.numWrongMoves = this.game.numWrongMoves();
+        gameInfo.numPenalties = this.game.numPenalties();
         gameInfo.moveSummary = this.getMoveSummary();
         gameInfo.dailyGameNumber = this.dailyGameNumber;
 

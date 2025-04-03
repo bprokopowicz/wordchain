@@ -223,14 +223,14 @@ class Game extends BaseLogger {
         return new DisplayInstruction(prevWord, operation, position, lastWordMoveRating);
     }
 
-    // Returns the number of actually played wrong moves, including dodo moves.
-    numWrongMoves() {
-        return Math.min(this.playedSteps.numWrongMoves(), Const.TOO_MANY_WRONG_MOVES);
+    // Returns the number of actually played wrong moves, including dodo moves, and shown moves.
+    numPenalties() {
+        return Math.min(this.playedSteps.numPenalties(), Const.TOO_MANY_PENALTIES);
     }
 
     // Return true if game is over; false otherwise.
     isOver() {
-        return this.playedSteps.isTargetReached() || this.numWrongMoves() >= Const.TOO_MANY_WRONG_MOVES;
+        return this.playedSteps.isTargetReached() || this.numPenalties() >= Const.TOO_MANY_PENALTIES;
     }
 
     // when you add a word
