@@ -232,6 +232,7 @@ hr {
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
+    padding-left: 15px;
 }
 
 /* This holds daily/practice-game-div -- these are hidden/shown when the Practic/Daily button is clicked. */
@@ -264,14 +265,14 @@ hr {
 }
 
 #game-button-div {
-    width: 30%;
+    width: 33%;
     display: flex;
     justify-content: flex-start;
     align-items: center;
 }
 
 #title-div {
-    width: 40%;
+    width: 34%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -284,7 +285,7 @@ hr {
 }
 
 #auxiliary-button-div {
-    width: 30%;
+    width: 33%;
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -332,7 +333,7 @@ svg {
 }
 
 .non-header-button {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: bold;
     color: var(--primary-fg);
     background: var(--button-bg);
@@ -1013,8 +1014,6 @@ input.setting-radio {
     }
 
     .game-div {
-        margin-left: 25px;
-
         /* Allow horizontal scrolling just in case things widen past Samsung viewport. */
         overflow-x: auto;
     }
