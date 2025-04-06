@@ -166,6 +166,10 @@ class AppDisplay extends BaseLogger {
         // based on today's date and displays the game's grid for the user to play.
         this.dailyGameDisplay = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
         this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
+        if (this.dailyGameDisplay.isNewGame()) {
+            Const.GL_DEBUG && this.logDebug("AppDisplay.createScreens() calling resetPracticeGameCounter()", "display");
+            this.resetPracticeGameCounter();
+        }
         this.currentGameDisplay = this.dailyGameDisplay;
     }
 
@@ -290,7 +294,6 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.switchToDailyGameButton);
         ElementUtilities.hide(this.switchToPracticeGameButton);
 
-        this.practiceGameDisplay.recordGameTimestampIfNeeded();
         this.currentGameDisplay = this.practiceGameDisplay;
     }
 
@@ -300,13 +303,19 @@ class AppDisplay extends BaseLogger {
     // game number and if it has changed will reset internal state accordingly.
     checkForNewDailyGame() {
         Const.GL_DEBUG && this.logDebug("checkForNewDailyGame() called; timer id: ", this.checkDailyIntervalTimer, "display");
-        let isNewDailyGame = this.dailyGameDisplay.updateDailyGameData();
-        if (isNewDailyGame) {
+        this.dailyGameDisplay.updateDailyGameData();
+        if (this.dailyGameDisplay.isNewGame()) {
             this.showToast(Const.NEW_DAILY_GAME);
             this.showNoDaily();
             this.statsDisplay.refresh();
             this.statsDisplay.updateShareButton();
+            this.resetPracticeGameCounter();
         }
+    }
+
+    resetPracticeGameCounter() {
+        Const.GL_DEBUG && this.logDebug("resetPracticeGameCounter()", "display");
+        this.practiceGameDisplay.resetPracticeGameCounter();
     }
 
     isDailyGameOver() {

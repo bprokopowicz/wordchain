@@ -109,14 +109,17 @@ class Persistence {
         return [Cookie.get(Cookie.PRACTICE_GAME_START), Cookie.get(Cookie.PRACTICE_GAME_TARGET)];
     }
 
-    static getPracticeTimestamps() {
-        return Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_TIMESTAMPS, []);
+    static getPracticeGamesRemaining() {
+        return Cookie.getInt(Cookie.PRACTICE_GAMES_REMAINING);
     }
 
-    static savePracticeTimestamps(timestamps) {
-        Cookie.save(Cookie.PRACTICE_GAME_TIMESTAMPS, JSON.stringify(timestamps));
-    };
+    static hasPracticeGamesRemaining() {
+        return Cookie.has(Cookie.PRACTICE_GAMES_REMAINING);
+    }
 
+    static savePracticeGamesRemaining(gamesRemaining) {
+        Cookie.save(Cookie.PRACTICE_GAMES_REMAINING, gamesRemaining);
+    };
 
     // GUI settings
 

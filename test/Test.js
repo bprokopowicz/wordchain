@@ -195,7 +195,7 @@ class Test extends BaseLogger {
         let results = [
             "",
             `Successful test scenarios: ${this.successCount}`,
-            `<font color="${color}">Failed tests scenarios: ${this.failureCount}</font color="${color}"`,
+            `<font color="${color}">Failed tests scenarios: ${this.failureCount}</font color="${color}">`,
             `Total assertions verified: ${this.totalAssertionCount}`,
             `Elapsed time : ${elapsedTime} milliseconds.`,
             "",
@@ -2244,8 +2244,10 @@ class Test extends BaseLogger {
         let soFarSoGood = true;
 
         // Verify that setPracticeGamesPerDay() above does what we think it does.
-        soFarSoGood = this.verify(this.gameDisplay.practiceGamesPerDay == testPracticeGamesPerDay,
-                `expected practice games per day to be ${testPracticeGamesPerDay}, got: ${this.gameDisplay.practiceGamesPerDay}`, "test");
+        soFarSoGood =
+            this.verify(this.gameDisplay.practiceGamesPerDay == testPracticeGamesPerDay,
+                `expected practice games per day to be ${testPracticeGamesPerDay}, got: ${this.gameDisplay.practiceGamesPerDay}`, "test") &&
+            this.verify(this.gameDisplay.anyGamesRemaining(), "Expected there to be practice games remaining");
 
         // We come into the loop with the first game already started;
         // it is started when the app starts.
@@ -2285,7 +2287,7 @@ class Test extends BaseLogger {
                         this.verify( child1IsDisabled, "on game", gamesStarted, "Show Next Move button was enabled and expected it to be disabled") &&
                         this.verify( (child2Text == "New Game"), "on game", gamesStarted, "expected textContent=New Game, got: ", child2Text) &&
                         this.verify( !child2IsDisabled, "on game", gamesStarted, "New Game button was disabled and expected it to be enabled") &&
-                        this.verify(this.gameDisplay.anyGamesRemaining(), "on game", gamesStarted, " games, anyGamesRemaining should still be true")
+                        this.verify(this.gameDisplay.anyGamesRemaining(), "on game", gamesStarted, "anyGamesRemaining() should still be true")
                    ) {
                     // pretend to click the new game button.
                     this.gameDisplay.newGameCallback(mockEvent);
@@ -2295,8 +2297,18 @@ class Test extends BaseLogger {
             } else {
                 // Last game
                 soFarSoGood = this.verify(child2IsDisabled, "on last game", gamesStarted, "New Game button was enabled and expected it to be disabled") &&
-                              this.verify(!this.gameDisplay.anyGamesRemaining(), "on last game", gamesStarted, " games, anyGamesRemaining should be false")
+                              this.verify(!this.gameDisplay.anyGamesRemaining(), "on last game", gamesStarted, "anyGamesRemaining() should be false")
             }
+        }
+
+        if (soFarSoGood) {
+            // now, restart the app as if it were the next day.  This should reset the games available
+            Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO + 1);
+            this.resetTheTestAppWindow();
+            this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+            this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+
+            this.verify(this.gameDisplay.anyGamesRemaining(), "after overnight restart, there should be some games remaining");
         }
 
         soFarSoGood && this.hadNoErrors();

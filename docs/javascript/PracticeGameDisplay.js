@@ -20,7 +20,11 @@ class PracticeGameDisplay extends GameDisplay {
         }
 
         if (Persistence.hasTestPracticeGamesPerDay()) {
-            this.practiceGamesPerDay = Persistence.getTestPracticeGamesPerDay();
+            this.setPracticeGamesPerDay(Persistence.getTestPracticeGamesPerDay());
+        }
+
+        if (! Persistence.hasPracticeGamesRemaining()) {
+            Persistence.savePracticeGamesRemaining(this.practiceGamesPerDay);
         }
 
         // Add a button to the "post game div" to start a new game.
@@ -35,12 +39,6 @@ class PracticeGameDisplay extends GameDisplay {
         ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
         ElementUtilities.disableButton(this.newGameButton);
 
-        // We use timestamps to ensure the user doesn't play more than the maximum
-        // number of games per day. We're creating a practice game ahead of time, but
-        // we're not going to add the timestamp until the user actually switches to
-        // the practice game screen; createOrRestoreGame() will set this flag to false
-        // if it recovers a game in progress.
-        this.needToAddTimestamp = true;
         this.createOrRestoreGame();
     }
 
@@ -67,7 +65,6 @@ class PracticeGameDisplay extends GameDisplay {
         // Note that newGameCallback() will only be called when a game is over;
         // otherwise, the button is disabled.
         this.createGame();
-        this.addNewPracticeGameTimestamp();
     }
 
     /* ----- Utilities ----- */
@@ -77,6 +74,14 @@ class PracticeGameDisplay extends GameDisplay {
         Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.additionalGameOverActions() called", "practice");
         // Clear out the practice game words in the cookies.
         Persistence.clearPracticeGameDef();
+
+        // Decrement the number of games remaining, and save the result.
+        let gamesRemaining = Persistence.getPracticeGamesRemaining() - 1;
+        if (gamesRemaining < 0) {
+            console.error("PracticeGameDisplay.addtionalGameOverActions(): gamesRemaining went negative!");
+            gamesRemaining = 0;
+        }
+        Persistence.savePracticeGamesRemaining(gamesRemaining);
 
         if (this.anyGamesRemaining()) {
             ElementUtilities.enableButton(this.newGameButton);
@@ -89,38 +94,8 @@ class PracticeGameDisplay extends GameDisplay {
         }
     }
 
-    // anyGamesRemaining() cleans up the saved list of recently played games' timestamps.
-    // It removes ones that are more than 24 hours old, and returns true/false depening
-    // on how many are  left compared to the allowed number per day.
     anyGamesRemaining() {
-        let now = (new Date()).getTime();
-
-        let practiceGameTimestamps = Persistence.getPracticeTimestamps();
-
-        // Remove any any games that have aged out.
-
-        practiceGameTimestamps = practiceGameTimestamps
-            .filter(timestamp => (now-timestamp) < this.maxGamesIntervalMs);
-
-        // Update the cookie now that we have removed any expired timestamps
-        Persistence.savePracticeTimestamps(practiceGameTimestamps);
-
-        // Return value indicates if there are any practice games left today.
-        let thereAreGamesRemaining = (practiceGameTimestamps.length < this.practiceGamesPerDay);
-        Const.GL_DEBUG && this.logDebug("anyGamesRemaining(): ", thereAreGamesRemaining, "practice");
-
-        return thereAreGamesRemaining;
-    }
-
-    addNewPracticeGameTimestamp() {
-        // Save the timestamp of this game in the instance and cookies.
-        let updateTime = (new Date()).getTime();
-        let practiceGameTimestamps = Persistence.getPracticeTimestamps();
-        practiceGameTimestamps.push(updateTime);
-        if (practiceGameTimestamps.length > this.practiceGamesPerDay) {
-            console.error("should not be trying to start a practice game after ", this.practiceGamesPerDay, " games played");
-        }
-        Persistence.savePracticeTimestamps(practiceGameTimestamps);
+        return Persistence.getPracticeGamesRemaining() > 0;
     }
 
     // AppDisplay calls this when its periodic check determines more
@@ -129,14 +104,6 @@ class PracticeGameDisplay extends GameDisplay {
         // Enable only if we're not in the middle of a game.
         if (this.gameIsOver()) {
             ElementUtilities.enableButton(this.newGameButton);
-        }
-    }
-
-    // Called when the user switches to the Practice game.
-    recordGameTimestampIfNeeded() {
-        if (this.needToAddTimestamp) {
-            this.addNewPracticeGameTimestamp();
-            this.needToAddTimestamp = false;
         }
     }
 
@@ -175,13 +142,15 @@ class PracticeGameDisplay extends GameDisplay {
         [this.startWord, this.targetWord] = Persistence.getPracticeGameDef();
         if (this.startWord && this.startWord.length !== 0) {
             // We did have start/target words; get any words already played.
-            // Don't add a timestamp for this recovered game-in-progress
-            // if/when the user switches to the practice game screen.
-            this.needToAddTimestamp = false;
             this.startGameAndDisableNewGameButton();
         } else {
             this.createGame();
         }
+    }
+
+    resetPracticeGameCounter() {
+        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.resetPracticeGameCounter() to", this.practiceGamesPerDay, "practice");
+        Persistence.savePracticeGamesRemaining(this.practiceGamesPerDay);
     }
 
     startGameAndDisableNewGameButton() {

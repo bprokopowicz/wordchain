@@ -63,7 +63,6 @@ class DailyGameDisplay extends GameDisplay {
 
         // Get the saved DailyGameNumber; this can be manually deleted
         // to replay today's daily game instead of recovering it as played
-
         const recoveredDailyGameNumber = Persistence.getDailyGameNumber();
         const [priorStartWord, priorTargetWord] = [this.startWord, this.targetWord];
 
@@ -105,7 +104,8 @@ class DailyGameDisplay extends GameDisplay {
 
         if ((this.startWord == priorStartWord) && (this.targetWord == priorTargetWord)) {
             // the same words are already being played
-            return false;
+            this.isConstructedAsNew = false;
+            return;
         }
 
         Persistence.saveDailyGameNumber(this.dailyGameNumber);
@@ -136,8 +136,7 @@ class DailyGameDisplay extends GameDisplay {
 
         // Refresh the stats display in case it is open.
         this.appDisplay.refreshStats();
-
-        return true;
+        this.isConstructedAsNew = true;
     }
 
     // baseTimestamp is the world-wide starting point determining for Wordchain games.
@@ -298,6 +297,10 @@ class DailyGameDisplay extends GameDisplay {
         gameInfo.dailyGameNumber = this.dailyGameNumber;
 
         return gameInfo;
+    }
+
+    isNewGame() {
+        return this.isConstructedAsNew;
     }
 }
 

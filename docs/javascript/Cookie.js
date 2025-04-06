@@ -23,8 +23,6 @@
 **        List: "tuples": (word, wasPlayed, correctness)
 **     DailyStats (also used in StatsDisplay)
 **        Object: see explanation of properties in StatsDisplay.
-**     DailySolutionShown:
-**        Boolean: saved to true when user clicks 'Solution'.  Applies to the current game number only.
 **
 **  Used and set in PracticeGameDisplay
 **
@@ -34,12 +32,18 @@
 **        String: Current practice game target word
 **     PracticeGameState
 **        List: "tuples": (word, wasPlayed, correctness)
-**     PracticeGameTimestamps
-**        List: Epoch timestamps of when practice words were started, used to limit the
-**        number of practice games allowed in a day.
+**     PracticeGamesRemaining
+**        Integer: Number of games remaining today.
 **
 **   Obsolete
 **     HardMode, TypeSavingMode
+**     PracticeGameTimestamps
+**        List: Epoch timestamps of when practice words were started, used to limit the
+**        number of practice games allowed in a day.
+**     DailySolutionShown:
+**        Boolean: saved to true when user clicks 'Solution'.  Applies to the current game number only.
+**     PracticeSolutionShown:
+**        Boolean: saved to true when user clicks 'Solution'.
 **
 **  Used In testing
 **    TestDailyStart
@@ -73,12 +77,10 @@ class Cookie {
     static LAST_WON_DAILY_GAME_NUMBER = "LastWonDailyGameNumber";
     static DAILY_GAME_STATE = "DailyGameState";
     static DAILY_STATS = "DailyStats";
-    static DAILY_SOLUTION_SHOWN = "DailySolutionShown";
     static PRACTICE_GAME_START = "PracticeGameStart";
     static PRACTICE_GAME_TARGET = "PracticeGameTarget";
     static PRACTICE_GAME_STATE = "PracticeGameState";
-    static PRACTICE_GAME_TIMESTAMPS = "PracticeGameTimestamps";
-    static PRACTICE_SOLUTION_SHOWN = "PracticeSolutionShown";
+    static PRACTICE_GAMES_REMAINING = "PracticeGamesRemaining";
 
     // These 3 are used for testing persistence only.  They don't affect game play
     static TEST_INT = "TestInt";
@@ -102,13 +104,11 @@ class Cookie {
         Cookie.DAILY_GAME_NUMBER,
         Cookie.DAILY_GAME_STATE,
         Cookie.DAILY_STATS,
-        Cookie.DAILY_SOLUTION_SHOWN,
         Cookie.LAST_WON_DAILY_GAME_NUMBER,
         Cookie.PRACTICE_GAME_START,
         Cookie.PRACTICE_GAME_TARGET,
         Cookie.PRACTICE_GAME_STATE,
-        Cookie.PRACTICE_GAME_TIMESTAMPS,
-        Cookie.PRACTICE_SOLUTION_SHOWN,
+        Cookie.PRACTICE_GAMES_REMAINING,
         Cookie.TEST_INT,
         Cookie.TEST_BOOL,
         Cookie.TEST_OBJ,
