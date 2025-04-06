@@ -35,11 +35,13 @@ class HelpDisplay extends AuxiliaryDisplay {
         <p>
         Here is an example of how to play, step by step.
         </p>
+        <p>
+        The yellow highlighted word is the "active word".
+        The thick border around the "P" says to change that letter.
+        </p>
 
         <img src="/docs/images/Help01.jpg" width="350px"/>
         </p>
-        The yellow highlighted word is the "active word".
-        The thick border around the "P" says to change that letter.
         Slide the letter tiles at the top until the letter you want appears;
         in this case, we will change it to an "H". Then tap the letter.
         WordChain will spell the word out in the the next row.
@@ -54,21 +56,25 @@ class HelpDisplay extends AuxiliaryDisplay {
 
         <img src="/docs/images/Help03.jpg" width="350px"/>
         <p>
-        Now we need to delete a letter. Tap on the "-" under the "R"
-        to make HAD.
+        Now we need to delete a letter.
+        Tap on the "-" under the "R" to make HAD.
+        Notice that the letter picker has been hidden;
+        that's because you won't use it for this move.
         </p>
 
         <img src="/docs/images/Help04.jpg" width="350px"/>
         <p>
         Our next step is to add a letter. Tap the "+" 
         to add the letter between "H" and "A".
+        Again, the letter picker is hidden.
         </p>
 
         <img src="/docs/images/Help05.jpg" width="350px"/>
         <p>
-        Now we need to fill the letter, which has a "?".
-        As before, slide the tiles at the top (not shown here)
-        until the "E" appears and tap it.
+        The letter picker is visible again (but not shown here)
+        because now we need to choose the letter to replace the "?".
+        As before, slide the tiles at the top
+        until the "E" appears, then tap it.
         </p>
 
         <img src="/docs/images/Help06.jpg" width="350px"/>
@@ -86,13 +92,15 @@ class HelpDisplay extends AuxiliaryDisplay {
         <p>
         And with that, the game is over. 
         </p>
-
-        <img src="/docs/images/Help09.jpg" width="350px"/>
         <p>
         Let's take another look at the start of the game.
         Note the thick circle in the 2nd row of circles;
         that tells you that once we change PARE to HARE,
         we will be changing the "E". 
+        </p>
+
+        <img src="/docs/images/Help09.jpg" width="350px"/>
+        <p>
         WordChain always shows empty letter cells for the
         shortest solution path from the current point in the game.
         The thicker outlines on letters in that solution path indicate what
@@ -100,6 +108,8 @@ class HelpDisplay extends AuxiliaryDisplay {
         as to how best to solve the game.
         The number of circles in each row also provide guidance
         on how to reach the target word.
+        Some players find it helpful to work backwards from the target word,
+        but you have to keep track of the words in your head, so your mileage may vary!
         </p>
 
         <p>
@@ -137,8 +147,8 @@ class HelpDisplay extends AuxiliaryDisplay {
         <p>
         By default, when you tap a letter or "+" or "-", your move is entered.
         You can turn on "confirmation mode" in the settings, in which case
-        these buttons become gray on your first click/tap
-        and you must click/tap again to confirm your selection.
+        these buttons become gray on your first tap
+        and you must tap again to confirm your selection.
         </p>
         <img src="/docs/images/Help14.jpg" width="350px"/>
         <p>

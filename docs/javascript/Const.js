@@ -158,12 +158,12 @@ export var NUMBERS        = [                // Used in first share line
     "\u{0039}\u{FE0F}\u{20E3}",     // 9
 ];
 export const SCORE_TEXT   = [
-    "0 -- no mistakes!",
-    "1 wrong word",
-    "2 wrong words",
-    "3 wrong words",
-    "4 wrong words",
-    "5 -- too many mistakes!",
+    "0 -- no penalties!",
+    "1 penalty",
+    "2 penalties",
+    "3 penalties",
+    "4 penalties",
+    "5 -- too many penalties!",
 ];
 
 // CSS class values

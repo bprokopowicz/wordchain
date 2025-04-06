@@ -1790,7 +1790,7 @@ class Test extends BaseLogger {
         if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
             return
         const scoreDiv = children[0]
-        const expScoreStr = "Score: 2 wrong words"
+        const expScoreStr = "Score: 2 penalties"
         const actScoreStr = scoreDiv.textContent
 
         const originalSolutionDiv = children[1]
@@ -1815,7 +1815,7 @@ class Test extends BaseLogger {
         if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
             return;
         const scoreDiv = children[0];
-        const expScoreStr = "Score: 0 -- no mistakes!";
+        const expScoreStr = "Score: 0 -- no penalties!";
         const actScoreStr = scoreDiv.textContent;
 
         const originalSolutionDiv = children[1];
@@ -1850,7 +1850,7 @@ class Test extends BaseLogger {
         if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
             return;
         const scoreDiv = children[0];
-        const expScoreStr = "Score: 1 wrong word";
+        const expScoreStr = "Score: 1 penalty";
         const actScoreStr = scoreDiv.textContent;
 
         const originalSolutionDiv = children[1];
@@ -1892,7 +1892,7 @@ class Test extends BaseLogger {
         const children = resultsDiv.children
 
         const scoreDiv = children[0]
-        const expScoreStr = "Score: 5 -- too many mistakes!"
+        const expScoreStr = "Score: 5 -- too many penalties!"
         const actScoreStr = scoreDiv.textContent
 
         const originalSolutionDiv = children[1]
