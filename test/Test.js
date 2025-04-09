@@ -936,8 +936,8 @@ class Test extends BaseLogger {
               minSteps = 7,
               maxSteps = 9,
               minDifficulty = 15,
-              targetWordLen = 6,
-              expectedNumberOfPuzzles = 5,
+              targetWordLen = 0,
+              expectedNumberOfPuzzles = 8,
               minChoicesPerStep = 2;
 
         const suitablePuzzles = Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2,

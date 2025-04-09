@@ -151,6 +151,9 @@ class Solver {
         if (puzzle.nChoicesEasiestStep < minChoices) {
             return false;
         }
+        if (puzzle.nChoicesFromTarget < minChoices) {
+            return false;
+        }
         return true;
     }
 
@@ -279,7 +282,10 @@ class Solution extends BaseLogger {
     // to be added, or removed.  We don't consider replaying an existing word of the solution so far to be
     // a choice.
     // the last step is not included in the difficulty total, because it is obvious even if there are many other
-    // possibilities
+    // possibilities.  
+    // Apr 2025 - the number of last step options is very important, because the last
+    // step is used to work backwards.  There need to be some options there.  But, the options are
+    // running in reverse: from target to penultimate word.  
     calculateDifficulty(dictionary) {
         let i = 0;
         // these three fields will be updated as we travel the solution
@@ -288,33 +294,12 @@ class Solution extends BaseLogger {
         this.nChoicesOnStep = new Array();
         // difficulty is defined by choices between successive words.  We don't include
         // the choices at the last step since in effect there is only one obvious choice, the target.
+        // but see the next step after the while loop
         while (i < this.numWords() - 2) {
             let thisWord = this.getNthWord(i)
             let nextWord = this.getNthWord(i+1)
-            let replacementWords = new Set();
-            if (thisWord.length == nextWord.length) {
-                // we tell the user which letter location to change, so only the changes of that
-                // location should count towards difficulty
-                replacementWords = dictionary.findReplacementWords(thisWord);
-                let loc = this.findChangedLetterLocation(thisWord, nextWord);
-                if (loc >= 0) {
-                    // remove any possible replacements that have the same letter at the replacement location.
-                    for (const replacementWord of replacementWords) {
-                        if (thisWord[loc] == replacementWord[loc]) {
-                            // this replacement word doesn't differ at the known replacement point.
-                            replacementWords.delete(replacementWord);
-                        }
-                    }
-                } else {
-                    console.error("can't find location of changed letter from ", thisWord, " to ", nextWord);
-                }
-            } else if (thisWord.length > nextWord.length ){
-                replacementWords = dictionary.findRemoverWords(thisWord);
-            } else {
-                replacementWords = dictionary.findAdderWords(thisWord);
-            }
+            let replacementWords = dictionary.findOptionsAtWordStep(thisWord, nextWord);
             // now, remove any already played words from the replacement choices.
-
             for (let j=0; j<i; j++) {
                 replacementWords.delete(this.getNthWord(j));
             }
@@ -326,6 +311,11 @@ class Solution extends BaseLogger {
             }
             i+=1;
         }
+
+        // now, how many choices are there going from the target to the penultimate word, backwards.
+        // This contributes to how hard the puzzle will be.  
+        let reverseOptionsFromTarget = dictionary.findOptionsAtWordStep(this.getTarget(), this.getPenultimateWord());
+        this.nChoicesFromTarget = reverseOptionsFromTarget.size;
         Const.GL_DEBUG && Solver.logger.logDebug("easiest step has ", this.nChoicesEasiestStep, " choices.", "solver");
     }
 

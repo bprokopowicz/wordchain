@@ -113,29 +113,30 @@ class WordChainDict extends BaseLogger {
         return removers;
     }
 
-    // Find the words that result from replacing one letter anywhere in word.
-    findReplacementWords(word) {
+    // Find the words that result from replacing the letter at a specific location
+    findReplacementWordsAtLoc(word, wordIndex) {
         let replacements = new Set();
         let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-        // Test isWord() when we replace each letter A-Z for each letter of the word.
-        for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
-            for (let letterIndex = 0; letterIndex < 26; letterIndex++) {
-                let letter = alphabet.substr(letterIndex, 1);
+        // Test isWord() when we replace each letter A-Z for 'letter' of the word.
+        const currentLetter = word.substr(wordIndex, 1);
 
-                // Construct the potential word, replacing the current letter in word
-                // with the current letter from A-Z.
+        for (let alphaIndex = 0; alphaIndex < 26; alphaIndex++) {
+            let newLetter = alphabet.substr(alphaIndex, 1);
+            if (newLetter != currentLetter) { // don't re-create the same word
+                // Construct the potential word, replacing the current letter in word 
+                // with the newLetter from A-Z.
                 let potentialWord = '';
                 if (wordIndex === 0) {
-                    potentialWord = letter + word.substr(1)
+                    potentialWord = newLetter + word.substr(1)
                 } else if (wordIndex < word.length - 1) {
-                    potentialWord = word.substr(0, wordIndex) + letter + word.substr(wordIndex+1);
+                    potentialWord = word.substr(0, wordIndex) + newLetter + word.substr(wordIndex+1);
                 } else {
-                    potentialWord = word.substr(0, word.length - 1) + letter;
+                    potentialWord = word.substr(0, word.length - 1) + newLetter;
                 }
 
                 Const.GL_DEBUG && this.logDebug(">>>>> potential: ", potentialWord, "dictionary-details");
-                if (potentialWord !== word && this.isWord(potentialWord)) {
+                if (this.isWord(potentialWord)) {
                     Const.GL_DEBUG && this.logDebug(">>>>> adding replacement: ", potentialWord, "dictionary-details");
                     replacements.add(potentialWord);
                 }
@@ -144,6 +145,56 @@ class WordChainDict extends BaseLogger {
 
         Const.GL_DEBUG && this.logDebug("replacements for ", word, ": ", Array.from(replacements).sort(), "dictionary-details");
         return replacements;
+    }
+
+
+    // Find the words that result from replacing one letter anywhere in word.
+    findReplacementWords(word) {
+        let replacements = new Set();
+        for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
+            for (const replacement of this.findReplacementWordsAtLoc(word, wordIndex)) {
+                replacements.add(replacement);
+            }
+        }
+
+        Const.GL_DEBUG && this.logDebug("replacements for ", word, ": ", Array.from(replacements).sort(), "dictionary-details");
+        return replacements;
+    }
+
+    findChangedLetterLocation(word1, word2) {
+        for (let i=0; i < word1.length; i++) {
+            if (word1[i] != word2[i]) {
+                return i;
+            }       
+        }           
+        console.error("can't find difference between ", word1, " and ", word2);
+        return -1;
+    }    
+
+    // findOptionsAtWordStep is only used to measure a solution's difficulty.  Given the known step
+    // 'thisWord' -> 'nextWord', what are all the words possible that have the
+    // same "shape" as the change thisWord -> nextWord?
+    // E.g. if thisWord -> nextWord is a delete letter, find all the possible delete letters with 'thisWord'.
+    // If thisWord->nextWord is a change letter at 2, find all the possible changes at letter 2 in thisWord.
+
+    findOptionsAtWordStep(thisWord, nextWord) {
+        var replacementWords;
+        if (thisWord.length == nextWord.length) {
+            // we tell the user which letter location to change, so only the changes of that
+            // location should count towards difficulty
+            let loc = this.findChangedLetterLocation(thisWord, nextWord);
+            if (loc >= 0) {
+                replacementWords = this.findReplacementWordsAtLoc(thisWord, loc);
+            } else {
+                console.error("can't find location of changed letter from ", thisWord, " to ", nextWord)
+            }
+        } else if (thisWord.length > nextWord.length ){
+            replacementWords = this.findRemoverWords(thisWord);
+        } else {
+            replacementWords = this.findAdderWords(thisWord);
+        }
+        Const.GL_DEBUG && this.logDebug("options from", thisWord, "to", nextWord, "are:", replacementWords, "dictionary");
+        return replacementWords;
     }
 
     // Get the size of the dictionary.
