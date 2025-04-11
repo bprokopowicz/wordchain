@@ -40,9 +40,11 @@ export const PRACTICE_REQ_WORD_LEN_1       = 4;
 export const PRACTICE_REQ_WORD_LEN_2       = 6;
 export const PRACTICE_MIN_CHOICES_PER_STEP = 2;
 export const PRACTICE_START_WORDS          = [
-    "FACE", "GRASP", "SPACE", "PLATE", "TRAIL", "PLANT", "HOUSE", "SNORE",
+    "GRASP", "PLATE", "TRAIL", "PLANT", "SNORE",
     "SNOW", "WRITE", "SONG", "FISH", "WASH", "SINK", "STOPS", "SHOPS",
-    "THINK", "PASTE", "BOWLS", "ASP", "GAME", "SAND", "POKE"];
+    "THINK", "PASTES", "BOWLS", "ASP", "CAT", "GAME", "SAND", "POKE",
+    "PLANET", "ROPED", "SHINE", "TOAST", "PIG", "DREAMS", "STAIN", "HARK",
+    "FLAME", "RAKE"];
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
