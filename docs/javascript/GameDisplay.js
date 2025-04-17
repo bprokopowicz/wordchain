@@ -299,6 +299,8 @@ class GameDisplay extends BaseLogger {
             this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
         }
 
+        Const.GL_DEBUG && this.logDebug("GameDisplay gameState=", this.gameState, "game");
+
         // Were there more wrong words than the last time we showed a move?
         // If so, we need to show a toast message.
         const penaltyCount = this.game.numPenalties();
@@ -517,7 +519,6 @@ class GameDisplay extends BaseLogger {
                 summary.push([Const.FUTURE, word.length]);
             }
         }
-
         return summary;
     }
 

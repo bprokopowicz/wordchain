@@ -226,5 +226,35 @@ class Persistence {
     static saveTestPracticeGamesPerDay(n) {
         Cookie.save(Cookie.TEST_PRACTICE_GAMES_PER_DAY, n);
     }
+
+    // per-user-device ID methods:
+
+    static newWCID() {
+        // generate an integer with 15 random digits.  The biggest JS integer is 9,xxx,xxx,xxx,xxx,xxx which is 16 digits.  
+        let x = 0;
+        for (let d = 0; d < 15; d++) {
+            let randomDigit = Math.floor(Math.random() * 10);
+            x = x * 10 + randomDigit;
+        }
+        return x;
+    }
+
+    // returns a new WCIDif not found
+    static getWCID() {
+        let wcid = Cookie.getInt(Cookie.WCID);
+        if (wcid == null) {
+            wcid = Persistence.newWCID();
+            Persistence.setWCID(wcid);
+        }
+        return wcid;
+    }
+
+    static hasWCID() {
+        return Cookie.has(Cookie.WCID);
+    }
+
+    static setWCID(n) {
+        Cookie.save(Cookie.WCID, n);
+    }
 }
 export { Persistence };

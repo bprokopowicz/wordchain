@@ -4,6 +4,10 @@
 **  Debug
 **     String: set to a comma-separated list of debug tags to turn on.
 **
+**  per user-device-browser ID
+**     WCID
+**        Integer: assigned randomly per browser&device
+**
 **  Primarily used in AppDisplay; set in SettingsDisplay
 **
 **     DarkTheme
@@ -70,6 +74,7 @@
 class Cookie {
 
     static DEBUG = "Debug";
+    static WCID = "wcid";
     static DARK_THEME = "DarkTheme";
     static COLORBLIND_MODE = "ColorblindMode";
     static CONFIRMATION_MODE = "ConfirmationMode";
@@ -98,6 +103,7 @@ class Cookie {
 
     static ALL_COOKIE_NAMES = [
         Cookie.DEBUG,
+        Cookie.WCID,
         Cookie.DARK_THEME,
         Cookie.COLORBLIND_MODE,
         Cookie.CONFIRMATION_MODE,

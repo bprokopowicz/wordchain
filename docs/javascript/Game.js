@@ -112,12 +112,6 @@ class Game extends BaseLogger {
         this.remainingSteps.removeAllSteps();
     }
 
-    // utility to get the remaining steps in a way that tests can play them
-    // returns a list of tuples: (action, position, letter) 
-    // action is ADD, CHANGE, or DELETE,
-    // position is an integer
-    // letter is the letter to apply the change or add to.
-
     // returns a list to display all the steps of the puzzle.
     getDisplayInstructions() {
         Const.GL_DEBUG && this.logDebug("played so far: " + this.playedSteps.toStr(), "game");

@@ -3,6 +3,7 @@ import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascr
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { Game } from '../docs/javascript/Game.js';
 import { Cookie } from '../docs/javascript/Cookie.js';
+import { Metrics } from '../docs/javascript/Metrics.js';
 import { Persistence } from '../docs/javascript/Persistence.js';
 import { DailyGameDisplay } from '../docs/javascript/DailyGameDisplay.js'
 import { PracticeGameDisplay } from '../docs/javascript/PracticeGameDisplay.js'
@@ -1502,7 +1503,7 @@ class Test extends BaseLogger {
 
     getAppTests() {
         return [
-            this.finishGameTest,
+            this.finishGameTestWithMetrics,
             this.multiGameStatsTest,
             this.multiGameMixedResultsStatsTest,
             this.multiIncompleteGameStatsTest,
@@ -1538,6 +1539,7 @@ class Test extends BaseLogger {
         }
         this.logDebug("window for App tests is ready.", "test");
 
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         this.runTheNextTest();
     }
 
@@ -1563,10 +1565,33 @@ class Test extends BaseLogger {
         }
     }
 
-    finishGameTest() {
+    finishGameTestWithMetrics() {
         this.testName = "FinishGameTest";
-        this.verify(this.finishTheCurrentGame(), " did not finish the game") &&
+        const myWCID = Persistence.getWCID();
+        this.logDebug("WCID:", myWCID, "test");
+        const pref = `/docs/resources/wcm?${myWCID}`;
+        const expectedStartedMetric          = `${pref}&gs`;
+        const expectedFinishedMetric         = `${pref}&gf`;
+        const expectedStartWordsPlayedMetric = `${pref}&gwp&data=(SHORT:1:ok),(SHOOT:0:ok),(HOOT:0:ok),(BOOT:0:ok),(BOOR:0:ok),(POOR:0:ok)`;
+        const expectedEndWordsPlayedMetric   = `${pref}&gwp&data=(SHORT:1:ok),(SHOOT:1:ok),(HOOT:1:ok),(BOOT:1:ok),(BOOR:1:ok),(POOR:1:ok)`;
+
+        const startedMetric = Metrics.recordGameStarted();
+        let gameState = this.gameDisplay.gameState;
+        const startWordsPlayedMetric = Metrics.recordGameWordsPlayed(gameState);
+
+        const finished = this.finishTheCurrentGame();
+        const finishedMetric = Metrics.recordGameFinished();
+        gameState = this.gameDisplay.gameState;
+        const endWordsPlayedMetric = Metrics.recordGameWordsPlayed(gameState);
+
+        this.verify(finished, " did not finish the game") &&
+            this.verify(startedMetric == expectedStartedMetric, "expected:", expectedStartedMetric, "got:", startedMetric) &&
+            this.verify(finishedMetric == expectedFinishedMetric, "expected:", expectedFinishedMetric, "got:", finishedMetric) &&
+            this.verify(startWordsPlayedMetric == expectedStartWordsPlayedMetric, "expected:", expectedStartWordsPlayedMetric, "got:", startWordsPlayedMetric) &&
+            this.verify(endWordsPlayedMetric == expectedEndWordsPlayedMetric, "expected:", expectedEndWordsPlayedMetric, "got:", endWordsPlayedMetric) &&
             this.hadNoErrors();;
+
+        this.logDebug("finishGameTest(): ", this.gameDisplay, "test");
     }
 
     // confirmation is a function of the GameDisplay so to test it we need to be playing a game
