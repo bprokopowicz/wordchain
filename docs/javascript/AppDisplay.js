@@ -186,9 +186,14 @@ class AppDisplay extends BaseLogger {
 
         // Now create objects for each of the auxiliary screens.
         // We don't need to save these in the object, but we will anyway!
-        this.helpDisplay     = new HelpDisplay(this.auxiliaryButtonDiv, Const.HELP_PATH, this.auxiliaryDiv, this.primaryDivs);
-        this.statsDisplay    = new StatsDisplay(this.auxiliaryButtonDiv, Const.STATS_PATH, this.auxiliaryDiv, this.primaryDivs, this);
-        this.settingsDisplay = new SettingsDisplay(this.auxiliaryButtonDiv, Const.SETTINGS_PATH, this.auxiliaryDiv, this.primaryDivs, this);
+        this.helpDisplay = new HelpDisplay(
+            this.auxiliaryButtonDiv, {text: "HOW TO PLAY"}, this.auxiliaryDiv, this.primaryDivs);
+
+        this.statsDisplay = new StatsDisplay(
+            this.auxiliaryButtonDiv, {svg: Const.STATS_PATH}, this.auxiliaryDiv, this.primaryDivs, this);
+
+        this.settingsDisplay = new SettingsDisplay(
+            this.auxiliaryButtonDiv, {svg: Const.SETTINGS_PATH}, this.auxiliaryDiv, this.primaryDivs, this);
     }
 
     createGameButtons() {

@@ -23,8 +23,8 @@ class StatsDisplay extends AuxiliaryDisplay {
 
     /* ----- Construction ----- */
 
-    constructor(buttonContainer, buttonSvgPath, parentContainer, saveRestoreContainers, appDisplay) {
-        super(buttonContainer, buttonSvgPath, parentContainer, saveRestoreContainers);
+    constructor(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers, appDisplay) {
+        super(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers);
 
         // Save AppDisplay object so callbacks can call its methods as needed.
         this.appDisplay = appDisplay;

@@ -5,8 +5,8 @@ import * as Const from './Const.js';
 
 class SettingsDisplay extends AuxiliaryDisplay {
 
-    constructor(buttonContainer, buttonSvgPath, parentContainer, saveRestoreContainers, appDisplay) {
-        super(buttonContainer, buttonSvgPath, parentContainer, saveRestoreContainers);
+    constructor(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers, appDisplay) {
+        super(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers);
 
         // AppDisplay object so callbacks can call its methods to respond
         // to settings changes.

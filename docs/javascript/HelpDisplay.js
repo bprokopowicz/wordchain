@@ -5,8 +5,8 @@ import * as Const from './Const.js';
 
 class HelpDisplay extends AuxiliaryDisplay {
 
-    constructor(buttonContainer, buttonSvgPath, parentContainer, saveRestoreContainers) {
-        super(buttonContainer, buttonSvgPath, parentContainer, saveRestoreContainers);
+    constructor(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers) {
+        super(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers);
 
         const helpHTML = `
         <h1 style="display: flex; justify-content: space-between; align-items: center;">

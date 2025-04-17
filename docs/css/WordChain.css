@@ -115,7 +115,7 @@
     --button-bg:                #49515a;    /* dark blueish gray */
 
     /* ===== Cells, Letters, Buttons ===== */
-    --cell-border:              White;
+    --cell-border:              var(--primary-fg);
     --target-word-bg:           #b319ff;    /* medium purple */
 
     /* ===== Toast ===== */
@@ -320,9 +320,30 @@ hr {
 .aux-button {
     background: var(--button-bg);
     border-radius: 50%;
-    border-width: 0;
     padding: .15rem;
     margin: .2rem;
+    width: 45px;
+    height: 45px;
+}
+
+.aux-button-text {
+    border-width: 2px;
+    border-color: var(--primary-fg);
+    font-size: .5rem;
+    font-weight: bold;
+}
+
+.aux-button-svg {
+    border-width: 0;
+}
+
+svg {
+    /*
+     * Numbers other than 24 throw off the centering in the button.
+     * Not sure why -- maybe that's built into the SVG paths we're using.
+     */
+    width: 24px;
+    height: 24px;
 }
 
 /* Holds images for help, stats, settings in the header */
@@ -1056,7 +1077,12 @@ input.setting-radio {
         font-size: 2rem;
     }
 
-    .aux-button {
+    .aux-button-svg {
+        padding: .35rem;
+        margin: .5rem;
+    }
+
+    .aux-button-text {
         padding: .35rem;
         margin: .5rem;
     }
