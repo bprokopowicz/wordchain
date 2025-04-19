@@ -1133,7 +1133,7 @@ class Test extends BaseLogger {
         this.verify((playDeleteResult === Const.OK), "playDelete(1) not OK") &&
         this.verify((afterDeleteInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
         this.verify((afterDeleteInstructions[1].toStr() === "(change,word:CAD,changePosition:1)"), `after delete instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
-        this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
+        this.verify((afterDeleteInstructions[2].toStr() === "(change-next,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
         this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
         this.verify((playLetterBResult === Const.OK), "playLetterBResult(1) not OK") &&
         this.verify((afterPlayLetterBInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after play letter B  instruction[0] is ${afterPlayLetterBInstructions[0].toStr()}`) &&
@@ -1171,7 +1171,7 @@ class Test extends BaseLogger {
         this.verify((cadToCarInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing R, instruction[0] is ${cadToCarInstructions[0].toStr()}`) &&
         this.verify((cadToCarInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after playing R, instruction[1] is ${cadToCarInstructions[1].toStr()}`) &&
         this.verify((cadToCarInstructions[2].toStr() === "(change,word:CAR,changePosition:3)"), `after playing R, instruction[1] is ${cadToCarInstructions[2].toStr()}`) &&
-        this.verify((cadToCarInstructions[3].toStr() === "(future,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCarInstructions[3].toStr()}`) &&
+        this.verify((cadToCarInstructions[3].toStr() === "(change-next,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCarInstructions[3].toStr()}`) &&
         this.verify((cadToCarInstructions[4].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCarInstructions[4].toStr()}`) &&
             this.hadNoErrors();
     }
@@ -1221,7 +1221,7 @@ class Test extends BaseLogger {
         this.verify((displayInstructionsAfterSAG[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing SAG, instruction[0] is ${displayInstructionsAfterSAG[0].toStr()}`) &&
         this.verify((displayInstructionsAfterSAG[1].toStr() === `(played,word:SCAG,moveRating:${Const.WRONG_MOVE})`), `after playing SAG, instruction[1] is ${displayInstructionsAfterSAG[1].toStr()}`) &&
         this.verify((displayInstructionsAfterSAG[2].toStr() === "(change,word:SAG,changePosition:3)"), `after playing SAG, instruction[2] is ${displayInstructionsAfterSAG[2].toStr()}`) &&
-        this.verify((displayInstructionsAfterSAG[3].toStr() === "(future,word:SAT,changePosition:1)"), `after playing SAG, instruction[3] is ${displayInstructionsAfterSAG[3].toStr()}`) &&
+        this.verify((displayInstructionsAfterSAG[3].toStr() === "(change-next,word:SAT,changePosition:1)"), `after playing SAG, instruction[3] is ${displayInstructionsAfterSAG[3].toStr()}`) &&
             this.hadNoErrors();
     }
 
@@ -1566,10 +1566,10 @@ class Test extends BaseLogger {
     }
 
     finishGameTestWithMetrics() {
-        this.testName = "FinishGameTest";
+        this.testName = "FinishGameTestWithMetrics";
         const myWCID = Persistence.getWCID();
         this.logDebug("WCID:", myWCID, "test");
-        const pref = `/docs/resources/wcm?${myWCID}`;
+        const pref = `/docs/resources/wcm?wcid=${myWCID}`;
         const expectedStartedMetric          = `${pref}&gs`;
         const expectedFinishedMetric         = `${pref}&gf`;
         const expectedStartWordsPlayedMetric = `${pref}&gwp&data=(SHORT:1:ok),(SHOOT:0:ok),(HOOT:0:ok),(BOOT:0:ok),(BOOR:0:ok),(POOR:0:ok)`;
@@ -1577,6 +1577,7 @@ class Test extends BaseLogger {
 
         const startedMetric = Metrics.recordGameStarted();
         let gameState = this.gameDisplay.gameState;
+        this.logDebug("finishGameTestWithMetrics(): gameState: ", this.gameDisplay.gameState, "test");
         const startWordsPlayedMetric = Metrics.recordGameWordsPlayed(gameState);
 
         const finished = this.finishTheCurrentGame();
@@ -1591,7 +1592,7 @@ class Test extends BaseLogger {
             this.verify(endWordsPlayedMetric == expectedEndWordsPlayedMetric, "expected:", expectedEndWordsPlayedMetric, "got:", endWordsPlayedMetric) &&
             this.hadNoErrors();;
 
-        this.logDebug("finishGameTest(): ", this.gameDisplay, "test");
+        this.logDebug("finishGameTestWithMetrics(): ", this.gameDisplay, "test");
     }
 
     // confirmation is a function of the GameDisplay so to test it we need to be playing a game
@@ -2128,7 +2129,7 @@ class Test extends BaseLogger {
             this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `instruction[0] is ${di[0].toStr()}`) &&
             this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `instruction[1] is ${di[1].toStr()}`) &&
             this.verify((di[2].toStr() === "(change,word:HOOT,changePosition:1)"), `instruction[2] is ${di[2].toStr()}`) &&
-            this.verify((di[3].toStr() === "(future,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
+            this.verify((di[3].toStr() === "(change-next,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
             this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
             this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
 
@@ -2179,8 +2180,8 @@ class Test extends BaseLogger {
                 this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `instruction[0] is ${di[0].toStr()}`) &&
                 this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `instruction[1] is ${di[1].toStr()}`) &&
                 this.verify((di[2].toStr() === `(played,word:HOOT,moveRating:${Const.OK})`), `instruction[2] is ${di[2].toStr()}`) &&
-                this.verify((di[3].toStr() === `(change,word:SOOT,changePosition:1)`), `instruction[3] is ${di[3].toStr()}`) &&
-                this.verify((di[4].toStr() === "(future,word:BOOT,changePosition:4)"), `instruction[4] is ${di[4].toStr()}`) &&
+                this.verify((di[3].toStr() === "(change,word:SOOT,changePosition:1)"), `instruction[3] is ${di[3].toStr()}`) &&
+                this.verify((di[4].toStr() === "(change-next,word:BOOT,changePosition:4)"), `instruction[4] is ${di[4].toStr()}`) &&
                 this.verify((di[5].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[5] is ${di[5].toStr()}`) &&
                 this.verify((di[6].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`) ) {
 

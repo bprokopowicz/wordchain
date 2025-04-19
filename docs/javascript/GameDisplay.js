@@ -4,7 +4,15 @@ import { Game } from './Game.js';
 import { Picker } from './Picker.js';
 import * as Const from './Const.js';
 
-import { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell } from './Cell.js';
+import {
+    AdditionCell,
+    DeletionCell,
+    ActiveLetterCell,
+    ChangeNextLetterCell,
+    FutureLetterCell,
+    PlayedLetterCell,
+    TargetLetterCell,
+} from './Cell.js';
 
 
 class GameDisplay extends BaseLogger {
@@ -148,6 +156,24 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell, hideAdditionCells);
     }
 
+    displayChangeNext(displayInstruction) {
+        function getCell(letter, letterPosition) {
+            return new ChangeNextLetterCell(letter, letterPosition, displayInstruction.changePosition);
+        }
+
+        // The Game class gives us a DisplayInstruction with an extra field
+        // for a 'Change Next" instruction, which is the "word with a hole" where
+        // the letter to be filled in is replaced with a '?' -- we need to give
+        // displayCommon() an instruction with *that* word. However, don't want
+        // to change the DisplayInstruction passed to us, because it is used
+        // elsewhere, where it is expected to be the word sans hole. So copy it
+        // and change its word to wordWithHole.
+        let newDisplayInstruction = displayInstruction.copy();
+        newDisplayInstruction.word = displayInstruction.wordWithHole;
+
+        this.displayCommon(newDisplayInstruction, getCell);
+    }
+
     displayDelete(displayInstruction, tableElement, isStartWord) {
         const me = this;
 
@@ -220,9 +246,12 @@ class GameDisplay extends BaseLogger {
         // We'll build up the game state from the displayInstruction objects
         // that the game returns. The derived classes will save the state in
         // a cookie.
+        // REFACTOR game state
         this.gameState = [];
 
         if (this.gameIsOver()) {
+            // REFACTOR game state -- maybe not a game state thing, but this seems
+            // like a misnomer -- we're not "showing" anything here.
             this.game.showUnplayedMoves();
         }
 
@@ -234,16 +263,22 @@ class GameDisplay extends BaseLogger {
             showSameAsWordChainMessage = true,
             activeMoveRating = null;
 
+        // console.log("======================");
         for (let displayInstruction of displayInstructions) {
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
+            // console.log("displayInstruction:", displayInstruction);
 
-            let wordWasPlayed = (displayInstruction.displayType !== Const.FUTURE) && (displayInstruction.displayType !== Const.TARGET);
+            let wordWasPlayed =
+                (displayInstruction.displayType !== Const.FUTURE) &&
+                (displayInstruction.displayType !== Const.CHANGE_NEXT) &&
+                (displayInstruction.displayType !== Const.TARGET);
 
             // Const.PLAYED indicates the word was played before the active one.
             if (wordWasPlayed && displayInstruction.displayType != Const.PLAYED) {
                 activeMoveRating = displayInstruction.moveRating;
             }
 
+            // REFACTOR game state
             this.gameState.push([
                 displayInstruction.word,
                 wordWasPlayed,
@@ -272,15 +307,14 @@ class GameDisplay extends BaseLogger {
                 this.lastActiveMoveWasAdd = false;
 
             } else if (displayInstruction.displayType === Const.DELETE) {
-                // displayDelete() adds a second row for the minuses, so unlike the other
-                // cases it needs access to the table element. The current rowElement
-                // will contain the letters, which we don't want to be displayed as the
-                // active row, so we don't set displayAsActiveRow to true here; rather,
-                // that will be set to true for the row of minuses.
+                this.rowElement.displayAsActiveRow = true;
                 this.displayDelete(displayInstruction, tableElement, isStartWord);
                 this.lastActiveMoveWasAdd = false;
 
             // These instructions indicate a word other than the active one.
+            } else if (displayInstruction.displayType === Const.CHANGE_NEXT) {
+                this.displayChangeNext(displayInstruction);
+
             } else if (displayInstruction.displayType === Const.FUTURE) {
                 this.displayFuture(displayInstruction);
 
@@ -303,6 +337,7 @@ class GameDisplay extends BaseLogger {
 
         // Were there more wrong words than the last time we showed a move?
         // If so, we need to show a toast message.
+        // REFACTOR game state
         const penaltyCount = this.game.numPenalties();
         if (this.numPenalties != null && penaltyCount > this.numPenalties && !skipToast) {
             // Just in case moveRating never got set (which would be a bug)
@@ -346,6 +381,7 @@ class GameDisplay extends BaseLogger {
 
             // Display WordChain's original solution if different from the user's solution.
             // Otherwise dispaly a message indicating that they are the same.
+            // REFACTOR game state
             var originalSolutionWords = this.game.getOriginalSolutionWords(),
                 userSolutionWords = this.game.getUserSolutionWords();
 
@@ -509,6 +545,7 @@ class GameDisplay extends BaseLogger {
 
     // A list summarizing the moves of the game.
     // Unplayed words get a move rating of Const.FUTURE
+    // REFACTOR game state
     getMoveSummary() {
         var summary = [];
 

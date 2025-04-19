@@ -337,6 +337,7 @@ class AppDisplay extends BaseLogger {
     }
 
     // Return an object with information about the daily game status.
+    // REFACTOR game state
     getDailyGameInfo() {
         return this.dailyGameDisplay.getGameInfo();
     }

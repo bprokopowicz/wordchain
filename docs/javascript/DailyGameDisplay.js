@@ -171,7 +171,7 @@ class DailyGameDisplay extends GameDisplay {
         Const.GL_DEBUG && this.logDebug("epoch timestamp is set to:", new Date(this.baseTimestamp), "daily");
     }
 
-    // returns true if the test vars are given.
+    // Returns true if the test vars are given.
     overrideGameWordsFromTestVars() {
         if (Persistence.hasTestDailyGameWords()) {
             [this.startWord, this.targetWord] = Persistence.getTestDailyGameWords();
@@ -202,9 +202,9 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Persistence Handling ----- */
 
-    // this is a virtual function of the base class.  It is called when the base class adds a new word
+    // This is a virtual function of the base class.  It is called when the base class adds a new word
     // to a solution (delete or letter picked).
-
+    // REFACTOR game state
     updateGameInProgressPersistence(gameResult) {
         this.updateDailyGameStatsIfDone(gameResult);
 
@@ -213,8 +213,9 @@ class DailyGameDisplay extends GameDisplay {
         }
     }
 
-    // when a game is finished, we update persistent counters of games played, failed, and
+    // When a game is finished, we update persistent counters of games played, failed, and
     // a counter of the number of wrong moves (e.g. another 2-wrong-move game was just played)
+    // REFACTOR game state
     updateDailyGameStatsIfDone(gameResult) {
         if (this.game.isOver()) {
             if ((gameResult == Const.OK) || (gameResult == Const.GENIUS_MOVE) || (gameResult == Const.SCRABBLE_WORD)) {
@@ -246,7 +247,7 @@ class DailyGameDisplay extends GameDisplay {
                 this.setStat('streak', 0);
             }
 
-            // increment the specific-number-of-wrong-moves counter
+            // Increment the specific-number-of-wrong-moves counter.
             this.incrementStat(penaltyCount);
         }
     }
@@ -281,6 +282,7 @@ class DailyGameDisplay extends GameDisplay {
         return this.game.isOver();
     }
 
+    // REFACTOR game state
     getGameInfo() {
         //  Construct an object for StatsDisplay with these properties:
         //  over:            true if the game is over (user has found target word or too many steps)

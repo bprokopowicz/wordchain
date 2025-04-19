@@ -12,13 +12,15 @@ class DisplayInstruction {
     // word: string is ignored for future; only length of it is used
     //
     // displayType: add, delete, change, future, played, target
-    //     add:    word should be displayed as the active word and color based on moveRating, with plus signs
-    //     delete: word should be displayed as the active word and color based on moveRating, with minus signs
-    //     change: word should be displayed as the active word and color based on moveRating, with thick outline at changePosition
-    //     future: word should be displayed with no color or letter, with thick outline at changePosition
-    //     played: word should be diplayed with color based on moveRating (includes start word)
-    //     target: word should be displayed with "target color" and this type is not sent
-    //             for the target word if the game is over; instead, displayType will be 'played'
+    //     add:         word should be displayed as the active word and color based on moveRating, with plus signs
+    //     delete:      word should be displayed as the active word and color based on moveRating, with minus signs
+    //     change:      word should be displayed as the active word and color based on moveRating, with thick outline at changePosition
+    //     changeNext:  word should be displayed with no color and letters shown ('?' for the one to fill in)
+    //                  (NOTE: next only applies to a letter change, including one that occurs after adding a space.)
+    //     future:      word should be displayed with no color or letter, with thick outline at changePosition
+    //     played:      word should be diplayed with color based on moveRating (includes start word)
+    //     target:      word should be displayed with "target color" and this type is not sent
+    //                  for the target word if the game is over; instead, displayType will be 'played'
     //
     // changePosition: relevant only for change and future; 1..word.length
     //
@@ -39,6 +41,15 @@ class DisplayInstruction {
         this.moveRating = moveRating;
     }
 
+    copy() {
+        return new DisplayInstruction(
+            this.word,
+            this.displayType,
+            this.changePosition,
+            this.moveRating
+        );
+    }
+
     // Used for debugging only.
     toStr() {
         var returnStr = `(${this.displayType}`;
@@ -53,7 +64,7 @@ class DisplayInstruction {
             returnStr += `,moveRating:${this.moveRating}`;
         }
 
-        if (this.displayType === Const.CHANGE  || this.displayType === Const.FUTURE) {
+        if (this.displayType === Const.CHANGE || this.displayType == Const.CHANGE_NEXT || this.displayType === Const.FUTURE) {
             returnStr += `,changePosition:${this.changePosition}`;
         }
         returnStr += ")";

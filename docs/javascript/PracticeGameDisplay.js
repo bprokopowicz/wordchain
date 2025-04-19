@@ -48,6 +48,7 @@ class PracticeGameDisplay extends GameDisplay {
 
     // This is a pure virtual function in the base class. It is called after any play that adds a new
     // word to the solution (delete or letter picked).
+    // REFACTOR game state
     updateGameInProgressPersistence(gameResult) {
         if (Game.moveIsValid(gameResult)) {
             Persistence.savePracticeGameState(this.gameState);
@@ -108,6 +109,7 @@ class PracticeGameDisplay extends GameDisplay {
     }
 
     // Called from newGameCallback() and createOrRestoreGame() during construction.
+    // REFACTOR game state
     createGame() {
         Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.createGame()", "test");
         Persistence.clearPracticeGameState();
@@ -153,6 +155,7 @@ class PracticeGameDisplay extends GameDisplay {
         Persistence.savePracticeGamesRemaining(this.practiceGamesPerDay);
     }
 
+    // REFACTOR game state
     startGameAndDisableNewGameButton() {
         let gameState = Persistence.getPracticeGameState();
 

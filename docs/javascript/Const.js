@@ -26,6 +26,7 @@ export const DICT_URL          = "https:/docs/resources/WordChainDict";
 export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
 export const EMAIL_URL         = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
 export const FAQ_URL           = "/FAQ.html";
+export const HELP_VIDEO_URL    = "https://www.youtube.com/watch?v=FhxMQZoRsKI";
 
 // Our very own copyright!
 export const COPYRIGHT = "Copyright \u{00A9} 2025 WordChainFun"
@@ -86,12 +87,13 @@ export const UNINIT_DAILY_GAME_NUMBER = -1000;
 export const BAD_LETTER_POSITION = "bad letter position";
 
 // DisplayInstruction displayTypes.
-export const ADD       = "add";
-export const CHANGE    = "change";
-export const DELETE    = "delete";
-export const FUTURE    = "future";
-export const PLAYED    = "played";
-export const TARGET    = "target";
+export const ADD         = "add";
+export const CHANGE      = "change";
+export const DELETE      = "delete";
+export const CHANGE_NEXT = "change-next";
+export const FUTURE      = "future";
+export const PLAYED      = "played";
+export const TARGET      = "target";
 
 // Special characters used in Game.showGame() return string;
 // a few other classes use these.

@@ -148,6 +148,21 @@ class FutureLetterCell extends LetterCell {
     }
 }
 
+class ChangeNextLetterCell extends LetterCell {
+    constructor(letter, letterPosition, changePosition) {
+        super(letter);
+
+        // TODO: NEW CLASSES
+        this.addClass("letter-cell-future", this.cellContainer);
+
+        if (letterPosition === changePosition)
+        {
+            // We'll set the *outer* cell's styling to be visible (i.e. not transparent).
+            this.addClass("letter-cell-future-change", this.outerCellContainer);
+        }
+    }
+}
+
 class PlayedLetterCell extends LetterCell {
     constructor(letter, moveRating, firstWord) {
         super(letter);
@@ -168,4 +183,4 @@ class TargetLetterCell extends LetterCell {
 }
 
 
-export { AdditionCell, DeletionCell, ActiveLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell };
+export { AdditionCell, DeletionCell, ActiveLetterCell, ChangeNextLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell };

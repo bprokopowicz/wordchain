@@ -2,23 +2,27 @@ Known Bugs
 ==========
 
 - If Daily game is in progress and we redefine the start/target words for that game
-  number in a prd update, it screws up any game in progress or finished that started
+  number in a prod update, it screws up any game in progress or finished that started
   with the previous definition.
 
-Production TODO
-===============
+Near Term Changes
+=================
 
-Must Do
--------
-- Change Const.WORD_CHAIN_EPOCH_DATE
+Do in suggested order?
 
-Maybe Do
----------
-- Consider changing Practice game window to align with Daily game window
+- Help video
+- Add "set your variables" to the Testing page
+- Analytics
+- Refactor some things:
+  - Not so many ways to represent game state (should enumerate these first!)
+  - Push some of the game logic from *GameDisplay into Game
+- Add remaining penalties indication (maybe in the header?)
 
 Maybe Someday
 =============
 
+Affecting Game Play
+-------------------
 - Another hint approach:
   - When you are changing a letter, letters in the picker that don't form valid
     words (according to either dictionary) would become unselectable.
@@ -26,9 +30,13 @@ Maybe Someday
     (according to the "common words" dictionary) would become unselectable.
   - When you are deleting a letter, "-" buttons where the result is an invalid
     word would become unselectable.
+- Mode where future rows do not have change cells outlined thicker. (harder)
+- Allow "overriding" WordChain's suggested next move type (including which letter to change).
+
+Not Affecting Game Play
+-----------------------
 - Create a back-end that delivers the daily and practice games
 - Cookies: make secure? Obfuscate? Save in back-end DB?
-- Mode where future rows do not have change cells outlined thicker. (harder)
 - Remove words from dictionary if they have no neighbors.
 - Address slow handler violations:
      [Violation] 'click' handler took XXXms

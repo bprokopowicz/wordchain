@@ -14,7 +14,6 @@ class Metrics {
     static GAME_NUMBER = "gn";
     static GAME_WORDS_PLAYED = "gwp";
     static EVENT_DATA = "data";
-
     static WCID = "wcid";
 
     // abbreviations for word ratings:
@@ -37,7 +36,7 @@ class Metrics {
 
     static record(eventName, eventData=null) {
         const wcid = Persistence.getWCID();
-        let url = `${Metrics.METRICS_URL}?${wcid}&${eventName}`;
+        let url = `${Metrics.METRICS_URL}?${Metrics.WCID}=${wcid}&${eventName}`;
         if (eventData != null) {
             url = url + '&' + Metrics.EVENT_DATA + '='+ eventData;
         }
@@ -55,8 +54,9 @@ class Metrics {
 
     // record the game, given the GameState list of 'word, wasPlayed, rating'
     // recorded as /wcm?gwp&data=(word1:wasPlayed:rating),(word2:wasPlayed:rating),...)
+    // REFACTOR game state
     static recordGameWordsPlayed(gameState) {
-        const eventData = gameState.map(tup => `(${tup[0]}:${this.abbrev.get(tup[1])}:${this.abbrev.get(tup[2])})`);
+        const eventData = gameState.map(tup => `(${tup[0]}:${Metrics.abbrev.get(tup[1])}:${Metrics.abbrev.get(tup[2])})`);
         const eventDataStr = eventData.join();
         return Metrics.record(Metrics.GAME_WORDS_PLAYED, eventDataStr); // return value for testing
     }

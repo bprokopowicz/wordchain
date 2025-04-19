@@ -6,8 +6,6 @@ import { Cookie } from './Cookie.js';
 
 class Persistence {
 
-    // Daily game state
-
     static clearAll() {
         Cookie.clearAllCookies();
     }
@@ -16,6 +14,9 @@ class Persistence {
         Cookie.clearNonDebugCookies();
     }
 
+    // Daily game state
+
+    // REFACTOR game state
     static clearDailyGameState() {
         Cookie.saveJson(Cookie.DAILY_GAME_STATE, []);
     }
@@ -83,6 +84,7 @@ class Persistence {
 
     // Practice game state
 
+    // REFACTOR game state
     static clearPracticeGameState() {
         Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, []);
     }

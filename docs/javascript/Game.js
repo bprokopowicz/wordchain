@@ -112,31 +112,91 @@ class Game extends BaseLogger {
         this.remainingSteps.removeAllSteps();
     }
 
-    // returns a list to display all the steps of the puzzle.
+    // This function returns a list to display all the steps of the puzzle
+    // for ONE MOVE. This function is called every time the user makes a move.
+    //
+    // Some important things to note ...
+    //
+    // Suppose the user is supposed to change a letter because the next
+    // word has the same length. The instructions will be something like the
+    // following, where * indicates the active word (yellow background).
+    //
+    //     played, change*,  change-next,  future,  future
+    //     (change word has ALL the letters in the active word -- no hole ('?');
+    //     that's in the change-next word -- we'll call this kind of change a ChangeNoAdd)
+    //
+    // Let's say after the user selects a letter to play the change move, the
+    // user is supposed to add a letter; the instructions become:
+    //
+    //     played, played,   add*,         future,  future
+    //
+    // In other words change/change-next has become played/add. Remember that an
+    // add move is a two-interaction process, i.e. two calls to this function;
+    // the second one comes after the user clicks a "+" and the instructions become:
+    //
+    //     played, played,   played,       change*,  future
+    //     (change word has "hole" ('?') in the active word -- we'll call this kind
+    //     of change a ChangeAdd.
+    //
+    // In other words, add/future has become played/change ... and there
+    // is no need for a change-next, because in this case (after an add move)
+    // the change word already has the '?'.
     getDisplayInstructions() {
         Const.GL_DEBUG && this.logDebug("played so far: " + this.playedSteps.toStr(), "game");
         Const.GL_DEBUG && this.logDebug("remaining unplayed: " + this.remainingSteps.toStr(), "game");
 
         let instructions = [];
 
-        // all the played words except the last one (the active one)
+        // First add all the played words except the last one (the active one).
         // This includes the start word if other words have been played.
         // But if only the start word is played, it appears as the active word, next.
         for (let i = 0; i < this.playedSteps.numSteps(); i++) {
             instructions.push(this.instructionForPlayedWord(i));
         }
 
-        // now the active word if we're still working
+        // Now add the active word if we're still working.
         if (this.remainingSteps.numSteps() >= 0) {
             instructions.push(this.instructionForLastPlayedWord());
         }
 
-        // now the remaining words, if any, except the target
-        for (let i = 0; i < this.remainingSteps.numSteps(); i++) {
+        // Now we have to handle the next word after the active one
+        // specially if the active one is a change move.
+        let lastDisplayInstruction = instructions[instructions.length - 1],
+            // Is the user's action a change?
+            actionIsChange = lastDisplayInstruction.displayType === Const.CHANGE,
+            // What was the last played word?
+            lastWord = lastDisplayInstruction.word,
+            // By default, the index of the first future step to generate is 0.
+            firstFutureStep = 0;
+
+        // Is this a change move and the next step is NOT the target
+        // (i.e. we have another move to make)?
+        if (actionIsChange && this.remainingSteps.numSteps() > 0) {
+
+            // If the active word has no "hole", then the last move was a ChangeNoAdd.
+            let isChangeNoAdd = ! Game.wordHasHole(lastWord);
+
+            if (isChangeNoAdd) {
+                // Add a change-next instruction. Note that we still have this word with
+                // no hole at the beginning of our remainingSteps list, so we'll need to
+                // skip it.
+                instructions.push(this.instructionForChangeNextWord(lastDisplayInstruction.changePosition));
+            }
+            // Else we have a ChangeAdd -- in this case we have put the word in playedList
+            // (it's the one we processed previously, whose instruction we now have in
+            // lastDisplayInstrucction) *and* it's still the first one in the remainingSteps
+            // list, which we have to skip because we've already handled it.
+
+            // We've handled the first word on remainingSteps already, so start at 1.
+            firstFutureStep = 1;
+        }
+
+        // Now add instruction for the remaining (future) words, if any, except the target
+        for (let i = firstFutureStep; i < this.remainingSteps.numSteps(); i++) {
             instructions.push(this.instructionForFutureWord(i));
         }
 
-        // Now the target
+        // Finally, add an instruction for the target.
         instructions.push(this.instructionForTargetWord());
 
         Const.GL_DEBUG && this.logDebug("display instructions: ", instructions, "game");
@@ -149,9 +209,28 @@ class Game extends BaseLogger {
         return new DisplayInstruction(solutionStep.word, Const.PLAYED, changePosition, solutionStep.moveRating);
     }
 
+    instructionForChangeNextWord(changePosition) {
+        // we show next word after a change with the letters visible
+        // exept the changing letter.
+        const changeNextWord = this.remainingSteps.getNthWord(0),
+              nextFutureWord = this.remainingSteps.getNthWord(1),
+              moveRating = Const.OK,
+              index = changePosition - 1,
+              changeWordWithHole = changeNextWord.substring(0, index) + '?' + changeNextWord.substring(index + 1);
+
+        let displayInstruction = this.displayInstructionForPlayingFromWordToWord(changeNextWord, nextFutureWord, moveRating);
+
+        // This is more than a little kludgey ... GameDisplay needs to display
+        // the Change Next instruction word with the hole, but it needs the
+        // complete word for persistence. So we're going to add a field,
+        // wordWithHole so we can achieve this.
+        displayInstruction.wordWithHole = changeWordWithHole;
+        displayInstruction.displayType = Const.CHANGE_NEXT;
+        return displayInstruction;
+    }
+
     instructionForFutureWord(stepIndex) {
         // we show hints in the future words that require a single letter-change to the next word
-        // the step index needs to be adjusted to account for the unplayed steps
         const futureWord = this.remainingSteps.getNthWord(stepIndex);
         const nextFutureWord = this.remainingSteps.getNthWord(stepIndex+1);
         const moveRating = Const.OK;
@@ -175,7 +254,8 @@ class Game extends BaseLogger {
         } else if (Game.wordHasHole(lastWord)) {
             // after user clicks plus somewhere, the list of played words includes the last word played with a hole
             // in it where the user clicked '+'.  This word with a hole is what we will return to the display to show.
-            // the last word in the played list is the word with a hole
+            // the last word in the played list is the word with a hole. Note that we also still have the word
+            // in the list of remaining words.
             let indexOfHole = Game.locationOfHole(lastWord);
             return new DisplayInstruction(lastWord, Const.CHANGE, indexOfHole+1, moveRating);
         } else {

@@ -157,9 +157,10 @@ class StatsDisplay extends AuxiliaryDisplay {
         //  over:            true if the game is over (user has found target word or too many steps)
         //  numPenalties:    how many more steps and shows it took to solve vs the minimum
         //  moveSummary:     array of arrays containing for each move:
-        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius/unplayed(FUTURE)/revealed(SHOWN_MOVE)
+        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius/unplayed(FUTURE, CHANGE_NEXT)/revealed(SHOWN_MOVE)
         //      length of the move's word
         //  dailyGameNumber: the current game number
+        // REFACTOR game state
         const gameInfo = this.appDisplay.getDailyGameInfo();
         Const.GL_DEBUG && this.logDebug("getShareString() gameInfo=", gameInfo, "daily");
 
@@ -204,10 +205,10 @@ class StatsDisplay extends AuxiliaryDisplay {
         let colorblindMode = this.appDisplay.isColorblindMode();
         for (let [moveRating, wordLength] of wordsBetweenStartAndTarget) {
 
-            // We don't include unplayed words in the share string.  This happens when there are too many wrong moves.
+            // We don't include unplayed words in the share string. This happens when there are too many wrong moves.
             // The moveSummary includes the correct unplayed words leading from the last wrong word to the target, but we
             // don't want to show them.
-            if (moveRating == Const.FUTURE) {
+            if ((moveRating == Const.FUTURE) || (moveRating == Const.CHANGE_NEXT)) {
                 break;
             }
 

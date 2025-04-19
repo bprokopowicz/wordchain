@@ -92,6 +92,19 @@
         If you directly share to Facebook, and the content includes a URL,
         Facebook ONLY sends the URL -- no graphic. Sigh.
         Our many attempts to subvert this behavior failed miserably.
+        So instead, WordChain copies the graphic and URL to yoru clipboard,
+        and from there you must paste it in an email, text message,
+        or the app where you want to share it.
+        </p>
+
+        <h2>What time does the daily game change?</h2>
+        <p>
+        Midnight in your local timezone.
+        </p>
+
+        <h2>I've used up all my practice games; when do I get more?</h2>
+        <p>
+        Midnight in your local timezone.
         </p>
 
         <h2>Sometimes I make a move that I don't mean to; can I undo it?</h2>
@@ -130,11 +143,29 @@
         <h2>I want to pick a next word; how can I make a change that WordChain isn't suggesting?</h2>
         <p>
         You can't.
-        WordChain is always aware of the shortest path to the target (using the common dictionary)
-        and it only allows you to play the same kind of move
-        that gets you to the next word on the shortest path.
-        However, there is usually more than one move you can
+        WordChain is always aware of a shortest sequence of moves to the target (using the common dictionary).
+        When there are multiple such paths, WordChain picks one,
+        and it only allows you to play the type of move
+        that gets you to the next word on <b>that selected path</b>.
+        Note that even with the type of move WordChain requires,
+        there is usually more than one move you can
         make and some of them will cause the solution to get longer.
+        </p>
+
+        <h2>I've thought of a solution that has the same number of steps
+        or fewer than displayed; why won't WordChain let me play it?</h2>
+        <p>
+        WordChain has a solution with the number of steps shown,
+        and that solution determines the type of next move you are allowed to make.
+        If your solution requires a different next move (e.g. changing a different letter
+        or adding instead of deleting a letter), WordChain will not let you play it.
+        </p>
+        <p>
+        Your solution might include an advanced word; WordChain uses <b>only the common dictionary</b>
+        to construct a shortest path solution, which determines the next type of move it suggests.
+        Because of this, you might even have thought of a solution that involves a Genius Move that
+        would result in a shorter solution than WordChain's, but you may not be able to play it.
+        (See also the previous question, which is related.)
         </p>
 
         <!--
@@ -182,6 +213,7 @@
         the outline of the letter that should be changed is thicker;
         this provides a further solving hint.
 
+        <!--
         <h2>Why does the Share button use the clipboard?</h2>
         <p>
         If you're using Chrome, you can enable the browser's web share feature that will let you send by text, email, etc.
@@ -189,6 +221,7 @@
         the web-share feature: <p>chrome://flags/#web-share</p>
         <p>
         In the Firefox browser, there is no similar setting.
+        -->
 
         <h2>What led you to create this game?</h2>
         <p>

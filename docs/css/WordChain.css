@@ -133,9 +133,9 @@
 ** Sizing constants.
 */
 :root {
-    --cell-size: 25px;
+    --cell-size: 24px;
     --action-cell-size: 15px;
-    --cell-margin: 4px;
+    --cell-margin: 3px;
     --picker-font-size: 2rem;
 }
 
@@ -186,7 +186,7 @@ hr {
     background: var(--primary-bg);
     /*
     ** If we have height: 100% here, the header is only sticky to a point in
-    ** landscape mode -- it seams to cause root-dive to have a fixed height
+    ** landscape mode -- it seams to cause root-div to have a fixed height
     ** that is shorter than its contents! This causes scrolling to be funky,
     ** but only in landscape mode. Go figure.
     */
@@ -228,11 +228,15 @@ hr {
     ** far as possible cuts off the top row(s) of cells. If we have both settings, that messes up the
     ** display and the picker is to the right of the game cells, even with the "break div".
     ** So we shouldn't change these settings because the scrolling works just right now!
+    **
+    ** Also, setting width to anything greater than 97% results in a bottom scrollbar (despite
+    ** hiding it) and the ability (on iPhone, at least) to move the content horizontally,
+    ** which is really annoying.
     */
     flex-wrap: wrap;
     justify-content: center;
-    width: 100%;
-    padding-left: 15px;
+    padding-left: 10px;
+    width: 97%;
 }
 
 /* This holds daily/practice-game-div -- these are hidden/shown when the Practic/Daily button is clicked. */
