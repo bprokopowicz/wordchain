@@ -1569,7 +1569,7 @@ class Test extends BaseLogger {
         this.testName = "FinishGameTestWithMetrics";
         const myWCID = Persistence.getWCID();
         this.logDebug("WCID:", myWCID, "test");
-        const pref = `/docs/resources/wcm?wcid=${myWCID}`;
+        const pref = `/docs/resources/wcm.html?wcid=${myWCID}`;
         const expectedStartedMetric          = `${pref}&gs`;
         const expectedFinishedMetric         = `${pref}&gf`;
         const expectedStartWordsPlayedMetric = `${pref}&gwp&data=(SHORT:1:ok),(SHOOT:0:ok),(HOOT:0:ok),(BOOT:0:ok),(BOOR:0:ok),(POOR:0:ok)`;
