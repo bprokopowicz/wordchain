@@ -27,6 +27,7 @@ export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
 export const EMAIL_URL         = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
 export const FAQ_URL           = "/FAQ.html";
 export const HELP_VIDEO_URL    = "https://www.youtube.com/watch?v=FhxMQZoRsKI";
+export const ANALYTICS_URL     = "TBD";
 
 // Our very own copyright!
 export const COPYRIGHT = "Copyright \u{00A9} 2025 WordChainFun"

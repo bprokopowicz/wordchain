@@ -2,7 +2,6 @@ import { BaseLogger } from './BaseLogger.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { Game } from './Game.js';
 import { Picker } from './Picker.js';
-import { Metrics } from './Metrics.js';
 import * as Const from './Const.js';
 
 import {
