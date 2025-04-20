@@ -30,7 +30,7 @@ class Metrics {
     ]);
 
     // a dummy file that is retrieved from the current server
-    static METRICS_URL = "/docs/resources/wcm"; 
+    static METRICS_URL = "/docs/resources/wcm.html"; 
 
     // an event-recording url looks like /docs/resources/wcm?wcid=<nnn>&<event>[&data=<datastr>]
 
