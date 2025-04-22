@@ -46,7 +46,7 @@ export const PRACTICE_START_WORDS          = [
     "SNOW", "WRITE", "SONG", "FISH", "WASH", "SINK", "STOPS", "SHOPS",
     "THINK", "PASTES", "BOWLS", "ASP", "CAT", "GAME", "SAND", "POKE",
     "PLANET", "ROPED", "SHINE", "TOAST", "PIG", "DREAMS", "STAIN", "HARK",
-    "FLAME", "RAKE"];
+    "FLAME", "RAKE", "RICE", "LAKE", "MALT"];
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
@@ -257,10 +257,34 @@ export const DAILY_GAMES = [
       ['soft', 'create'],
       ['solid', 'groovy'],
       ['nearby', 'grave'], //70
+      ['tin', 'earth'],
       ['smoky', 'aliens'],
       ['warm', 'lather'],
       ['least', 'heroic'],
       ['fine', 'sprawl'],
       ['pray', 'harder'],
       ['cream', 'heater'],
+      ['rice', 'clumps'],
+      ['thin', 'guests'],
+      ['cope', 'inner'], //80
+      ['closet', 'drums'],
+      ['block', 'emails'],
+      ['host', 'early'],
+      ['rain', 'ballet'],
+      ['biter', 'strong'],
+      ['link', 'erased'],
+      ['car', 'older'],
+      ['socks', 'flex'],
+      ['nose', 'placed'],
+      ['hot', 'ashes'], // 90
+      ['case', 'repeat'],
+      ['web', 'media'],
+      ['lake', 'beasts'],
+      ['soft', 'brains'],
+      ['fork', 'bangle'],
+      ['sharp', 'zinger'],
+      ['malt', 'waffle'],
+      ['hand', 'brooms'],
+      ['clay', 'houses'],
+      ['help', 'caller'], //100
 ];
