@@ -317,6 +317,7 @@ class Solution extends BaseLogger {
         let reverseOptionsFromTarget = dictionary.findOptionsAtWordStep(this.getTarget(), this.getPenultimateWord());
         this.nChoicesFromTarget = reverseOptionsFromTarget.size;
         Const.GL_DEBUG && Solver.logger.logDebug("easiest step has ", this.nChoicesEasiestStep, " choices.", "solver");
+        Const.GL_DEBUG && Solver.logger.logDebug("last step reversed has ", this.nChoicesFromTarget, " choices.", "solver");
     }
 
     copy() {

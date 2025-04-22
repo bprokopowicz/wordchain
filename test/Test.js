@@ -649,6 +649,7 @@ class Test extends BaseLogger {
         this.testDictRemovers();
         this.testDictReplacements();
         this.testDictFull();
+        this.testDictReverseChoices();
         this.testScrabbleDict();
         const endTestTime = Date.now();
         this.logDebug(`dictionary tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
@@ -679,6 +680,12 @@ class Test extends BaseLogger {
             this.hadNoErrors();
     }
 
+    testDictReverseChoices() {
+        this.testName = "DictReverseChoices";
+        let reverseOptionsFromTarget = this.fullDict.findOptionsAtWordStep("lovely", "lovey");
+        this.verify(reverseOptionsFromTarget.size === 100, "Excpected 100 options from lovely to lovey, found", Array.from(reverseOptionsFromTarget).join(",")) &&
+            this.hadNoErrors();
+    }
 
     testDictAdders() {
         this.testName = "DictAdders";
@@ -767,6 +774,7 @@ class Test extends BaseLogger {
         this.testSolverBothDirections();
         this.testSolverSearchNoSolution();
         this.testDifficultyCalcs();
+        this.testReverseLastStepChoics();
         this.testPuzzleFinder();
         const endTestTime = Date.now();
         this.logDebug(`solver tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
@@ -865,6 +873,14 @@ class Test extends BaseLogger {
 
         this.verify(solutionTacoBimbo.hadNoErrors(), `error on 'TACO' to 'BIMBO': ${solutionTacoBimbo.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `foundWords: ${foundWords} is not as expected: ${expectedWords}`) &&
+            this.hadNoErrors();
+    }
+
+    testReverseLastStepChoics() {
+        this.testName = "SolverReverseLastStepChoices";
+        const solution = Solver.solve(this.fullDict, "FACE", "LOVELY");
+        solution.calculateDifficulty(this.fullDict);
+        this.verify(solution.nChoicesFromTarget === 0, "Expected 0 choices from target backwards, found:", solution.nChoicesFromTarget) &&
             this.hadNoErrors();
     }
 
