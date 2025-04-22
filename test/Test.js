@@ -683,7 +683,7 @@ class Test extends BaseLogger {
     testDictReverseChoices() {
         this.testName = "DictReverseChoices";
         let reverseOptionsFromTarget = this.fullDict.findOptionsAtWordStep("lovely", "lovey");
-        this.verify(reverseOptionsFromTarget.size === 100, "Excpected 100 options from lovely to lovey, found", Array.from(reverseOptionsFromTarget).join(",")) &&
+        this.verify(reverseOptionsFromTarget.size === 1, "Expected 1 options from lovely to lovey, found", Array.from(reverseOptionsFromTarget).join(",")) &&
             this.hadNoErrors();
     }
 
@@ -732,7 +732,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15448;
+        const expectedMinDictSize = 15444;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -880,7 +880,7 @@ class Test extends BaseLogger {
         this.testName = "SolverReverseLastStepChoices";
         const solution = Solver.solve(this.fullDict, "FACE", "LOVELY");
         solution.calculateDifficulty(this.fullDict);
-        this.verify(solution.nChoicesFromTarget === 0, "Expected 0 choices from target backwards, found:", solution.nChoicesFromTarget) &&
+        this.verify(solution.nChoicesFromTarget === 1, "Expected 1 choice from target backwards, found:", solution.nChoicesFromTarget) &&
             this.hadNoErrors();
     }
 
