@@ -457,4 +457,23 @@ class Game extends BaseLogger {
     }
 }
 
+class DailyGame extends Game {
+
+    constructor(dict=new WordChainDict()) {
+        super();
+        this.dictionary = dict;
+        this.gameState = DailyGameState.factory(this.dictionary);
+    }
+
+}
+
+class PracticeGame extends Game {
+
+    constructor(dict=new WordChainDict()) {
+        super();
+        this.dictionary = dict;
+        this.gameState = PracticeGameState.factory(this.dictionary);
+    }
+}
+
 export { Game };

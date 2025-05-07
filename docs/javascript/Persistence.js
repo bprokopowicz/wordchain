@@ -29,6 +29,12 @@ class Persistence {
         Cookie.saveJson(Cookie.DAILY_GAME_STATE, gameState);
     }
 
+    static saveDailyGameState2(gameState) {
+        let copyObj = Object.assign({}, gameState);
+        delete copyObj.dictionary;
+        Cookie.saveJson(Cookie.DAILY_GAME_STATE, copyObj);
+    }
+
     static getDailyStatsOrElse(defaultStats) {
         let stats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, defaultStats);
         if ( stats === defaultStats) {

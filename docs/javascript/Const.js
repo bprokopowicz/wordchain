@@ -75,6 +75,7 @@ export const NEW_DAILY_GAME      = "Time for a new Daily game";
 export const WORKING_ON_NEW_GAME = "Working on a new game for you";
 // --- Not shown to user; returned when user makes a move that requires confirmation.
 export const NEEDS_CONFIRMATION  = "Input needs confirmation";
+export const HOLE                = "?";   // inserted into a word when the user adds a space
 
 // If we force the daily game using stored test variables, this will be the game number.
 export const TEST_DAILY_GAME_NUMBER = -1;

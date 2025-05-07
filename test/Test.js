@@ -1,6 +1,7 @@
 import { BaseLogger } from '../docs/javascript/BaseLogger.js';
 import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
+import { GameState, DailyGameState, PracticeGameState } from '../docs/javascript/GameState.js';
 import { Game } from '../docs/javascript/Game.js';
 import { Cookie } from '../docs/javascript/Cookie.js';
 import { Metrics } from '../docs/javascript/Metrics.js';
@@ -140,6 +141,7 @@ class Test extends BaseLogger {
         var runAll          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
             runDict         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
             runSolver       = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSolver",      class: "testButton" }, "Run Solver Tests"),
+            runGameState    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGameState",   class: "testButton" }, "Run Game State Tests"),
             runGame         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",        class: "testButton" }, "Run Game Tests"),
             runApp          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",         class: "testButton" }, "Run App Tests"),
             selector        = this.addAppTestSelector(),
@@ -147,7 +149,7 @@ class Test extends BaseLogger {
             ElementUtilities.addElementTo("p", this.outerDiv);
 
 
-        for (let button of [runAll, runDict, runSolver, runGame, runApp, runSelectedTest]) {
+        for (let button of [runAll, runDict, runSolver, runGameState, runGame, runApp, runSelectedTest]) {
             ElementUtilities.setButtonCallback(button, this, this.runTestsCallback);
         }
 
@@ -163,6 +165,9 @@ class Test extends BaseLogger {
         }
         if (buttonId == "runAll" || buttonId == "runSolver") {
             this.runSolverTests();
+        }
+        if (buttonId == "runAll" || buttonId == "runGameState") {
+            this.runGameStateTests();
         }
         if (buttonId == "runAll" || buttonId == "runGame") {
             this.runGameTests();
@@ -976,6 +981,179 @@ class Test extends BaseLogger {
             this.verify(solution.hasWordOfLength(reqWordLen2), `solution missing word of length ${reqWordLen2}`) &&
             this.verify(solution.difficulty >= minDifficulty, `solution to easy: ${difficulty} is not at least ${minDifficulty}`) &&
             this.verify(solution.nChoicesEasiestStep >= minChoicesPerStep, `solution's easiest step should be >= ${minChoicesPerStep}, not ${solution.nChoicesEasiestStep}`) &&
+            this.hadNoErrors();
+    }
+
+    /*
+    ** Game State tests
+    */
+
+    runGameStateTests() {
+        const startTestTime = Date.now();
+        this.testNewDailyGameState();
+        this.testRecoverUnplayedDailyGameState();
+        this.testDailyGameStateOneWordPlayed();
+        this.testDailyGameStateRecoverOneWordPlayed();
+        this.testDailyGameStateUsingTestVars();
+        this.testDailyGameStateDodoMove();
+        this.testDailyGameStateGeniusMove();
+        this.testDailyGameStateUsingScrabbleWord();
+        const endTestTime = Date.now();
+        this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
+    }
+
+    // utility for comparing daily game states
+    compareDailyGameStates(s1, s2) {
+        let res = 
+            (s1.dailyGameNumber === s2.dailyGameNumber) &&
+            (s1.start === s2.start) &&
+            (s1.target === s2.target) &&
+            (s1.playedWords.length === s2.playedWords.length) &&
+            (s1.unplayedWords.length === s2.unplayedWords.length) &&
+            (s1.playedWordsAsString() === s2.playedWordsAsString()) &&
+            (s1.unplayedWordsAsString() === s2.unplayedWordsAsString()) ;
+        if (!res) {
+            this.logDebug("daily game states don't match:", s1, s2, "test");
+        }
+        return res;
+    }
+
+    testNewDailyGameState() {
+        this.testName = "GameStateNewDailyGameState";
+        Persistence.clearAllNonDebug();
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
+        let dgs = DailyGameState.factory(this.fullDict);
+        // SHOOT, SHORT,SHOOT,HOOT,BOOT,BOOR, POOR
+        // SHOOT is already played.
+        // POOR is NOT INCLUDED in the unplayed list
+
+        // new game is not recovered and should be unplayed
+        this.verify(dgs.dailyGameNumber == Test.TEST_EPOCH_DAYS_AGO, "expected game number", Test.TEST_EPOCH_DAYS_AGO,
+                "got", dgs.dailyGameNumber) &&
+                this.verify(dgs.start == "short", "expected start word short, got", dgs.start) && 
+                this.verify(dgs.target == "poor", "expected target word poor, got", dgs.target) && 
+                this.verify(dgs.playedWords.length == 1, "expected one played word, found", dgs.playedWords) &&
+                this.verify(dgs.unplayedWords.length == 5, "expected 5 unplayed words, found", dgs.unplayedWords) &&
+                this.hadNoErrors();
+    }
+
+    testRecoverUnplayedDailyGameState() {
+        this.testName = "GameStateRecoverUnplayedDailyGameState";
+        Persistence.clearAllNonDebug();
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
+        let dgs1 = DailyGameState.factory(this.fullDict);
+        // this second DailyGameState should be recovered, not built from scratch
+        let dgs2 = DailyGameState.factory(this.fullDict);
+        this.verify(this.compareDailyGameStates(dgs1, dgs2), "states don't match") &&
+            this.hadNoErrors();
+    }
+
+    testDailyGameStateOneWordPlayed() {
+        this.testName = "DailyGameStateOneWordPlayed";
+        Persistence.clearAllNonDebug();
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
+
+        // create a new game from scratch.
+        let dgs = DailyGameState.factory(this.fullDict);
+
+        // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
+        dgs.addWord('SHOOT'); 
+        const expUnplayedWords="SHOOT,HOOT,BOOT,BOOR";
+        this.verify(dgs.playedWords.length == 2, "expected 2 played words, found", dgs.playedWords) &&
+            this.verify(dgs.unplayedWords.length == 4, "expected 4 unplayed words, found", dgs.unplayedWords) &&
+            this.verify(dgs.unplayedWords.join(",") == expUnplayedWords, "expected unplayed words", expUnplayedWords,
+                    "found", dgs.unplayedWords.join(",")) &&
+            this.verify(dgs.playedWords[1].rating == Const.OK,
+                    "expected", Const.OK, "for playedWords[1].rating, got:", dgs.playedWords[1].rating) &&
+            this.hadNoErrors();
+    }
+
+    testDailyGameStateRecoverOneWordPlayed() {
+        this.testName = "DailyGameStateRecoverOneWordUnplayed";
+        Persistence.clearAllNonDebug();
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
+
+        // create a new game from scratch.
+        let dgs = DailyGameState.factory(this.fullDict);
+
+        // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
+        dgs.addWord('SHOOT'); 
+        const expUnplayedWords="SHOOT,HOOT,BOOT,BOOR";
+        this.verify(dgs.playedWords.length == 2, "expected 2 played words, found", dgs.playedWords) &&
+            this.verify(dgs.unplayedWords.length == 4, "expected 4 unplayed words, found", dgs.unplayedWords) &&
+            this.verify(dgs.unplayedWords.join(",") == expUnplayedWords, "expected unplayed words", expUnplayedWords,
+                    "found", dgs.unplayedWords.join(",")) &&
+            this.hadNoErrors();
+    }
+
+    testDailyGameStateUsingTestVars() {
+        this.testName = "DailyGameStateUsingTestVars";
+        Persistence.clearAllNonDebug();
+
+        // shortest solution is PLANE,PANE,PANED 
+        Persistence.saveTestDailyGameWords("PLANE", "PANED");
+        let dgs1 = DailyGameState.factory(this.fullDict);
+
+        // Now, if we recover the DailyGameState with TEST_DAILY_GAME_NUMBER, the new test vars should be ignored...
+        Persistence.saveTestDailyGameWords("JUNKY", "JUNK");
+        let dgs2 = DailyGameState.factory(this.fullDict);
+
+        // game state should use test words and test game number
+        this.verify(dgs1.start == "PLANE", "expected start: PLANE, found:", dgs1.start) &&
+            this.verify(dgs1.target == "PANED", "expected target: PANED, found:", dgs1.target) &&
+            this.verify(dgs1.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER, "expected gameNumber:", Const.TEST_DAILY_GAME_NUMBER,
+                    "found:", dgs1.dailyGameNumber) &&
+            this.verify(dgs2.start == "PLANE", "expected start: PLANE, found:", dgs2.start) &&
+            this.verify(dgs2.target == "PANED", "expected target: PANED, found:", dgs2.target) &&
+            this.hadNoErrors();
+    }
+
+    testDailyGameStateDodoMove() {
+        this.testName = "DailyGameStateDodoMove";
+        Persistence.clearAllNonDebug();
+        // shortest solution is PLANE,PANE,PANED but dodo move is PLANE,PLAN,PAN,PANE,PANED
+        Persistence.saveTestDailyGameWords("PLANE", "PANED");
+        let dgs = DailyGameState.factory(this.fullDict);
+        dgs.addWord("PLAN"); // DODO move
+        this.verify(dgs.start == "PLANE", "expected start: PLANE, found:", dgs.start) &&
+            this.verify(dgs.target == "PANED", "expected target: PANED, found:", dgs.target) &&
+            this.verify(dgs.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER, "expected gameNumber:", Const.TEST_DAILY_GAME_NUMBER,
+                    "found:", dgs.dailyGameNumber) &&
+            this.verify(dgs.playedWords[1].rating == Const.DODO_MOVE,
+                    "expected", Const.DODO_MOVE, "for playedWords[1].rating, got:", dgs.playedWords[1].rating) &&
+            this.hadNoErrors();
+
+    }
+
+    testDailyGameStateGeniusMove() {
+        this.testName = "DailyGameStateGeniusMove";
+        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
+        Persistence.clearAllNonDebug();
+
+        // shortest solution is SCAD,CAD,CAT,SAT,SAG but genius solution is SCAD,SCAG,SAG
+        Persistence.saveTestDailyGameWords("SCAD", "SAG");
+        let dgs = DailyGameState.factory(smallDict);
+
+        dgs.addWord("SCAG"); // SCAD to SCAG uses scrabble word
+        dgs.addWord("SAG"); // SCAG to SAG.
+        console.log(dgs);
+        this.verify(dgs.playedWords[1].rating == Const.GENIUS_MOVE, "expected playedWords[1].rating:", Const.GENIUS_MOVE, "got:",
+                dgs.playedWords[1].rating) &&
+        this.verify(dgs.playedWords[2].rating == Const.OK, "expected playedWords[2].rating:", Const.OK, "got:",
+                dgs.playedWords[1].rating) &&
+            this.hadNoErrors();
+    }
+
+    testDailyGameStateUsingScrabbleWord() {
+        this.testName = "DailyGameStateScrabbleWord";
+        Persistence.clearAllNonDebug();
+        const smallDict = new WordChainDict(["BAD", "BAT", "CAT", "MAR", "CAR"]);
+        Persistence.saveTestDailyGameWords("BAD", "CAR");
+        // shortest solution is BAD,BAT,CAT,CAR  alt using scrabble: BAD,MAD,MAR,CAR  MAD is the genius word
+        let dgs = DailyGameState.factory(smallDict);
+        dgs.addWord("MAD"); // BAD to MAD is a scrabble word here, but not a genius move (same length solution)
+        this.verify (dgs.playedWords[1].rating === Const.SCRABBLE_WORD, "BAD->MAD should return", Const.SCRABBLE_WORD, "got",
+                dgs.playedWords[1].rating) &&
             this.hadNoErrors();
     }
 
