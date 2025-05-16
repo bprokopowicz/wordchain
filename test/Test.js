@@ -2,7 +2,7 @@ import { BaseLogger } from '../docs/javascript/BaseLogger.js';
 import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascript/WordChainDict.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { GameState, DailyGameState, PracticeGameState } from '../docs/javascript/GameState.js';
-import { Game } from '../docs/javascript/Game.js';
+import { Game, DailyGame, PracticeGame } from '../docs/javascript/Game.js';
 import { Cookie } from '../docs/javascript/Cookie.js';
 import { Metrics } from '../docs/javascript/Metrics.js';
 import { Persistence } from '../docs/javascript/Persistence.js';
@@ -70,7 +70,6 @@ class Test extends BaseLogger {
         var scripts = document.getElementsByTagName('script');
         var index = scripts.length - 1;
         this.scriptObj = scripts[index];
-        console.log("scriptObj: ", this.scriptObj, "scriptObj.dataset: ", this.scriptObj.dataset);
         const bundledArg = this.scriptObj.dataset.bundled;
         this.isBundled = (bundledArg === "true");
         this.testName = "NOT SET";
@@ -79,7 +78,7 @@ class Test extends BaseLogger {
         this.fullDict = new WordChainDict(globalWordList);
         this.scrabbleDict = new WordChainDict(scrabbleWordList);
         this.messages = [];
-        console.log("The Test singleton: ", this);
+        this.logDebug("The Test singleton: ", this, "test");
     }
 
     static singleton() {
@@ -305,9 +304,10 @@ class Test extends BaseLogger {
 
     runAppTest(testFunc) {
         // clear cookies and reset the window with a known daily puzzle and a hard-coded practice puzzle.
+        // TODO - need to test a practice puzzle without test words
         Persistence.clearAllNonDebug();
-        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
-        Persistence.saveTestPracticeGameWords("TEST", "PILOT");
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO); // daily game is SHOOT ... POOR by default
+        Persistence.saveTestPracticeGameWords("TEST", "PILOT");     // practice game is TEST ... PILOT by default
         this.resetTheTestAppWindow();
         this.runFunc(testFunc);
     }
@@ -542,14 +542,14 @@ class Test extends BaseLogger {
 
     finishTheCurrentGame() {
         const game = this.gameDisplay.game;
-        let prevWord = game.playedSteps.getLastWord();
-        const nextWords = game.remainingSteps.getSolutionWords();;
+        let prevWord = game.gameState.lastPlayedWord();
+        const nextWords = game.getUnplayedWords();
         this.logDebug("finishTheCurrentGame() from ", prevWord, "through", nextWords, "test");
         // play from the last played word to the first remaining word.
         for (let nextWord of nextWords) {
             const transformation = Solver.getTransformationStep(prevWord, nextWord);
             if (transformation == null) {
-                console.log("ERROR: no single-step from ", lastPlayedWord, "to", nextWord);
+                console.log("ERROR: no single-step from ", prevWord, "to", nextWord);
                 return false;
             }
             this.playTransformation(transformation);
@@ -568,17 +568,27 @@ class Test extends BaseLogger {
         }
     }
 
-    // compares the current stats cookie AND stats screen content with expected and calculated values.
+    // compares the persisted stats AND stats screen content with expected and calculated values.
+    // TODO - stats screen
     // Also, asserts that gamesStarted >= gamesWon+gamesLost
 
     static statsContainer = null;
 
-    verifyStats(expDailyStats) {
+    verifyStats(expStatsBlob, expPenaltyHistogram) {
 
         // get the saved stats cookie
-        let savedDailyStats = Persistence.getDailyStatsOrElse(null);
-        this.logDebug("verifyStats() savedDailyStats", savedDailyStats, "test");
+        let savedDailyState = Persistence.getDailyGameState();
+        if (savedDailyState == null) {
+            this.logDebug("no saved DailyGameState", "test");
+            return false;
+        }
+        let savedStatsBlob = savedDailyState.statsBlob;
+        let savedPenaltyHistogram = savedDailyState.penaltyHistogram;
 
+        let testRes = true;
+
+        this.logDebug("verifyStats() savedStatsBlob", savedStatsBlob, "penaltyHistogram", savedPenaltyHistogram, "test");
+/* TODO
         // open the stats window.  This should compute the shareString and start the countdown clock
         const statsDisplay = this.openAndGetTheStatsDisplay();
 
@@ -599,44 +609,47 @@ class Test extends BaseLogger {
         let actDistributionLen = statsDistribution.children.length;
 
         // four calculated text values we expect to find on the stats screen.  They are labels and values for Played, Won, Lost, and Streak
-        let expStartedText = `${expDailyStats.gamesStarted}Started`;
+        let expStartedText = `${.gamesStarted}Started`;
         let actStartedText = statsContainer.children[0].children[0].innerText.trim() + statsContainer.children[0].children[1].innerText.trim();
 
-        let expWonText = `${expDailyStats.gamesWon}Won`;
+        let expWonText = `${expStatsBlob.gamesWon}Won`;
         let actWonText = statsContainer.children[1].children[0].innerText.trim() + statsContainer.children[1].children[1].innerText.trim();
 
-        let expLostText = `${expDailyStats.gamesLost}Lost`;
+        let expLostText = `${expStatsBlob.gamesLost}Lost`;
         let actLostText = statsContainer.children[2].children[0].innerText.trim() + statsContainer.children[2].children[1].innerText.trim();
 
-        let expStreakText = `${expDailyStats.streak}Streak`;
+        let expStreakText = `${expStatsBlob.streak}Streak`;
         let actStreakText = statsContainer.children[3].children[0].innerText.trim() + statsContainer.children[3].children[1].innerText.trim();
 
-        let testRes =
+        testRes =
             this.verify(actContainerLen==expContainerLen, `expected statsContainer.children.length==${expContainerLen}, got ${actContainerLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
             this.verify(actDistributionLen==expDistributionLen, `expected statsDistribution.children.length==${expDistributionLen}, got ${actDistributionLen} THIS IS A TESTING ANOMOLY - unexpected DOM contents`) &&
-            this.verify(savedDailyStats.gamesStarted==expDailyStats.gamesStarted, `expected savedDailyStats.gamesStarted==${expDailyStats.gamesStarted}, got ${savedDailyStats.gamesStarted}`) &&
-            this.verify(savedDailyStats.gamesWon==expDailyStats.gamesWon, `expected savedDailyStats.gamesWon==${expDailyStats.gamesWon}, got ${savedDailyStats.gamesWon}`) &&
-            this.verify(savedDailyStats.gamesLost==expDailyStats.gamesLost, `expected savedDailyStats.gamesLost==${expDailyStats.gamesLost}, got ${savedDailyStats.gamesLost}`) &&
-            this.verify(savedDailyStats.streak==expDailyStats.streak, `expected savedDailyStats.streak==${expDailyStats.streak}, got ${savedDailyStats.streak}`) &&
+            this.verify(savedStatsBlob.gamesStarted==expStatsBlob.gamesStarted, `expected savedStatsBlob.gamesStarted==${expStatsBlob.gamesStarted}, got ${savedStatsBlob.gamesStarted}`) &&
+            this.verify(savedStatsBlob.gamesWon==expStatsBlob.gamesWon, `expected savedStatsBlob.gamesWon==${expStatsBlob.gamesWon}, got ${savedStatsBlob.gamesWon}`) &&
+            this.verify(savedStatsBlob.gamesLost==expStatsBlob.gamesLost, `expected savedStatsBlob.gamesLost==${expStatsBlob.gamesLost}, got ${savedStatsBlob.gamesLost}`) &&
+            this.verify(savedStatsBlob.streak==expStatsBlob.streak, `expected savedStatsBlob.streak==${expStatsBlob.streak}, got ${savedStatsBlob.streak}`) &&
             this.verify(actStartedText==expStartedText, `expected statsContainer.children[0] to have ${expStartedText}, got ${actStartedText}`) &&
             this.verify(actWonText==expWonText, `expected statsContainer.children[1] to have ${expWonText}, got ${actWonText}`) &&
             this.verify(actLostText==expLostText, `expected statsContainer.children[2] to have ${expLostText}, got ${actLostText}`) &&
             this.verify(actStreakText==expStreakText, `expected statsContainer.children[3] to have ${expStreakText}, got ${actStreakText}`) &&
-            this.verify(savedDailyStats.gamesStarted >= savedDailyStats.gamesWon + savedDailyStats.gamesLost, `assertion failed: #started not >= #won+#lost`);
-
+            this.verify(savedStatsBlob.gamesStarted >= savedStatsBlob.gamesWon + savedStatsBlob.gamesLost, `assertion failed: #started not >= #won+#lost`);
+        this.closeTheStatsDisplay();
+*/
         for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_PENALTIES; wrongMoves++) {
-            // check the stats blob
+            // check the penalty histogram 
             testRes = testRes &&
-                this.verify(savedDailyStats[wrongMoves]==expDailyStats[wrongMoves], `expected savedDailyStats.${wrongMoves}==${expDailyStats[wrongMoves]}, got ${savedDailyStats[wrongMoves]}`);
+                this.verify(savedPenaltyHistogram[wrongMoves]==expPenaltyHistogram[wrongMoves],
+                        `expected savedPenaltyHistogram.${wrongMoves}==${expPenaltyHistogram[wrongMoves]}, got ${savedPenaltyHistogram[wrongMoves]}`);
 
+/* TODO
             // check the DOM contents of the stats screen for the distribution of wrong-move counts.
             let actDistributionText = statsDistribution.children[wrongMoves].innerText.trim();
-            let expDistributionText = Const.NUMBERS[wrongMoves] + "\n" +  expDailyStats[wrongMoves]; // on Feb 15, 2025, the new-line character disappeared, at least in chrome.
+            let expDistributionText = Const.NUMBERS[wrongMoves] + "\n" +  expPenaltyHistogram[wrongMoves]; // on Feb 15, 2025, the new-line character disappeared, at least in chrome.
             testRes = testRes &&
                 this.verify(actDistributionText==expDistributionText, `expected statsDistribution.children.${wrongMoves}.innerText=='${expDistributionText}', got '${actDistributionText}'`);
+ */
         }
 
-        this.closeTheStatsDisplay();
         return testRes;
     }
 
@@ -989,58 +1002,139 @@ class Test extends BaseLogger {
     */
 
     runGameStateTests() {
+
+        function prep() {
+            Persistence.clearAllNonDebug();
+            Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
+        }
+
         const startTestTime = Date.now();
-        this.testNewDailyGameState();
-        this.testRecoverUnplayedDailyGameState();
-        this.testDailyGameStateOneWordPlayed();
-        this.testDailyGameStateRecoverOneWordPlayed();
-        this.testDailyGameStateUsingTestVars();
-        this.testDailyGameStateDodoMove();
-        this.testDailyGameStateGeniusMove();
-        this.testDailyGameStateUsingScrabbleWord();
+        prep(); this.testNewPracticeGameState();
+        prep(); this.testRecoverUnplayedPracticeGameState();
+        prep(); this.testPracticeGameStateOneWordPlayed();
+        prep(); this.testNewDailyGameState();
+        prep(); this.testRecoverUnplayedDailyGameState();
+        prep(); this.testDailyGameStateOneWordPlayed();
+        prep(); this.testDailyGameStateRecoverOneWordPlayed();
+        prep(); this.testDailyGameStateUsingTestVars();
+        prep(); this.testDailyGameStateDodoMove();
+        prep(); this.testDailyGameStateGeniusMove();
+        prep(); this.testDailyGameStateUsingScrabbleWord();
+        // initialize every Daily game defined -- takes a long time!
+        // this.testGameStateSolveAllDailyGames();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
 
-    // utility for comparing daily game states
+    // utilities for comparing game states
     compareDailyGameStates(s1, s2) {
+        // TODO add statsBlob when needed
+        return (s1.dailyGameNumber === s2.dailyGameNumber) && this.compareGameStates(s1, s2);
+    }
+
+    comparePracticeGameStates(s1, s2) {
+        // TODO add statsBlob when needed
+        return (s1.gamesRemaining === s2.gamesRemaining) && this.compareGameStates(s1, s2);
+    }
+
+    testGameStateSolveAllDailyGames() {
+        this.logDebug("in testGameStateSolveAllDailyGames()", "test");
+        this.testName = "GameStateSolveAllDailyGames";
+        for (let wordPair of Const.DAILY_GAMES) {
+            let [start, target] = wordPair;
+            Persistence.saveTestPracticeGameWords(start, target);
+            let gameState = PracticeGameState.factory(this.fullDict);
+            console.log("gamestate:", gameState);
+            if (! this.verify(gameState != null, `daily puzzle ${start}->${target} failed to initialize!`) ) {
+                console.log("short-circuit return");
+                return; // short-circuit the test if any puzzle fails.
+            }
+        }
+        this.hadNoErrors();
+    }
+
+    compareGameStates(s1, s2) {
         let res = 
-            (s1.dailyGameNumber === s2.dailyGameNumber) &&
             (s1.start === s2.start) &&
             (s1.target === s2.target) &&
-            (s1.playedWords.length === s2.playedWords.length) &&
+            (s1.ratedMoves.length === s2.ratedMoves.length) &&
             (s1.unplayedWords.length === s2.unplayedWords.length) &&
-            (s1.playedWordsAsString() === s2.playedWordsAsString()) &&
-            (s1.unplayedWordsAsString() === s2.unplayedWordsAsString()) ;
+            (s1.getPlayedWordsAsString() === s2.getPlayedWordsAsString()) &&
+            (s1.getUnplayedWordsAsString() === s2.getUnplayedWordsAsString()) ;
         if (!res) {
-            this.logDebug("daily game states don't match:", s1, s2, "test");
+            this.logDebug("game states don't match:", s1, s2, "test");
         }
         return res;
     }
 
+    testNewPracticeGameState() {
+        this.testName = "GameStateNewPracticeGameState";
+        let pgs = PracticeGameState.factory(this.fullDict);
+
+        this.verify(pgs.start.length > 0, "missing start word") &&
+            this.verify(pgs.target.length > 0, "missing target word") &&
+            this.verify((pgs.initialSolution.length > 5) && (pgs.initialSolution.length < 10)) &&
+            this.verify(pgs.getPlayedWord(0) === pgs.start, "first played word should be target:", pgs.target,
+                    "found:", pgs.getPlayedWord(0)) &&
+            this.verify((pgs.ratedMoves.length + pgs.unplayedWords.length === pgs.initialSolution.length),
+                    "played:", pgs.getPlayedWordList(), "unplayed", pgs.getUnplayedWordsAsString(),
+                    "solution:", pgs.initialSolution.join(",")) &&
+            this.verify(pgs.gamesRemaining == Const.PRACTICE_GAMES_PER_DAY, "expected",
+                    Const.PRACTICE_GAMES_PER_DAY, "found", pgs.gamesRemaining, "games remaining") &&
+            this.hadNoErrors();
+    }
+
+    testRecoverUnplayedPracticeGameState() {
+        this.testName = "GameStateRecoverUnplayedPracticeGameState";
+        let pgs1 = PracticeGameState.factory(this.fullDict);
+        // this second PracticeGameState should be recovered, not built from scratch
+        let pgs2 = PracticeGameState.factory(this.fullDict);
+        this.verify(this.comparePracticeGameStates(pgs1, pgs2), "states don't match") &&
+            this.hadNoErrors();
+    }
+
+    testPracticeGameStateOneWordPlayed() {
+        this.testName = "PracticeGameStateOneWordPlayed";
+        Persistence.saveTestPracticeGameWords("SHORT", "POOR");
+
+        // create a new game from scratch.
+        let pgs = PracticeGameState.factory(this.fullDict);
+
+        // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
+        const res = pgs.addWord('SHOOT'); 
+        const expUnplayedWords = "HOOT,BOOT,BOOR,POOR";
+        this.verify(res == Const.OK, "after addWord, expected", Const.OK, "found", res) &&
+            this.verify(pgs.ratedMoves.length == 2, "expected 2 played words, found", pgs.ratedMoves) &&
+            this.verify(pgs.getUnplayedWordsAsString() == expUnplayedWords, "expected unplayed words", expUnplayedWords,
+                    "found", pgs.getUnplayedWordsAsString()) &&
+            this.verify(pgs.ratedMoves[1].rating == Const.OK,
+                    "expected", Const.OK, "for ratedMoves[1].rating, got:", pgs.ratedMoves[1].rating) &&
+            this.hadNoErrors();
+    }
+
+
+
     testNewDailyGameState() {
         this.testName = "GameStateNewDailyGameState";
-        Persistence.clearAllNonDebug();
-        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
         let dgs = DailyGameState.factory(this.fullDict);
-        // SHOOT, SHORT,SHOOT,HOOT,BOOT,BOOR, POOR
+        // SHOOT,SHORT,SHOOT,HOOT,BOOT,BOOR, POOR
         // SHOOT is already played.
         // POOR is NOT INCLUDED in the unplayed list
 
         // new game is not recovered and should be unplayed
+        const expUnplayedWords = "SHOOT,HOOT,BOOT,BOOR,POOR";
         this.verify(dgs.dailyGameNumber == Test.TEST_EPOCH_DAYS_AGO, "expected game number", Test.TEST_EPOCH_DAYS_AGO,
                 "got", dgs.dailyGameNumber) &&
-                this.verify(dgs.start == "short", "expected start word short, got", dgs.start) && 
-                this.verify(dgs.target == "poor", "expected target word poor, got", dgs.target) && 
-                this.verify(dgs.playedWords.length == 1, "expected one played word, found", dgs.playedWords) &&
-                this.verify(dgs.unplayedWords.length == 5, "expected 5 unplayed words, found", dgs.unplayedWords) &&
+                this.verify(dgs.start == "SHORT", "expected start word SHORT, got", dgs.start) && 
+                this.verify(dgs.target == "POOR", "expected target word POOR, got", dgs.target) && 
+                this.verify(dgs.ratedMoves.length == 1, "expected one played word, found", dgs.ratedMoves) &&
+                this.verify(dgs.getUnplayedWordsAsString() == expUnplayedWords, "expected unplayed words", expUnplayedWords,
+                        "found", dgs.getUnplayedWordsAsString()) &&
                 this.hadNoErrors();
     }
 
     testRecoverUnplayedDailyGameState() {
         this.testName = "GameStateRecoverUnplayedDailyGameState";
-        Persistence.clearAllNonDebug();
-        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
         let dgs1 = DailyGameState.factory(this.fullDict);
         // this second DailyGameState should be recovered, not built from scratch
         let dgs2 = DailyGameState.factory(this.fullDict);
@@ -1050,45 +1144,41 @@ class Test extends BaseLogger {
 
     testDailyGameStateOneWordPlayed() {
         this.testName = "DailyGameStateOneWordPlayed";
-        Persistence.clearAllNonDebug();
-        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
 
         // create a new game from scratch.
         let dgs = DailyGameState.factory(this.fullDict);
 
         // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
-        dgs.addWord('SHOOT'); 
-        const expUnplayedWords="SHOOT,HOOT,BOOT,BOOR";
-        this.verify(dgs.playedWords.length == 2, "expected 2 played words, found", dgs.playedWords) &&
-            this.verify(dgs.unplayedWords.length == 4, "expected 4 unplayed words, found", dgs.unplayedWords) &&
-            this.verify(dgs.unplayedWords.join(",") == expUnplayedWords, "expected unplayed words", expUnplayedWords,
-                    "found", dgs.unplayedWords.join(",")) &&
-            this.verify(dgs.playedWords[1].rating == Const.OK,
-                    "expected", Const.OK, "for playedWords[1].rating, got:", dgs.playedWords[1].rating) &&
+        const res = dgs.addWord('SHOOT'); 
+        const expUnplayedWords = "HOOT,BOOT,BOOR,POOR";
+        this.verify(res == Const.OK, "after addWord, expected", Const.OK, "found", res) &&
+            this.verify(dgs.ratedMoves.length == 2, "expected 2 played words, found", dgs.ratedMoves) &&
+            this.verify(dgs.getUnplayedWordsAsString() == expUnplayedWords, "expected unplayed words", expUnplayedWords,
+                    "found", dgs.getUnplayedWordsAsString()) &&
+            this.verify(dgs.ratedMoves[1].rating == Const.OK,
+                    "expected", Const.OK, "for ratedMoves[1].rating, got:", dgs.ratedMoves[1].rating) &&
             this.hadNoErrors();
     }
 
     testDailyGameStateRecoverOneWordPlayed() {
         this.testName = "DailyGameStateRecoverOneWordUnplayed";
-        Persistence.clearAllNonDebug();
-        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
 
         // create a new game from scratch.
         let dgs = DailyGameState.factory(this.fullDict);
 
         // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
-        dgs.addWord('SHOOT'); 
-        const expUnplayedWords="SHOOT,HOOT,BOOT,BOOR";
-        this.verify(dgs.playedWords.length == 2, "expected 2 played words, found", dgs.playedWords) &&
+        const res = dgs.addWord('SHOOT'); 
+        const expUnplayedWords = "HOOT,BOOT,BOOR,POOR";
+        this.verify(res == Const.OK, "after addWord, expected", Const.OK, "found", res) &&
+            this.verify(dgs.ratedMoves.length == 2, "expected 2 played words, found", dgs.ratedMoves) &&
             this.verify(dgs.unplayedWords.length == 4, "expected 4 unplayed words, found", dgs.unplayedWords) &&
-            this.verify(dgs.unplayedWords.join(",") == expUnplayedWords, "expected unplayed words", expUnplayedWords,
-                    "found", dgs.unplayedWords.join(",")) &&
+            this.verify(dgs.getUnplayedWordsAsString() == expUnplayedWords, "expected unplayed words", expUnplayedWords,
+                    "found", dgs.getUnplayedWordsAsString()) &&
             this.hadNoErrors();
     }
 
     testDailyGameStateUsingTestVars() {
         this.testName = "DailyGameStateUsingTestVars";
-        Persistence.clearAllNonDebug();
 
         // shortest solution is PLANE,PANE,PANED 
         Persistence.saveTestDailyGameWords("PLANE", "PANED");
@@ -1110,17 +1200,17 @@ class Test extends BaseLogger {
 
     testDailyGameStateDodoMove() {
         this.testName = "DailyGameStateDodoMove";
-        Persistence.clearAllNonDebug();
         // shortest solution is PLANE,PANE,PANED but dodo move is PLANE,PLAN,PAN,PANE,PANED
         Persistence.saveTestDailyGameWords("PLANE", "PANED");
         let dgs = DailyGameState.factory(this.fullDict);
-        dgs.addWord("PLAN"); // DODO move
-        this.verify(dgs.start == "PLANE", "expected start: PLANE, found:", dgs.start) &&
+        const res = dgs.addWord("PLAN"); // DODO move
+        this.verify(res == Const.DODO_MOVE, "after addWord, expected", Const.DODO_MOVE, "found", res) &&
+            this.verify(dgs.start == "PLANE", "expected start: PLANE, found:", dgs.start) &&
             this.verify(dgs.target == "PANED", "expected target: PANED, found:", dgs.target) &&
             this.verify(dgs.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER, "expected gameNumber:", Const.TEST_DAILY_GAME_NUMBER,
                     "found:", dgs.dailyGameNumber) &&
-            this.verify(dgs.playedWords[1].rating == Const.DODO_MOVE,
-                    "expected", Const.DODO_MOVE, "for playedWords[1].rating, got:", dgs.playedWords[1].rating) &&
+            this.verify(dgs.ratedMoves[1].rating == Const.DODO_MOVE,
+                    "expected", Const.DODO_MOVE, "for ratedMoves[1].rating, got:", dgs.ratedMoves[1].rating) &&
             this.hadNoErrors();
 
     }
@@ -1128,7 +1218,6 @@ class Test extends BaseLogger {
     testDailyGameStateGeniusMove() {
         this.testName = "DailyGameStateGeniusMove";
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
-        Persistence.clearAllNonDebug();
 
         // shortest solution is SCAD,CAD,CAT,SAT,SAG but genius solution is SCAD,SCAG,SAG
         Persistence.saveTestDailyGameWords("SCAD", "SAG");
@@ -1137,23 +1226,22 @@ class Test extends BaseLogger {
         dgs.addWord("SCAG"); // SCAD to SCAG uses scrabble word
         dgs.addWord("SAG"); // SCAG to SAG.
         console.log(dgs);
-        this.verify(dgs.playedWords[1].rating == Const.GENIUS_MOVE, "expected playedWords[1].rating:", Const.GENIUS_MOVE, "got:",
-                dgs.playedWords[1].rating) &&
-        this.verify(dgs.playedWords[2].rating == Const.OK, "expected playedWords[2].rating:", Const.OK, "got:",
-                dgs.playedWords[1].rating) &&
+        this.verify(dgs.ratedMoves[1].rating == Const.GENIUS_MOVE, "expected ratedMoves[1].rating:", Const.GENIUS_MOVE, "got:",
+                dgs.ratedMoves[1].rating) &&
+        this.verify(dgs.ratedMoves[2].rating == Const.OK, "expected ratedMoves[2].rating:", Const.OK, "got:",
+                dgs.ratedMoves[2].rating) &&
             this.hadNoErrors();
     }
 
     testDailyGameStateUsingScrabbleWord() {
         this.testName = "DailyGameStateScrabbleWord";
-        Persistence.clearAllNonDebug();
         const smallDict = new WordChainDict(["BAD", "BAT", "CAT", "MAR", "CAR"]);
         Persistence.saveTestDailyGameWords("BAD", "CAR");
         // shortest solution is BAD,BAT,CAT,CAR  alt using scrabble: BAD,MAD,MAR,CAR  MAD is the genius word
         let dgs = DailyGameState.factory(smallDict);
         dgs.addWord("MAD"); // BAD to MAD is a scrabble word here, but not a genius move (same length solution)
-        this.verify (dgs.playedWords[1].rating === Const.SCRABBLE_WORD, "BAD->MAD should return", Const.SCRABBLE_WORD, "got",
-                dgs.playedWords[1].rating) &&
+        this.verify (dgs.ratedMoves[1].rating === Const.SCRABBLE_WORD, "BAD->MAD should return", Const.SCRABBLE_WORD, "got",
+                dgs.ratedMoves[1].rating) &&
             this.hadNoErrors();
     }
 
@@ -1163,54 +1251,41 @@ class Test extends BaseLogger {
 
     runGameTests() {
         const startTestTime = Date.now();
-        this.testGameCorrectFirstWord();
-        this.testGameDeleteWrongLetter();
-        this.testGameDeleteBadPosition();
-        this.testGameDifferentWordFromInitialSolution();
-        this.testGameCompleteSmallDict();
-        this.testGameCompleteFullDict();
-        this.testGameDisplayInstructions();
-        this.testGameDisplayInstructionsMistakes();
-        this.testGameDisplayInstructionsDifferentPath();
-        this.testGameUsingScrabbleWordMistake();
-        this.testGameUsingScrabbleWordOK();
-        this.testGameUsingGeniusMove();
-        this.testGameUsingDodoMove();
-        this.testGameRequiringWordReplay();
-        this.testGameRequiringScrabbleWordReplay();
-        this.testGameFinish();
-        this.testGameShowTargetMove();
-        this.testGameShowEveryMove();
-        this.testGameFinishAlternatePath();
-        this.testGameLossOnWrongLetterAdded();
-        this.testGameLossOnWrongDelete();
-        this.testGameLossOnWrongLetterChange();
-        // Play every Daily game defined -- takes a long time!
-        //this.testGameSolveAllDailyGames();
+        function prep() {
+            Persistence.clearAllNonDebug();
+        }
+        prep(); this.testGameCorrectFirstWord();
+        prep(); this.testGameDeleteWrongLetter();
+        prep(); this.testGameDeleteBadPosition();
+        prep(); this.testGameDifferentWordFromInitialSolution();
+        prep(); this.testGameDisplayInstructions();
+        prep(); this.testGameDisplayInstructionsMistakes();
+        prep(); this.testGameDisplayInstructionsDifferentPath();
+        prep(); this.testGameUsingScrabbleWordMistake();
+        prep(); this.testGameUsingScrabbleWordOK();
+        prep(); this.testGameUsingGeniusMove();
+        prep(); this.testGameUsingDodoMove();
+        prep(); this.testGameRequiringWordReplay();
+        prep(); this.testGameRequiringScrabbleWordReplay();
+        prep(); this.testGameFinish();
+        prep(); this.testGameShowTargetMove();
+        prep(); this.testGameShowEveryMove();
+        prep(); this.testGameFinishAlternatePath();
+        prep(); this.testGameLossOnWrongLetterAdded();
+        prep(); this.testGameLossOnWrongDelete();
+        prep(); this.testGameLossOnWrongLetterChange();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
-    }
-
-    testGameSolveAllDailyGames() {
-        this.testName = "GameSolveAllDailyGames";
-        for (let wordPair of DailyGameDisplay.GameWords) {
-            let [start, target] = wordPair;
-            const steps = [];
-            const game = new Game(start, target, steps);
-            const solution = game.remainingSteps;
-            if (!this.verify(solution.isSolved(), `daily puzzle ${start}->${target} has no solution!`)) {
-                return; // short-circuit the test if any puzzle fails.
-            }
-        }
-        this.hadNoErrors();
     }
 
     testGameCorrectFirstWord() {
         this.testName = "GameCorrectFirstWord";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const steps = [];
-        const game = new Game("SCAD", "BAT", steps, smallDict);
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+
+        const game = new PracticeGame(smallDict);
 
         const playResult = game.playDelete(1);
         this.verify((playResult === Const.OK), "Word played not OK") &&
@@ -1221,8 +1296,9 @@ class Test extends BaseLogger {
         this.testName = "GameDeleteLetterNotAWord";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const steps = [];
-        const game = new Game("SCAD", "BAT", steps, smallDict);
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(smallDict);
 
         const playResult = game.playDelete(3);
         this.verify((playResult === Const.NOT_A_WORD), "NOT_A_WORD after deleting wrong letter") &&
@@ -1233,8 +1309,9 @@ class Test extends BaseLogger {
         this.testName = "GameDeleteBadPosition";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const steps = [];
-        const game = new Game("SCAD", "BAT", steps, smallDict);
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(smallDict);
 
         const playResult = game.playDelete(6);
         this.verify((playResult === Const.BAD_POSITION), "Delete attempted at bad position") &&
@@ -1246,9 +1323,10 @@ class Test extends BaseLogger {
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAT", "DOG", "SCAD"]);
         const origSolution = Solver.solve(smallDict, "BAD", "CAT");
-        const steps = [];
-        const game = new Game("BAD", "CAT", steps, smallDict);  // BAD BAT CAT
-        const origWord1 = game.remainingSteps.getNthWord(0);
+        let [start, target] = ["BAD", "CAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(smallDict);
+        const origWord1 = game.gameState.getUnplayedWord(0);
 
         if ( !(this.verify((origWord1 === "BAT"), "original solution should have BAT as first word") &&
         // "bade" is not in the original solution
@@ -1259,37 +1337,11 @@ class Test extends BaseLogger {
 
         const playLetterResult = game.playLetter(4, "E");  // BAD BADE (BATE BAT CAT) or (BAD BAT CAT)
         if (!this.verify((playLetterResult === Const.DODO_MOVE), `playLetter(4, E) returns ${playLetterResult}, not DODO_MOVE`)) return;
-        this.logDebug("After playLetter(4,E), game.remainingSteps are:" + game.remainingSteps.toStr(), "test");
-        const newPlayedWord = game.playedSteps.getNthWord(1);
+        this.logDebug("After playLetter(4,E), game.remainingSteps are:" + game.gameState.getUnplayedWordsAsString(), "test");
+        const newPlayedWord = game.gameState.getPlayedWord(1);
         if (!this.verify((newPlayedWord === "BADE"), `Played word 1 should be BADE, not: ${newPlayedWord}`))  return;
-        const newSolutionWord0 = game.remainingSteps.getNthWord(0);
+        const newSolutionWord0 = game.gameState.getUnplayedWord(0);
         this.verify((newSolutionWord0 === "BAD"), `New solution should continue with BAD, not: ${newSolutionWord0}`) &&
-            this.hadNoErrors();
-    }
-
-    testGameCompleteSmallDict() {
-        this.testName = "GameCompleteSmallDict";
-
-        const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const solution = Solver.solve(smallDict, "BAD", "SCAD");
-        const isPlayed = true;
-        const moveRating = Const.OK;
-        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, moveRating]);
-        const game = new Game("BAD", "SCAD", fullSolutionAsTuples, smallDict);
-
-        this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
-            this.hadNoErrors();
-    }
-
-    testGameCompleteFullDict() {
-        this.testName = "GameCompleteFullDict";
-        const solution = Solver.solve(this.fullDict, "bad", "word");
-        const isPlayed = true;
-        const moveRating = Const.OK;
-        const fullSolutionAsTuples = solution.getSolutionSteps().map((step)=>[step.word, isPlayed, moveRating]);
-        const game = new Game("bad", "word", fullSolutionAsTuples, this.fullDict);
-
-        this.verify(game.isOver(), "Game initialized with full solution is not solved") &&
             this.hadNoErrors();
     }
 
@@ -1305,18 +1357,23 @@ class Test extends BaseLogger {
 
     testGameDisplayInstructions() {
         this.testName = "GameDisplayInstructions";
-        const steps = [];
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const game = new Game("SCAD", "BAT", steps, smallDict);
+        const game = new PracticeGame(smallDict);
+
         const initialInstructions = game.getDisplayInstructions();
 
         const playDeleteResult = game.playDelete(1); // SCAD to CAD
+        this.logDebug(this.testName, "delete 1 SCAD->CAD", "test");
         const afterDeleteInstructions = game.getDisplayInstructions();
 
+        this.logDebug(this.testName, "change 1 CAD->BAD", "test");
         const playLetterBResult = game.playLetter(1, "B"); // CAD to BAD
         const afterPlayLetterBInstructions = game.getDisplayInstructions();
 
-        const playLetterTResult = game.playLetter(3, "T"); // CAD to BAD
+        this.logDebug(this.testName, "change 3 BAD->BAT done", "test");
+        const playLetterTResult = game.playLetter(3, "T"); // BAD to BAT
         const afterPlayLetterTInstructions = game.getDisplayInstructions();
 
         this.verify((initialInstructions.length === 4), `Display instructions length should be 4, not ${initialInstructions.length}`) &&
@@ -1344,9 +1401,10 @@ class Test extends BaseLogger {
 
     testGameDisplayInstructionsMistakes() {
         this.testName = "GameDisplayInstructionsMistakes";
-        const steps = [];
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD"]);
-        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
 
         const playDeleteResult = game.playDelete(4); // SCAD to SCA
         const afterDeleteInstructions = game.getDisplayInstructions();
@@ -1355,6 +1413,7 @@ class Test extends BaseLogger {
 
         const cadToCarResult = game.playLetter(3,"R"); // CAD TO CAR
         const cadToCarInstructions = game.getDisplayInstructions(); // SCAD,CAD,CAR,CAT,BAT
+        this.logDebug(this.testName, "after CAD to CAR, display instructions are", cadToCarInstructions, "test");
 
         this.verify((playDeleteResult === Const.NOT_A_WORD), `playDelete(4) expected ${Const.NOT_A_WORD}, got ${playDeleteResult}`) &&
         this.verify((afterDeleteInstructions[0].toStr() === "(delete,word:SCAD)"), `after delete, instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
@@ -1364,17 +1423,18 @@ class Test extends BaseLogger {
         this.verify((cadToCarResult === Const.WRONG_MOVE), `playLetter(3,R) expected ${Const.WRONG_MOVE}, got ${cadToCarResult}`) &&
         this.verify((cadToCarInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing R, instruction[0] is ${cadToCarInstructions[0].toStr()}`) &&
         this.verify((cadToCarInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after playing R, instruction[1] is ${cadToCarInstructions[1].toStr()}`) &&
-        this.verify((cadToCarInstructions[2].toStr() === "(change,word:CAR,changePosition:3)"), `after playing R, instruction[1] is ${cadToCarInstructions[2].toStr()}`) &&
-        this.verify((cadToCarInstructions[3].toStr() === "(change-next,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCarInstructions[3].toStr()}`) &&
+        this.verify((cadToCarInstructions[2].toStr() === "(change,word:CAR,changePosition:3)"), `after playing R, instruction[2] is ${cadToCarInstructions[2].toStr()}`) &&
+        this.verify((cadToCarInstructions[3].toStr() === "(change-next,word:CAT,changePosition:1)"), `after playing R, instruction[3] is ${cadToCarInstructions[3].toStr()}`) &&
         this.verify((cadToCarInstructions[4].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCarInstructions[4].toStr()}`) &&
             this.hadNoErrors();
     }
 
     testGameDisplayInstructionsDifferentPath() {
         this.testName = "GameDisplayInstructionsDifferentPath";
-        const steps = [];
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD"]);
-        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
 
         game.playDelete(1); // SCAD to CAD
 
@@ -1392,10 +1452,11 @@ class Test extends BaseLogger {
     testGameUsingScrabbleWordOK() {
         this.testName = "GameUsingScrabbleWordOK";
         const smallDict = new WordChainDict(["BAD", "BAT", "CAT", "MAR", "CAR"]);
-        const steps = [];
         // shortest solution is BAD,BAT,CAT,CAR  alt using scrabble: BAD,MAD,MAR,CAR  MAD is the genius word
         // or, using the scrabble dictionsary: SCAD,CAD
-        const game = new Game("BAD", "CAR", steps, smallDict);
+        let [start, target] = ["BAD", "CAR"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
         const badToMadResult = game.playLetter(1,"M");
         this.verify (badToMadResult === Const.SCRABBLE_WORD, "BAD->MAD should return", Const.SCRABBLE_WORD, "got", badToMadResult) &&
             this.hadNoErrors();
@@ -1404,8 +1465,9 @@ class Test extends BaseLogger {
     testGameUsingScrabbleWordMistake() {
         this.testName = "GameUsingScrabbleWordMistake";
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
-        const steps = [];
-        const game = new Game("SCAD", "BAT", steps, smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT
 
         const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
         const scagToSagResult = game.playDelete(2); // SCAG to SAG.
@@ -1422,9 +1484,10 @@ class Test extends BaseLogger {
     testGameUsingGeniusMove() {
         this.testName = "GameUsingGeniusMove";
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
-        const steps = [];
-        const game = new Game("SCAD", "SAG", steps, smallDict); // shortest solution is SCAD,CAD,CAT,SAT,SAG
-                                                                // but genius solution is SCAD,SCAG,SAG
+        let [start, target] = ["SCAD", "SAG"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        // shortest solution is SCAD,CAD,CAT,SAT,SAG, but genius solution is SCAD,SCAG,SAG
+        const game = new PracticeGame(smallDict); 
 
         const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
         const scagToSagResult = game.playDelete(2); // SCAG to SAG.
@@ -1436,9 +1499,10 @@ class Test extends BaseLogger {
 
     testGameUsingDodoMove() {
         this.testName = "GameUsingDodoMove";
-        const steps = [];
-        const game = new Game("PLANE", "PANED", steps); // shortest solution is PLANE,PANE,PANED
-                                                        // but dodo move is PLANE,PLAN,PAN,PANE,PANED
+        let [start, target] = ["PLANE", "PANED"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
+        // shortest solution is PLANE,PANE,PANED, but dodo move is PLANE,PLAN,PAN,PANE,PANED
 
         const planeToPlanResult = game.playDelete(5); // PLANE to PLAN; the dodo move
         if (!this.verify((planeToPlanResult === Const.DODO_MOVE), `playDelete(5) expected DODO_MOVE, got ${planeToPlanResult}`)) return;
@@ -1463,8 +1527,9 @@ class Test extends BaseLogger {
 
     testGameRequiringWordReplay() {
         this.testName = "GameRequiringWordReplay";
-        const steps = [];
-        const game = new Game("BLISS", "LEST", steps);
+        let [start, target] = ["BLISS", "LEST"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
         // BLISS,BLIPS (D'OH) should now display as BLISS BLIPS BLISS BLESS LESS LEST (6) not
         // BLISS BLIPS LIPS LAPS LASS LAST LEST (7)
 
@@ -1484,8 +1549,9 @@ class Test extends BaseLogger {
 
     testGameRequiringScrabbleWordReplay() {
         this.testName = "GameRequiringScrabbleWordReplay";
-        const steps = [];
-        const game = new Game("FREE", "SAMPLE", steps);
+        let [start, target] = ["FREE", "SAMPLE"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
         // FREE, FEE, FIE, FILE, MILE, SMILE, SIMILE, SIMPLE, SAMPLE 9 instructions
         // playing FREE FEE FIE FILE SILE(scrabble-only) SIDLE (wrong) should give display instructions:
         // FREE FEE FIE FILE SILE SIDLE SILE            SMILE SIMILE SIMPLE SAMPLE length 11
@@ -1513,8 +1579,9 @@ class Test extends BaseLogger {
         this.testName = "GameFinish";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
-        const steps = [];
-        const game = new Game("SCAD", "BAT", steps, smallDict);
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(smallDict); 
 
         const playResult = game.playDelete(1);
         game.finishGame();
@@ -1534,8 +1601,9 @@ class Test extends BaseLogger {
     testGameShowEveryMove() {
         this.testName = "GameShowEveryMove";
 
-        const steps = [];
-        const game = new Game("SCAD", "BAT", steps, this.fullDict);
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
 
         game.showUnplayedMoves();
 
@@ -1549,8 +1617,9 @@ class Test extends BaseLogger {
     testGameShowTargetMove() {
         this.testName = "GameShowTargetMove";
 
-        const steps = [];
-        const game = new Game("SCAD", "BAT", steps, this.fullDict);
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
         game.playDelete(1);     // SCAD -> CAD
         game.playLetter(1,"B"); // CAD -> BAD
         const showNextMoveResult = game.showNextMove();
@@ -1564,10 +1633,13 @@ class Test extends BaseLogger {
 
 
     testGameFinishAlternatePath() {
+        //TODO - this test fails sometimes after running GameState tests.  Maybe some state is being preserved, like number of practice games, etc.
+        // TODO - clean up Persistence, and change PlayedWord to RatedMove
         this.testName = "GameFinishAlternatePath";
 
-        const steps = [];
-        const game = new Game("LEAKY", "SPOON", steps, this.fullDict);
+        let [start, target] = ["LEAKY", "SPOON"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
         var result;
         result = game.playDelete(5);
         result = game.playLetter(4,"N");
@@ -1590,7 +1662,9 @@ class Test extends BaseLogger {
 
     testGameLossOnWrongLetterChange() {
         this.testName = "GameLossOnWrongLetterChange";
-        const game = new Game("SALTED", "FISH");
+        let [start, target] = ["SALTED", "FISH"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
         let r1 = game.playDelete(3);      // -> SATED
         let r2 = game.playLetter(1, "F"); // -> FATED
         let r3 = game.playDelete(5);      // -> FATE
@@ -1623,7 +1697,9 @@ class Test extends BaseLogger {
 
     testGameLossOnWrongLetterAdded() {
         this.testName = "GameLossOnWrongLetterAdded";
-        const game = new Game("FISH", "SALTED");
+        let [start, target] = ["FISH", "SALTED"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
         let r1 = game.playLetter(4, "T"); // -> FIST
         let r2 = game.playLetter(2, "E"); // -> FEST wrong
         let r3 = game.playLetter(2, "A"); // -> FAST
@@ -1665,10 +1741,11 @@ class Test extends BaseLogger {
                 this.hadNoErrors();
     }
 
-
     testGameLossOnWrongDelete() {
         this.testName = "GameLossOnWrongDelete";
-        const game = new Game("SALTED", "FISH");
+        let [start, target] = ["SALTED", "FISH"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
         game.playDelete(3);      // -> SATED
         game.playLetter(1, "D"); // -> DATED
         game.playDelete(5);      // -> DATE
@@ -1697,7 +1774,6 @@ class Test extends BaseLogger {
 
     getAppTests() {
         return [
-            this.finishGameTestWithMetrics,
             this.multiGameStatsTest,
             this.multiGameMixedResultsStatsTest,
             this.multiIncompleteGameStatsTest,
@@ -1724,6 +1800,8 @@ class Test extends BaseLogger {
 
     runAppTests() {
 
+        // to speed up the app initialization, we pre-define the practice games so that we don't have to search for one.
+        Persistence.saveTestPracticeGameWords("TEST", "PILOT");     // practice game is TEST ... PILOT by default
         let newWindow = this.getNewAppWindow();
         if (!(newWindow && newWindow.localStorage && newWindow.theAppDisplayIsReady)) {
             this.openTheTestAppWindow();
@@ -1757,36 +1835,6 @@ class Test extends BaseLogger {
             this.closeTheTestAppWindow();
             this.showResults();
         }
-    }
-
-    finishGameTestWithMetrics() {
-        this.testName = "FinishGameTestWithMetrics";
-        const myWCID = Persistence.getWCID();
-        this.logDebug("WCID:", myWCID, "test");
-        const pref = `/docs/resources/wcm.html?wcid=${myWCID}`;
-        const expectedStartedMetric          = `${pref}&gs`;
-        const expectedFinishedMetric         = `${pref}&gf`;
-        const expectedStartWordsPlayedMetric = `${pref}&gwp&data=(SHORT:1:ok),(SHOOT:0:ok),(HOOT:0:ok),(BOOT:0:ok),(BOOR:0:ok),(POOR:0:ok)`;
-        const expectedEndWordsPlayedMetric   = `${pref}&gwp&data=(SHORT:1:ok),(SHOOT:1:ok),(HOOT:1:ok),(BOOT:1:ok),(BOOR:1:ok),(POOR:1:ok)`;
-
-        const startedMetric = Metrics.recordGameStarted();
-        let gameState = this.gameDisplay.gameState;
-        this.logDebug("finishGameTestWithMetrics(): gameState: ", this.gameDisplay.gameState, "test");
-        const startWordsPlayedMetric = Metrics.recordGameWordsPlayed(gameState);
-
-        const finished = this.finishTheCurrentGame();
-        const finishedMetric = Metrics.recordGameFinished();
-        gameState = this.gameDisplay.gameState;
-        const endWordsPlayedMetric = Metrics.recordGameWordsPlayed(gameState);
-
-        this.verify(finished, " did not finish the game") &&
-            this.verify(startedMetric == expectedStartedMetric, "expected:", expectedStartedMetric, "got:", startedMetric) &&
-            this.verify(finishedMetric == expectedFinishedMetric, "expected:", expectedFinishedMetric, "got:", finishedMetric) &&
-            this.verify(startWordsPlayedMetric == expectedStartWordsPlayedMetric, "expected:", expectedStartWordsPlayedMetric, "got:", startWordsPlayedMetric) &&
-            this.verify(endWordsPlayedMetric == expectedEndWordsPlayedMetric, "expected:", expectedEndWordsPlayedMetric, "got:", endWordsPlayedMetric) &&
-            this.hadNoErrors();;
-
-        this.logDebug("finishGameTestWithMetrics(): ", this.gameDisplay, "test");
     }
 
     // confirmation is a function of the GameDisplay so to test it we need to be playing a game
@@ -1877,26 +1925,30 @@ class Test extends BaseLogger {
     multiGameStatsTest() {
         this.testName = "MultiGameStats";
         // play the already opened game:
+        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+        let game = this.gameDisplay.game;
+        this.logDebug(this.testName, "using daily game:", game, "test");
         this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
 
         for (let gameCounter = 0; gameCounter <= 1; gameCounter++) {
             // Re-open open the test window, and repeat
             // Don't let the game pick up where it left off, which is a finished game.
             // Don't clear all the cookies because we are accumulating stats data with them across games here.
-            Persistence.saveLastWonDailyGameNumber(Persistence.getDailyGameNumber()-1);
-            Persistence.clearDailyGameNumber();
+            let gameState = game.gameState;
+            gameState.dailyGameNumber -= 1; // make it look like we finished yesterday's game.  Stats will be recovered, but the game will be updated
+            Persistence.saveDailyGameState2(gameState);
+            this.logDebug("Saving daily game state with game number rolled back:", gameState, "test");
+
             this.resetTheTestAppWindow();
+            this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+            game = this.gameDisplay.game;
             this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
         }
 
         // create an expected DailyStats blob
-        let expDailyStats = DailyGameDisplay.NewDailyStatsBlob();
-        expDailyStats.gamesStarted = 3;
-        expDailyStats.gamesWon = 3;
-        expDailyStats.gamesLost = 0;
-        expDailyStats.streak = 3;
-        expDailyStats[0] = 3;  // all 3 games have 0 errors
-        this.verifyStats(expDailyStats) && this.hadNoErrors();
+        let expStatsBlob = { gamesStarted : 3, gamesWon : 3, gamesLost : 0, streak : 3 };  
+        let expPenaltyHistogram = { 0: 3, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        this.verifyStats(expStatsBlob, expPenaltyHistogram) && this.hadNoErrors();
     }
 
 
@@ -2409,7 +2461,7 @@ class Test extends BaseLogger {
     practiceGameTest(confirm=true) {
         this.testName = "PracticeGame";
         if (!confirm) {
-        this.testName = "PracticeGameNoConfirm";
+            this.testName = "PracticeGameNoConfirm";
         }
 
         this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");

@@ -16,118 +16,49 @@ class Persistence {
 
     // Daily game state
 
-    // REFACTOR game state
     static clearDailyGameState() {
         Cookie.saveJson(Cookie.DAILY_GAME_STATE, []);
     }
 
     static getDailyGameState() {
-        return Cookie.getJsonOrElse(Cookie.DAILY_GAME_STATE, []);
+        return Cookie.getJsonOrElse(Cookie.DAILY_GAME_STATE, null);
     }
 
     static saveDailyGameState(gameState) {
         Cookie.saveJson(Cookie.DAILY_GAME_STATE, gameState);
     }
 
+    // we don't persist certain attributes that will be reset / recalculated on recovery
     static saveDailyGameState2(gameState) {
         let copyObj = Object.assign({}, gameState);
         delete copyObj.dictionary;
+        delete copyObj.baseTimestamp;
+        delete copyObj.baseDate;
+        delete copyObj.dateIncrementMs;
         Cookie.saveJson(Cookie.DAILY_GAME_STATE, copyObj);
     }
 
-    static getDailyStatsOrElse(defaultStats) {
-        let stats = Cookie.getJsonOrElse(Cookie.DAILY_STATS, defaultStats);
-        if ( stats === defaultStats) {
-            return stats;
-        }
-        // sanity checking on the recovered stats, in case some are missing (e.g. new version adds a stat)
-        if (!stats.gamesStarted) {
-            stats.gamesStarted = 0;
-        }
-        if (!stats.gamesWon) {
-            stats.gamesWon = 0;
-        }
-        if (!stats.gamesLost) {
-            stats.gamesLost = 0;
-        }
-        if (!stats.streak) {
-            stats.streak = 0;
-        }
-        return stats;
-    }
-
-    static saveDailyStats(dailyStats) {
-        Cookie.saveJson(Cookie.DAILY_STATS, dailyStats);
-    }
-
-    static getDailyGameNumber() {
-        return Cookie.getInt(Cookie.DAILY_GAME_NUMBER);
-    }
-
-    static saveDailyGameNumber(gameNumber) {
-        Cookie.save(Cookie.DAILY_GAME_NUMBER, gameNumber);
-    }
-
-    static clearDailyGameNumber() {
-        Cookie.remove(Cookie.DAILY_GAME_NUMBER);
-    }
-
-    static getLastWonDailyGameNumber() {
-        return Cookie.getInt(Cookie.LAST_WON_DAILY_GAME_NUMBER);
-    }
-
-    static hasLastWonDailyGameNumber() {
-        return Cookie.has(Cookie.LAST_WON_DAILY_GAME_NUMBER);
-    }
-
-    static saveLastWonDailyGameNumber(gameNumber) {
-        Cookie.save(Cookie.LAST_WON_DAILY_GAME_NUMBER, gameNumber);
-    }
-
-    static clearLastWonDailyGameNumber() {
-        Cookie.remove(Cookie.LAST_WON_DAILY_GAME_NUMBER);
-    }
 
     // Practice game state
 
-    // REFACTOR game state
     static clearPracticeGameState() {
         Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, []);
     }
 
     static getPracticeGameState() {
-        return Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_STATE, []);
+        return Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_STATE, null);
     }
 
     static savePracticeGameState(gameState) {
         Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, gameState);
     }
 
-    static clearPracticeGameDef() {
-        Cookie.remove(Cookie.PRACTICE_GAME_START);
-        Cookie.remove(Cookie.PRACTICE_GAME_TARGET);
+    // saves JSON blob without the dictionary
+    static savePracticeGameState2(gameState) {
+        let copyObj = Object.assign({}, gameState);
+        delete copyObj.dictionary;
+        Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, copyObj);
     }
-
-    static savePracticeGameDef(startWord, targetWord) {
-        Cookie.save(Cookie.PRACTICE_GAME_START, startWord);
-        Cookie.save(Cookie.PRACTICE_GAME_TARGET, targetWord);
-    }
-
-    static getPracticeGameDef() {
-        return [Cookie.get(Cookie.PRACTICE_GAME_START), Cookie.get(Cookie.PRACTICE_GAME_TARGET)];
-    }
-
-    static getPracticeGamesRemaining() {
-        return Cookie.getInt(Cookie.PRACTICE_GAMES_REMAINING);
-    }
-
-    static hasPracticeGamesRemaining() {
-        return Cookie.has(Cookie.PRACTICE_GAMES_REMAINING);
-    }
-
-    static savePracticeGamesRemaining(gamesRemaining) {
-        Cookie.save(Cookie.PRACTICE_GAMES_REMAINING, gamesRemaining);
-    };
 
     // GUI settings
 

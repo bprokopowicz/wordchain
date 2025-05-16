@@ -61,7 +61,7 @@ class GameDisplay extends BaseLogger {
 
         this.lastActiveMoveWasAdd = false;
 
-        // Derived class constructor must call constructGame().
+        // Derived class constructor must call updateDisplay().
     }
 
     /* ----- Picker ----- */
@@ -97,9 +97,6 @@ class GameDisplay extends BaseLogger {
         let gameResult = this.game.playLetter(letterPosition, letter);
         this.processGameResult(gameResult);
 
-        // If the sub-class wants to persist anything after a letter is picked,
-        // it should do it by overriding this "pure-virtual" call.
-        this.updateGameInProgressPersistence(gameResult);
         return gameResult;
     }
 
@@ -114,9 +111,8 @@ class GameDisplay extends BaseLogger {
     }
 
     // Called from derived class!
-    constructGame(start, target, gameState) {
-        Const.GL_DEBUG && this.logDebug ("GameDisplay.constructGame(): start: ", start, " target: ", target, " gameState: ", gameState, "game");
-        this.game = new Game(start, target, gameState);
+    updateDisplay() {
+        Const.GL_DEBUG && this.logDebug ("GameDisplay.updateDisplay() called.", "game");
         this.showGameAfterMove();
 
         // Scroll to the top of the window so that the user sees the start word.
@@ -243,15 +239,9 @@ class GameDisplay extends BaseLogger {
 
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
-        // We'll build up the game state from the displayInstruction objects
-        // that the game returns. The derived classes will save the state in
-        // a cookie.
-        // REFACTOR game state
-        this.gameState = [];
 
         if (this.gameIsOver()) {
-            // REFACTOR game state -- maybe not a game state thing, but this seems
-            // like a misnomer -- we're not "showing" anything here.
+            // this should display the rest of the game
             this.game.showUnplayedMoves();
         }
 
@@ -266,7 +256,6 @@ class GameDisplay extends BaseLogger {
         // console.log("======================");
         for (let displayInstruction of displayInstructions) {
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
-            // console.log("displayInstruction:", displayInstruction);
 
             let wordWasPlayed =
                 (displayInstruction.displayType !== Const.FUTURE) &&
@@ -278,21 +267,13 @@ class GameDisplay extends BaseLogger {
                 activeMoveRating = displayInstruction.moveRating;
             }
 
-            // REFACTOR game state
-            this.gameState.push([
-                displayInstruction.word,
-                wordWasPlayed,
-                displayInstruction.moveRating
-                ]);
-
             if (displayInstruction.moveRating !== Const.OK) {
                 showSameAsWordChainMessage = false;
             }
 
             this.rowElement.displayAsActiveRow = false;
-            //console.log("word:", displayInstruction.word, "displayType:", displayInstruction.displayType);
-            //console.log("moveRating:", displayInstruction.moveRating, "lastActiveMoveWasAdd:", this.lastActiveMoveWasAdd);
-            //console.log("-----");
+            Const.GL_DEBUG && this.logDebug("word:", displayInstruction.word, "displayType:", displayInstruction.displayType,
+                    "moveRating:", displayInstruction.moveRating, "lastActiveMoveWasAdd:", this.lastActiveMoveWasAdd, "instruction");
 
             // These instructions all indicate the active word.
             // Note that the active word has also been played.
@@ -333,11 +314,10 @@ class GameDisplay extends BaseLogger {
             this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
         }
 
-        Const.GL_DEBUG && this.logDebug("GameDisplay gameState=", this.gameState, "game");
-
         // Were there more wrong words than the last time we showed a move?
-        // If so, we need to show a toast message.
-        // REFACTOR game state
+        // If so, we need to show a toast message. 
+        // TODO - seems like this won't display the first penalty toast when this.numPenalties is still null
+
         const penaltyCount = this.game.numPenalties();
         if (this.numPenalties != null && penaltyCount > this.numPenalties && !skipToast) {
             // Just in case moveRating never got set (which would be a bug)
@@ -353,6 +333,7 @@ class GameDisplay extends BaseLogger {
         }
 
         if (this.gameIsOver()) {
+
             // Delete old results and create new divs to go in the results div.
             ElementUtilities.deleteChildren(this.resultsDiv);
             var scoreDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break score-div"}),
@@ -373,15 +354,16 @@ class GameDisplay extends BaseLogger {
             this.disablePicker();
             ElementUtilities.disableButton(this.showNextMoveButton);
 
-            // If the derived class defined a function to do additional things when
+            // If the derived GameDisplay class defined a function to do additional things when
             // the game is over, call the function.
+
             if (this.additionalGameOverActions) {
                 this.additionalGameOverActions();
             }
 
             // Display WordChain's original solution if different from the user's solution.
-            // Otherwise dispaly a message indicating that they are the same.
-            // REFACTOR game state
+            // Otherwise display a message indicating that they are the same.
+
             var originalSolutionWords = this.game.getOriginalSolutionWords(),
                 userSolutionWords = this.game.getUserSolutionWords();
 
@@ -448,7 +430,6 @@ class GameDisplay extends BaseLogger {
             gameResult = this.game.playDelete(deletionPosition);
 
         this.processGameResult(gameResult);
-        this.updateGameInProgressPersistence(gameResult);
         return gameResult;
     }
 
@@ -463,7 +444,6 @@ class GameDisplay extends BaseLogger {
 
         let gameResult = this.game.showNextMove();
         this.showGameAfterMove();
-        this.updateGameInProgressPersistence(gameResult);
 
         // Disable if no more moves remaining.
         if (this.gameIsOver()) {
@@ -540,6 +520,7 @@ class GameDisplay extends BaseLogger {
     }
 
     gameIsOver() {
+        Const.GL_DEBUG && this.logDebug("GameDisplay.gameIsOver() game:", this.game, "game");
         return this.game.isOver();
     }
 

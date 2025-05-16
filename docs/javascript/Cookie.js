@@ -19,35 +19,11 @@
 **
 **  Primarily used and set in DailyGameDisplay
 **
-**     DailyGameNumber
-**        Integer: calculated daily game number based on current time.
-**     LastWonDailyGameNumber
-**        Integer: the DailyGameNumber that the user last won; used to determine streak stat.
 **     DailyGameState
-**        List: "tuples": (word, wasPlayed, correctness)
-**     DailyStats (also used in StatsDisplay)
-**        Object: see explanation of properties in StatsDisplay.
 **
 **  Used and set in PracticeGameDisplay
 **
-**     PracticeGameStart
-**        String: Current practice game start word
-**     PracticeGameTarget
-**        String: Current practice game target word
 **     PracticeGameState
-**        List: "tuples": (word, wasPlayed, correctness)
-**     PracticeGamesRemaining
-**        Integer: Number of games remaining today.
-**
-**   Obsolete
-**     HardMode, TypeSavingMode
-**     PracticeGameTimestamps
-**        List: Epoch timestamps of when practice words were started, used to limit the
-**        number of practice games allowed in a day.
-**     DailySolutionShown:
-**        Boolean: saved to true when user clicks 'Solution'.  Applies to the current game number only.
-**     PracticeSolutionShown:
-**        Boolean: saved to true when user clicks 'Solution'.
 **
 **  Used In testing
 **    TestDailyStart
@@ -78,14 +54,8 @@ class Cookie {
     static DARK_THEME = "DarkTheme";
     static COLORBLIND_MODE = "ColorblindMode";
     static CONFIRMATION_MODE = "ConfirmationMode";
-    static DAILY_GAME_NUMBER = "DailyGameNumber";
-    static LAST_WON_DAILY_GAME_NUMBER = "LastWonDailyGameNumber";
     static DAILY_GAME_STATE = "DailyGameState";
-    static DAILY_STATS = "DailyStats";
-    static PRACTICE_GAME_START = "PracticeGameStart";
-    static PRACTICE_GAME_TARGET = "PracticeGameTarget";
     static PRACTICE_GAME_STATE = "PracticeGameState";
-    static PRACTICE_GAMES_REMAINING = "PracticeGamesRemaining";
 
     // These 3 are used for testing persistence only.  They don't affect game play
     static TEST_INT = "TestInt";
@@ -107,14 +77,8 @@ class Cookie {
         Cookie.DARK_THEME,
         Cookie.COLORBLIND_MODE,
         Cookie.CONFIRMATION_MODE,
-        Cookie.DAILY_GAME_NUMBER,
         Cookie.DAILY_GAME_STATE,
-        Cookie.DAILY_STATS,
-        Cookie.LAST_WON_DAILY_GAME_NUMBER,
-        Cookie.PRACTICE_GAME_START,
-        Cookie.PRACTICE_GAME_TARGET,
         Cookie.PRACTICE_GAME_STATE,
-        Cookie.PRACTICE_GAMES_REMAINING,
         Cookie.TEST_INT,
         Cookie.TEST_BOOL,
         Cookie.TEST_OBJ,

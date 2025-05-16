@@ -166,10 +166,12 @@ class AppDisplay extends BaseLogger {
         // based on today's date and displays the game's grid for the user to play.
         this.dailyGameDisplay = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
         this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
+        /* TODO  - not managing the practice counter here...
         if (this.dailyGameDisplay.isNewGame()) {
             Const.GL_DEBUG && this.logDebug("AppDisplay.createScreens() calling resetPracticeGameCounter()", "display");
             this.resetPracticeGameCounter();
         }
+        */
         this.currentGameDisplay = this.dailyGameDisplay;
     }
 
@@ -308,8 +310,8 @@ class AppDisplay extends BaseLogger {
     // game number and if it has changed will reset internal state accordingly.
     checkForNewDailyGame() {
         Const.GL_DEBUG && this.logDebug("checkForNewDailyGame() called; timer id: ", this.checkDailyIntervalTimer, "display");
-        this.dailyGameDisplay.updateDailyGameData();
-        if (this.dailyGameDisplay.isNewGame()) {
+        const isNewGame = this.dailyGameDisplay.updateDailyGameData();
+        if (isNewGame) {
             this.showToast(Const.NEW_DAILY_GAME);
             this.showNoDaily();
             this.statsDisplay.refresh();
@@ -319,6 +321,7 @@ class AppDisplay extends BaseLogger {
     }
 
     resetPracticeGameCounter() {
+    //TODO - don't manage this here
         Const.GL_DEBUG && this.logDebug("resetPracticeGameCounter()", "display");
         this.practiceGameDisplay.resetPracticeGameCounter();
     }
@@ -434,7 +437,7 @@ class AppDisplay extends BaseLogger {
 
     // Show a "no daily game" toast if we haven't already.
     showNoDaily() {
-        if (!this.showedNoDaily && Persistence.getDailyGameNumber() === Const.BROKEN_DAILY_GAME_NUMBER) {
+        if (!this.showedNoDaily && this.dailyGameDisplay.dailyGameNumber() === Const.BROKEN_DAILY_GAME_NUMBER) {
             this.showedNoDaily = true;
             this.showToast(Const.NO_DAILY);
         }
