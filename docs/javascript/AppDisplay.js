@@ -164,14 +164,17 @@ class AppDisplay extends BaseLogger {
 
         // Creation of DailyGameDisplay causes the start/target words to be determined
         // based on today's date and displays the game's grid for the user to play.
+        // It MUST be initialized before the practiceGameDisplay, because there is a dependence
+        // on whether or not the daily game is a new game or a continuation of today's game.  If it is a new
+        // game, that means that the practice game counter should be reset
+
         this.dailyGameDisplay = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
         this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
-        /* TODO  - not managing the practice counter here...
-        if (this.dailyGameDisplay.isNewGame()) {
+        /* TODO  - not managing the practice counter here...  */
+        if (this.dailyGameDisplay.isNewDailyGame()) {
             Const.GL_DEBUG && this.logDebug("AppDisplay.createScreens() calling resetPracticeGameCounter()", "display");
             this.resetPracticeGameCounter();
         }
-        */
         this.currentGameDisplay = this.dailyGameDisplay;
     }
 
@@ -309,6 +312,7 @@ class AppDisplay extends BaseLogger {
     // Check whether it is time for a new Daily game. This will recalculate
     // game number and if it has changed will reset internal state accordingly.
     checkForNewDailyGame() {
+        // TODO - move out of display, into DailyGameState as a static
         Const.GL_DEBUG && this.logDebug("checkForNewDailyGame() called; timer id: ", this.checkDailyIntervalTimer, "display");
         const isNewGame = this.dailyGameDisplay.updateDailyGameData();
         if (isNewGame) {
@@ -321,7 +325,7 @@ class AppDisplay extends BaseLogger {
     }
 
     resetPracticeGameCounter() {
-    //TODO - don't manage this here
+        //TODO - don't manage this here
         Const.GL_DEBUG && this.logDebug("resetPracticeGameCounter()", "display");
         this.practiceGameDisplay.resetPracticeGameCounter();
     }

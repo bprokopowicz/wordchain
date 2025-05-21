@@ -3,6 +3,7 @@ import { Solver, Solution, SolutionStep} from './Solver.js';
 import { WordChainDict, scrabbleWordList } from './WordChainDict.js';
 import * as Const from './Const.js';
 import { GameState, DailyGameState, PracticeGameState } from './GameState.js';
+import { Persistence } from './Persistence.js';
 import { BaseLogger } from './BaseLogger.js';
 
 class Game extends BaseLogger {
@@ -10,9 +11,10 @@ class Game extends BaseLogger {
     constructor(gameState) {
         super(); // BaseLogger
         this.gameState = gameState;
-        Const.GL_DEBUG && this.logDebug("Game.constructor(): start:", gameState.start, ", target:", gameState.target, "game");
+        Const.GL_DEBUG && this.logDebug("Game.constructor(): start:", gameState.start, "target:", gameState.target, "game");
         this.scrabbleDictionary = new WordChainDict(scrabbleWordList);
     }
+
     // This function returns a list to display all the steps of the puzzle
     // for ONE MOVE. This function is called every time the user makes a move.
     //
@@ -44,8 +46,8 @@ class Game extends BaseLogger {
     // the change word already has the '?'.
 
     getDisplayInstructions() {
-        Const.GL_DEBUG && this.logDebug("played so far: " + this.gameState.getPlayedWordsAsString(), "game");
-        Const.GL_DEBUG && this.logDebug("remaining unplayed: " + this.gameState.getUnplayedWordsAsString(), "game");
+        Const.GL_DEBUG && this.logDebug("played so far: " + this.gameState.getPlayedWordsAsString(), "instruction");
+        Const.GL_DEBUG && this.logDebug("remaining unplayed: " + this.gameState.getUnplayedWordsAsString(), "instruction");
 
         let instructions = [];
 
@@ -233,7 +235,8 @@ class Game extends BaseLogger {
     // - Returns true if no error
     // - Returns null on error (e.g. unexpected position)
     playAdd(addPosition) {
-        Const.GL_DEBUG && this.logDebug("playAdd(): addPosition:", addPosition, "this.gameState", this.gameState, "game");
+        Const.GL_DEBUG && this.logDebug("playAdd(): addPosition:", addPosition, "this.gameState",
+                this.gameState.toStr(), "game");
         let oldWord = this.lastPlayedWord();
         if ((addPosition < 0) || (addPosition > oldWord.length)) {
             return Const.BAD_LETTER_POSITION;
@@ -245,7 +248,8 @@ class Game extends BaseLogger {
     // returns true if resulting word is in dictionary; false otherwise
     // returns null on other error (e.g. unexpected position)
     playDelete(deletePosition) {
-        Const.GL_DEBUG && this.logDebug("playDelete() position", deletePosition, "this.gameState:", this.gameState, "game");
+        Const.GL_DEBUG && this.logDebug("playDelete() position", deletePosition, "this.gameState:",
+                this.gameState.toStr(), "game");
         let oldWord = this.lastPlayedWord();
         // adjust to zero-based
         deletePosition -= 1;
@@ -254,6 +258,7 @@ class Game extends BaseLogger {
             return Const.BAD_POSITION;
         }
         let newWord = oldWord.substring(0,deletePosition) + oldWord.substring(deletePosition+1);
+        Const.GL_DEBUG && this.logDebug("Game.playDelete(): ", oldWord, "becomes", newWord, "game");
         return this.addWordIfExists(newWord);
     }
 
@@ -261,14 +266,13 @@ class Game extends BaseLogger {
     // returns true if resulting word is in dictionary; false otherwise
     // returns null on other error (e.g. unexpected position)
     playLetter(letterPosition, letter) {
-        Const.GL_DEBUG && this.logDebug("playLetter(): letterPosition:", letterPosition, ", letter:", letter,
-                "this.gameState", this.gameState, 
-        "game");
+        Const.GL_DEBUG && this.logDebug("Game.playLetter(): letterPosition:", letterPosition, ", letter:", letter,
+                "this.gameState", this.gameState, "game");
         Const.GL_DEBUG && this.logDebug("steps played: ", this.gameState.getPlayedWordsAsString(), "game");
         letterPosition -= 1;
         let oldWord = this.lastPlayedWord();
         let newWord = oldWord.substring(0,letterPosition) + letter + oldWord.substring(letterPosition+1);
-        Const.GL_DEBUG && this.logDebug("playLetter(): new word is: ", newWord, "game");
+        Const.GL_DEBUG && this.logDebug("Game.playLetter(): ", oldWord, "becomes", newWord, "game");
         return this.addWordIfExists(newWord)
     }
 
@@ -332,7 +336,7 @@ class Game extends BaseLogger {
 
     isOver() {
         let res = this.gameState.isOver();
-        Const.GL_DEBUG && this.logDebug("Game.isOver() returns:", res, "gameState: ", this.gameState, "game");
+        Const.GL_DEBUG && this.logDebug("Game.isOver() returns:", res, "gameState: ", this.gameState.toStr(), "game");
         return res;
     }
 
@@ -360,6 +364,11 @@ class DailyGame extends Game {
         return this.gameState.gameIsOld();
     }
     
+    // returns true if the current daily game was constructed as new, not recovered from a current daily game
+    isNewDailyGame() {
+        return this.gameState.isNewDailyGame();
+    }
+
     isBroken() {
         return this.gameState.gameIsBroken();
     }
@@ -372,8 +381,29 @@ class PracticeGame extends Game {
         super(gameState);
     }
 
+    nextGame() {
+        if (! this.gamesRemaining()) {
+            Const.GL_DEBUG && this.logDebug("PracticeGame.nextGame() no games remaining",  "game");
+            return null;
+        }
+        let gamesRemaining = this.gamesRemaining();
+        // get a fresh game and update its gamesRemaining
+        Persistence.clearPracticeGameState(); 
+        let practiceGame = new PracticeGame(); // will be from scratch after clearing game state.
+        practiceGame.gameState.gamesRemaining = gamesRemaining;
+        practiceGame.gameState.persist();
+        return practiceGame;
+    }
+
+    //// 
+    // Pass-throughs to GameState, called from the Display classes.
+
     gamesRemaining() {
         return this.gameState.gamesRemaining;
+    }
+
+    resetPracticeGameCounter() {
+        this.gameState.resetPracticeGameCounter();
     }
 }
 

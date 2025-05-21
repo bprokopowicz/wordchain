@@ -34,6 +34,10 @@ class DailyGameDisplay extends GameDisplay {
 
     /* ----- Utilities ----- */
 
+    isNewDailyGame() {
+        return this.game.isNewDailyGame();
+    }
+
     dailyGameNumber() {
         return this.game.gameState.dailyGameNumber;
     }

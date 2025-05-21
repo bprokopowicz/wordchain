@@ -1,8 +1,12 @@
+import { BaseLogger } from './BaseLogger.js';
+import * as Const from './Const.js';
 import { Cookie } from './Cookie.js';
 
     /* -- persistence methods, for saving and recovering a game in progress, and for recording the user's
        activity (games played, etc) and results (wrong move count histogram, games played, etc)
      */
+
+const logger = new BaseLogger();
 
 class Persistence {
 
@@ -16,16 +20,10 @@ class Persistence {
 
     // Daily game state
 
-    static clearDailyGameState() {
-        Cookie.saveJson(Cookie.DAILY_GAME_STATE, []);
-    }
-
     static getDailyGameState() {
-        return Cookie.getJsonOrElse(Cookie.DAILY_GAME_STATE, null);
-    }
-
-    static saveDailyGameState(gameState) {
-        Cookie.saveJson(Cookie.DAILY_GAME_STATE, gameState);
+        const res = Cookie.getJsonOrElse(Cookie.DAILY_GAME_STATE, null);
+        Const.GL_DEBUG && logger.logDebug("---- Persistence.getDailyGameState() returns:", res, "persistence");
+        return res;
     }
 
     // we don't persist certain attributes that will be reset / recalculated on recovery
@@ -35,6 +33,8 @@ class Persistence {
         delete copyObj.baseTimestamp;
         delete copyObj.baseDate;
         delete copyObj.dateIncrementMs;
+        delete copyObj.isConstructedAsNew;
+        Const.GL_DEBUG && logger.logDebug("---- Persistence.saveDailyGameState2() saving copy:", copyObj, "persistence");
         Cookie.saveJson(Cookie.DAILY_GAME_STATE, copyObj);
     }
 
@@ -42,21 +42,20 @@ class Persistence {
     // Practice game state
 
     static clearPracticeGameState() {
-        Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, []);
+        Cookie.remove(Cookie.PRACTICE_GAME_STATE);
     }
 
     static getPracticeGameState() {
-        return Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_STATE, null);
-    }
-
-    static savePracticeGameState(gameState) {
-        Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, gameState);
+        const res = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_STATE, null);
+        Const.GL_DEBUG && logger.logDebug("---- Persistence.getPracticeGameState() returns:", res, "persistence");
+        return res;
     }
 
     // saves JSON blob without the dictionary
     static savePracticeGameState2(gameState) {
         let copyObj = Object.assign({}, gameState);
         delete copyObj.dictionary;
+        Const.GL_DEBUG && logger.logDebug("---- Persistence.savePracticeGameState2() saving copy:", copyObj, "persistence");
         Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, copyObj);
     }
 
@@ -97,10 +96,7 @@ class Persistence {
     }
 
     static getTestDailyGameWords() {
-        return [
-            Cookie.get(Cookie.TEST_DAILY_START),
-            Cookie.get(Cookie.TEST_DAILY_TARGET)
-        ];
+        return [ Cookie.get(Cookie.TEST_DAILY_START), Cookie.get(Cookie.TEST_DAILY_TARGET) ];
     }
 
     static saveTestDailyGameWords(start, target) {
@@ -141,13 +137,11 @@ class Persistence {
     }
 
     static hasTestEpochDaysAgo() {
-        let rc = Cookie.has(Cookie.TEST_EPOCH_DAYS_AGO);
-        return rc;
+        return Cookie.has(Cookie.TEST_EPOCH_DAYS_AGO);
     }
 
     static getTestEpochDaysAgo() {
-        let rc = Cookie.getInt(Cookie.TEST_EPOCH_DAYS_AGO);
-        return rc;
+        return Cookie.getInt(Cookie.TEST_EPOCH_DAYS_AGO);
     }
 
     static saveTestEpochDaysAgo(n) {

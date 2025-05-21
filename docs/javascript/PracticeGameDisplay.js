@@ -38,9 +38,7 @@ class PracticeGameDisplay extends GameDisplay {
         // Clear out info from current game.
         ElementUtilities.deleteChildren(this.resultsDiv);
         ElementUtilities.deleteChildren(this.originalSolutionDiv);
-        Persistence.clearPracticeGameState();
-
-        this.game = new PracticeGame(); 
+        this.game = this.game.nextGame();
         this.updateDisplay();
     }
 
@@ -49,9 +47,8 @@ class PracticeGameDisplay extends GameDisplay {
     // This will be called from GameDisplay when the game is determined to be over.
     additionalGameOverActions() {
         Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.additionalGameOverActions() called", "practice");
-        this.game.gameState.updateStateAfterGame();
 
-        if (this.game.gamesRemaining() > 0) {
+        if (this.anyGamesRemaining()) {
             ElementUtilities.enableButton(this.newGameButton);
         } else {
             ElementUtilities.disableButton(this.newGameButton);
@@ -62,8 +59,15 @@ class PracticeGameDisplay extends GameDisplay {
         }
     }
 
+    // this is used by AppDisplay when it is managing the practice game buttons
     anyGamesRemaining() {
-        return this.game.gamesRemaining > 0; 
+        return this.game.gamesRemaining() > 0; 
+    }
+
+    // This is called by AppDisplay.resetPracticeGameCounter() to reset the practice game counter when the day rolls over
+
+    resetPracticeGameCounter() {
+        this.game.resetPracticeGameCounter();
     }
 
     // AppDisplay calls this when its periodic check determines more

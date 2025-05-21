@@ -151,41 +151,31 @@ class StatsDisplay extends AuxiliaryDisplay {
     // some Unicode characters to construct the graphic.
     getShareString() {
 
-        // getDailyGameInfo() returns an object with 4 properties, the last 3 of which are populated only if
-        // over is true):
-        //
-        //  over:            true if the game is over (user has found target word or too many steps)
-        //  numPenalties:    how many more steps and shows it took to solve vs the minimum
-        //  moveSummary:     array of arrays containing for each move:
-        //      constant indicating whether the move was correct (OK)/incorrect (WRONG_MOVE)/genius/unplayed(FUTURE, CHANGE_NEXT)/revealed(SHOWN_MOVE)
-        //      length of the move's word
-        //  dailyGameNumber: the current game number
-        // REFACTOR game state
-        const gameInfo = this.appDisplay.getDailyGameInfo();
-        Const.GL_DEBUG && this.logDebug("getShareString() gameInfo=", gameInfo, "daily");
+        const gameState = this.appDisplay.dailyGameDisplay.getGameState();
+        Const.GL_DEBUG && this.logDebug("getShareString() gameState=", gameState, "daily");
 
-        if (! gameInfo.over) {
+        if (! gameState.isOver()) {
             console.error("getShareString() called when game is not over!");
             return null;
         }
 
-        let shareString = `WordChain #${gameInfo.dailyGameNumber + 1} `,
+        let shareString = `WordChain #${gameState.dailyGameNumber + 1} `,
             gameWon;
 
         // Determine what emoji to use to show the user's "score".
-        if (gameInfo.numPenalties >= Const.TOO_MANY_PENALTIES) {
+        if (gameState.numPenalties() >= Const.TOO_MANY_PENALTIES) {
             // Too many wrong moves.
             shareString += Const.CONFOUNDED;
             gameWon = false;
         } else {
             // Show the emoji in NUMBERS corresponding to how many wrong moves.
             // A bit of a misnomer, but the value for 0 is a star.
-            shareString += Const.NUMBERS[gameInfo.numPenalties];
+            shareString += Const.NUMBERS[gameState.numPenalties()];
             gameWon = true;
         }
 
         // Add a line for the streak.
-        shareString += `\nStreak: ${this.dailyStreak}\n`;
+        shareString += `\nStreak: ${gameState.statsBlob.streak}\n`;
 
         // Now, construct the graphic showing the lengths of the user's
         // played words, colored red or green to indicate whether that word
@@ -193,9 +183,10 @@ class StatsDisplay extends AuxiliaryDisplay {
         // The target word (last) is shown in a separate, fixed color regardless
         // of success or failure so we slice it off here.
 
-        let wordsBetweenStartAndTarget = gameInfo.moveSummary.slice(1,-1);
-        let [startRatingUnused, startLength] = gameInfo.moveSummary[0];
-        let [targetRatingUnused, targetLength] = gameInfo.moveSummary.slice(-1)[0];
+        let moveSummary = this.appDisplay.dailyGameDisplay.getMoveSummary();
+        let wordsBetweenStartAndTarget = moveSummary.slice(1,-1);
+        let [startRatingUnused, startLength] = moveSummary[0];
+        let [targetRatingUnused, targetLength] = moveSummary.slice(-1)[0];
 
         // start with the start word shown in purple
         let emoji = Const.PURPLE_SQUARE;
@@ -206,8 +197,8 @@ class StatsDisplay extends AuxiliaryDisplay {
         for (let [moveRating, wordLength] of wordsBetweenStartAndTarget) {
 
             // We don't include unplayed words in the share string. This happens when there are too many wrong moves.
-            // The moveSummary includes the correct unplayed words leading from the last wrong word to the target, but we
-            // don't want to show them.
+            // The moveSummary includes the correct unplayed words leading from the last wrong word to the
+            //  target, but we don't want to show them.
             if ((moveRating == Const.FUTURE) || (moveRating == Const.CHANGE_NEXT)) {
                 break;
             }
@@ -294,9 +285,9 @@ class StatsDisplay extends AuxiliaryDisplay {
     updateStatsContent() {
         // Get the daily stats from the cookies. We should always have stats because we
         // create them on constructing the daily game, so log if we don't.
-        let dailyStats = Persistence.getDailyStatsOrElse(null);
+        let gameState = Persistence.getDailyGameState();
 
-        if (dailyStats === null)
+        if (gameState === null)
         {
             console.error("StatsDisplay.updateStatsContent(): no daily stats!");
             this.appDisplay.showToast(Const.NO_STATS);
@@ -316,6 +307,7 @@ class StatsDisplay extends AuxiliaryDisplay {
             ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-label"}, label);
         }
 
+        let dailyStats = gameState.statsBlob;
         addStat(dailyStats.gamesStarted, "Started", this.statsContainer);
         addStat(dailyStats.gamesWon, "Won", this.statsContainer);
         addStat(dailyStats.gamesLost, "Lost", this.statsContainer);
@@ -329,9 +321,10 @@ class StatsDisplay extends AuxiliaryDisplay {
         // wrong moves". First, determine the maximum value among all the "wrong moves values"
         // to use to in calculating the length of the bars.
         let maxWrongWordsValue = 0;
+        let penaltyHistogram = gameState.penaltyHistogram;
         for (let numPenalties = 0; numPenalties <= Const.TOO_MANY_PENALTIES; numPenalties++) {
-            if (dailyStats[numPenalties] > maxWrongWordsValue) {
-                maxWrongWordsValue = dailyStats[numPenalties];
+            if (penaltyHistogram[numPenalties] > maxWrongWordsValue) {
+                maxWrongWordsValue = penaltyHistogram[numPenalties];
             }
         }
 

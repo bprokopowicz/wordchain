@@ -31,12 +31,6 @@ class GameDisplay extends BaseLogger {
 
         this.createPicker();
 
-        // This will be (re)populated in showGameAfterMove().
-        // This is an array of three-element arrays, which act like a Python tuple:
-        // the word, whether it was played, and whether it was correct(relevant
-        // only if it was played).
-        this.gameState = [];
-
         this.numPenalties = null;
 
         // This will be used to keep track of a user's selection if we are in confirmation mode.
@@ -349,6 +343,8 @@ class GameDisplay extends BaseLogger {
             }
 
             const scoreText = Const.SCORE_TEXT[this.numPenalties];
+            Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): this.numPenalties:",
+                    this.numPenalties, "game");
             ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
 
             this.disablePicker();
@@ -519,23 +515,31 @@ class GameDisplay extends BaseLogger {
         return element;
     }
 
+    // some pass-through functions to access game and gameState
     gameIsOver() {
         Const.GL_DEBUG && this.logDebug("GameDisplay.gameIsOver() game:", this.game, "game");
         return this.game.isOver();
     }
 
+    getMsUntilNextGame() {
+        return this.game.gameState.getMsUntilNextGame();
+    }
+
+    getGameState() {
+        return this.game.gameState;
+    }
+
     // A list summarizing the moves of the game.
     // Unplayed words get a move rating of Const.FUTURE
-    // REFACTOR game state
     getMoveSummary() {
         var summary = [];
 
-        for (let [word, wasPlayed, moveRating] of this.gameState) {
-            if (wasPlayed) {
-                summary.push([moveRating, word.length]);
-            } else {
-                summary.push([Const.FUTURE, word.length]);
-            }
+        let gameState = this.getGameState();
+        for (let ratedMove of gameState.ratedMoves) {
+            summary.push([ratedMove.rating, ratedMove.word.length]);
+        }
+        for (let unplayedWord of gameState.getUnplayedWords()) {
+                summary.push([Const.FUTURE, unplayedWord.length]);
         }
         return summary;
     }
