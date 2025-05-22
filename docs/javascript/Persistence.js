@@ -20,9 +20,9 @@ class Persistence {
 
     // Daily game state
 
-    static getDailyGameState() {
-        const res = Cookie.getJsonOrElse(Cookie.DAILY_GAME_STATE, null);
-        Const.GL_DEBUG && logger.logDebug("---- Persistence.getDailyGameState() returns:", res, "persistence");
+    static getDailyGameState2() {
+        const res = Cookie.getJsonOrElse(Cookie.DAILY_GAME_STATE_2, null);
+        Const.GL_DEBUG && logger.logDebug("---- Persistence.getDailyGameState2() returns:", res, "persistence");
         return res;
     }
 
@@ -35,19 +35,19 @@ class Persistence {
         delete copyObj.dateIncrementMs;
         delete copyObj.isConstructedAsNew;
         Const.GL_DEBUG && logger.logDebug("---- Persistence.saveDailyGameState2() saving copy:", copyObj, "persistence");
-        Cookie.saveJson(Cookie.DAILY_GAME_STATE, copyObj);
+        Cookie.saveJson(Cookie.DAILY_GAME_STATE_2, copyObj);
     }
 
 
     // Practice game state
 
-    static clearPracticeGameState() {
-        Cookie.remove(Cookie.PRACTICE_GAME_STATE);
+    static clearPracticeGameState2() {
+        Cookie.remove(Cookie.PRACTICE_GAME_STATE_2);
     }
 
-    static getPracticeGameState() {
-        const res = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_STATE, null);
-        Const.GL_DEBUG && logger.logDebug("---- Persistence.getPracticeGameState() returns:", res, "persistence");
+    static getPracticeGameState2() {
+        const res = Cookie.getJsonOrElse(Cookie.PRACTICE_GAME_STATE_2, null);
+        Const.GL_DEBUG && logger.logDebug("---- Persistence.getPracticeGameState2() returns:", res, "persistence");
         return res;
     }
 
@@ -56,7 +56,7 @@ class Persistence {
         let copyObj = Object.assign({}, gameState);
         delete copyObj.dictionary;
         Const.GL_DEBUG && logger.logDebug("---- Persistence.savePracticeGameState2() saving copy:", copyObj, "persistence");
-        Cookie.saveJson(Cookie.PRACTICE_GAME_STATE, copyObj);
+        Cookie.saveJson(Cookie.PRACTICE_GAME_STATE_2, copyObj);
     }
 
     // GUI settings
@@ -160,7 +160,16 @@ class Persistence {
         Cookie.save(Cookie.TEST_PRACTICE_GAMES_PER_DAY, n);
     }
 
-    // per-user-device ID methods:
+    // Migration methods from GameState to updated game state 2.
+
+    static getDeprecatedStatsBlob() {
+        return Cookie.getJsonOrElse(Cookie.DEP_DAILY_STATS, null);
+    }
+
+    static clearDeprecatedCookies() {
+        Cookie.clearDeprecatedCookies();
+    }
+    // per-user-device ID methods: TODO - not being used now
 
     static newWCID() {
         // generate an integer with 15 random digits.  The biggest JS integer is 9,xxx,xxx,xxx,xxx,xxx which is 16 digits.  

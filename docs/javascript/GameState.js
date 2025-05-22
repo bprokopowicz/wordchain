@@ -263,16 +263,34 @@ class DailyGameState extends GameState{
         Persistence.saveDailyGameState2(this);
     }
 
+    updateFromDeprecatedStatsBlob() {
+        let depStatsBlob = Persistence.getDeprecatedStatsBlob();
+        Persistence.clearDeprecatedCookies(); 
+        if (depStatsBlob != null) {
+            this.statsBlob = {
+              gamesStarted: depStatsBlob.gamesStarted,
+              gamesWon: depStatsBlob.gamesWon,
+              gamesLost: depStatsBlob.gamesLost,
+              streak: depStatsBlob.streak,
+            };
+            for (let i=0; i <= Const.TOO_MANY_PENALTIES; i++) {
+                this.penaltyHistogram[i] = depStatsBlob[i];
+            }
+        }
+    }
+
     // Factory method to create a new DailyGameState object, either from recovery
     // or from scratch if there is nothing to recover or it is old.
 
     static factory(dictionary) {
         C("DGS.f.0");
-        let recoveredObj = Persistence.getDailyGameState();
+        let recoveredObj = Persistence.getDailyGameState2();
         Const.GL_DEBUG && logger.logDebug("DailyGameState.factory() recovers object:", recoveredObj, "gameState");
         if (recoveredObj == null) {
             C("DGS.f.1");
             let gameState = DailyGameState.__fromScratch(dictionary);
+            gameState.isConstructedAsNew = true;
+            gameState.updateFromDeprecatedStatsBlob();
             gameState.persist();
             return gameState;
         }
@@ -287,6 +305,7 @@ class DailyGameState extends GameState{
                 recoveredDailyGameState, "gameState");
         if  (recoveredDailyGameState.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER) {
             C("DGS.f.2");
+            recoveredDailyGameState.updateFromDeprecatedStatsBlob();
             recoveredDailyGameState.persist();
             return recoveredDailyGameState;
         }
@@ -302,7 +321,7 @@ class DailyGameState extends GameState{
             C("DGS.f.3");
             recoveredDailyGameState.isConstructedAsNew = true;
 
-            // need a new game, but keep the recovered GameState for stats
+            // need a new game, but not from scratch, to keep the recovered GameState for stats
             if (recoveredDailyGameState.dailyGameNumber <= todaysGameNumber - 2) {
                 // we didn't play yesterday's game; streak is over
                 recoveredDailyGameState.setStat("streak", 0);
@@ -318,6 +337,7 @@ class DailyGameState extends GameState{
             // now, update game state to today's game, playing from the start.
             recoveredDailyGameState.setToTodaysGame();
         }
+        recoveredDailyGameState.updateFromDeprecatedStatsBlob();
         recoveredDailyGameState.persist();
         return recoveredDailyGameState;
     }
@@ -550,7 +570,7 @@ class PracticeGameState extends GameState{
 
     static factory(dictionary) {
         C("PGS.f.0");
-        let recoveredObj = Persistence.getPracticeGameState();
+        let recoveredObj = Persistence.getPracticeGameState2();
         var gameState;
         if (recoveredObj == null) {
             C("PGS.f.1");

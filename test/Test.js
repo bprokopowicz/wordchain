@@ -582,7 +582,7 @@ class Test extends BaseLogger {
     verifyStats(expStatsBlob, expPenaltyHistogram) {
 
         // get the saved stats cookie
-        let savedDailyState = Persistence.getDailyGameState();
+        let savedDailyState = Persistence.getDailyGameState2();
         if (savedDailyState == null) {
             this.logDebug("no saved DailyGameState", "test");
             return false;
@@ -1014,8 +1014,9 @@ class Test extends BaseLogger {
         }
 
         const startTestTime = Date.now();
-        prep(); this.testNewPracticeGameState();
         prep(); this.testRecoverUnplayedPracticeGameState();
+        prep(); this.testNewPracticeGameState();
+        prep(); this.testStatsBlobMigrationGameState();
         prep(); this.testPracticeGameStateOneWordPlayed();
         prep(); this.testNewDailyGameState();
         prep(); this.testRecoverUnplayedDailyGameState();
@@ -1074,6 +1075,24 @@ class Test extends BaseLogger {
         return res;
     }
 
+    testStatsBlobMigrationGameState() {
+        this.testName = "StatsBlobMigrationGameState";
+        const oldBlobStr = '{"0":1,"1":2,"2":3,"3":4,"4":5,"5":6,"gamesStarted":9,"gamesWon":2,"gamesLost":3,"streak":4}'
+        Cookie.save(Cookie.DEP_DAILY_STATS, oldBlobStr);
+        let dgs = DailyGameState.factory(this.fullDict); // should be from scratch, but old stats inserted.
+        this.verify(dgs.statsBlob.gamesStarted == 9, "expected gamesStarted=9, got", dgs.statsBlob.gamesStarted) &&
+            this.verify(dgs.statsBlob.gamesWon == 2, "expected gamesWon=2, got", dgs.statsBlob.gamesWon) &&
+            this.verify(dgs.statsBlob.gamesLost == 3, "expected gamesLost=3, got", dgs.statsBlob.gamesLost) &&
+            this.verify(dgs.statsBlob.streak == 4, "expected streak=4, got", dgs.statsBlob.streak) &&
+            this.verify(dgs.penaltyHistogram[0] == 1, "expected penaltyHistogram[0]=1, got", dgs.penaltyHistogram[0]) &&
+            this.verify(dgs.penaltyHistogram[1] == 2, "expected penaltyHistogram[1]=2, got", dgs.penaltyHistogram[1]) &&
+            this.verify(dgs.penaltyHistogram[2] == 3, "expected penaltyHistogram[2]=3, got", dgs.penaltyHistogram[2]) &&
+            this.verify(dgs.penaltyHistogram[3] == 4, "expected penaltyHistogram[3]=4, got", dgs.penaltyHistogram[3]) &&
+            this.verify(dgs.penaltyHistogram[4] == 5, "expected penaltyHistogram[4]=5, got", dgs.penaltyHistogram[4]) &&
+            this.verify(dgs.penaltyHistogram[5] == 6, "expected penaltyHistogram[5]=6, got", dgs.penaltyHistogram[5]) &&
+            this.hadNoErrors();
+    }
+
     testNewPracticeGameState() {
         this.testName = "NewPracticeGameState";
         let pgs = PracticeGameState.factory(this.fullDict);
@@ -1093,9 +1112,15 @@ class Test extends BaseLogger {
 
     testRecoverUnplayedPracticeGameState() {
         this.testName = "RecoverUnplayedPracticeGameState";
-        let pgs1 = PracticeGameState.factory(this.fullDict);
+        this.logDebug("---- running -----", this.testName, "test");
+        this.logDebug("     first PGS should be from scratch", "test");
+        let pgs1 = PracticeGameState.factory(this.fullDict); // from scratch
+        this.logDebug("     first PGS:", pgs1, "test");
         // this second PracticeGameState should be recovered, not built from scratch
-        let pgs2 = PracticeGameState.factory(this.fullDict);
+        this.logDebug("     second PGS should be recoverd", "test");
+        let pgs2 = PracticeGameState.factory(this.fullDict); 
+        this.logDebug("     second PGS:", pgs2, "test");
+
         this.verify(this.comparePracticeGameStates(pgs1, pgs2), "states don't match") &&
             this.hadNoErrors();
     }

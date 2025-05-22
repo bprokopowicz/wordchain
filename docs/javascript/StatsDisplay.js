@@ -285,7 +285,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     updateStatsContent() {
         // Get the daily stats from the cookies. We should always have stats because we
         // create them on constructing the daily game, so log if we don't.
-        let gameState = Persistence.getDailyGameState();
+        let gameState = Persistence.getDailyGameState2();
 
         if (gameState === null)
         {

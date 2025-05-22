@@ -54,8 +54,20 @@ class Cookie {
     static DARK_THEME = "DarkTheme";
     static COLORBLIND_MODE = "ColorblindMode";
     static CONFIRMATION_MODE = "ConfirmationMode";
-    static DAILY_GAME_STATE = "DailyGameState";
-    static PRACTICE_GAME_STATE = "PracticeGameState";
+    static DAILY_GAME_STATE_2 = "DailyGameState2";
+    static PRACTICE_GAME_STATE_2 = "PracticeGameState2";
+
+    // deprecated cookies, used only in migration
+    static DEP_DAILY_GAME_NUMBER = "DailyGameNumber";
+    static DEP_DAILY_GAME_STATE = "DailyGameState";
+    static DEP_DAILY_GAME_WORDS_PLAYED = "DailyGameWordsPlayed";
+    static DEP_DAILY_STATS = "DailyStats";
+    static DEP_LAST_WON_DAILY_GAME_NUMBER = "LastWonDailyGameNumber";
+    static DEP_PRACTICE_GAME_START = "PracticeGameStart";
+    static DEP_PRACTICE_GAME_STATE = "PracticeGameState";
+    static DEP_PRACTICE_GAME_TARGET = "PracticeGameTarget";
+    static DEP_PRACTICE_GAME_WORDS_PLAYED = "PracticeGameWordsPlayed";
+    static DEP_PRACTICE_GAMES_REMAINING = "PracticeGameWordsPlayed";
 
     // These 3 are used for testing persistence only.  They don't affect game play
     static TEST_INT = "TestInt";
@@ -77,8 +89,8 @@ class Cookie {
         Cookie.DARK_THEME,
         Cookie.COLORBLIND_MODE,
         Cookie.CONFIRMATION_MODE,
-        Cookie.DAILY_GAME_STATE,
-        Cookie.PRACTICE_GAME_STATE,
+        Cookie.DAILY_GAME_STATE_2,
+        Cookie.PRACTICE_GAME_STATE_2,
         Cookie.TEST_INT,
         Cookie.TEST_BOOL,
         Cookie.TEST_OBJ,
@@ -89,6 +101,16 @@ class Cookie {
         Cookie.TEST_MINUTES_PER_DAY,
         Cookie.TEST_EPOCH_DAYS_AGO,
         Cookie.TEST_PRACTICE_GAMES_PER_DAY,
+        Cookie.DEP_DAILY_GAME_NUMBER,
+        Cookie.DEP_DAILY_GAME_STATE,
+        Cookie.DEP_DAILY_GAME_WORDS_PLAYED,
+        Cookie.DEP_DAILY_STATS,
+        Cookie.DEP_LAST_WON_DAILY_GAME_NUMBER,
+        Cookie.DEP_PRACTICE_GAME_START,
+        Cookie.DEP_PRACTICE_GAME_STATE,
+        Cookie.DEP_PRACTICE_GAME_TARGET,
+        Cookie.DEP_PRACTICE_GAME_WORDS_PLAYED,
+        Cookie.DEP_PRACTICE_GAMES_REMAINING,
     ];
 
     static clearAllCookies() {
@@ -105,6 +127,19 @@ class Cookie {
                 Cookie.remove(cookieName);
             }
         }
+    }
+
+    static clearDeprecatedCookies() {
+        Cookie.remove(Cookie.DEP_DAILY_GAME_NUMBER);
+        Cookie.remove(Cookie.DEP_DAILY_GAME_STATE);
+        Cookie.remove(Cookie.DEP_DAILY_GAME_WORDS_PLAYED);
+        Cookie.remove(Cookie.DEP_DAILY_STATS);
+        Cookie.remove(Cookie.DEP_LAST_WON_DAILY_GAME_NUMBER);
+        Cookie.remove(Cookie.DEP_PRACTICE_GAME_START);
+        Cookie.remove(Cookie.DEP_PRACTICE_GAME_STATE);
+        Cookie.remove(Cookie.DEP_PRACTICE_GAME_TARGET);
+        Cookie.remove(Cookie.DEP_PRACTICE_GAME_WORDS_PLAYED);
+        Cookie.remove(Cookie.DEP_PRACTICE_GAMES_REMAINING);
     }
 
     static has(name) {

@@ -388,7 +388,7 @@ class PracticeGame extends Game {
         }
         let gamesRemaining = this.gamesRemaining();
         // get a fresh game and update its gamesRemaining
-        Persistence.clearPracticeGameState(); 
+        Persistence.clearPracticeGameState2(); 
         let practiceGame = new PracticeGame(); // will be from scratch after clearing game state.
         practiceGame.gameState.gamesRemaining = gamesRemaining;
         practiceGame.gameState.persist();
