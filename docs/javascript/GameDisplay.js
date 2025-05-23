@@ -1,8 +1,10 @@
 import { BaseLogger } from './BaseLogger.js';
 import { ElementUtilities } from './ElementUtilities.js';
-import { Game } from './Game.js';
+import { Game, DailyGame, PracticeGame } from './Game.js';
+import { Persistence } from './Persistence.js';
 import { Picker } from './Picker.js';
 import * as Const from './Const.js';
+
 
 import {
     AdditionCell,
@@ -310,11 +312,12 @@ class GameDisplay extends BaseLogger {
 
         // Were there more wrong words than the last time we showed a move?
         // If so, we need to show a toast message. 
-        // TODO - seems like this won't display the first penalty toast when this.numPenalties is still null
+        // NOTE: This function is called in AppDisplay construction, before the first
+        // move; that's the only case where this.numPenalties would be null.
 
         const penaltyCount = this.game.numPenalties();
         if (this.numPenalties != null && penaltyCount > this.numPenalties && !skipToast) {
-            // Just in case moveRating never got set (which would be a bug)
+            // Just in case numPenalties never got set (which would be a bug)
             // check for null and use WRONG_MOVE if null.
             this.appDisplay.showToast(activeMoveRating || Const.WRONG_MOVE);
         }
@@ -529,21 +532,6 @@ class GameDisplay extends BaseLogger {
         return this.game.gameState;
     }
 
-    // A list summarizing the moves of the game.
-    // Unplayed words get a move rating of Const.FUTURE
-    getMoveSummary() {
-        var summary = [];
-
-        let gameState = this.getGameState();
-        for (let ratedMove of gameState.ratedMoves) {
-            summary.push([ratedMove.rating, ratedMove.word.length]);
-        }
-        for (let unplayedWord of gameState.getUnplayedWords()) {
-                summary.push([Const.FUTURE, unplayedWord.length]);
-        }
-        return summary;
-    }
-
     // Determines whether the button that the user clicked (a letter or a plus/minus
     // action cell) needs to be confirmed. It returns true if so; false if not.
     needsConfirmation(clickedButton) {
@@ -616,4 +604,135 @@ class GameDisplay extends BaseLogger {
     }
 }
 
-export { GameDisplay };
+
+class DailyGameDisplay extends GameDisplay {
+
+    /* ----- Construction ----- */
+
+    constructor(appDisplay, gameDiv, pickerDiv) {
+        super(appDisplay, gameDiv, pickerDiv, "daily-picker");
+
+        this.game = new DailyGame(); // maybe recovered, maybe from scratch
+    }
+
+    /* ----- Determination of Daily Game Information ----- */
+
+    // called every n seconds on a timer, to see if the game has expired.  If so, create a new DailyGame
+
+    updateDailyGameData() {
+
+        const makeNewGame = this.game.isOld();
+
+        if (makeNewGame) {
+            Const.GL_DEBUG && this.logDebug("current daily game is old", "daily");
+            this.game = new DailyGame(); // it will try to recover, see the game is old, and make a new game
+            // Refresh the stats display in case it is open.
+            this.appDisplay.refreshStats();
+            this.updateDisplay();
+        }
+        return makeNewGame;
+    }
+
+    /* ----- Utilities ----- */
+
+    isNewDailyGame() {
+        return this.game.isNewDailyGame();
+    }
+
+    dailyGameNumber() {
+        return this.game.gameState.dailyGameNumber;
+    }
+
+    // A list summarizing the moves of the game.
+    // Unplayed words get a move rating of Const.FUTURE
+    getMoveSummary() {
+        return this.getGameState().getMoveSummary();
+    }
+
+    gameIsBroken() {
+        return this.game.isBroken();
+    }
+
+    gameIsOver() {
+        return this.game.isOver();
+    }
+}
+
+
+class PracticeGameDisplay extends GameDisplay {
+
+    /* ----- Construction ----- */
+
+    constructor(appDisplay, gameDiv, pickerDiv) {
+        super(appDisplay, gameDiv, pickerDiv, "practice-picker");
+
+        // Add a button to the "post game div" to start a new game.
+        // This will be disabled and enabled as the user plays games
+        // and time marches on to allow more games in a rolling 24
+        // hour period. Initially disable the button; it is enabled
+        // when the game is over.
+        this.newGameButton = ElementUtilities.addElementTo(
+            "button", this.postGameDiv,
+            {class: "app-button non-header-button"},
+            "New Game");
+        ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
+        this.game = new PracticeGame(); // either recovered (in progress or done) or new (no saved state)
+        if (!this.game.isOver()) {
+            // disable the new game button because a practice game is in progress/new
+            ElementUtilities.disableButton(this.newGameButton);
+        }
+        this.updateDisplay();
+    }
+
+    /* ----- Callbacks ----- */
+
+    // newGameCallback() should only be exposed to the user if we already know that there are practice games remaining.
+    newGameCallback(event) {
+        // Note that newGameCallback() will only be called when a game is over;
+        // otherwise, the button is disabled.
+        // Clear out info from current game.
+        ElementUtilities.deleteChildren(this.resultsDiv);
+        ElementUtilities.deleteChildren(this.originalSolutionDiv);
+        this.game = this.game.nextGame();
+        this.updateDisplay();
+    }
+
+    /* ----- Utilities ----- */
+
+    // This will be called from GameDisplay when the game is determined to be over.
+    additionalGameOverActions() {
+        Const.GL_DEBUG && this.logDebug("PracticeGameDisplay.additionalGameOverActions() called", "practice");
+
+        if (this.anyGamesRemaining()) {
+            ElementUtilities.enableButton(this.newGameButton);
+        } else {
+            ElementUtilities.disableButton(this.newGameButton);
+
+            // Notify AppDisplay that there are no more games so it can
+            // disable its practice button.
+            this.appDisplay.practiceGamesUsedUp();
+        }
+    }
+
+    // this is used by AppDisplay when it is managing the practice game buttons
+    anyGamesRemaining() {
+        return this.game.gamesRemaining() > 0; 
+    }
+
+    // This is called by AppDisplay.resetPracticeGameCounter() to reset the practice game counter when the day rolls over
+
+    resetPracticeGameCounter() {
+        this.game.resetPracticeGameCounter();
+    }
+
+    // AppDisplay calls this when its periodic check determines more
+    // games are available again.
+    practiceGamesAvailable() {
+        // Enable only if we're not in the middle of a game.
+        if (this.game.isOver()) {
+            ElementUtilities.enableButton(this.newGameButton);
+        }
+    }
+}
+
+export { DailyGameDisplay, PracticeGameDisplay };

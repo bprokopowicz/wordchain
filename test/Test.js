@@ -6,8 +6,7 @@ import { Game, DailyGame, PracticeGame } from '../docs/javascript/Game.js';
 import { Cookie } from '../docs/javascript/Cookie.js';
 import { Metrics } from '../docs/javascript/Metrics.js';
 import { Persistence } from '../docs/javascript/Persistence.js';
-import { DailyGameDisplay } from '../docs/javascript/DailyGameDisplay.js'
-import { PracticeGameDisplay } from '../docs/javascript/PracticeGameDisplay.js'
+import { DailyGameDisplay, PracticeGameDisplay } from '../docs/javascript/GameDisplay.js'
 import * as Const from '../docs/javascript/Const.js';
 import { C, showCoverage } from '../docs/javascript/Coverage.js';
 
@@ -593,7 +592,7 @@ class Test extends BaseLogger {
         let testRes = true;
 
         this.logDebug("verifyStats() savedStatsBlob", savedStatsBlob, "penaltyHistogram", savedPenaltyHistogram, "test");
-/* TODO
+
         // open the stats window.  This should compute the shareString and start the countdown clock
         const statsDisplay = this.openAndGetTheStatsDisplay();
 
@@ -614,7 +613,7 @@ class Test extends BaseLogger {
         let actDistributionLen = statsDistribution.children.length;
 
         // four calculated text values we expect to find on the stats screen.  They are labels and values for Played, Won, Lost, and Streak
-        let expStartedText = `${.gamesStarted}Started`;
+        let expStartedText = `${expStatsBlob.gamesStarted}Started`;
         let actStartedText = statsContainer.children[0].children[0].innerText.trim() + statsContainer.children[0].children[1].innerText.trim();
 
         let expWonText = `${expStatsBlob.gamesWon}Won`;
@@ -639,20 +638,22 @@ class Test extends BaseLogger {
             this.verify(actStreakText==expStreakText, `expected statsContainer.children[3] to have ${expStreakText}, got ${actStreakText}`) &&
             this.verify(savedStatsBlob.gamesStarted >= savedStatsBlob.gamesWon + savedStatsBlob.gamesLost, `assertion failed: #started not >= #won+#lost`);
         this.closeTheStatsDisplay();
-*/
+
         for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_PENALTIES; wrongMoves++) {
             // check the penalty histogram 
             testRes = testRes &&
                 this.verify(savedPenaltyHistogram[wrongMoves]==expPenaltyHistogram[wrongMoves],
                         `expected savedPenaltyHistogram.${wrongMoves}==${expPenaltyHistogram[wrongMoves]}, got ${savedPenaltyHistogram[wrongMoves]}`);
 
-/* TODO
             // check the DOM contents of the stats screen for the distribution of wrong-move counts.
             let actDistributionText = statsDistribution.children[wrongMoves].innerText.trim();
-            let expDistributionText = Const.NUMBERS[wrongMoves] + "\n" +  expPenaltyHistogram[wrongMoves]; // on Feb 15, 2025, the new-line character disappeared, at least in chrome.
+
+            // on Feb 15, 2025, the new-line character disappeared, at least in chrome
+            // so we added a newline between the two components below ... and then it
+            // was gone by May 23, 2025, so we removed it.
+            let expDistributionText = Const.NUMBERS[wrongMoves] + /*"\n" +*/ expPenaltyHistogram[wrongMoves];
             testRes = testRes &&
                 this.verify(actDistributionText==expDistributionText, `expected statsDistribution.children.${wrongMoves}.innerText=='${expDistributionText}', got '${actDistributionText}'`);
- */
         }
 
         return testRes;
@@ -2045,14 +2046,23 @@ class Test extends BaseLogger {
     }
 
     // multiIncompleteGameStatsTest plays the daily game 3 times:
-    // one failed, one successful, one incomplete and the solution shown.
+    // one incomplete, one successful, and one failed.
     // Checks both the saved stats, and the elements in the StatsContainer.
 
     multiIncompleteGameStatsTest() {
         this.testName = "MultiIncompleteGameStats";
         for (let gameCounter = 0; gameCounter <= 2; gameCounter++) {
             this.logDebug(this.testName, "gameCounter: ", gameCounter, "test");
-            if (gameCounter == 2) {
+            if (gameCounter == 0) {
+                // play an incomplete game 
+                // SHORT -> POOR
+                this.playLetter(4, "O"); // SHORT -> SHOOT
+                this.deleteLetter(1);    // SHOOT -> HOOT
+                this.playLetter(1, "B"); // HOOT -> BOOT
+            } else if (gameCounter == 1) {
+                // play a full game
+                this.playTheCannedDailyGameOnce();
+            } else if (gameCounter == 2) {
                 // play a failed game
                 this.playLetter(4, "O"); // SHORT -> SHOOT
                 this.deleteLetter(1);    // SHOOT -> HOOT
@@ -2062,16 +2072,9 @@ class Test extends BaseLogger {
                 this.playLetter(1, "R"); // TOOT -> ROOT error
                 this.playLetter(1, "L"); // ROOT -> LOOT error
                 this.playLetter(1, "R"); // LOOT -> ROOT error
-            } else if (gameCounter == 1) {
-                // play a full game
-                this.playTheCannedDailyGameOnce();
-            } else if (gameCounter == 0) {
-                // play an incomplete game 
-                // SHORT -> POOR
-                this.playLetter(4, "O"); // SHORT -> SHOOT
-                this.deleteLetter(1);    // SHOOT -> HOOT
-                this.playLetter(1, "B"); // HOOT -> BOOT
+                this.verify(this.gameDisplay.game.isLoser(), "expected game to be loser");
             }
+
             if (gameCounter != 2) {
                 // adjust the saved GameState so that it indicates that we just played "yesterday's" game.  On restart,
                 // we will play today's game and adjust

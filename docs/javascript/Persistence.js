@@ -169,7 +169,8 @@ class Persistence {
     static clearDeprecatedCookies() {
         Cookie.clearDeprecatedCookies();
     }
-    // per-user-device ID methods: TODO - not being used now
+
+    // Per-user-device ID methods: Currently not being used (was for Google Analytics).
 
     static newWCID() {
         // generate an integer with 15 random digits.  The biggest JS integer is 9,xxx,xxx,xxx,xxx,xxx which is 16 digits.  

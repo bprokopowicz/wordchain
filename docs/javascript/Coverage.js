@@ -1,3 +1,6 @@
+//TODO: Use javascript means to get caller class/func.
+// function.prototype.caller
+
 export var counters = new Map();
 const COVERAGE_ON = true;
 export function C(label) { 
@@ -37,3 +40,4 @@ export function showCoverage() {
     }
     counters = new Map();
 }
+

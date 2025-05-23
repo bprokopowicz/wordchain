@@ -1,9 +1,8 @@
 import { BaseLogger } from './BaseLogger.js';
-import { DailyGameDisplay } from './DailyGameDisplay.js';
+import { DailyGameDisplay, PracticeGameDisplay } from './GameDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import { HelpDisplay } from './HelpDisplay.js';
 import { Persistence } from './Persistence.js';
-import { PracticeGameDisplay } from './PracticeGameDisplay.js';
 import { SettingsDisplay } from './SettingsDisplay.js';
 import { StatsDisplay } from './StatsDisplay.js';
 import * as Const from './Const.js';
@@ -72,6 +71,8 @@ class AppDisplay extends BaseLogger {
         this.createScreens();
 
         // Now set the colors based on darkTheme and colorblindMode.
+        // This will also calls showGameAfterMove() on the current
+        // (daily game) display to show the game upon construction.
         this.setColors();
 
         // Now, start the interval timer to check for new games:
@@ -280,7 +281,7 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.dailyPickerDiv);
 
         // On the daily game screen, the Practice button is visible.
-        // updatePracticeGameStatus will enable the button if there
+        // updatePracticeGameStatus() will enable the button if there
         // are practice games available.
         this.updatePracticeGameStatus();
         ElementUtilities.show(this.switchToPracticeGameButton);
@@ -312,7 +313,6 @@ class AppDisplay extends BaseLogger {
     // Check whether it is time for a new Daily game. This will recalculate
     // game number and if it has changed will reset internal state accordingly.
     checkForNewDailyGame() {
-        // TODO - move out of display, into DailyGameState as a static
         Const.GL_DEBUG && this.logDebug("checkForNewDailyGame() called; timer id: ", this.checkDailyIntervalTimer, "display");
         const isNewGame = this.dailyGameDisplay.updateDailyGameData();
         if (isNewGame) {
@@ -326,7 +326,6 @@ class AppDisplay extends BaseLogger {
 
     resetPracticeGameCounter() {
         //TODO - don't manage this here
-        Const.GL_DEBUG && this.logDebug("resetPracticeGameCounter()", "display");
         this.practiceGameDisplay.resetPracticeGameCounter();
     }
 
@@ -343,14 +342,15 @@ class AppDisplay extends BaseLogger {
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
     }
 
-    // Return an object with information about the daily game status.
-    // REFACTOR game state
-    getDailyGameInfo() {
-        return this.dailyGameDisplay.getGameInfo();
+    getDailyGameState() {
+        return this.dailyGameDisplay.getGameState();
+    }
+
+    getDailyMoveSummary() {
+        return this.dailyGameDisplay.getMoveSummary();
     }
 
     getMsUntilNextGame() {
-        Const.GL_DEBUG && this.logDebug("AppDisplay.getMsUntilNextGame() called", "display");
         return this.dailyGameDisplay.getMsUntilNextGame();
     }
 
@@ -456,6 +456,8 @@ class AppDisplay extends BaseLogger {
         }, duration);
     }
 
+    // This is called on construction, when the periodic timer fires, and
+    // when switching to the Daily Game screen.
     updatePracticeGameStatus() {
         if (this.practiceGameDisplay.anyGamesRemaining()) {
             ElementUtilities.enableButton(this.switchToPracticeGameButton);

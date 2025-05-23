@@ -152,7 +152,6 @@ class ChangeNextLetterCell extends LetterCell {
     constructor(letter, letterPosition, changePosition) {
         super(letter);
 
-        // TODO: NEW CLASSES
         this.addClass("letter-cell-future", this.cellContainer);
 
         if (letterPosition === changePosition)

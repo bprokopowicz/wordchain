@@ -1,5 +1,4 @@
 import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
-import { Persistence } from './Persistence.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
 
@@ -151,7 +150,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     // some Unicode characters to construct the graphic.
     getShareString() {
 
-        const gameState = this.appDisplay.dailyGameDisplay.getGameState();
+        const gameState = this.appDisplay.getDailyGameState();
         Const.GL_DEBUG && this.logDebug("getShareString() gameState=", gameState, "daily");
 
         if (! gameState.isOver()) {
@@ -159,7 +158,7 @@ class StatsDisplay extends AuxiliaryDisplay {
             return null;
         }
 
-        let shareString = `WordChain #${gameState.dailyGameNumber + 1} `,
+        let shareString = `WordChain #${gameState.getDailyGameNumber() + 1} `,
             gameWon;
 
         // Determine what emoji to use to show the user's "score".
@@ -175,7 +174,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Add a line for the streak.
-        shareString += `\nStreak: ${gameState.statsBlob.streak}\n`;
+        shareString += `\nStreak: ${gameState.getStat('streak')}\n`;
 
         // Now, construct the graphic showing the lengths of the user's
         // played words, colored red or green to indicate whether that word
@@ -183,7 +182,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         // The target word (last) is shown in a separate, fixed color regardless
         // of success or failure so we slice it off here.
 
-        let moveSummary = this.appDisplay.dailyGameDisplay.getMoveSummary();
+        let moveSummary = this.appDisplay.getDailyMoveSummary();
         let wordsBetweenStartAndTarget = moveSummary.slice(1,-1);
         let [startRatingUnused, startLength] = moveSummary[0];
         let [targetRatingUnused, targetLength] = moveSummary.slice(-1)[0];
@@ -285,7 +284,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     updateStatsContent() {
         // Get the daily stats from the cookies. We should always have stats because we
         // create them on constructing the daily game, so log if we don't.
-        let gameState = Persistence.getDailyGameState2();
+        const gameState = this.appDisplay.getDailyGameState();
 
         if (gameState === null)
         {
@@ -307,14 +306,13 @@ class StatsDisplay extends AuxiliaryDisplay {
             ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-label"}, label);
         }
 
-        let dailyStats = gameState.statsBlob;
-        addStat(dailyStats.gamesStarted, "Started", this.statsContainer);
-        addStat(dailyStats.gamesWon, "Won", this.statsContainer);
-        addStat(dailyStats.gamesLost, "Lost", this.statsContainer);
-        addStat(dailyStats.streak, "Streak", this.statsContainer);
+        addStat(gameState.getStat('gamesStarted'), "Started", this.statsContainer);
+        addStat(gameState.getStat('gamesWon'), "Won", this.statsContainer);
+        addStat(gameState.getStat('gamesLost'), "Lost", this.statsContainer);
+        addStat(gameState.getStat('streak'), "Streak", this.statsContainer);
 
         // Save the streak in case the user shares.
-        this.dailyStreak = dailyStats.streak;
+        this.dailyStreak = gameState.getStat('streak');
 
         // Next we'll display a bar graph showing how many games there were at each "wrong moves value",
         // i.e. 0 .. <Const.TOO_MANY_PENALTIES> *and* "games that ended because of too many
@@ -349,7 +347,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
         // Add a bar for each of the possible values; the emojis for these are in Const.NUMBERS.
         for (let numPenalties = 0; numPenalties <= Const.TOO_MANY_PENALTIES; numPenalties++) {
-            const barValue = dailyStats[numPenalties];
+            const barValue = penaltyHistogram[numPenalties];
             addBar(barValue, Const.NUMBERS[numPenalties], this.statsDistribution);
         }
     }

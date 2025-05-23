@@ -295,9 +295,9 @@ class DailyGameState extends GameState{
             return gameState;
         }
 
-        // Check to see if recovered game number is the test game number.  If so, we use 
-        // it and don't adjust the streak.  If the test game is being played, the streak is undefined.
-        // TODO: How do you test the streak, then?
+        // Check to see if recovered game number is the test game number, i.e. if we have set
+        // TestDailyGameStart/Target in the local storage.  If so, we use it and don't adjust the streak.
+        // If the test game is being played, the streak is undefined.
 
         let recoveredDailyGameState = DailyGameState.__fromObj(dictionary, recoveredObj);
 
@@ -305,7 +305,6 @@ class DailyGameState extends GameState{
                 recoveredDailyGameState, "gameState");
         if  (recoveredDailyGameState.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER) {
             C("DGS.f.2");
-            recoveredDailyGameState.updateFromDeprecatedStatsBlob();
             recoveredDailyGameState.persist();
             return recoveredDailyGameState;
         }
@@ -357,7 +356,7 @@ class DailyGameState extends GameState{
             [start, target] = Persistence.getTestDailyGameWords();
             dailyGameNumber = Const.TEST_DAILY_GAME_NUMBER;
             Const.GL_DEBUG && logger.logDebug("DailyGameState.setToTodaysGame() override from test vars to dailyGameNumber:",
-            dailyGameNumber, "start", start, "target", target, "gameState");
+                    dailyGameNumber, "start", start, "target", target, "gameState");
         } else {
             C("DGS.sTTG.2");
             // Valid daily game numbers run from 0 to GameWords.length-1.  If the calculated
@@ -484,6 +483,10 @@ class DailyGameState extends GameState{
         this.setStat(whichStat, this.getStat(whichStat) + 1);
     }
 
+    getDailyGameNumber() {
+        return this.dailyGameNumber;
+    }
+
     getStat(whichStat) {
         return this.statsBlob[whichStat];
     }
@@ -527,6 +530,20 @@ class DailyGameState extends GameState{
         return msUntilNextGame;
     }
 
+    // A list summarizing the moves of the game.
+    // Unplayed words get a move rating of Const.FUTURE
+    getMoveSummary() {
+        var summary = []; 
+
+        for (let ratedMove of this.ratedMoves) {
+            summary.push([ratedMove.rating, ratedMove.word.length]);
+        }   
+        for (let unplayedWord of this.getUnplayedWords()) {
+                summary.push([Const.FUTURE, unplayedWord.length]);
+        }   
+        return summary;
+    }   
+
     // Call this once and only once  whenever a daily game is finished (in addWord() or showNextMove()).
     // The caller needs to save the game state after calling this.
     updateStateAfterGame() {
@@ -538,6 +555,7 @@ class DailyGameState extends GameState{
         } else if (this.isLoser()) {
             C("DGS.uSAG.2");
             this.incrementStat("gamesLost");
+            this.setStat("streak", 0);
         }
 
         let penaltyCount = this.numPenalties();
@@ -602,9 +620,6 @@ class PracticeGameState extends GameState{
         Const.GL_DEBUG && logger.logDebug("PracticeGameState.__fromObj returning ", practiceGameState, "gameState");
         return practiceGameState;
     }
-
-    //TODO dailyGameState not being reset after recovery, when finished.  Obvious!  We save the recovered state,
-    //for stats, but need to clean out the other fields?
 
     // don't call __fromScratch() from outside the class
     static __fromScratch(dictionary) {
@@ -679,7 +694,6 @@ class PracticeGameState extends GameState{
 
     // called when the daily game is rolled over, originally from AppDisplay.
     // TODO = should be called from static clock manager outside of the display.
-
     resetPracticeGameCounter() {
         this.gamesRemaining = Const.PRACTICE_GAMES_PER_DAY;
         this.persist();
