@@ -44,14 +44,19 @@ export function showCoverage() {
         lastPoint=-1;
 
     for (let label of labels) {
-        console.log(label, counters.get(label));
         // labels look like class.func.pointNumber
-        let [cl, func, point] = label.split('.');
+        let [cl, func, pointStr] = label.split('.');
+        let point=parseInt(pointStr);
+
+        if (point === 0) {
+            console.log(`${cl}.${func}()`);
+        } 
+        console.log(`  @ ${point}:  ${counters.get(label)}`);
         if ((cl == curClass) && (func == curFunc)) {
             // we should see continuity in the points reached.
             // Print out any p st lastPoint < p < point
-            for (let p=parseInt(lastPoint)+1; p < point; p++) {
-                console.log("skipped ", cl, ".", func, ".", p);
+            for (let p=lastPoint+1; p < point; p++) {
+                console.log(`  *********  skipped ${cl}.${func} @ ${p}`);
             }
             lastPoint = point;
         } else {
