@@ -209,27 +209,10 @@ class Solver {
     }
 }
 
-class SolutionStep {
-    constructor(word, isPlayed, moveRating) {
-        this.word = word;
-        this.isPlayed = isPlayed;
-        this.moveRating = moveRating;
-    }
-
-    toString() {
-        return `${this.word} played:${this.isPlayed}, moveRating:${this.moveRating}`;
-    }
-
-    wordLength() {
-        return this.word.length;
-    }
-
-}
-
 class Solution extends BaseLogger {
-    constructor(solutionSteps, target) {
+    constructor(solutionWords, target) {
         super();
-        this.solutionSteps = solutionSteps;
+        this.solutionWords = solutionWords;
         this.target = target;
         this.errorMessage = "";
         // call calculateDifficulty(dictionary) to set these three fields:
@@ -238,28 +221,19 @@ class Solution extends BaseLogger {
         this.nChoicesOnStep = new Array();
     }
 
+    // An initial solution has the start word as the first played word, and the target as a 
+    // an attribute.
     static newEmptySolution(start, target) {
-        let moveRating = Const.OK;
-        let isPlayed = true;
-        let solutionStep = new SolutionStep(start, isPlayed, moveRating);
-        return new Solution([solutionStep], target);
+        return new Solution([start], target);
     }
 
     addError(errorMessage) {
         this.errorMessage += errorMessage;
-        return this;
     }
 
-    addWord(newWord, isPlayed, moveRating) {
-        this.solutionSteps.push(new SolutionStep(newWord, isPlayed, moveRating));
+    addWord(newWord) {
+        this.solutionWords.push(newWord);
         return this;
-    }
-
-
-    numPenalties() {
-        return this.solutionSteps.filter(
-                (step)=>((step.moveRating == Const.WRONG_MOVE) || (step.moveRating == Const.DODO_MOVE) || (step.moveRating == Const.SHOWN_MOVE))
-                ).length;
     }
 
     findChangedLetterLocation(word1, word2) {
@@ -318,8 +292,8 @@ class Solution extends BaseLogger {
     }
 
     copy() {
-        let solutionStepsCopy = [...this.solutionSteps];
-        return new Solution(solutionStepsCopy, this.getTarget());
+        let solutionWordsCopy = [...this.solutionWords];
+        return new Solution(solutionWordsCopy, this.getTarget());
     }
 
     getError() {
@@ -327,38 +301,34 @@ class Solution extends BaseLogger {
     }
 
     getNthWord(n) {
-        return this.solutionSteps[n].word;
+        return this.solutionWords[n];
     }
 
     getLastWord() {
-        return this.getNthWord(this.solutionSteps.length - 1);
-    }
-
-    getLastStep() {
-        return this.solutionSteps[this.solutionSteps.length - 1];
+        return this.getNthWord(this.solutionWords.length - 1);
     }
 
     // use case: removing a step containing a word with a hole before replacing it with
     // the word without the hole.
     removeLastStep() {
-        this.solutionSteps.pop();
+        this.solutionWords.pop();
     }
 
     // use case: when resolving from played word to target, that solution includes the played word as
     // its first word.
     removeFirstStep() {
-        this.solutionSteps.shift();
+        this.solutionWords.shift();
     }
 
     removeAllSteps() {
-        this.solutionSteps = [];
+        this.solutionWords = [];
     }
 
     getPenultimateWord() {
-        if (this.solutionSteps.length < 2) {
-            throw new Error(`Solution.getPenultimateWord(): solutionSteps length (${this.solutionSteps.length}) cannot be < 2`)
+        if (this.solutionWords.length < 2) {
+            throw new Error(`Solution.getPenultimateWord(): solutionWords length (${this.solutionWords.length}) cannot be < 2`)
         }
-        return this.getNthWord(this.solutionSteps.length - 2);
+        return this.getNthWord(this.solutionWords.length - 2);
     }
 
     getStart() {
@@ -375,16 +345,9 @@ class Solution extends BaseLogger {
         return this.target === this.getLastWord();
     }
 
-    // Solved indicates user reached the target using an OK or GENIUS move
-    // on the last step,i.e. that the game was won.
+    // Solved indicates the target was reached
     isSolved() {
-        const lastMove = this.getLastStep();
-        if (!lastMove) {
-            return false;
-        }
-        const lastMoveRating = lastMove.moveRating;
-        return this.hadNoErrors() && this.isTargetReached() && (this.numPenalties() < Const.TOO_MANY_PENALTIES) &&
-            ((lastMoveRating == Const.OK) || (lastMoveRating == Const.GENIUS_MOVE) || (lastMoveRating == Const.SCRABBLE_WORD) || (lastMoveRating == Const.SHOWN_MOVE));
+        return this.hadNoErrors() && this.isTargetReached();
     }
 
     // the number of "steps" taken in this solution.  The first word is a given and doesn't
@@ -395,15 +358,11 @@ class Solution extends BaseLogger {
     }
 
     numWords() {
-        return this.solutionSteps.length;
-    }
-
-    getSolutionSteps() {
-        return this.solutionSteps;
+        return this.solutionWords.length;
     }
 
     getSolutionWords() {
-        return this.solutionSteps.map((step)=>step.word);
+        return this.solutionWords;
     }
 
     hasWordOfLength(len) {
@@ -450,16 +409,16 @@ class Solution extends BaseLogger {
             return this.errorMessage;
         } else if (toHtml) {
             // display the words and the choice stats
-            return this.solutionSteps.map(step => step.word).join(", ")
+            return this.solutionWords.join(", ")
                 + " difficulty: " +  this.difficulty
                 + " choices at each step: " + this.nChoicesOnStep.join(",");
         } else {
-            // display the words and details about the step (correct, played)
+            // just the words
             const separator = " ";
-            const words = this.solutionSteps.join(", ");
+            const words = this.solutionWords.join(", ");
             return `${words}${separator}[${this.numSteps()} steps toward ${this.target}]${separator}difficulty: ${this.difficulty}`;
         }
     }
 }
 
-export { Solver, Solution, SolutionStep };
+export { Solver, Solution};

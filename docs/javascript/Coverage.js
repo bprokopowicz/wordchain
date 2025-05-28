@@ -1,20 +1,42 @@
-//TODO: Use javascript means to get caller class/func.
-// function.prototype.caller
+////
+// Use:  in any methods, add calls to COV(p) with an integer "point" p which indicates
+// a place in the code.  Coverage will keep track of the number of times that place in the
+// code is reached, using a counter named class.method.p
+//
+// At any time, called showCoverage() to print out the counters for each point reached.  
+// If we see that a point has non-zero counts but an earlier point doesn't have any count,
+// we show that the earlier point was skipped.
 
-export var counters = new Map();
+var counters = new Map(); // keeps track of execution-counts at code points.
+
 const COVERAGE_ON = true;
-export function C(label) { 
+
+export function COV(point) { 
     if (COVERAGE_ON) {
-        if (counters.has(label)) {
-            counters.set(label, counters.get(label)+1);
+        const dummyObj = {};
+        Error.captureStackTrace(dummyObj, COV); // don't include COV() or earlier calls in the stack
+
+        const callStack = dummyObj.stack.split("at ");
+        const callerStr = callStack[1]; // the first line is the word 'Error', then the caller function
+        const callerTokens = callerStr.split(' ');
+        var caller = callerTokens[0];
+        if (caller === 'new') {
+            // it's the CTOR, not class.method
+            caller = callerTokens[1] + '.constructor';
+        }
+
+        const key = caller + '.' + point;
+        if (counters.has(key)) {
+            counters.set(key, counters.get(key)+1);
         } else {
-            counters.set(label, 1);
+            counters.set(key, 1);
         }
     }
 }
 
 // print out the coverage data and reset the counters
 export function showCoverage() {
+    console.log("Coverage counters");
     const labels = Array.from(counters.keys()).sort();
 
     let curClass = "",

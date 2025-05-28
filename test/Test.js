@@ -8,7 +8,7 @@ import { Metrics } from '../docs/javascript/Metrics.js';
 import { Persistence } from '../docs/javascript/Persistence.js';
 import { DailyGameDisplay, PracticeGameDisplay } from '../docs/javascript/GameDisplay.js'
 import * as Const from '../docs/javascript/Const.js';
-import { C, showCoverage } from '../docs/javascript/Coverage.js';
+import { showCoverage } from '../docs/javascript/Coverage.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
@@ -573,8 +573,6 @@ class Test extends BaseLogger {
     }
 
     // compares the persisted stats AND stats screen content with expected and calculated values.
-    // TODO - stats screen
-    // Also, asserts that gamesStarted >= gamesWon+gamesLost
 
     static statsContainer = null;
 
@@ -858,9 +856,9 @@ class Test extends BaseLogger {
         this.verify(solutionBadBade.hadNoErrors(), `error on adder 'BAD' to 'BADE': ${solutionBadBade.getError()}`) &&
             this.verify(solutionBadeBad.hadNoErrors(), `error on remover 'BADE' to 'BAD': ${solutionBadeBad.getError()}`) &&
             this.verify(solutionBatCat.hadNoErrors(), `error on replacer 'BAT' to 'CAT': ${solutionBatCat.getError()}`) &&
-            this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'BAD' to 'BADE': ${solutionBadBade.getSolutionSteps()}`) &&
-            this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'BADE' to 'BAD': ${solutionBadeBad.getSolutionSteps()}`) &&
-            this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'BAT' to 'CAT': ${solutionBatCat.getSolutionSteps()}`) &&
+            this.verify((solutionBadBade.numSteps() === 1), `expected 1 step for 'BAD' to 'BADE': ${solutionBadBade.getSolutionWords()}`) &&
+            this.verify((solutionBadeBad.numSteps() === 1), `expected 1 step for 'BADE' to 'BAD': ${solutionBadeBad.getSolutionWords()}`) &&
+            this.verify((solutionBatCat.numSteps() === 1), `expected 1 step for 'BAT' to 'CAT': ${solutionBatCat.getSolutionWords()}`) &&
             this.verify(!solutionNope.hadNoErrors(), "expected failure for 'BAT' to 'DOG'")&&
             this.hadNoErrors();
 
@@ -879,8 +877,8 @@ class Test extends BaseLogger {
 
         this.verify(solutionBatScad.hadNoErrors(), `error on 'BAT' to 'SCAD': ${solutionBatScad.getError()}`) &&
             this.verify(solutionScadBat.hadNoErrors(), `error on 'SCAD' to 'BAT': ${solutionScadBat.getError()}`) &&
-            this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'BAT' to 'SCAD': ${solutionBatScad.getSolutionSteps()}`) &&
-            this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'SCAD' to 'BAT': ${solutionScadBat.getSolutionSteps()}`) &&
+            this.verify((solutionBatScad.numSteps() === 3), `expected 3 step for 'BAT' to 'SCAD': ${solutionBatScad.getSolutionWords()}`) &&
+            this.verify((solutionScadBat.numSteps() === 3), `expected 3 step for 'SCAD' to 'BAT': ${solutionScadBat.getSolutionWords()}`) &&
             this.hadNoErrors();
     }
 
@@ -889,7 +887,7 @@ class Test extends BaseLogger {
         const startTestTime = Date.now();
 
         const solutionTacoBimbo = Solver.solve(this.fullDict, "TACO", "BIMBO");
-        const foundWords = solutionTacoBimbo.getSolutionSteps().map((step)=>step.word);
+        const foundWords = solutionTacoBimbo.getSolutionWords();
         const expectedWords = [ "TACO", "TAO", "TAB", "LAB", "LAMB", "LIMB", "LIMBO", "BIMBO" ];
 
         const endTestTime = Date.now();
@@ -1037,12 +1035,10 @@ class Test extends BaseLogger {
 
     // utilities for comparing game states
     compareDailyGameStates(s1, s2) {
-        // TODO add statsBlob when needed
         return (s1.dailyGameNumber === s2.dailyGameNumber) && this.compareGameStates(s1, s2);
     }
 
     comparePracticeGameStates(s1, s2) {
-        // TODO add statsBlob when needed
         return (s1.gamesRemaining === s2.gamesRemaining) && this.compareGameStates(s1, s2);
     }
 
@@ -1118,7 +1114,7 @@ class Test extends BaseLogger {
         let pgs1 = PracticeGameState.factory(this.fullDict); // from scratch
         this.logDebug("     first PGS:", pgs1, "test");
         // this second PracticeGameState should be recovered, not built from scratch
-        this.logDebug("     second PGS should be recoverd", "test");
+        this.logDebug("     second PGS should be recovered", "test");
         let pgs2 = PracticeGameState.factory(this.fullDict); 
         this.logDebug("     second PGS:", pgs2, "test");
 
@@ -1281,10 +1277,12 @@ class Test extends BaseLogger {
         // shortest solution is SCAD,CAD,CAT,SAT,SAG but genius solution is SCAD,SCAG,SAG
         Persistence.saveTestDailyGameWords("SCAD", "SAG");
         let dgs = DailyGameState.factory(smallDict);
+        this.logDebug("new daily game state:", dgs.toStr(), "test");
 
         dgs.addWord("SCAG"); // SCAD to SCAG uses scrabble word
+        this.logDebug("new daily game state after SCAG:", dgs.toStr(), "test");
         dgs.addWord("SAG"); // SCAG to SAG.
-        console.log(dgs);
+        this.logDebug("new daily game state after SAG:", dgs.toStr(), "test");
         this.verify(dgs.ratedMoves[1].rating == Const.GENIUS_MOVE, "expected ratedMoves[1].rating:", Const.GENIUS_MOVE, "got:",
                 dgs.ratedMoves[1].rating) &&
         this.verify(dgs.ratedMoves[2].rating == Const.OK, "expected ratedMoves[2].rating:", Const.OK, "got:",
@@ -1407,7 +1405,7 @@ class Test extends BaseLogger {
     testGameNotShortestSolutionBug() {
         this.testName = "GameNotShortestSolutionBug";
         const solution = Solver.solve(this.fullDict, "BROKEN", "BAKED");
-        const foundWords = solution.getSolutionSteps().map((step)=>step.word);
+        const foundWords = solution.getSolutionWords();
         const expectedWords = [ "BROKEN", "BROKE", "BRAKE", "BAKE", "BAKED" ];
         this.verify(solution.hadNoErrors(), `error on 'BROKEN' to 'BAKED': ${solution.getError()}`) &&
             this.verify((foundWords.toString() == expectedWords.toString()), `solution: ${foundWords} is not expected: ${expectedWords}`) &&
@@ -1692,8 +1690,6 @@ class Test extends BaseLogger {
 
 
     testGameFinishAlternatePath() {
-        //TODO - this test fails sometimes after running GameState tests.  Maybe some state is being preserved, like number of practice games, etc.
-        // TODO - clean up Persistence, and change PlayedWord to RatedMove
         this.testName = "GameFinishAlternatePath";
 
         let [start, target] = ["LEAKY", "SPOON"];

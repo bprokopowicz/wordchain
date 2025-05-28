@@ -1,5 +1,5 @@
 import { DisplayInstruction } from './DisplayInstruction.js';
-import { Solver, Solution, SolutionStep} from './Solver.js';
+import { Solver, Solution} from './Solver.js';
 import { WordChainDict, scrabbleWordList } from './WordChainDict.js';
 import * as Const from './Const.js';
 import { GameState, DailyGameState, PracticeGameState } from './GameState.js';
