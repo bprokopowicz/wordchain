@@ -71,7 +71,7 @@ class AppDisplay extends BaseLogger {
         this.createScreens();
 
         // Now set the colors based on darkTheme and colorblindMode.
-        // This will also calls showGameAfterMove() on the current
+        // This also calls showGameAfterMove() on the current
         // (daily game) display to show the game upon construction.
         this.setColors();
 
