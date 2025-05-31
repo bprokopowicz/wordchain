@@ -517,7 +517,10 @@ class DailyGameState extends GameState{
     }
 
     gameIsOld() {
-        return (this.dailyGameNumber != Const.TEST_DAILY_GAME_NUMBER) && 
+        Const.GL_DEBUG && logger.logDebug("DailyGameState.gameIsOld() dailyGameNumber:", this.dailyGameNumber , "daily");
+        return
+            (this.dailyGameNumber != Const.TEST_DAILY_GAME_NUMBER) &&
+            (this.dailyGameNumber != Const.BROKEN_DAILY_GAME_NUMBER) && 
             (this.calculateGameNumber() > this.dailyGameNumber);
     }
 

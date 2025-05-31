@@ -441,6 +441,8 @@ class AppDisplay extends BaseLogger {
 
     // Show a "no daily game" toast if we haven't already.
     showNoDaily() {
+        Const.GL_DEBUG && this.logDebug("AppDisplay.showNoDaily() this.showedNoDaily:", this.showedNoDaily, "dailyGameNumber():",
+                this.dailyGameDisplay.dailyGameNumber(), "display");
         if (!this.showedNoDaily && this.dailyGameDisplay.dailyGameNumber() === Const.BROKEN_DAILY_GAME_NUMBER) {
             this.showedNoDaily = true;
             this.showToast(Const.NO_DAILY);

@@ -16,7 +16,7 @@
 
 let counters = null; // keeps track of execution-counts at code points.
 
-let COVERAGE_ON = true;
+let COVERAGE_ON = false;
 
 export function getCounters() {
     if (counters === null) {
