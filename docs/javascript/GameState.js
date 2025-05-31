@@ -3,7 +3,7 @@ import { BaseLogger } from './BaseLogger.js';
 import { Solver, Solution } from './Solver.js';
 import { Persistence } from './Persistence.js';
 import { WordChainDict } from './WordChainDict.js';
-import { COV, showCoverage } from './Coverage.js';
+import { COV } from './Coverage.js';
 
 class RatedMove {
     constructor (word, rating) {
@@ -281,61 +281,70 @@ class DailyGameState extends GameState{
 
     static factory(dictionary) {
         COV("0");
+        let result = null;
         let recoveredObj = Persistence.getDailyGameState2();
         Const.GL_DEBUG && logger.logDebug("DailyGameState.factory() recovers object:", recoveredObj, "gameState");
         if (recoveredObj == null) {
+            // nothing persisted. 
             COV("1");
             let gameState = DailyGameState.__fromScratch(dictionary);
             gameState.isConstructedAsNew = true;
             gameState.updateFromDeprecatedStatsBlob();
             gameState.persist();
-            return gameState;
-        }
+            result =  gameState;
+        } else {
 
-        // Check to see if recovered game number is the test game number, i.e. if we have set
-        // TestDailyGameStart/Target in the local storage.  If so, we use it and don't adjust the streak.
-        // If the test game is being played, the streak is undefined.
-
-        let recoveredDailyGameState = DailyGameState.__fromObj(dictionary, recoveredObj);
-
-        Const.GL_DEBUG && logger.logDebug("DailyGameState.factory() GameState from object:",
-                recoveredDailyGameState, "gameState");
-        if  (recoveredDailyGameState.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER) {
             COV("2");
-            recoveredDailyGameState.persist();
-            return recoveredDailyGameState;
-        }
 
-        // Check to see if the recovered daily game is today's game.  If so, use it as is.
-        // Otherwise, set state to today's daily game.
-        // If we recovered yesterday's game, and didn't win, the streak is over.
-        // If the game we recovered is more than 2 days old, the streak is over.
+            // Check to see if recovered game number is the test game number, i.e. if we have set
+            // TestDailyGameStart/Target in the local storage.  If so, we use it and don't adjust the streak.
+            // If the test game is being played, the streak is undefined.
 
-        let todaysGameNumber = recoveredDailyGameState.calculateGameNumber(); // computes TODAY's game number
-        if (recoveredDailyGameState.dailyGameNumber != todaysGameNumber) {
-            // a new day, a new game.
-            COV("3");
-            recoveredDailyGameState.isConstructedAsNew = true;
+            let recoveredDailyGameState = DailyGameState.__fromObj(dictionary, recoveredObj);
 
-            // need a new game, but not from scratch, to keep the recovered GameState for stats
-            if (recoveredDailyGameState.dailyGameNumber <= todaysGameNumber - 2) {
-                // we didn't play yesterday's game; streak is over
-                recoveredDailyGameState.setStat("streak", 0);
+            Const.GL_DEBUG && logger.logDebug("DailyGameState.factory() GameState from object:",
+                    recoveredDailyGameState, "gameState");
+            if  (recoveredDailyGameState.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER) {
+                COV("3");
+                recoveredDailyGameState.persist();
+                result = recoveredDailyGameState;
             } else {
-                // must be yesterday's game.  Did we win?
-                // The case we're handling here is that it's an unfinished game.
-                // If it was a lost game, we would have already set the streak
-                // to 0 when it was lost.
-                if (!recoveredDailyGameState.isWinner()) {
-                    recoveredDailyGameState.setStat("streak", 0);
+
+                // Check to see if the recovered daily game is today's game.  If so, use it as is.
+                // Otherwise, set state to today's daily game.
+                // If we recovered yesterday's game, and didn't win, the streak is over.
+                // If the game we recovered is more than 2 days old, the streak is over.
+
+                COV("4");
+                let todaysGameNumber = recoveredDailyGameState.calculateGameNumber(); // computes TODAY's game number
+                if (recoveredDailyGameState.dailyGameNumber != todaysGameNumber) {
+                    // a new day, a new game.
+                    COV("5");
+                    recoveredDailyGameState.isConstructedAsNew = true;
+
+                    // need a new game, but not from scratch, to keep the recovered GameState for stats
+                    if (recoveredDailyGameState.dailyGameNumber <= todaysGameNumber - 2) {
+                        // we didn't play yesterday's game; streak is over
+                        recoveredDailyGameState.setStat("streak", 0);
+                    } else {
+                        // must be yesterday's game.  Did we win?
+                        // The case we're handling here is that it's an unfinished game.
+                        // If it was a lost game, we would have already set the streak
+                        // to 0 when it was lost.
+                        if (!recoveredDailyGameState.isWinner()) {
+                            recoveredDailyGameState.setStat("streak", 0);
+                        }
+                    }
+                    // now, update game state to today's game, playing from the start.
+                    recoveredDailyGameState.setToTodaysGame();
                 }
+                recoveredDailyGameState.updateFromDeprecatedStatsBlob();
+                recoveredDailyGameState.persist();
+                result = recoveredDailyGameState;
             }
-            // now, update game state to today's game, playing from the start.
-            recoveredDailyGameState.setToTodaysGame();
         }
-        recoveredDailyGameState.updateFromDeprecatedStatsBlob();
-        recoveredDailyGameState.persist();
-        return recoveredDailyGameState;
+        COV("6");
+        return result;
     }
 
     isNewDailyGame() {
@@ -365,6 +374,7 @@ class DailyGameState extends GameState{
                 [start, target] = Const.DAILY_GAMES[dailyGameNumber];
             }
         }
+        COV("3");
         this.dailyGameNumber = dailyGameNumber;
         this.incrementStat("gamesStarted");
         return this.initializePuzzle(start, target);
@@ -399,12 +409,13 @@ class DailyGameState extends GameState{
         }
 
         // Will return null if something goes bad; e.g. puzzle cannot be solved.
+        let result = null;
         if (dailyGameState.setToTodaysGame() != null) {
             Const.GL_DEBUG && logger.logDebug("DailyGameState.__fromScratch", dailyGameState, "gameState");
-            return dailyGameState;
-        } else {
-            return null;
+            result = dailyGameState;
         }
+        COV("1");
+        return result;
     }
 
     // don't call __fromObj() from outside the class
@@ -412,10 +423,12 @@ class DailyGameState extends GameState{
         COV("0");
         let dailyGameState = new DailyGameState(dictionary);
         Object.assign(dailyGameState, recoveredDailyGameStateObj);
+
         // Use-case for TEST_DAILY_GAME_START, TEST_DAILY_GAME_TARGET vars: 
         // if these are set, they MAY be overriding what we recovered.  If they do,
         // we re-initialize the puzzle using the test words.  If the test words are
         // the same as recovered, we go with the game as recovered.
+
         if (Persistence.hasTestDailyGameWords()) {
             COV("1");
             let [testStart, testTarget] = Persistence.getTestDailyGameWords();
@@ -432,6 +445,7 @@ class DailyGameState extends GameState{
             }
         }
         Const.GL_DEBUG && logger.logDebug("DailyGameState.__fromObj", dailyGameState, "gameState");
+        COV("4");
         return dailyGameState;
     }
 
@@ -473,6 +487,7 @@ class DailyGameState extends GameState{
         this.baseTimestamp = this.baseDate.getTime();
         Const.GL_DEBUG && logger.logDebug("epoch timestamp is set to:",
                 new Date(this.baseTimestamp), "daily");
+        COV("3");
     }
 
     // Increment the given stat, update the stats cookie, and update the stats display content.
@@ -563,6 +578,7 @@ class DailyGameState extends GameState{
             penaltyCount = Const.TOO_MANY_PENALTIES;
         }
         this.penaltyHistogram[penaltyCount] += 1;
+        COV("4");
     }
 }
 
@@ -639,13 +655,14 @@ class PracticeGameState extends GameState{
             COV("4");
             practiceGameState.gamesRemaining = Const.PRACTICE_GAMES_PER_DAY;
         }
+        let result = null;
         if (practiceGameState.initializePuzzle(start, target) != null) { 
             COV("5");
             Const.GL_DEBUG && logger.logDebug("PracticeGameState.__fromScratch", practiceGameState, "gameState");
-            return practiceGameState;
-        } else {
-            return null;
+            result = practiceGameState;
         }
+        COV("6");
+        return result;
     }
 
 
@@ -692,6 +709,7 @@ class PracticeGameState extends GameState{
     // called when the daily game is rolled over, originally from AppDisplay.
     // TODO = should be called from static clock manager outside of the display.
     resetPracticeGameCounter() {
+        COV("0");
         this.gamesRemaining = Const.PRACTICE_GAMES_PER_DAY;
         this.persist();
     }

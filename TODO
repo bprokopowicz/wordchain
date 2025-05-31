@@ -1,6 +1,8 @@
 Known Bugs
 ==========
 
+- Hard reload shows 'You Win!' toast even though the daily game is unplayed or unfinished.
+
 - If Daily game is in progress and we redefine the start/target words for that game
   number in a prod update, it screws up any game in progress or finished that started
   with the previous definition.
@@ -14,8 +16,6 @@ Do in suggested order?
 - Add "set your variables" to the Testing page
 - Analytics
 - Refactor some things:
-  - Not so many ways to represent game state (should enumerate these first!)
-  - Push some of the game logic from *GameDisplay into Game
 - Add remaining penalties indication (maybe in the header?)
 
 Maybe Someday
@@ -46,6 +46,11 @@ Not Affecting Game Play
 
 Testing Issues
 ==============
+
+Coverage.js uses a static map to hold counters for each place that COV is called.  But the static map is
+initialized twice - it seems to be a separate copy - in the case of App tests, which are executed "in the future" 
+using setTimeout().  It could be that the Coverage class is loaded twice, once when code is loaded, and again when
+the AppTest runs using the scheduler.  The second instance isn't printed out by Coverage.showResults().
 
 In IOS (phone, ipad) using Safari, wordchain.html will load and play OK, BUT:
 - if you force a hard reload (cmd-opt-R) from the web inspector while tethered to a Mac,

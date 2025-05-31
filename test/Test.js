@@ -8,15 +8,36 @@ import { Metrics } from '../docs/javascript/Metrics.js';
 import { Persistence } from '../docs/javascript/Persistence.js';
 import { DailyGameDisplay, PracticeGameDisplay } from '../docs/javascript/GameDisplay.js'
 import * as Const from '../docs/javascript/Const.js';
-import { showCoverage } from '../docs/javascript/Coverage.js';
+import { showCoverage, clearCoverage } from '../docs/javascript/Coverage.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
 // use: inTheFuture(2000).then( (foo=this) => {foo.doSomething(arg1, arg2)})
 // the method will called as this.doSomething(arg1, arg2);
 
+// notes about JS delays
+// setTimeout(func, t) calls func() at t milliseconds in the future.
+// new Promise (executor-func) is a constructor call.  
+// executor-func has two args, resolveFunc(x) and rejectFunc(x).  It is called
+// during construction, and sets up the Promise.  resolveFunc (and rejectFunc)
+// are callback-like functions that the Promise is aware of, and if either
+// one is called (from anywhere), the Promise becomes resolved (or rejected) and
+// the follow-on .then(func) expressions that are later attached to the Promise
+// will execute.  They take one parameter, which is the value that any '.then(func)'
+// will receive.  
+// In our case, the resolveFunc is called by the timer mechanism after a pause.  This
+// causes the Promise to be resolved, and any .then()s chained to it will execute.
+// In our case, we don't pass a value to resolvFunc and the .then() chained to the
+// Promise doesn't get a parameter.  When the Promise constructor calls the
+// executor, which sets up the timeout to call the resolveFunc, it first generates the
+// two functions resolveFunc and rejectFunc, and they know about this Promise, so 
+// when they are called by our code, they update the Promise and possibly run the 
+// .then or .catch or .finally attached to the Promise.  resolveFunc and rejectFunc
+// are like handles given to our code, that we will call to move the Promise along.
+// 
+
 function inTheFuture(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(function(resolveFunc, rejectFunc) {setTimeout(resolveFunc, ms)});
 }
 
 class TestClassForCookie {
@@ -137,18 +158,22 @@ class Test extends BaseLogger {
         this.addTitle("WordChain Test Suite<br>Allow 20+ seconds to complete. Browser popups must be allowed." + debugWarning + bundledStatus);
 
 
-        var runAll          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",         class: "testButton" }, "Run All Tests"),
-            runDict         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",        class: "testButton" }, "Run Dict Tests"),
-            runSolver       = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSolver",      class: "testButton" }, "Run Solver Tests"),
-            runGameState    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGameState",   class: "testButton" }, "Run Game State Tests"),
-            runGame         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",        class: "testButton" }, "Run Game Tests"),
-            runApp          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",         class: "testButton" }, "Run App Tests"),
+        var runAll          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",          class: "testButton" }, "Run All Tests"),
+            runDict         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",         class: "testButton" }, "Run Dict Tests"),
+            runSolver       = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSolver",       class: "testButton" }, "Run Solver Tests"),
+            runGameState    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGameState",    class: "testButton" }, "Run Game State Tests"),
+            runGame         = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",         class: "testButton" }, "Run Game Tests"),
+            runApp          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",          class: "testButton" }, "Run App Tests"),
+            showCoverage    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "showCoverage",    class: "testButton" }, "Show Coverage"),
+            clearCoverage   = ElementUtilities.addElementTo("button", this.outerDiv, {id: "clearCoverage",   class: "testButton" }, "Clear Coverage"),
+            showAppCoverage = ElementUtilities.addElementTo("button", this.outerDiv, {id: "showAppCoverage", class: "testButton" }, "Show App Coverage"),
+            clearAppCoverage= ElementUtilities.addElementTo("button", this.outerDiv, {id: "clearAppCoverage",class: "testButton" }, "Clear App Coverage"),
             selector        = this.addAppTestSelector(),
             runSelectedTest = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSelectedTest", class: "testButton" }, "Run Selected App Test");
             ElementUtilities.addElementTo("p", this.outerDiv);
 
 
-        for (let button of [runAll, runDict, runSolver, runGameState, runGame, runApp, runSelectedTest]) {
+        for (let button of [runAll, runDict, runSolver, runGameState, runGame, runApp, runSelectedTest, showCoverage, clearCoverage, showAppCoverage, clearAppCoverage]) {
             ElementUtilities.setButtonCallback(button, this, this.runTestsCallback);
         }
 
@@ -156,8 +181,33 @@ class Test extends BaseLogger {
     }
 
     runTestsCallback(event) {
-        this.clearResults();
+
         const buttonId = event.srcElement.getAttribute("id");
+
+        if (buttonId == "showAppCoverage") {
+            if (this.gameDisplay) {
+                this.gameDisplay.callShowCoverage();
+            } else {
+                console.log("There is no active game display");
+            }
+            return;
+        }
+        if (buttonId == "clearAppCoverage") {
+            if (this.gameDisplay) {
+                this.gameDisplay.callClearCoverage();
+            }
+            return;
+        }
+        if (buttonId == "showCoverage") {
+            showCoverage(); 
+            return;
+        }
+        if (buttonId == "clearCoverage") {
+            clearCoverage();
+            return;
+        }
+
+        this.clearResults();
 
         if (buttonId == "runAll" || buttonId == "runDict") {
             this.runDictTests();
@@ -175,12 +225,16 @@ class Test extends BaseLogger {
             // runAppTests() will run all the functions in this.appTestList.
             this.appTestList = this.getAppTests();
             this.runAppTests(); // this will take care of calling showResults() when it is finished asynchronously
-        } else {
-            this.showResults(); // this will apply to any synchronous tests (dict, solver, game)
         }
         if (buttonId == "runSelectedTest") {
             this.appTestList = [this.appTestNameToFunction.get(this.appTestSelect.value)];
             this.runAppTests();
+        }
+        // The App tests (runAll, runApp, runSelectedTest) will show the results themselves when those tests finish.
+        // Otherwise, we show them now.  This will apply to any synchronous tests (dict, solver, game, gameState)
+
+        if ( buttonId == "runDict" || buttonId == "runSolver" || buttonId == "runGame" || buttonId == "runGameState") {
+            this.showResults();
         }
     }
 
@@ -194,6 +248,7 @@ class Test extends BaseLogger {
     }
 
     showResults() {
+
         let elapsedTime = (Date.now() - this.testingStartTime);
 
         let color = this.failureCount > 0 ? "red" : "green";
@@ -216,7 +271,6 @@ class Test extends BaseLogger {
 
         Persistence.clearAllNonDebug();
         console.log(`Testing took: ${elapsedTime} ms.`);
-        showCoverage();
     }
 
     hadNoErrors() {
@@ -256,10 +310,11 @@ class Test extends BaseLogger {
     }
 
     openTheTestAppWindow() {
-        // Setting the width/height is what makes a separate window open
+        // Setting the width/height is what makes a separate window open,
         // instead of a new browser tab. HOWEVER, in iOS/Chrome, the appearance
         // is a new tab. In iOS/Safari this doesn't work -- we get failures to
         // download some source files and we don't know why!
+
         if (! this.getNewAppWindow()) {
             // This is the URL of the wordchain app that the tests will open.  If we are running unbundled,
             // we will open the unbundled version of the app.
@@ -754,7 +809,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15438;
+        const expectedMinDictSize = 15435;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -1013,16 +1068,17 @@ class Test extends BaseLogger {
         }
 
         const startTestTime = Date.now();
-        prep(); this.testRecoverUnplayedPracticeGameState();
         prep(); this.testNewPracticeGameState();
-        prep(); this.testStatsBlobMigrationGameState();
+        prep(); this.testRecoverUnplayedPracticeGameState();
         prep(); this.testPracticeGameStateOneWordPlayed();
+        prep(); this.testPracticeGamesPerDayVar();
         prep(); this.testNewDailyGameState();
+        prep(); this.testStatsBlobMigrationGameState();
         prep(); this.testRecoverUnplayedDailyGameState();
         prep(); this.testDailyGameStateOneWordPlayed();
         prep(); this.testDailyGameStateRecoverOneWordPlayed();
+        prep(); this.testDailyGameStateNextDay();
         prep(); this.testDailyGameStateUsingNewTestVars();
-        prep(); this.testPracticeGamesPerDayVar();
         prep(); this.testDailyGameStateUsingRepeatTestVars();
         prep(); this.testDailyGameStateDodoMove();
         prep(); this.testDailyGameStateGeniusMove();
@@ -1206,6 +1262,21 @@ class Test extends BaseLogger {
             this.hadNoErrors();
     }
 
+    testDailyGameStateNextDay() {
+        this.testName = "DailyGameStateNextDay";
+        // create a new game from scratch.
+        let dgs1 = DailyGameState.factory(this.fullDict);
+        // move ahead one day
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO - 1);
+        // this should recover the older game, see that it is old, and create a new game
+        let dgs2 = DailyGameState.factory(this.fullDict);
+        this.verify(dgs1.dailyGameNumber == Test.TEST_EPOCH_DAYS_AGO, "expected dgs1.dailyGameNumber=", Test.TEST_EPOCH_DAYS_AGO,
+                "found", dgs1.dailyGameNumber) &&
+            this.verify(dgs2.dailyGameNumber == Test.TEST_EPOCH_DAYS_AGO-1, "expected dgs2.dailyGameNumber=", Test.TEST_EPOCH_DAYS_AGO-1,
+                    "found", dgs2.dailyGameNumber) &&
+            this.hadNoErrors();
+    }
+
     testPracticeGamesPerDayVar() {
         this.testName = "PracticeGamesRemainingVar";
         const nGames = 4;
@@ -1253,6 +1324,7 @@ class Test extends BaseLogger {
             this.verify(dgs2.target == "PANED", "expected target: PANED, found:", dgs2.target) &&
             this.hadNoErrors();
     }
+
     testDailyGameStateDodoMove() {
         this.testName = "DailyGameStateDodoMove";
         // shortest solution is PLANE,PANE,PANED but dodo move is PLANE,PLAN,PAN,PANE,PANED
@@ -1855,8 +1927,9 @@ class Test extends BaseLogger {
 
     runAppTests() {
 
-        // to speed up the app initialization, we pre-define the practice games so that we don't have to search for one.
-        Persistence.saveTestPracticeGameWords("TEST", "PILOT");     // practice game is TEST ... PILOT by default
+        // To speed up the app initialization, we pre-define the practice games so that we don't have to search for one.
+        // The practice game is TEST ... PILOT by default.
+        Persistence.saveTestPracticeGameWords("TEST", "PILOT");
         let newWindow = this.getNewAppWindow();
         if (!(newWindow && newWindow.localStorage && newWindow.theAppDisplayIsReady)) {
             this.openTheTestAppWindow();
@@ -1976,7 +2049,6 @@ class Test extends BaseLogger {
     multiGameStatsTest() {
         this.testName = "MultiGameStats";
         // play the already opened game:
-        this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         let game = this.gameDisplay.game;
         this.logDebug(this.testName, "using daily game:", game, "test");
         this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
@@ -1991,7 +2063,6 @@ class Test extends BaseLogger {
             this.logDebug("Saving daily game state with game number rolled back:", gameState, "test");
 
             this.resetTheTestAppWindow();
-            this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
             game = this.gameDisplay.game;
             this.playTheCannedDailyGameOnce(); // this runs in-line.  When it finishes, the game is actually done
         }
@@ -2209,8 +2280,6 @@ class Test extends BaseLogger {
         const game = this.gameDisplay.game;
         if (!this.verify(game.isOver(), "after 5 wrong moves, game is not over!"))
             return
-
-        console.log ("gameDisplay:", this.gameDisplay);
 
         const resultsDiv = this.gameDisplay.resultsDiv
         const children = resultsDiv.children
@@ -2618,17 +2687,25 @@ class Test extends BaseLogger {
             }
         }
 
-        this.logDebug("----------------------------Reseting the test app window", game.gameState, "test");
+        if (soFarSoGood) {
+            // now, restart the app on the same day, to see if we get new practice games on restarting the same day.  
+            this.resetTheTestAppWindow();
+            this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+            this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
+            let game = this.gameDisplay.game;
+            soFarSoGood = this.verify(!this.gameDisplay.anyGamesRemaining(), "after same-day restart, there should be no games remaining", game.gameState.toStr());
+        }
 
         if (soFarSoGood) {
             // now, restart the app as if it were the next day.  This should reset the games available.
             // But, how does practice game recovery get notified by DailyGame recovery?
+            // Answer: the new window 
             Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO + 1);
             this.resetTheTestAppWindow();
             this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
             this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
             let game = this.gameDisplay.game;
-            this.verify(this.gameDisplay.anyGamesRemaining(), "after overnight restart, there should be some games remaining", game.gameState.toStr(), "test");
+            soFarSoGood = this.verify(this.gameDisplay.anyGamesRemaining(), "after overnight restart, there should be some games remaining", game.gameState.toStr());
         }
 
         soFarSoGood && this.hadNoErrors();

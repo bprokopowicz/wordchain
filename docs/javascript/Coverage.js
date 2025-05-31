@@ -14,86 +14,82 @@
 // scheduled test, the counters are empty.  But during the test, we see the counters incrementing.
 // It seems like there are two counters maps.  
 
-class Coverage { 
-    static counters = null; // keeps track of execution-counts at code points.
+let counters = null; // keeps track of execution-counts at code points.
 
-    static COVERAGE_ON = true;
+let COVERAGE_ON = true;
 
-    static getCounters() {
-        if (Coverage.counters === null) {
-            Coverage.counters = new Map();
-            const dummyObj = {};
-            Error.captureStackTrace(dummyObj); 
-            console.log("Created new counters map, called from:", dummyObj.stack);
-        }
-        return Coverage.counters;
+export function getCounters() {
+    if (counters === null) {
+        counters = new Map();
+        const dummyObj = {};
+        Error.captureStackTrace(dummyObj); 
+        // console.log("Created new counters map, called from:", dummyObj.stack);
     }
+    return counters;
+}
 
-    static COV(point) { 
-        if (Coverage.COVERAGE_ON) {
-            const dummyObj = {};
-            Error.captureStackTrace(dummyObj, Coverage.COV); // don't include COV() in the stack trace
+export function COV(point) { 
+    if (COVERAGE_ON) {
+        const dummyObj = {};
+        Error.captureStackTrace(dummyObj, COV); // don't include COV() in the stack trace
+        const callStack = dummyObj.stack.split("at ");
+        const callerStr = callStack[1]; // the zeroth line is the word 'Error', then comes the caller 
+        const callerTokens = callerStr.split(' ');
+        var caller = callerTokens[0];
+        if (caller === 'new') {
+            // it's the CTOR, not class.method
+            caller = callerTokens[1] + '.constructor';
+        }
 
-            const callStack = dummyObj.stack.split("at ");
-            const callerStr = callStack[1]; // the zeroth line is the word 'Error', then comes the caller 
-            const callerTokens = callerStr.split(' ');
-            var caller = callerTokens[0];
-            if (caller === 'new') {
-                // it's the CTOR, not class.method
-                caller = callerTokens[1] + '.constructor';
-            }
-
-            const key = caller + '.' + point;
-            const nPointsCovered = Coverage.getCounters().size;
-            //console.log("reached", key, nPointsCovered);
-            if (Coverage.getCounters().has(key)) {
-                Coverage.getCounters().set(key, Coverage.getCounters().get(key)+1);
-            } else {
-                Coverage.getCounters().set(key, 1);
-            }
+        const key = caller + '.' + point;
+        const nPointsCovered = getCounters().size;
+        if (getCounters().has(key)) {
+            getCounters().set(key, getCounters().get(key)+1);
+        } else {
+            getCounters().set(key, 1);
         }
     }
+}
 
-    // print out the coverage data and reset the counters
-    static showCoverage() {
-        if (Coverage.COVERAGE_ON) {
-            console.log("Coverage counters", Coverage.getCounters());
-            const labels = Array.from(Coverage.getCounters().keys()).sort();
+// print out the coverage data and reset the counters
+export function showCoverage() {
+    if (COVERAGE_ON) {
+        console.log("Coverage counters", getCounters());
+        const labels = Array.from(getCounters().keys()).sort();
 
-            let curClass = "",
-                curFunc="",
-                lastPoint=-1;
+        let curClass = "",
+            curFunc="",
+            lastPoint=-1;
 
-            for (let label of labels) {
-                // labels look like class.func.pointNumber
-                let [cl, func, pointStr] = label.split('.');
-                let point=parseInt(pointStr);
+        for (let label of labels) {
+            // labels look like class.func.pointNumber
+            let [cl, func, pointStr] = label.split('.');
+            let point=parseInt(pointStr);
 
-                if (point === 0) {
-                    console.log(`${cl}.${func}()`);
-                } 
-                console.log(`  @ ${point}:  ${Coverage.getCounters().get(label)}`);
-                if ((cl == curClass) && (func == curFunc)) {
-                    // we should see continuity in the points reached.
-                    // Print out any p st lastPoint < p < point
-                    for (let p=lastPoint+1; p < point; p++) {
-                        console.log(`  *********  skipped ${cl}.${func} @ ${p}`);
-                    }
-                    lastPoint = point;
-                } else {
-                    curClass = cl;
-                    curFunc = func;
-                    lastPoint = point;
+            if (point === 0) {
+                console.log(`${cl}.${func}()`);
+            } 
+            console.log(`  @ ${point}:  ${getCounters().get(label)}`);
+            if ((cl == curClass) && (func == curFunc)) {
+                // we should see continuity in the points reached.
+                // Print out any p st lastPoint < p < point
+                for (let p=lastPoint+1; p < point; p++) {
+                    console.log(`  *********  skipped ${cl}.${func} @ ${p}`);
                 }
+                lastPoint = point;
+            } else {
+                curClass = cl;
+                curFunc = func;
+                lastPoint = point;
             }
         }
     }
+}
 
-    static clearCoverage() {
-        Coverage.counters = new Map();
-    }
-};
+export function clearCoverage() {
+    counters = new Map();
+}
 
-export const COV = Coverage.COV; 
-export const showCoverage = Coverage.showCoverage; 
-export const clearCoverage = Coverage.clearCoverage;
+//export COV; 
+//export showCoverage;
+//export clearCoverage;

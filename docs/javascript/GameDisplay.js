@@ -4,6 +4,7 @@ import { Game, DailyGame, PracticeGame } from './Game.js';
 import { Persistence } from './Persistence.js';
 import { Picker } from './Picker.js';
 import * as Const from './Const.js';
+import { COV, showCoverage, clearCoverage } from './Coverage.js';
 
 
 import {
@@ -602,8 +603,18 @@ class GameDisplay extends BaseLogger {
         ElementUtilities.removeClass(unconfirmedElement, Const.UNCONFIRMED_STYLE)
         ElementUtilities.addClass(unconfirmedElement, Const.UNSELECTED_STYLE)
     }
-}
 
+    // callShowCoverage()/callClearCoverage is a hack for Test.js to access  the coverage data in the execution context of 
+    // the GameDisplay.  
+
+    callShowCoverage() {
+        showCoverage();
+    }
+
+    callClearCoverage() {
+        clearCoverage();
+    }
+}
 
 class DailyGameDisplay extends GameDisplay {
 
