@@ -1,5 +1,6 @@
 import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
+import { COV } from './Coverage.js';
 import * as Const from './Const.js';
 
 /*
@@ -23,6 +24,8 @@ class StatsDisplay extends AuxiliaryDisplay {
     /* ----- Construction ----- */
 
     constructor(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers, appDisplay) {
+        const CL = "StatsDisplay.constructor";
+        COV(0, CL);
         super(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers);
 
         // Save AppDisplay object so callbacks can call its methods as needed.
@@ -79,6 +82,8 @@ class StatsDisplay extends AuxiliaryDisplay {
     // This is called when the user Xes out of Stats screen, via the base class
     // closeAuxiliaryCallback().
     additionalCloseActions() {
+        const CL = "StatsDisplay.additionalCloseActions";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("StatsDisplay.additionalCloseActions(): clearing timer id: ", this.clockIntervalTimer, "daily");
         this.stopCountdownClock();
     }
@@ -86,6 +91,8 @@ class StatsDisplay extends AuxiliaryDisplay {
     // This is called when the user opensStats screen, via the base class
     // openAuxiliaryCallback().
     additionalOpenActions() {
+        const CL = "StatsDisplay.additionalOpenActions";
+        COV(0, CL);
         this.updateStatsContent();
         this.startCountdownClock();
         this.updateShareButton();
@@ -93,9 +100,11 @@ class StatsDisplay extends AuxiliaryDisplay {
 
     // Callback for the Share button.
     shareCallback(event) {
+        const CL = "StatsDisplay.shareCallback";
+        COV(0, CL);
         const shareString = this.getShareString();
-        if (shareString)
-        {
+        if (shareString) {
+            COV(1, CL);
             // We are currently copying to clipboard rather than the commented
             // out "direct share first" code below because Facebook annoyingly
             // won't properly share text along with a URL. When a URL is included
@@ -106,40 +115,46 @@ class StatsDisplay extends AuxiliaryDisplay {
             // their choice -- and both the graphic and a clickable URL will appear.
             let copiedToClipboard = false;
             if (typeof navigator.clipboard === "object") {
+                COV(2, CL);
                 navigator.clipboard.writeText(`${shareString}`);
                 copiedToClipboard = true;
                 this.appDisplay.showToast(Const.SHARE_TO_PASTE);
             } else {
+                // TODO this is not in the tests currently.  IF we add it, we need to update the COV points from here out in this function.
+                // COV(3, CL);
                 this.appDisplay.showToast(Const.SHARE_INSECURE);
             }
 
             /*
-            NOTE: If we uncomment this code to do a direct share, we will need to use
-            Const.SHARE_URL_FOR_FB in the share string. We may want to write the share
-            graphic with the real URL to the clipboard clipboard after this if-else if-else.
+            *************************************************************************************************
+            * NOTE: If we uncomment this code to do a direct share, we will need to use
+            * Const.SHARE_URL_FOR_FB in the share string. We may want to write the share
+            * graphic with the real URL to the clipboard clipboard after this if-else if-else.
 
-            Const.GL_DEBUG && this.logDebug("shareCallback() navigator: ", navigator, "daily");
-            // Are we in a *secure* environment that has a "share" button, like a smart phone?
-            let shareData = { text: shareString, };
-            if ((typeof navigator.canShare === "function") && navigator.canShare(shareData)) {
-                // Yes -- use the button to share the shareString.
-                navigator.share(shareData)
-                .catch((error) => {
-                    if (error.toString().indexOf("cancellation") < 0) {
-                        console.error("Failed to share: ", error);
-                        this.appDisplay.showToast(Const.SHARE_FAILED);
-                    }
-                });
-            // Are we in a *secure* environment that has access to clipboard (probably on a laptop/desktop)?
-            } else if (typeof navigator.clipboard === "object") {
-                navigator.clipboard.writeText(shareString);
-                this.appDisplay.showToast(Const.SHARE_COPIED);
-            // Insecure.
-            } else {
-                this.appDisplay.showToast(Const.SHARE_INSECURE);
-            }
+            * Const.GL_DEBUG && this.logDebug("shareCallback() navigator: ", navigator, "daily");
+            * // Are we in a *secure* environment that has a "share" button, like a smart phone?
+            * let shareData = { text: shareString, };
+            * if ((typeof navigator.canShare === "function") && navigator.canShare(shareData)) {
+            *   // Yes -- use the button to share the shareString.
+            *   navigator.share(shareData)
+            *   .catch((error) => {
+            *       if (error.toString().indexOf("cancellation") < 0) {
+            *           console.error("Failed to share: ", error);
+            *           this.appDisplay.showToast(Const.SHARE_FAILED);
+            *       }
+            *   });
+            * // Are we in a *secure* environment that has access to clipboard (probably on a laptop/desktop)?
+            *} else if (typeof navigator.clipboard === "object") {
+            *   navigator.clipboard.writeText(shareString);
+            *   this.appDisplay.showToast(Const.SHARE_COPIED);
+            * // Insecure.
+            *} else {
+            *   this.appDisplay.showToast(Const.SHARE_INSECURE);
+            *}
+            *************************************************************************************************
             */
         }
+        COV(3, CL);
         return shareString; // used in testing only
     }
 
@@ -149,7 +164,8 @@ class StatsDisplay extends AuxiliaryDisplay {
     // Note that the share graphic is not HTML, but rather just a string, containing
     // some Unicode characters to construct the graphic.
     getShareString() {
-
+        const CL = "StatsDisplay.getShareString";
+        COV(0, CL);
         const gameState = this.appDisplay.getDailyGameState();
         Const.GL_DEBUG && this.logDebug("getShareString() gameState=", gameState, "daily");
 
@@ -163,15 +179,19 @@ class StatsDisplay extends AuxiliaryDisplay {
 
         // Determine what emoji to use to show the user's "score".
         if (gameState.numPenalties() >= Const.TOO_MANY_PENALTIES) {
+            COV(1, CL);
             // Too many wrong moves.
             shareString += Const.CONFOUNDED;
             gameWon = false;
         } else {
+            COV(2, CL);
             // Show the emoji in NUMBERS corresponding to how many wrong moves.
             // A bit of a misnomer, but the value for 0 is a star.
             shareString += Const.NUMBERS[gameState.numPenalties()];
             gameWon = true;
         }
+
+        COV(3, CL);
 
         // Add a line for the streak.
         shareString += `\nStreak: ${gameState.getStat('streak')}\n`;
@@ -198,6 +218,9 @@ class StatsDisplay extends AuxiliaryDisplay {
             // We don't include unplayed words in the share string. This happens when there are too many wrong moves.
             // The moveSummary includes the correct unplayed words leading from the last wrong word to the
             //  target, but we don't want to show them.
+            // TODO - this use-case is obsolete.  When there are too many wrong moves, the future words get summarized
+            // as SHOWN_MOVE, not FUTURE. 
+
             if ((moveRating == Const.FUTURE) || (moveRating == Const.CHANGE_NEXT)) {
                 break;
             }
@@ -205,30 +228,40 @@ class StatsDisplay extends AuxiliaryDisplay {
             // Determine which color square to display for this word.
             if (moveRating === Const.OK || moveRating === Const.SCRABBLE_WORD) {
                 // Word didn't increase the count; pick color indicating "good".
+                COV(4, CL);
                 emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
             } else if (moveRating === Const.WRONG_MOVE) {
                 // Word increased the count; pick color indicating "bad".
+                COV(5, CL);
                 emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
             } else if (moveRating === Const.GENIUS_MOVE) {
+                COV(6, CL);
                 emoji = colorblindMode ? Const.GOLD_SQUARE : Const.GOLD_SQUARE;
             } else if (moveRating === Const.DODO_MOVE) {
                 // These used to be brown squares, but they were off-putting.
+                COV(7, CL);
                 emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
             } else if (moveRating === Const.SHOWN_MOVE) {
+                COV(8, CL);
                 emoji = colorblindMode ? Const.GRAY_SQUARE : Const.GRAY_SQUARE;
             }
 
             // Now repeat that emoji for the length of the word and add a newline,
             // creating a row that looks like the row of tiles in the game.
+            COV(9, CL);
             shareString += emoji.repeat(wordLength) + "\n";
         }
 
         // Now, add the target
         if (gameWon) {
+            COV(10, CL);
             emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
         } else {
+            COV(11, CL);
             emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
         }
+
+        COV(12, CL);
         shareString += emoji.repeat(targetLength) + "\n";
 
         // Add the URL to the game and send the trimmed result.
@@ -240,12 +273,16 @@ class StatsDisplay extends AuxiliaryDisplay {
     }
 
     refresh() {
+        const CL = "StatsDisplay.refresh";
+        COV(0, CL);
         this.updateStatsContent();
     }
 
     // This is called when the user opens the Stats screen; it displays a
     // countdown clock until the next daily game is available.
     startCountdownClock() {
+        const CL = "StatsDisplay.startCountdownClock";
+        COV(0, CL);
 
         function msToDuration(ms) {
             return new Date(ms).toISOString().substr(11, 8);
@@ -264,6 +301,8 @@ class StatsDisplay extends AuxiliaryDisplay {
     }
 
     stopCountdownClock() {
+        const CL = "StatsDisplay.stopCountdownClock";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("StatsDisplay.stopCountdownClock() timer id: ", this.clockIntervalTimer, "daily");
         clearInterval(this.clockIntervalTimer);
     }
@@ -272,16 +311,23 @@ class StatsDisplay extends AuxiliaryDisplay {
     // has been shown. If the solution was shown or the daily game isn't over,
     // the player is not allowed to share.
     updateShareButton() {
+        const CL = "StatsDisplay.updateShareButton";
+        COV(0, CL);
         if (! this.appDisplay.isDailyGameOver() || this.appDisplay.isDailyGameBroken()) {
+            COV(1, CL);
             this.shareButton.style.display = "none";
         } else {
+            COV(2, CL);
             this.shareButton.style.display = "block";
         }
         Const.GL_DEBUG && this.logDebug("share button style.display set to: ", this.shareButton.style.display, "daily");
+        COV(3, CL);
     }
 
     // Update the statistics and distribution graph.
     updateStatsContent() {
+        const CL = "StatsDisplay.updateStatsContent";
+        COV(0, CL);
         // Get the daily stats from the cookies. We should always have stats because we
         // create them on constructing the daily game, so log if we don't.
         const gameState = this.appDisplay.getDailyGameState();

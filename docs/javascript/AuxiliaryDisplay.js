@@ -1,5 +1,6 @@
 import { BaseLogger } from './BaseLogger.js';
 import { ElementUtilities } from './ElementUtilities.js';
+import { COV } from './Coverage.js';
 import * as Const from './Const.js';
 
 class AuxiliaryDisplay extends BaseLogger {
@@ -8,6 +9,8 @@ class AuxiliaryDisplay extends BaseLogger {
 
     // buttonInfo is an object that will either have a 'text' or 'svg' property.
     constructor(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers) {
+        const CL = "AuxiliaryDisplay.constructor";
+        COV(0, CL);
         super();
 
         this.saveRestoreContainers = saveRestoreContainers;
@@ -37,14 +40,18 @@ class AuxiliaryDisplay extends BaseLogger {
     // This is a common method for creating a button that is clicked to open
     // or close an auxiliary screen.
     createButton(buttonContainer, buttonClass, callbackObj, buttonCallbackFunc, buttonInfo) {
+        const CL = "AuxiliaryDisplay.createButton";
+        COV(0, CL);
         var button;
 
         // The buttonInfo object will either have a 'text' or 'svg' property.
         if (buttonInfo.text) {
+            COV(1, CL);
             buttonClass = buttonClass ? buttonClass : 'aux-button aux-button-text';
             button = ElementUtilities.addElementTo("button", buttonContainer, {class: buttonClass}, buttonInfo.text);
             ElementUtilities.setButtonCallback(button, callbackObj, buttonCallbackFunc);
         } else {
+            COV(2, CL);
             buttonClass = buttonClass ? buttonClass : 'aux-button aux-button-svg';
             button = ElementUtilities.addElementTo("button", buttonContainer, {class: buttonClass});
 
@@ -61,6 +68,7 @@ class AuxiliaryDisplay extends BaseLogger {
             }
         }
 
+        COV(3, CL);
         return button;
     }
 
@@ -68,6 +76,8 @@ class AuxiliaryDisplay extends BaseLogger {
 
     // Callback for closing an Auxiliary screen.
     closeAuxiliaryCallback(unusedEvent) {
+        const CL = "AuxiliaryDisplay.closeAuxiliaryCallback";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("closeAuxiliaryCallback(): this.isOpen:", this.isOpen, ", event:", unusedEvent, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
@@ -76,14 +86,18 @@ class AuxiliaryDisplay extends BaseLogger {
         // open it means this is not the first call for the user's click, so we just
         // return now.
         if (! this.isOpen) {
+            COV(1, CL);
             return;
         }
 
         // If the derived class defined a function to do additional things on closure,
         // call the function.
         if (this.additionalCloseActions) {
+            COV(2, CL);
             this.additionalCloseActions();
         }
+
+        COV(3, CL);
 
         // Now set the flag to prevent another call from doing anything.
         this.isOpen = false;
@@ -97,6 +111,8 @@ class AuxiliaryDisplay extends BaseLogger {
 
     // Callback for opening an Auxiliary screen.
     openAuxiliaryCallback(unusedEvent) {
+        const CL = "AuxiliaryDisplay.openAuxiliaryCallback";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("openAuxiliaryCallback(): this.isOpen:", this.isOpen, ", event:", unusedEvent, "callback");
 
         // By necessity, we have attached this callback to multiple elements that
@@ -105,14 +121,18 @@ class AuxiliaryDisplay extends BaseLogger {
         // If the display is ALREADY open it means this is not the first call for
         // the user's click, so we just return now.
         if (this.isOpen) {
+            COV(1, CL);
             return;
         }
 
         // If the derived class defined a function to do additional things on open,
         // call the function.
         if (this.additionalOpenActions) {
+            COV(2, CL);
             this.additionalOpenActions();
         }
+
+        COV(3, CL);
 
         // Now set the flag to prevent another call from doing anything.
         this.isOpen = true;
@@ -128,6 +148,8 @@ class AuxiliaryDisplay extends BaseLogger {
     // Hide shown containers` while showing an auxiliary screen.
     // Keep track of what containers were showing so they can be restored.
     hideShownContainers() {
+        const CL = "AuxiliaryDisplay.hideShownContainers";
+        COV(0, CL);
         // To be saved for restoreHiddenContainers() to use.
         this.activeContainers = [];
 
@@ -139,6 +161,7 @@ class AuxiliaryDisplay extends BaseLogger {
             // If the "style" attribute does NOT have "none" in it,
             // then it is showing; save it.
             if (! containerStyle.includes("none")) {
+                COV(1, CL);
                 this.activeContainers.push(container);
 
                 // Set the attribute "data-save-style" on the container, which will be
@@ -147,10 +170,13 @@ class AuxiliaryDisplay extends BaseLogger {
                 ElementUtilities.hide(container);
             }
         }
+        COV(2, CL);
     }
 
     // Restore containers hidden with hideShownContainers().
     restoreHiddenContainers() {
+        const CL = "AuxiliaryDisplay.restoreHiddenContainers";
+        COV(0, CL);
         for (let div of this.activeContainers) {
             // Get the attribute that we saved so we know what style to put on the div.
             const containerStyle = div.getAttribute("data-save-style");

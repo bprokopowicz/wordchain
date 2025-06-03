@@ -16,33 +16,41 @@
 
 let counters = null; // keeps track of execution-counts at code points.
 
+// by default, always leave COVERAGE_ON as false, or performance is terrible.  
+
 let COVERAGE_ON = false;
+
+export function setCoverageOn() {
+    console.log("setCoverageOn");
+    COVERAGE_ON = true;
+}
+
+export function setCoverageOff() {
+    console.log("setCoverageOff");
+    COVERAGE_ON = false;
+}
+
+export function isCoverageOn() {
+    return COVERAGE_ON;
+}
 
 export function getCounters() {
     if (counters === null) {
         counters = new Map();
-        const dummyObj = {};
-        Error.captureStackTrace(dummyObj); 
+        // const dummyObj = {};
+        // Error.captureStackTrace(dummyObj); 
         // console.log("Created new counters map, called from:", dummyObj.stack);
     }
     return counters;
 }
 
-export function COV(point) { 
+// Code coverage points are identified as class.method.point, where point is an integer.
+export function COV(point, callerStr ) { 
     if (COVERAGE_ON) {
-        const dummyObj = {};
-        Error.captureStackTrace(dummyObj, COV); // don't include COV() in the stack trace
-        const callStack = dummyObj.stack.split("at ");
-        const callerStr = callStack[1]; // the zeroth line is the word 'Error', then comes the caller 
-        const callerTokens = callerStr.split(' ');
-        var caller = callerTokens[0];
-        if (caller === 'new') {
-            // it's the CTOR, not class.method
-            caller = callerTokens[1] + '.constructor';
-        }
+        // UGLY!
+        let leader = (point < 10) ? "0" : "",
+            key = `${callerStr}.${leader}${point}`;
 
-        const key = caller + '.' + point;
-        const nPointsCovered = getCounters().size;
         if (getCounters().has(key)) {
             getCounters().set(key, getCounters().get(key)+1);
         } else {
@@ -52,14 +60,30 @@ export function COV(point) {
 }
 
 // print out the coverage data and reset the counters
-export function showCoverage() {
+export function showCoverage(appCounters, nonAppCounters) {
+    console.log("appCounters:", appCounters, "nonAppCounters", nonAppCounters);
     if (COVERAGE_ON) {
-        console.log("Coverage counters", getCounters());
-        const labels = Array.from(getCounters().keys()).sort();
+        var combinedCounters = new Map([...appCounters]);
+
+        for (let key of nonAppCounters.keys()) {
+            if (combinedCounters.has(key)) {
+                combinedCounters.set(key, combinedCounters.get(key) + nonAppCounters.get(key));
+            } else {
+                combinedCounters.set(key, nonAppCounters.get(key));
+            }
+        }
+
+        const labels = Array.from(combinedCounters.keys()).sort();
+
+        if (labels.length === 0) {
+            console.log("No coverage recorded. Make sure COVERAGE_ON is true in Coverage.js, and run some tests!");
+            return;
+        }
 
         let curClass = "",
-            curFunc="",
-            lastPoint=-1;
+            curFunc = "",
+            lastPoint = -1,
+            skippedLabels = [];
 
         for (let label of labels) {
             // labels look like class.func.pointNumber
@@ -69,12 +93,12 @@ export function showCoverage() {
             if (point === 0) {
                 console.log(`${cl}.${func}()`);
             } 
-            console.log(`  @ ${point}:  ${getCounters().get(label)}`);
+            console.log(`  @ ${point}:  ${combinedCounters.get(label)}`);
             if ((cl == curClass) && (func == curFunc)) {
                 // we should see continuity in the points reached.
                 // Print out any p st lastPoint < p < point
                 for (let p=lastPoint+1; p < point; p++) {
-                    console.log(`  *********  skipped ${cl}.${func} @ ${p}`);
+                    skippedLabels.push(`${cl}.${func} @ ${p}`);
                 }
                 lastPoint = point;
             } else {
@@ -83,13 +107,16 @@ export function showCoverage() {
                 lastPoint = point;
             }
         }
+
+        console.log("Skipped coverage points:");
+        if (skippedLabels.length === 0) {
+            console.log("None!");
+        } else {
+            console.log(skippedLabels.join("\n"));
+        }
     }
 }
 
 export function clearCoverage() {
     counters = new Map();
 }
-
-//export COV; 
-//export showCoverage;
-//export clearCoverage;

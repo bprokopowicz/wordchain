@@ -1,8 +1,6 @@
 Known Bugs
 ==========
 
-- Hard reload shows 'You Win!' toast even though the daily game is unplayed or unfinished.
-
 - If Daily game is in progress and we redefine the start/target words for that game
   number in a prod update, it screws up any game in progress or finished that started
   with the previous definition.
@@ -12,11 +10,12 @@ Near Term Changes
 
 Do in suggested order?
 
-- Help video
-- Add "set your variables" to the Testing page
+- Add "set your variables" to the Testing page (instead of browser local storage)
 - Analytics
-- Refactor some things:
 - Add remaining penalties indication (maybe in the header?)
+- Eliminate negativity from user experience
+- Add start/target words to share graphic
+- Put share on Daily page on completion
 
 Maybe Someday
 =============

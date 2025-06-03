@@ -1,5 +1,6 @@
 import { BaseLogger } from './BaseLogger.js';
 import { ElementUtilities } from './ElementUtilities.js';
+import { COV } from './Coverage.js';
 import * as Const from './Const.js';
 
 class Picker extends BaseLogger {
@@ -13,6 +14,8 @@ class Picker extends BaseLogger {
     //    class adds to pickerDiv. This useful mainly to identify in the
     //    devtools which picker is which: daily or practice.
     constructor(gameDisplay, pickerDiv, pickerId) {
+        const CL = "Picker.constructor";
+        COV(0, CL);
         super();
 
         // Save gameDisplay so that we can call letterPicked() when the
@@ -55,18 +58,22 @@ class Picker extends BaseLogger {
             button = ElementUtilities.addElementTo("button", td, {class: `picker-button ${Const.UNSELECTED_STYLE}`, letter: letter}, letter)
             this.buttonsForLetters.set(letter, button);
             if (letter == 'M') {
+                COV(1, CL);
                 this.middleButton = button;
             }
             ElementUtilities.setButtonCallback(button, this, this.selectionCallback);
         }
 
         // Force caller to enable the picker explictly.
+        COV(2, CL);
         this.disable();
     }
 
     // For testing: we want the button for a particular letter, so we
     // can simulate pressing it from test code.
     getButtonForLetter(letter) {
+        const CL = "Picker.getButtonForLetter";
+        COV(0, CL);
         return this.buttonsForLetters.get(letter);
     }
 
@@ -75,30 +82,45 @@ class Picker extends BaseLogger {
         // for the picker will be present, but it will be blank. In this way,
         // when we enable the picker, we simply "unhide" and the game display
         // elements don't move, which would be jarring to a user.`
+        const CL = "Picker.disable";
+        COV(0, CL);
         ElementUtilities.hide(this.pickerInnerDiv);
     }
 
     enable() {
+        const CL = "Picker.ensable";
+        COV(0, CL);
         ElementUtilities.show(this.pickerInnerDiv);
     }
 
     // ActiveLetterCell saves the letter position in the picker so that when
     // a letter is selected we can give it back to the game.
     saveLetterPosition(position) {
+        const CL = "Picker.saveLetterPosition";
+        COV(0, CL);
         this.letterPosition = position;
     }
 
     // This method is called when the user clickes a letter button in the picker.
     // Its return value is needed ONLY for the testing infrastructure.
     selectionCallback(event) {
+        const CL = "Picker.selectionCallback";
+        COV(0, CL);
+
+        let result = null;
 
         if (this.gameDisplay.needsConfirmation(event.srcElement)) {
-            return Const.NEEDS_CONFIRMATION;
+            COV(1, CL);
+            result = Const.NEEDS_CONFIRMATION;
         } else {
             // Tell the game that a letter has been picked.
+            COV(2, CL);
             const buttonText = event.srcElement.innerText;
-            return this.gameDisplay.letterPicked(buttonText, this.letterPosition);
+            result = this.gameDisplay.letterPicked(buttonText, this.letterPosition);
         }
+
+        COV(3, CL);
+        return result;
     }
 }
 

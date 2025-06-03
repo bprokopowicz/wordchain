@@ -5,6 +5,7 @@ import { HelpDisplay } from './HelpDisplay.js';
 import { Persistence } from './Persistence.js';
 import { SettingsDisplay } from './SettingsDisplay.js';
 import { StatsDisplay } from './StatsDisplay.js';
+import { COV } from './Coverage.js';
 import * as Const from './Const.js';
 
 
@@ -22,6 +23,8 @@ class AppDisplay extends BaseLogger {
     /* ----- Construction ----- */
 
     constructor() {
+        const CL = "AppDisplay.constructor";
+        COV(0, CL);
         super();
         // these two variables are accessed from Test.js so that we
         // can control the application from the testing code.
@@ -36,9 +39,11 @@ class AppDisplay extends BaseLogger {
 
         // Confirmation mode is false by default.
         if (! Persistence.hasConfirmationMode()) {
+            COV(1, CL);
             this.confirmationMode = false;
             Persistence.saveConfirmationMode(this.confirmationMode);
         } else {
+            COV(2, CL);
             this.confirmationMode = Persistence.getConfirmationMode();
         }
 
@@ -87,6 +92,8 @@ class AppDisplay extends BaseLogger {
     }
 
     startTimingCheckInterval() {
+        const CL = "AppDisplay.startTimingCheckInterval";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("startTimingCheckInterval() called", "display");
         // Stop any timer already running.
         this.stopTimingCheckInterval();
@@ -102,18 +109,25 @@ class AppDisplay extends BaseLogger {
     }
 
     stopTimingCheckInterval() {
+        const CL = "AppDisplay.stopTimingCheckInterval";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("stopTimingCheckInterval() called", "display");
         if (this.checkDailyIntervalTimer) {
+            COV(1, CL);
             Const.GL_DEBUG && this.logDebug("stopTimingCheckInterval() clearing old timer id: ", this.checkDailyIntervalTimer, "display");
             clearInterval(this.checkDailyIntervalTimer);
             this.checkDailyIntervalTimer = null;
         }
+        COV(2, CL);
     }
 
     // Create the one and only object of this class if it hasn't yet been created.
     // Return the new or existing object.
     static singleton() {
+        const CL = "AppDisplay.singleton";
+        COV(0, CL);
         if (AppDisplay.singletonObject === null) {
+            COV(1, CL);
             AppDisplay.singletonObject = new AppDisplay();
         }
         return AppDisplay.singletonObject;
@@ -121,7 +135,9 @@ class AppDisplay extends BaseLogger {
 
     // For automated testing only!
     resetSingletonObject() {
+        const CL = "AppDisplay.resetSingletonObject";
         // so that we don't keep adding #root-div to the same document on each reset:
+        COV(0, CL);
         document.getElementById("root-div").remove();
         this.stopTimingCheckInterval();
         this.statsDisplay.stopCountdownClock();
@@ -130,6 +146,8 @@ class AppDisplay extends BaseLogger {
 
     // This is the entry point for creating the screens and displaying the game.
     createScreens() {
+        const CL = "AppDisplay.createScreens";
+        COV(0, CL);
         this.rootDiv = ElementUtilities.addElementTo("div", document.body, {id: "root-div"});
 
         // The upper-div contains the divs for the header and picker.
@@ -173,15 +191,19 @@ class AppDisplay extends BaseLogger {
         this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
         /* TODO  - not managing the practice counter here...  */
         if (this.dailyGameDisplay.isNewDailyGame()) {
+            COV(1, CL);
             Const.GL_DEBUG && this.logDebug("AppDisplay.createScreens() calling resetPracticeGameCounter()", "display");
             this.resetPracticeGameCounter();
         }
+
+        COV(2, CL);
         this.currentGameDisplay = this.dailyGameDisplay;
     }
 
     /* ----- Header ----- */
 
     createAuxiliaryScreens() {
+        const CL = "AppDisplay.createAuxiliaryScreens";
         // This is the set of divs that need to be hidden when an auxiliary screen is
         // shown, and shown when an auxiliary screen is closed.
         this.primaryDivs = [
@@ -192,6 +214,7 @@ class AppDisplay extends BaseLogger {
 
         // Now create objects for each of the auxiliary screens.
         // We don't need to save these in the object, but we will anyway!
+        COV(0, CL);
         this.helpDisplay = new HelpDisplay(
             this.auxiliaryButtonDiv, {text: "HOW TO PLAY"}, this.auxiliaryDiv, this.primaryDivs);
 
@@ -205,6 +228,8 @@ class AppDisplay extends BaseLogger {
     createGameButtons() {
         // Buttons to switch between Daily and Practice games.
         // Only one is showing at any given time.
+        const CL = "AppDisplay.createGameButtons";
+        COV(0, CL);
         this.switchToDailyGameButton = ElementUtilities.addElementTo(
             "button", this.gameButtonDiv,
             {id: "switch-to-daily-game", class: "app-button header-button"},
@@ -231,6 +256,8 @@ class AppDisplay extends BaseLogger {
         // This div is one we style as none or flex to hide/show the div.
         // NOTE: It is important to set the style explicitly so that the
         // hide/show code in AuxiliaryDisplay will work properly.
+        const CL = "AppDisplay.createHeaderDiv";
+        COV(0, CL);
         this.headerDiv = ElementUtilities.addElementTo("div", this.upperDiv, {id: "header-div"});
         this.headerDiv.style.display = "flex";
 
@@ -250,6 +277,8 @@ class AppDisplay extends BaseLogger {
     createGameDiv(lowerDiv) {
         // We always want the game to appear on a "line" by itself, not
         // next to the picker grid, so add a break.
+        const CL = "AppDisplay.createGameDiv";
+        COV(0, CL);
         ElementUtilities.addBreak(lowerDiv);
 
         // This div is one we style as none or flex to hide/show the div.
@@ -260,6 +289,8 @@ class AppDisplay extends BaseLogger {
     }
 
     createPickerDiv(parentDiv) {
+        const CL = "AppDisplay.createPickerDiv";
+        COV(0, CL);
         // This div is the one we style as none or flex to hide/show the div.
         ElementUtilities.addBreak(parentDiv);
         this.pickerDiv = ElementUtilities.addElementTo("div", parentDiv, {id: "picker-div"}, null);
@@ -268,13 +299,14 @@ class AppDisplay extends BaseLogger {
         // NOTE: It is important to set the style explicitly so that the
         // hide/show code in AuxiliaryDisplay will work properly.
         this.pickerDiv.style.display = "flex";
-
     }
 
     /* ----- Callbacks ----- */
 
     switchToDailyGameCallback(__event) {
         // Hide practice and show daily.
+        const CL = "AppDisplay.switchToDailyGameCallback";
+        COV(0, CL);
         ElementUtilities.hide(this.practiceGameDiv);
         ElementUtilities.hide(this.practicePickerDiv);
         ElementUtilities.show(this.dailyGameDiv);
@@ -294,6 +326,8 @@ class AppDisplay extends BaseLogger {
     // so that there is no pause when switching to the practice game for the first time.
     // If the user has already played the maximum number of games, we disallow any more.
     switchToPracticeGameCallback(__event) {
+        const CL = "AppDisplay.switchToPracticeGameCallback";
+        COV(0, CL);
 
         // Hide daily and show practice.
         ElementUtilities.hide(this.dailyGameDiv);
@@ -313,75 +347,107 @@ class AppDisplay extends BaseLogger {
     // Check whether it is time for a new Daily game. This will recalculate
     // game number and if it has changed will reset internal state accordingly.
     checkForNewDailyGame() {
+        const CL = "AppDisplay.checkForNewDailyGame";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("checkForNewDailyGame() called; timer id: ", this.checkDailyIntervalTimer, "display");
         const isNewGame = this.dailyGameDisplay.updateDailyGameData();
         if (isNewGame) {
+            COV(1, CL);
             this.showToast(Const.NEW_DAILY_GAME);
             this.showNoDaily();
             this.statsDisplay.refresh();
             this.statsDisplay.updateShareButton();
             this.resetPracticeGameCounter();
         }
+        COV(2, CL);
     }
 
     resetPracticeGameCounter() {
         //TODO - don't manage this here
+        const CL = "AppDisplay.resetPracticeGameCounter";
+        COV(0, CL);
         this.practiceGameDisplay.resetPracticeGameCounter();
     }
 
     isDailyGameOver() {
+        const CL = "AppDisplay.isDailyGameOver";
+        COV(0, CL);
         return this.dailyGameDisplay.gameIsOver();
     }
 
     isDailyGameBroken() {
+        const CL = "AppDisplay.isDailyGameBroken";
+        COV(0, CL);
         return this.dailyGameDisplay.gameIsBroken();
     }
 
     // Return the given CSS property value.
     static getCssProperty(property) {
+        const CL = "AppDisplay.getCssProperty";
+        COV(0, CL);
         return getComputedStyle(document.documentElement).getPropertyValue(`--${property}`);
     }
 
     getDailyGameState() {
+        const CL = "AppDisplay.getDailyGameState";
+        COV(0, CL);
         return this.dailyGameDisplay.getGameState();
     }
 
     getDailyMoveSummary() {
+        const CL = "AppDisplay.getDailyGameSummary";
+        COV(0, CL);
         return this.dailyGameDisplay.getMoveSummary();
     }
 
     getMsUntilNextGame() {
+        const CL = "AppDisplay.getMsUntilNextGame";
+        COV(0, CL);
         return this.dailyGameDisplay.getMsUntilNextGame();
     }
 
     isColorblindMode() {
+        const CL = "AppDisplay.isColorblindMode";
+        COV(0, CL);
         return this.colorblindMode;
     }
 
     isConfirmationMode() {
+        const CL = "AppDisplay.isConfirmationMode";
+        COV(0, CL);
         return this.confirmationMode;
     }
 
     isDarkTheme() {
+        const CL = "AppDisplay.isDarkTheme";
+        COV(0, CL);
         return this.darkTheme;
     }
 
     // PracticeGameDisplay calls this when the user finishes a game
     // and there are no more remaining in this 24-hour period.
     practiceGamesUsedUp() {
+        const CL = "AppDisplay.practiceGamesUsedUp";
+        COV(0, CL);
         ElementUtilities.disableButton(this.switchToPracticeGameButton);
     }
 
     refreshStats() {
+        const CL = "AppDisplay.refreshStats";
+        COV(0, CL);
         this.statsDisplay.refresh();
     }
 
     // Set color properties according to the Dark Theme and Colorblind Mode settings.
     setColors() {
+        const CL = "AppDisplay.setColors";
+        COV(0, CL);
         // Change the document class name to switch the colors in general.
         if (this.darkTheme) {
+            COV(1, CL);
             document.documentElement.className = "dark-mode";
         } else {
+            COV(2, CL);
             document.documentElement.className = "light-mode";
         }
 
@@ -394,16 +460,19 @@ class AppDisplay extends BaseLogger {
         // These need to be set according to whether the user has selected colorblind mode
         // as well as whether the user has selected light or dark mode.
         if (this.colorblindMode) {
+            COV(3, CL);
             // Colorblind Mode is checked: set good/bad colorblind variables based on whether
             // Dark Mode is set, and set the properties affected by Colorblind Mode
             // based on those variables.
             if (this.darkTheme) {
+                COV(4, CL);
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("colorblind-good-bg-dark"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("colorblind-bad-bg-dark"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("colorblind-genius-bg-dark"));
                 this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("colorblind-dodo-bg-dark"));
                 this.setCssProperty("played-word-shown-bg",  AppDisplay.getCssProperty("colorblind-shown-bg-dark"));
             } else {
+                COV(5, CL);
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("colorblind-good-bg-light"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("colorblind-bad-bg-light"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("colorblind-genius-bg-light"));
@@ -413,13 +482,16 @@ class AppDisplay extends BaseLogger {
         } else {
             // Colorblind Mode is not checked: restore the affected properties based on whether
             // Dark Mode is set.
+            COV(6, CL);
             if (this.darkTheme) {
+                COV(7, CL);
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("non-colorblind-good-bg-dark"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("non-colorblind-bad-bg-dark"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("non-colorblind-genius-bg-dark"));
                 this.setCssProperty("played-word-dodo-bg",   AppDisplay.getCssProperty("non-colorblind-dodo-bg-dark"));
                 this.setCssProperty("played-word-shown-bg",  AppDisplay.getCssProperty("colorblind-shown-bg-dark"));
             } else {
+                COV(8, CL);
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("non-colorblind-good-bg-light"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("non-colorblind-bad-bg-light"));
                 this.setCssProperty("played-word-genius-bg", AppDisplay.getCssProperty("non-colorblind-genius-bg-light"));
@@ -430,27 +502,36 @@ class AppDisplay extends BaseLogger {
 
         // Re-show the moves to make the color changes take effect.
         // Pass true to indicate that toast display should be skipped.
+        COV(9, CL);
         const skipToast = true;
         this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove(skipToast);
     }
 
     // Set the given CSS property to the specified value.
     setCssProperty(property, value) {
+        const CL = "AppDisplay.setCssProperty";
+        COV(0, CL);
         document.documentElement.style.setProperty(`--${property}`, value);
     }
 
     // Show a "no daily game" toast if we haven't already.
     showNoDaily() {
+        const CL = "AppDisplay.showNoDaily";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("AppDisplay.showNoDaily() this.showedNoDaily:", this.showedNoDaily, "dailyGameNumber():",
                 this.dailyGameDisplay.dailyGameNumber(), "display");
         if (!this.showedNoDaily && this.dailyGameDisplay.dailyGameNumber() === Const.BROKEN_DAILY_GAME_NUMBER) {
+            COV(1, CL);
             this.showedNoDaily = true;
             this.showToast(Const.NO_DAILY);
         }
+        COV(2, CL);
     }
 
     // Show a "toast" pop-up (typically an error message).
     showToast(message, duration=Const.SHOW_TOAST_DURATION) {
+        const CL = "AppDisplay.showToast";
+        COV(0, CL);
         this.toastDiv.innerHTML = message
         ElementUtilities.editClass(/hide/, "show", this.toastDiv);
         setTimeout(() => {
@@ -461,13 +542,17 @@ class AppDisplay extends BaseLogger {
     // This is called on construction, when the periodic timer fires, and
     // when switching to the Daily Game screen.
     updatePracticeGameStatus() {
+        const CL = "AppDisplay.updatePracticeGameStatus";
+        COV(0, CL);
         if (this.practiceGameDisplay.anyGamesRemaining()) {
+            COV(1, CL);
             ElementUtilities.enableButton(this.switchToPracticeGameButton);
 
             // Notify the display that games are available so that the New Game
             // button can be enabled.
             this.practiceGameDisplay.practiceGamesAvailable();
         }
+        COV(2, CL);
     }
 }
 

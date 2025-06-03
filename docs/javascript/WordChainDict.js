@@ -1,5 +1,6 @@
 import { BaseLogger } from './BaseLogger.js';``
 import * as Const from './Const.js';
+import { COV } from './Coverage.js';
 
 // Synchronously wait for the word list to download.
 // This code runs before any other code
@@ -21,19 +22,26 @@ class WordChainDict extends BaseLogger {
 
     constructor(wordList=[]) {
         super();
+        const CL = "WordChainDict.constructor"; 
+        COV(0, CL);
 
         if (wordList.length == 0) {
+            COV(1, CL);
             this.shuffleArray(globalWordList);
             this.wordSet = new Set(globalWordList);
         } else {
+            COV(2, CL);
             this.shuffleArray(wordList);
             this.wordSet = new Set(wordList.map((x)=>x.toUpperCase()));
         }
+        COV(3, CL);
 
         Const.GL_DEBUG && this.logDebug("Dictionary has", this.getSize(), " words.", "dictionary");
     }
 
     shuffleArray(array) {
+        const CL = "WordChainDict.shuffleArray";
+        COV(0, CL);
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
@@ -44,6 +52,8 @@ class WordChainDict extends BaseLogger {
     // duplicate a dictionary.  Useful before destructively searching a dictionary to avoid repeats.
 
     copy() {
+        const CL = "WordChainDict.copy";
+        COV(0, CL);
         let wordList = this.getWordList();
         let newDict = new WordChainDict(wordList);
         Const.GL_DEBUG && this.logDebug("dictionary copy has ", newDict.getSize(), " words.", "dictionary");
@@ -53,6 +63,8 @@ class WordChainDict extends BaseLogger {
     // Find the words that result from adding one letter
     // anywhere in word.
     findAdderWords(word) {
+        const CL = "WordChainDict.findAdderWords";
+        COV(0, CL);
         let adders = new Set();
         let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -68,12 +80,14 @@ class WordChainDict extends BaseLogger {
                 Const.GL_DEBUG && this.logDebug(">>>>> potential: ", potentialWord, "dictionary-details");
 
                 if (this.isWord(potentialWord)) {
+                    COV(1, CL);
                     Const.GL_DEBUG && this.logDebug(">>>>> adding adder: ", potentialWord, "dictionary-details");
                     adders.add(potentialWord);
                 }
             }
         }
 
+        COV(2, CL);
         Const.GL_DEBUG && this.logDebug("adders for ", word, ": ", Array.from(adders).sort(), "dictionary-details");
         return adders;
     }
@@ -81,6 +95,8 @@ class WordChainDict extends BaseLogger {
     // Get all of the words that can come after word by adding, removing,
     // or replacing a letter.
     findNextWords(word) {
+        const CL = "WordChainDict.findNextWords";
+        COV(0, CL);
         let adders       = this.findAdderWords(word);
         let removers     = this.findRemoverWords(word);
         let replacements = this.findReplacementWords(word);
@@ -92,11 +108,12 @@ class WordChainDict extends BaseLogger {
         nextWordsSortedArray.sort();
         Const.GL_DEBUG && this.logDebug("nextWords for ", word, ": ", nextWordsSortedArray, "dictionary");
         return nextWordsSortedArray;
-
     }
 
     // Find the words that result from removing one letter anywhere in word.
     findRemoverWords(word) {
+        const CL = "WordChainDict.findRemoverWords";
+        COV(0, CL);
         let removers = new Set();
 
         // Test isWord() when we remove each each letter in word.
@@ -104,6 +121,7 @@ class WordChainDict extends BaseLogger {
             let potentialWord = word.substr(0, wordIndex) + word.substr(wordIndex+1);
             Const.GL_DEBUG && this.logDebug(">>>>> potential: ", potentialWord, "dictionary-details");
             if (this.isWord(potentialWord)) {
+                COV(1, CL);
                 Const.GL_DEBUG && this.logDebug(">>>>> adding remover: ", potentialWord, "dictionary-details");
                 removers.add(potentialWord);
             }
@@ -115,6 +133,8 @@ class WordChainDict extends BaseLogger {
 
     // Find the words that result from replacing the letter at a specific location
     findReplacementWordsAtLoc(word, wordIndex) {
+        const CL = "WordChainDict.findReplacementWords";
+        COV(0, CL);
         let replacements = new Set();
         let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -124,32 +144,40 @@ class WordChainDict extends BaseLogger {
         for (let alphaIndex = 0; alphaIndex < 26; alphaIndex++) {
             let newLetter = alphabet.substr(alphaIndex, 1);
             if (newLetter != currentLetter) { // don't re-create the same word
+                COV(1, CL);
                 // Construct the potential word, replacing the current letter in word 
                 // with the newLetter from A-Z.
                 let potentialWord = '';
                 if (wordIndex === 0) {
+                    COV(2, CL);
                     potentialWord = newLetter + word.substr(1)
                 } else if (wordIndex < word.length - 1) {
+                    COV(3, CL);
                     potentialWord = word.substr(0, wordIndex) + newLetter + word.substr(wordIndex+1);
                 } else {
+                    COV(4, CL);
                     potentialWord = word.substr(0, word.length - 1) + newLetter;
                 }
 
                 Const.GL_DEBUG && this.logDebug(">>>>> potential: ", potentialWord, "dictionary-details");
                 if (this.isWord(potentialWord)) {
+                    COV(5, CL);
                     Const.GL_DEBUG && this.logDebug(">>>>> adding replacement: ", potentialWord, "dictionary-details");
                     replacements.add(potentialWord);
                 }
             }
         }
 
-        Const.GL_DEBUG && this.logDebug("replacements for ", word, ": ", Array.from(replacements).sort(), "dictionary-details");
+        COV(6, CL);
+        Const.GL_DEBUG && this.logDebug("changes from", word, ": ", Array.from(replacements).sort(), "dictionary-details");
         return replacements;
     }
 
 
     // Find the words that result from replacing one letter anywhere in word.
     findReplacementWords(word) {
+        const CL = "WordChainDict.1findReplacementWords";
+        COV(0, CL);
         let replacements = new Set();
         for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
             for (const replacement of this.findReplacementWordsAtLoc(word, wordIndex)) {
@@ -162,8 +190,11 @@ class WordChainDict extends BaseLogger {
     }
 
     findChangedLetterLocation(word1, word2) {
+        const CL = "WordChainDict.findChangedLetterLocation";
+        COV(0, CL);
         for (let i=0; i < word1.length; i++) {
             if (word1[i] != word2[i]) {
+                COV(1, CL);
                 return i;
             }       
         }           
@@ -178,8 +209,11 @@ class WordChainDict extends BaseLogger {
     // If thisWord->nextWord is a change letter at 2, find all the possible changes at letter 2 in thisWord.
 
     findOptionsAtWordStep(thisWord, nextWord) {
+        const CL = "WordChainDict.findOptionsAtWordStep";
+        COV(0, CL);
         var replacementWords;
         if (thisWord.length == nextWord.length) {
+            COV(1, CL);
             // we tell the user which letter location to change, so only the changes of that
             // location should count towards difficulty
             let loc = this.findChangedLetterLocation(thisWord, nextWord);
@@ -189,31 +223,36 @@ class WordChainDict extends BaseLogger {
                 console.error("can't find location of changed letter from ", thisWord, " to ", nextWord)
             }
         } else if (thisWord.length > nextWord.length ){
+            COV(2, CL);
             replacementWords = this.findRemoverWords(thisWord);
         } else {
+            COV(3, CL);
             replacementWords = this.findAdderWords(thisWord);
         }
         Const.GL_DEBUG && this.logDebug("options from", thisWord, "to", nextWord, "are:", replacementWords, "dictionary");
+        COV(4, CL);
         return replacementWords;
     }
 
     // Get the size of the dictionary.
     getSize() {
+        const CL = "WordChainDict.getSize";
+        COV(0, CL);
         return this.wordSet.size;
     }
 
     getWordList() {
+        const CL = "WordChainDict.getWordList";
+        COV(0, CL);
         return Array.from(this.wordSet);
-    }
-
-    isLoaded() {
-        return this.wordSet !== null;
     }
 
     // Test whether a word is in the dictionary.
     // Give a default of empty string so word is not undefined,
     // because  you can't get the length of undefined.
     isWord(word="") {
+        const CL = "WordChainDict.isWord";
+        COV(0, CL);
         let theWord = word.toUpperCase();
         if (theWord.length === 0) {
             throw new Error("WordChainDict.isWord(): Word cannot have length 0");
@@ -225,10 +264,14 @@ class WordChainDict extends BaseLogger {
     }
 
     addWord(word) {
+        const CL = "WordChainDict.addWord";
+        COV(0, CL);
         this.wordSet.add(word.toUpperCase());
     }
 
     removeWord(word) {
+        const CL = "WordChainDict.removeWord";
+        COV(0, CL);
         this.wordSet.delete(word.toUpperCase());
     }
 };

@@ -5,10 +5,13 @@ import * as Const from './Const.js';
 import { GameState, DailyGameState, PracticeGameState } from './GameState.js';
 import { Persistence } from './Persistence.js';
 import { BaseLogger } from './BaseLogger.js';
+import { COV } from './Coverage.js';
 
 class Game extends BaseLogger {
 
     constructor(gameState) {
+        const CL = "Game.constructor";
+        COV(0, CL);
         super(); // BaseLogger
         this.gameState = gameState;
         Const.GL_DEBUG && this.logDebug("Game.constructor(): start:", gameState.start, "target:", gameState.target, "game");
@@ -46,6 +49,8 @@ class Game extends BaseLogger {
     // the change word already has the '?'.
 
     getDisplayInstructions() {
+        const CL = "Game.getDisplayInstructions";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("played so far: " + this.gameState.getPlayedWordsAsString(), "instruction");
         Const.GL_DEBUG && this.logDebug("remaining unplayed: " + this.gameState.getUnplayedWordsAsString(), "instruction");
 
@@ -63,6 +68,7 @@ class Game extends BaseLogger {
         // But, if the last played word is the target, then we don't add any instruction 
         // for it here, and add it below with instructionForTargetWord();
         if (this.lastPlayedWord() != this.gameState.target) {
+            COV(1, CL);
             instructions.push(this.instructionForLastPlayedWord());
         }
 
@@ -79,11 +85,13 @@ class Game extends BaseLogger {
         // Is this a change move and the next step is NOT the target
         // (i.e. we have another move to make)?
         if (actionIsChange && this.gameState.unplayedWords.length > 1) {
+            COV(2, CL);
 
             // If the active word has no "hole", then the last move was a ChangeNoAdd.
             let isChangeNoAdd = ! GameState.wordHasHole(lastWord);
 
             if (isChangeNoAdd) {
+                COV(3, CL);
                 // Add a change-next instruction. Note that we still have this word with
                 // no hole at the beginning of our remainingSteps list, so we'll need to
                 // skip it.
@@ -107,10 +115,13 @@ class Game extends BaseLogger {
         instructions.push(this.instructionForTargetWord());
 
         Const.GL_DEBUG && this.logDebug("display instructions: ", instructions, "game");
+        COV(4, CL);
         return instructions;
     }
 
     instructionForPlayedWord(stepIndex) {
+        const CL = "Game.instructionForPlayedWord";
+        COV(0, CL);
         const ratedMove = this.gameState.getRatedMove(stepIndex);
         Const.GL_DEBUG && this.logDebug("  instructionForPlayedWord() step", stepIndex, "word", ratedMove.word, "instruction");
         const changePosition = -1;
@@ -118,6 +129,8 @@ class Game extends BaseLogger {
     }
 
     instructionForChangeNextWord(changePosition) {
+        const CL = "Game.instructionsForChangeNextWord";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("  instructionForChangeNextWord() changePosition", changePosition, "instruction");
         // we show next word after a change with the letters visible
         // exept the changing letter.
@@ -139,6 +152,8 @@ class Game extends BaseLogger {
     }
 
     instructionForFutureWord(stepIndex) {
+        const CL = "Game.instructionsForFutureWord";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("  instructionForFutureWord() stepIndex", stepIndex, "instruction");
         // we show hints in the future words that require a single letter-change to the next word
         const futureWord = this.gameState.getUnplayedWord(stepIndex);
@@ -150,28 +165,37 @@ class Game extends BaseLogger {
     }
 
     instructionForLastPlayedWord() {
+        const CL = "Game.instructionsForLastPlayedWord";
+        COV(0, CL);
         // we are displaying the last played word, which is the active word.  We give instructions for
         // how to go from that word to the first word in the remaining steps.
         // UNLESS, the last played word is the last mistake.
 
         let lastRatedMove = this.gameState.lastRatedMove();
         Const.GL_DEBUG && this.logDebug("  instructionForLastPlayedWord() lastRatedMove", lastRatedMove.word, "instruction");
-        let [lastWord, moveRating] = [lastRatedMove.word, lastRatedMove.rating];
+        let [lastWord, moveRating] = [lastRatedMove.word, lastRatedMove.rating],
+            result = null;
         if (this.isLoser()) {
+            COV(1, CL);
             // the game is a failure, and this is the last mistake
             let changePosition = -1; // not used
-            return new DisplayInstruction(lastWord, Const.PLAYED, changePosition, moveRating);
+            result = new DisplayInstruction(lastWord, Const.PLAYED, changePosition, moveRating);
         } else if (GameState.wordHasHole(lastWord)) {
+            COV(2, CL);
             // after user clicks plus somewhere, the list of played words includes the last word played with a hole
             // in it where the user clicked '+'.  This word with a hole is what we will return to the display to show.
             // the last word in the played list is the word with a hole. Note that we also still have the word
             // in the list of remaining words.
             let indexOfHole = GameState.locationOfHole(lastWord);
-            return new DisplayInstruction(lastWord, Const.CHANGE, indexOfHole+1, moveRating);
+            result = new DisplayInstruction(lastWord, Const.CHANGE, indexOfHole+1, moveRating);
         } else {
+            COV(3, CL);
             let nextWord = this.gameState.getUnplayedWord(0);
-            return this.instructionForPlayingFromWordToWord(lastWord, nextWord, moveRating);
+            result = this.instructionForPlayingFromWordToWord(lastWord, nextWord, moveRating);
         }
+
+        COV(4, CL);
+        return result;
     }
 
     // this method is for displaying the target, either as Const.TARGET if not played yet,
@@ -179,22 +203,29 @@ class Game extends BaseLogger {
     // moveRating is Const.OK unless the game is lost; then it is Const.WRONG_MOVE
 
     instructionForTargetWord() {
+        const CL = "Game.instructionsForTargetWord";
+        COV(0, CL);
         let targetWord = this.gameState.target;
         Const.GL_DEBUG && this.logDebug("  instructionForTargetWord() targetWord", targetWord, "instruction");
         let changePosition=-1; // not used - there is no change FROM target to something
         let displayType = Const.TARGET; // unless the game is over; then it is PLAYED
         let moveRating = Const.OK; // unless the game is over and we lost; then it is WRONG_MOVE
         if (this.isOver()) {
+            COV(1, CL);
             displayType = Const.PLAYED;
             if (!this.isWinner()) {
+                COV(2, CL);
                 moveRating = Const.WRONG_MOVE;
             }
         }
+        COV(3, CL);
         return new DisplayInstruction(targetWord, displayType, changePosition, moveRating);
     }
 
     // how to display the previous word, which needs to be changed, to give the next word.
     instructionForPlayingFromWordToWord(prevWord, nextWord, lastWordMoveRating) {
+        const CL = "Game.instructionsForPlayingFromWordToWord";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("      instructionForPlayingFromWordToWord()",  prevWord, nextWord, "instruction");
         let oneStepTransformation = Solver.getTransformationStep(prevWord, nextWord);
         if (oneStepTransformation === null) {
@@ -202,27 +233,36 @@ class Game extends BaseLogger {
         }
         let [operation, position, letter] = oneStepTransformation;
         if ((operation == Const.ADD) || (operation == Const.DELETE)) {
+            COV(1, CL);
             // DisplayInstruction for ADD/DELETE sets position to zero, which the GameDisplay interprets as
             // no cell should be highlighted
             position = 0;
         }
         Const.GL_DEBUG && this.logDebug("      instructionForPlayingFromWordToWord() returns:",
                 prevWord, operation, lastWordMoveRating, "instruction");
+        COV(2, CL);
         return new DisplayInstruction(prevWord, operation, position, lastWordMoveRating);
     }
 
    addWordIfExists(word) {
+        const CL = "Game.addWordIfExists";
+        COV(0, CL);
+        let result = Const.NOT_A_WORD;
         if (this.gameState.dictionary.isWord(word) || this.scrabbleDictionary.isWord(word)) {
-            return this.gameState.addWord(word);
-        } else {
-            return Const.NOT_A_WORD;
+            COV(1, CL);
+            result = this.gameState.addWord(word);
         }
+
+        COV(2, CL);
+        return result;
     }
 
 
     // the GUI needs to know if a played word was acceptable (OK, GENIUS_MOVE, SCRABBLE_WORD, DODO_MOVE, or WRONG_MOVE) vs
     // invalid (NOT_A_WORD or technical problems like BAD_POSITION)
     static moveIsValid(moveRating) {
+        const CL = "Game.moveIsValid";
+        COV(0, CL);
         return (moveRating == Const.OK) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.SCRABBLE_WORD) ||
                (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE) || (moveRating == Const.SHOWN_MOVE);
     }
@@ -235,6 +275,8 @@ class Game extends BaseLogger {
     // - Returns true if no error
     // - Returns null on error (e.g. unexpected position)
     playAdd(addPosition) {
+        const CL = "Game.addPosition";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playAdd(): addPosition:", addPosition, "this.gameState",
                 this.gameState.toStr(), "game");
         let oldWord = this.lastPlayedWord();
@@ -248,6 +290,8 @@ class Game extends BaseLogger {
     // returns true if resulting word is in dictionary; false otherwise
     // returns null on other error (e.g. unexpected position)
     playDelete(deletePosition) {
+        const CL = "Game.playDelete";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playDelete() position", deletePosition, "this.gameState:",
                 this.gameState.toStr(), "game");
         let oldWord = this.lastPlayedWord();
@@ -266,6 +310,8 @@ class Game extends BaseLogger {
     // returns true if resulting word is in dictionary; false otherwise
     // returns null on other error (e.g. unexpected position)
     playLetter(letterPosition, letter) {
+        const CL = "Game.playLetter";
+        COV(0, CL);
         Const.GL_DEBUG && this.logDebug("Game.playLetter(): letterPosition:", letterPosition, ", letter:", letter,
                 "this.gameState", this.gameState, "game");
         Const.GL_DEBUG && this.logDebug("steps played: ", this.gameState.getPlayedWordsAsString(), "game");
@@ -282,33 +328,45 @@ class Game extends BaseLogger {
 
     // Returns the number of actually played wrong moves, including dodo moves, and shown moves.
     numPenalties() {
+        const CL = "Game.numPenalties";
+        COV(0, CL);
         return this.gameState.numPenalties();
     }
  
     getOriginalSolutionWords() {
+        const CL = "Game.getOriginalSolutionWords";
+        COV(0, CL);
         const wordList = this.gameState.initialSolution;
         return this.listAsStringWithBreaks(wordList);
     }
 
     getUserSolutionWords() {
+        const CL = "Game.getUserSolutionWords";
+        COV(0, CL);
         const wordList = this.gameState.getPlayedWordList();
         return this.listAsStringWithBreaks(wordList);
     }
 
     getUnplayedWords() {
+        const CL = "Game.getUnplayedWords";
+        COV(0, CL);
         return this.gameState.unplayedWords;
     }
 
     listAsStringWithBreaks(wordList) {
+        const CL = "Game.listAsStringWithBreaks";
+        COV(0, CL);
         let res = "";
         for (let i = 0; i < wordList.length-1; i++) {
             res = res + wordList[i]+ '⇒';
             // add a break tag every N words
             if ((i+1) % Const.DISPLAY_SOLUTION_WORDS_PER_LINE == 0) {
+                COV(1, CL);
                 res = res + "<br>";
             }
         }
         // now, add the last word, with no trailing separator
+        COV(2, CL);
         return res + wordList[wordList.length-1];
     }
 
@@ -318,6 +376,8 @@ class Game extends BaseLogger {
     // correct moves.
 
     finishGame() {
+        const CL = "Game.finishGame";
+        COV(0, CL);
         // play the remaining steps for the user.  
         this.gameState.finishGame();
     }
@@ -325,30 +385,42 @@ class Game extends BaseLogger {
     // reveal any unplayed words.  This moves the remaining steps into the played steps and labels
     // them as SHOWN_MOVE
     showUnplayedMoves() {
+        const CL = "Game.showUnplayedMoves";
+        COV(0, CL);
         this.gameState.showUnplayedMoves();
     }
 
     showNextMove() {
+        const CL = "Game.showNextMove";
+        COV(0, CL);
         // plays the next word in the solution for the player.  The move is rated as
         // SHOWN_MOVE
         return this.gameState.showNextMove();
     }
 
     isOver() {
+        const CL = "Game.isOver";
+        COV(0, CL);
         let res = this.gameState.isOver();
         Const.GL_DEBUG && this.logDebug("Game.isOver() returns:", res, "gameState: ", this.gameState.toStr(), "game");
         return res;
     }
 
     isWinner() {
+        const CL = "Game.isWinner";
+        COV(0, CL);
         return this.gameState.isWinner();
     }
 
     isLoser() {
+        const CL = "Game.isLoser";
+        COV(0, CL);
         return this.gameState.isLoser();
     }
     
     lastPlayedWord() {
+        const CL = "Game.lastPlayedWord";
+        COV(0, CL);
         return this.gameState.lastPlayedWord();
     }
 }
@@ -356,20 +428,28 @@ class Game extends BaseLogger {
 class DailyGame extends Game {
 
     constructor(dict=new WordChainDict()) {
+        const CL = "DailyGame.constructor";
+        COV(0, CL);
         let gameState = DailyGameState.factory(dict);
         super(gameState);
     }
 
     isOld() {
+        const CL = "DailyGame.isOld";
+        COV(0, CL);
         return this.gameState.gameIsOld();
     }
     
     // returns true if the current daily game was constructed as new, not recovered from a current daily game
     isNewDailyGame() {
+        const CL = "DailyGame.isNewDailyGame";
+        COV(0, CL);
         return this.gameState.isNewDailyGame();
     }
 
     isBroken() {
+        const CL = "DailyGame.isBroken";
+        COV(0, CL);
         return this.gameState.gameIsBroken();
     }
 }
@@ -377,32 +457,46 @@ class DailyGame extends Game {
 class PracticeGame extends Game {
 
     constructor(dict=new WordChainDict()) {
+        const CL = "PracticeGame.constructor";
+        COV(0, CL);
         let gameState = PracticeGameState.factory(dict);
         super(gameState);
     }
 
     nextGame() {
+        const CL = "PracticeGame.nextGame";
+        COV(0, CL);
+        let result = null;
         if (! this.gamesRemaining()) {
+            COV(1, CL);
             Const.GL_DEBUG && this.logDebug("PracticeGame.nextGame() no games remaining",  "game");
-            return null;
+        } else {
+            COV(2, CL);
+            let gamesRemaining = this.gamesRemaining();
+            // get a fresh game and update its gamesRemaining
+            Persistence.clearPracticeGameState2(); 
+            let practiceGame = new PracticeGame(); // will be from scratch after clearing game state.
+            practiceGame.gameState.gamesRemaining = gamesRemaining;
+            practiceGame.gameState.persist();
+            result = practiceGame;
         }
-        let gamesRemaining = this.gamesRemaining();
-        // get a fresh game and update its gamesRemaining
-        Persistence.clearPracticeGameState2(); 
-        let practiceGame = new PracticeGame(); // will be from scratch after clearing game state.
-        practiceGame.gameState.gamesRemaining = gamesRemaining;
-        practiceGame.gameState.persist();
-        return practiceGame;
+
+        COV(3, CL);
+        return result;
     }
 
     //// 
     // Pass-throughs to GameState, called from the Display classes.
 
     gamesRemaining() {
+        const CL = "PracticeGame.gamesRemaining";
+        COV(0, CL);
         return this.gameState.gamesRemaining;
     }
 
     resetPracticeGameCounter() {
+        const CL = "PracticeGame.resetPracticeGameCounter";
+        COV(0, CL);
         this.gameState.resetPracticeGameCounter();
     }
 }

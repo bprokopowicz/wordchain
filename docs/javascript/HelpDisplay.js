@@ -1,11 +1,14 @@
 import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
 import { ElementUtilities } from './ElementUtilities.js';
+import { COV } from './Coverage.js';
 import * as Const from './Const.js';
 
 
 class HelpDisplay extends AuxiliaryDisplay {
 
     constructor(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers) {
+        const CL = "HelpDisplay.constructor";
+        COV(0, CL);
         super(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers);
 
         const helpHTML = `

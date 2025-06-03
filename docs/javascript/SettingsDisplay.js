@@ -2,6 +2,7 @@ import { AuxiliaryDisplay } from './AuxiliaryDisplay.js';
 import { Persistence } from './Persistence.js';
 import { ElementUtilities } from './ElementUtilities.js';
 import * as Const from './Const.js';
+import { COV } from './Coverage.js';
 
 class SettingsDisplay extends AuxiliaryDisplay {
 
@@ -72,6 +73,18 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // setting-simple class styles the contents of the setting (title/description,
         // checkbox input) horizontally.
         const interactiveDiv = this.addSetting(title, "setting-simple", description);
+        return ElementUtilities.addElementTo("div", settingDiv, {});
+    }
+
+    getAppDisplay() {
+        return this.appDisplay;
+    }
+
+    // Add a setting whose input is a checkbox.
+    addCheckboxSetting(title, id, value, description="") {
+        // setting-simple class styles the contents of the setting (title/description,
+        // checkbox input) horizontally.
+        const interactiveDiv = this.addSetting(title, "setting-simple", description);
 
         const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
             {type: "checkbox", id: id, class: "setting-checkbox"});
@@ -84,6 +97,8 @@ class SettingsDisplay extends AuxiliaryDisplay {
     addLinkSetting(title, linkText, linkHref, description) {
         // setting-simple class styles the contents of the setting (title/description, link)
         // horizontally.
+        const CL = "SettingsDisplay.addLinkSetting";
+        COV(0, CL);
         const interactiveDiv = this.addSetting(title, "setting-simple", description);
         ElementUtilities.addElementTo("a", interactiveDiv, {href: linkHref, target: "_blank"}, linkText);
     }
@@ -94,6 +109,8 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // setting-complex class styles the contents of the setting (title/description, radio inputs
         // and their labels) vertically, i.e. title/description on one line, then each input on
         // a subsequent line.
+        const CL = "SettingsDisplay.addRadioSetting";
+        COV(0, CL);
         const interactiveDiv = this.addSetting(title, "setting-complex", description);
 
         // To get nice formatting, especially on smaller devices where the description will wrap,
@@ -130,24 +147,31 @@ class SettingsDisplay extends AuxiliaryDisplay {
     checkboxCallback(event) {
 
         // The id attribute in the event's srcElement property tells us which setting whas changed.
+        const CL = "SettingsDisplay.checkboxCallback";
+        COV(0, CL);
         const checkboxId = event.srcElement.getAttribute("id");
 
         // The checked attribute in the event's srcElement property tells us whether the
         // checkbox was checked or unchecked. Set the boolean corresponding to the
         // checkbox's id according to that.
         if (checkboxId === "dark") {
+            COV(1, CL);
             this.appDisplay.darkTheme = event.srcElement.checked ? true : false;
             Persistence.saveDarkTheme(this.appDisplay.darkTheme);
             this.appDisplay.setColors();
 
         } else if (checkboxId === "colorblind") {
+            COV(2, CL);
             this.appDisplay.colorblindMode = event.srcElement.checked ? true : false;
             Persistence.saveColorblindMode(this.appDisplay.colorblindMode);
             this.appDisplay.setColors();
         } else if (checkboxId === "confirmation") {
+            COV(3, CL);
             this.appDisplay.confirmationMode = event.srcElement.checked ? true : false;
             Persistence.saveConfirmationMode(this.appDisplay.confirmationMode);
         }
+
+        COV(4, CL);
     }
 
     /*
@@ -178,7 +202,6 @@ class SettingsDisplay extends AuxiliaryDisplay {
         this.appDisplay.gameTileDisplay.setTypeSavingMode(this.appDisplay.typeSavingMode);
     }
     */
-
 }
 
 export { SettingsDisplay };

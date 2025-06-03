@@ -1,4 +1,4 @@
-  import * as Const from './Const.js';
+import * as Const from './Const.js';
 
 // This class provides the interface between the GameDisplay and Game classes.
 // When displaying the game grid, GameDisplay requests display instructions from
