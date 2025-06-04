@@ -16,12 +16,10 @@ let counters = null; // keeps track of execution-counts at code points.
 let COVERAGE_ON = false; // DO NOT CHANGE THIS VALUE HERE, EVEN TEMPORARILY.  
 
 export function setCoverageOn() {
-    console.log("setCoverageOn");
     COVERAGE_ON = true;
 }
 
 export function setCoverageOff() {
-    console.log("setCoverageOff");
     COVERAGE_ON = false;
 }
 
@@ -32,9 +30,6 @@ export function isCoverageOn() {
 export function getCounters() {
     if (counters === null) {
         counters = new Map();
-        // const dummyObj = {};
-        // Error.captureStackTrace(dummyObj); 
-        // console.log("Created new counters map, called from:", dummyObj.stack);
     }
     return counters;
 }
