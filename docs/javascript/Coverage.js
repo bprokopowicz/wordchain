@@ -1,24 +1,19 @@
 ////
-// Use:  in any methods, add calls to COV(p) with an integer "point" p which indicates
-// a place in the code.  Coverage will keep track of the number of times that place in the
+// Use:  in any methods, add calls to COV(p, label) with an integer "point" p which indicates
+// a place in the code.  'label' should be something like class.method or file.method
+// Coverage will keep track of the number of times that place in the
 // code is reached, using a counter named class.method.p
 //
 // At any time, called showCoverage() to print out the counters for each point reached.  
 // If we see that a point has non-zero counts but an earlier point doesn't have any count,
 // we show that the earlier point was skipped.
 
-
-// TODO - there is a bug in how statics and globals are managed.  It seems that for some reason,
-// simple globals, as well as class statics, have two or more instances, maybe depending on the 
-// class loader.  For tests that run using the scheduler, and show their results after the last
-// scheduled test, the counters are empty.  But during the test, we see the counters incrementing.
-// It seems like there are two counters maps.  
-
 let counters = null; // keeps track of execution-counts at code points.
 
-// by default, always leave COVERAGE_ON as false, or performance is terrible.  
+// by default, always leave COVERAGE_ON as false, or performance is terrible.  It should only 
+// be turned on at runtime for testing, so that we don't accidentally ship with it enabled.
 
-let COVERAGE_ON = false;
+let COVERAGE_ON = false; // DO NOT CHANGE THIS VALUE HERE, EVEN TEMPORARILY.  
 
 export function setCoverageOn() {
     console.log("setCoverageOn");
