@@ -257,12 +257,6 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell);
     }
 
-    isConfirmationMode() {
-        const CL = "GameDisplay.isConfirmationMode";
-        COV(0, CL);
-        return this.appDisplay.isConfirmationMode();
-    }
-
     showGameAfterMove(skipToast=false) {
         const CL = "GameDisplay.showGameAfterMove";
         COV(0, CL);
@@ -637,7 +631,7 @@ class GameDisplay extends BaseLogger {
 
         // Is the user playing with confirmation mode set?
         let result = null;
-        if (this.isConfirmationMode()) {
+        if (Persistence.getConfirmationMode()) {
             COV(1, CL);
             // Yes -- has the user selected a letter? If so they may either be confirming
             // or they may have changed their mind.

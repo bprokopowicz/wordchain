@@ -19,11 +19,14 @@ class SettingsDisplay extends AuxiliaryDisplay {
 
         // All the settings will be added to the content container created in
         // the base class constructor.
-        this.addCheckboxSetting("Dark Theme",        "dark",         appDisplay.isDarkTheme());
-        this.addCheckboxSetting("Colorblind Mode",   "colorblind",   appDisplay.isColorblindMode());
+        const isColorblindMode = Persistence.getColorblindMode();
+        const isDarkTheme = Persistence.getDarkTheme();
+        const isConfirmationMode = Persistence.getConfirmationMode();
+        this.addCheckboxSetting("Dark Theme",        "dark",         isDarkTheme);
+        this.addCheckboxSetting("Colorblind Mode",   "colorblind",   isColorblindMode);
 
         const confirmationModeDescription = "Selected plus, minus, and letter must be confirmed; gray indicates confirmation is needed.";
-        this.addCheckboxSetting("Confirmation Mode", "confirmation", appDisplay.isConfirmationMode(), confirmationModeDescription);
+        this.addCheckboxSetting("Confirmation Mode", "confirmation", isConfirmationMode, confirmationModeDescription);
 
         /*
         const radioInfo = [{
@@ -162,13 +165,13 @@ class SettingsDisplay extends AuxiliaryDisplay {
 
         } else if (checkboxId === "colorblind") {
             COV(2, CL);
-            this.appDisplay.colorblindMode = event.srcElement.checked ? true : false;
-            Persistence.saveColorblindMode(this.appDisplay.colorblindMode);
+            const colorblindModeOn = event.srcElement.checked;
+            Persistence.saveColorblindMode(colorblindModeOn);
             this.appDisplay.setColors();
         } else if (checkboxId === "confirmation") {
             COV(3, CL);
-            this.appDisplay.confirmationMode = event.srcElement.checked ? true : false;
-            Persistence.saveConfirmationMode(this.appDisplay.confirmationMode);
+            const confirmationModeOn = event.srcElement.checked;
+            Persistence.saveConfirmationMode(confirmationModeOn);
         }
 
         COV(4, CL);

@@ -154,11 +154,13 @@ class Cookie {
         return window.localStorage.getItem(name);
     }
 
+    // this defaults to false if the cookie is not set at all.
     static getBoolean(name) {
         var result = Cookie.get(name) === "true";
-        return Cookie.get(name) === "true";
+        return result;
     }
 
+    // defaults to null if the cookie is not set or is not an integer
     static getInt(name) {
         const strVal = Cookie.get(name);
         return strVal ? parseInt(strVal) : null;

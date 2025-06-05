@@ -428,7 +428,7 @@ class Test extends BaseLogger {
         if (optionalLetter != letter) {
             // we are testing a 'user changed their mind' case, where first optionalLetter is clicked,
             // then letter, then letter is confirmed.
-            if (!this.gameDisplay.isConfirmationMode()) {
+            if (!Persistence.getConfirmationMode()) {
                 this.logDebug("playLetter() was given an optional letter but the game is not in ConfirmationMode.  This is a bad test.", "test");
                 return Const.UNEXPECTED_ERROR;
             }
@@ -450,7 +450,7 @@ class Test extends BaseLogger {
 
         const realButton = this.gameDisplay.letterPicker.getButtonForLetter(letter);
         const mockEvent = new MockEvent(realButton);
-        if (this.gameDisplay.isConfirmationMode()) {
+        if (Persistence.getConfirmationMode()) {
             const firstClickRes = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
             if (firstClickRes != Const.NEEDS_CONFIRMATION) {
                 this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
@@ -486,7 +486,7 @@ class Test extends BaseLogger {
         var mockOptionalDeleteButton = null;
         if (changesMind) {
             //pre-click the optional position deletion button
-            if (!this.gameDisplay.isConfirmationMode()) {
+            if (!Persistence.getConfirmationMode()) {
                 this.logDebug("deleteLetter() was given an optional position but the game is not in ConfirmationMode.  This is a bad test.", "test");
                 return Const.UNEXPECTED_ERROR;
             }
@@ -511,7 +511,7 @@ class Test extends BaseLogger {
 
         const mockEvent = new MockEvent(mockDeleteButton);
 
-        if (this.gameDisplay.isConfirmationMode()) {
+        if (Persistence.getConfirmationMode()) {
             const firstClickRes  = this.gameDisplay.deletionClickCallback(mockEvent);
             if (firstClickRes != Const.NEEDS_CONFIRMATION) {
                 this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
@@ -545,7 +545,7 @@ class Test extends BaseLogger {
 
         var mockOptionalInsertButton = null;
         if (changesMind) {
-            if (!this.gameDisplay.isConfirmationMode()) {
+            if (!Persistence.getConfirmationMode()) {
                 this.logDebug("insertLetter() was given an optional position but the game is not in ConfirmationMode.  This is a bad test.", "test");
                 return Const.UNEXPECTED_ERROR;
             }
@@ -569,7 +569,7 @@ class Test extends BaseLogger {
         ElementUtilities.addClass(mockInsertButton, Const.UNSELECTED_STYLE);
         const mockEvent = new MockEvent(mockInsertButton);
 
-        if (this.gameDisplay.isConfirmationMode()) {
+        if (Persistence.getConfirmationMode()) {
             const firstClickRes = this.gameDisplay.additionClickCallback(mockEvent);
             if (firstClickRes != Const.NEEDS_CONFIRMATION) {
                 this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
@@ -2086,7 +2086,7 @@ class Test extends BaseLogger {
     // confirmation is a function of the GameDisplay so to test it we need to be playing a game
     changeMindOnSelectedLettersTest() {
         // restore default confirmation mode
-        this.getNewAppWindow().theAppDisplay.confirmationMode = true;
+        Persistence.saveConfirmationMode(true);
 
         this.testName = "ChangeMindOnSelectedLetters";
         // SHORT -> POOR
@@ -2198,28 +2198,28 @@ class Test extends BaseLogger {
 
         let srcElement = new MockEventSrcElement();
         var mockEvent = new MockEvent(srcElement); 
-        var soFarSoGood = this.verify(!appDisplay.isColorblindMode(), "expected colorblind mode off 1") &&
-            this.verify(!appDisplay.isDarkTheme(), "expected dark mode mode off 1");
+        var soFarSoGood = this.verify(!Persistence.getColorblindMode(), "expected colorblind mode off 1") &&
+            this.verify(!Persistence.getDarkTheme(), "expected dark mode mode off 1");
 
         srcElement.setAttribute("id", "colorblind");
         // colorblind on, dark off
         srcElement.checked = true;
         settingsDisplay.checkboxCallback(mockEvent);
-        soFarSoGood &&= this.verify(appDisplay.isColorblindMode(), "expected colorblind mode on 2");
+        soFarSoGood &&= this.verify(Persistence.getColorblindMode(), "expected colorblind mode on 2");
         // colorblind off, dark off
         srcElement.checked = false;
         settingsDisplay.checkboxCallback(mockEvent);
-        soFarSoGood &&= this.verify(!appDisplay.isColorblindMode(), "expected colorblind mode off 2");
+        soFarSoGood &&= this.verify(!Persistence.getColorblindMode(), "expected colorblind mode off 2");
 
         srcElement.setAttribute("id", "dark");
         // dark mode on, colorblind off
         srcElement.checked = true;
         settingsDisplay.checkboxCallback(mockEvent);
-        soFarSoGood &&= this.verify(appDisplay.isDarkTheme(), "expected dark mode on 3");
+        soFarSoGood &&= this.verify(Persistence.getDarkTheme(), "expected dark mode on 3");
         // dark mode off, colorblind off
         srcElement.checked = false;
         settingsDisplay.checkboxCallback(mockEvent);
-        soFarSoGood &&= this.verify(!appDisplay.isDarkTheme(), "expected dark mode off 3");
+        soFarSoGood &&= this.verify(!Persistence.getDarkTheme(), "expected dark mode off 3");
 
         // dark mode on, colorblind mode on
         srcElement.setAttribute("id", "dark");
@@ -2229,17 +2229,17 @@ class Test extends BaseLogger {
         srcElement.checked = true;
         settingsDisplay.checkboxCallback(mockEvent);
 
-        soFarSoGood &&= this.verify(appDisplay.isColorblindMode(), "expected colorblind mode on 4") &&
-            this.verify(appDisplay.isDarkTheme(), "expected dark mode mode on 4");
+        soFarSoGood &&= this.verify(Persistence.getColorblindMode(), "expected colorblind mode on 4") &&
+            this.verify(Persistence.getDarkTheme(), "expected dark mode mode on 4");
 
         // confirmation mode - just testing the appDisplay's callback
         srcElement.setAttribute("id", "confirmation");
         srcElement.checked = true;
         settingsDisplay.checkboxCallback(mockEvent);
-        soFarSoGood &&= this.verify(appDisplay.isConfirmationMode(), "expected confirmation mode on");
+        soFarSoGood &&= this.verify(Persistence.getConfirmationMode(), "expected confirmation mode on");
         srcElement.checked = false;
         settingsDisplay.checkboxCallback(mockEvent);
-        soFarSoGood &&= this.verify(!appDisplay.isConfirmationMode(), "expected confirmation mode off");
+        soFarSoGood &&= this.verify(!Persistence.getConfirmationMode(), "expected confirmation mode off");
 
         soFarSoGood && this.hadNoErrors();
     }
@@ -2801,7 +2801,7 @@ class Test extends BaseLogger {
         this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
         this.logDebug("Switching to practice game", "test");
         this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
-        this.getNewAppWindow().theAppDisplay.confirmationMode = confirm;
+        Persistence.saveConfirmationMode(confirm);
 
         this.logDebug("Done switching to practice game", "test");
 
@@ -2817,7 +2817,7 @@ class Test extends BaseLogger {
         let resultInsertI1 = this.insertLetter(1, "I");  // PLOT -> PxLOT
 
         // restore default confirmation mode
-        this.getNewAppWindow().theAppDisplay.confirmationMode = false;
+        Persistence.saveConfirmationMode(false);
 
         this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
             this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&

@@ -33,20 +33,6 @@ class AppDisplay extends BaseLogger {
 
         // Flags from Settings screen
 
-        // These flags are false by default.
-        this.darkTheme        = Persistence.getDarkTheme();
-        this.colorblindMode   = Persistence.getColorblindMode();
-
-        // Confirmation mode is false by default.
-        if (! Persistence.hasConfirmationMode()) {
-            COV(1, CL);
-            this.confirmationMode = false;
-            Persistence.saveConfirmationMode(this.confirmationMode);
-        } else {
-            COV(2, CL);
-            this.confirmationMode = Persistence.getConfirmationMode();
-        }
-
         // The mother of all divs.
         this.rootDiv = null;
 
@@ -464,24 +450,6 @@ class AppDisplay extends BaseLogger {
         return this.dailyGameDisplay.getMsUntilNextGame();
     }
 
-    isColorblindMode() {
-        const CL = "AppDisplay.isColorblindMode";
-        COV(0, CL);
-        return this.colorblindMode;
-    }
-
-    isConfirmationMode() {
-        const CL = "AppDisplay.isConfirmationMode";
-        COV(0, CL);
-        return this.confirmationMode;
-    }
-
-    isDarkTheme() {
-        const CL = "AppDisplay.isDarkTheme";
-        COV(0, CL);
-        return this.darkTheme;
-    }
-
     // PracticeGameDisplay calls this when the user finishes a game
     // and there are no more remaining in this 24-hour period.
     practiceGamesUsedUp() {
@@ -501,7 +469,7 @@ class AppDisplay extends BaseLogger {
         const CL = "AppDisplay.setColors";
         COV(0, CL);
         // Change the document class name to switch the colors in general.
-        if (this.darkTheme) {
+        if (Persistence.getDarkTheme()) {
             COV(1, CL);
             document.documentElement.className = "dark-mode";
         } else {
@@ -517,12 +485,12 @@ class AppDisplay extends BaseLogger {
         //
         // These need to be set according to whether the user has selected colorblind mode
         // as well as whether the user has selected light or dark mode.
-        if (this.colorblindMode) {
+        if (Persistence.getColorblindMode()) {
             COV(3, CL);
             // Colorblind Mode is checked: set good/bad colorblind variables based on whether
             // Dark Mode is set, and set the properties affected by Colorblind Mode
             // based on those variables.
-            if (this.darkTheme) {
+            if (Persistence.getDarkTheme()) {
                 COV(4, CL);
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("colorblind-good-bg-dark"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("colorblind-bad-bg-dark"));
@@ -541,7 +509,7 @@ class AppDisplay extends BaseLogger {
             // Colorblind Mode is not checked: restore the affected properties based on whether
             // Dark Mode is set.
             COV(6, CL);
-            if (this.darkTheme) {
+            if (Persistence.getDarkTheme()) {
                 COV(7, CL);
                 this.setCssProperty("played-word-good-bg",   AppDisplay.getCssProperty("non-colorblind-good-bg-dark"));
                 this.setCssProperty("played-word-bad-bg",    AppDisplay.getCssProperty("non-colorblind-bad-bg-dark"));
