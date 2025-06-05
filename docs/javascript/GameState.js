@@ -106,6 +106,10 @@ class GameState {
         return this.unplayedWords.join(',');
     }
 
+    toStr() {
+        return JSON.stringify(this);
+    }
+
     // ----- functions called to effect game play -----
 
     // NOTE: these functions do not validate that word added is actually OK to add, as that 
@@ -207,29 +211,6 @@ class GameState {
         return numPenalties;
     }
 
-    // The game is done if the last played word is the target, or there are too many penalties.
-
-    isOver() {
-        const CL = "GameState.isOver";
-        COV(0, CL);
-        let res = (this.lastPlayedWord() == this.target) || this.isLoser();
-        Const.GL_DEBUG && logger.logDebug("GameState.isOver() lastPlayedWord", this.lastPlayedWord(),
-                "target", this.target, "returns:", res, "gameState");
-        return res;
-    }
-
-    isLoser() {
-        const CL = "GameState.isLoser";
-        COV(0, CL);
-        return this.numPenalties() >= Const.TOO_MANY_PENALTIES;
-    }
-
-    isWinner() {
-        const CL = "GameState.isWinner";
-        COV(0, CL);
-        return this.isOver() && !this.isLoser();
-    }
-
     finishGame() {
         const CL = "GameState.finishGame";
         COV(0, CL);
@@ -263,8 +244,28 @@ class GameState {
         return Const.SHOWN_MOVE;
     }
 
-    toStr() {
-        return JSON.stringify(this);
+    // ----- functions relating to end of game -----
+
+    // The game is done if the last played word is the target, or there are too many penalties.
+    isOver() {
+        const CL = "GameState.isOver";
+        COV(0, CL);
+        let res = (this.lastPlayedWord() == this.target) || this.isLoser();
+        Const.GL_DEBUG && logger.logDebug("GameState.isOver() lastPlayedWord", this.lastPlayedWord(),
+                "target", this.target, "returns:", res, "gameState");
+        return res;
+    }
+
+    isLoser() {
+        const CL = "GameState.isLoser";
+        COV(0, CL);
+        return this.numPenalties() >= Const.TOO_MANY_PENALTIES;
+    }
+
+    isWinner() {
+        const CL = "GameState.isWinner";
+        COV(0, CL);
+        return this.isOver() && !this.isLoser();
     }
 }
 
@@ -548,6 +549,122 @@ class DailyGameState extends GameState{
         const CL = "DailyGameState.getDailyGameNumber";
         COV(0, CL);
         return this.dailyGameNumber;
+    }
+
+    // Return a share graphic if the game is over, and null if not.
+    // Note that the share graphic is not HTML, but rather just a string,
+    // containing some Unicode characters to construct the graphic.
+    getShareString() {
+        const CL = "DailyGameState.getShareString";
+        COV(0, CL);
+        Const.GL_DEBUG && this.logDebug("getShareString() gameState=", this.toStr(), "daily");
+
+        if (! this.isOver()) {
+            console.error("getShareString() called when game is not over!");
+            return null;
+        }
+
+        let shareString = `WordChain #${this.getDailyGameNumber() + 1} `,
+            gameWon;
+
+        // Determine what emoji to use to show the user's "score".
+        if (this.numPenalties() >= Const.TOO_MANY_PENALTIES) {
+            COV(1, CL);
+            // Too many wrong moves.
+            shareString += Const.CONFOUNDED;
+            gameWon = false;
+        } else {
+            COV(2, CL);
+            // Show the emoji in NUMBERS corresponding to how many wrong moves.
+            // A bit of a misnomer, but the value for 0 is a star.
+            shareString += Const.NUMBERS[this.numPenalties()];
+            gameWon = true;
+        }
+
+        COV(3, CL);
+
+        // Add a line for the streak.
+        shareString += `\nStreak: ${this.getStat('streak')}`;
+
+        // Add a line the start/target.
+        shareString += `\n${this.start} --> ${this.target}\n`;
+
+        // Now, construct the graphic showing the lengths of the user's
+        // played words, colored red or green to indicate whether that word
+        // did or did not increase the solution length.
+        // The target word (last) is shown in a separate, fixed color regardless
+        // of success or failure so we slice it off here.
+
+        let moveSummary = this.getMoveSummary();
+        let wordsBetweenStartAndTarget = moveSummary.slice(1,-1);
+        let [startRatingUnused, startLength] = moveSummary[0];
+        let [targetRatingUnused, targetLength] = moveSummary.slice(-1)[0];
+
+        // start with the start word shown in purple
+        let emoji = Const.PURPLE_SQUARE;
+        shareString += emoji.repeat(startLength) + "\n";
+
+        // Show all the words played.
+        let colorblindMode = Persistence.getColorblindMode();
+        Persistence.savePracticeGameState2(this);
+        for (let [moveRating, wordLength] of wordsBetweenStartAndTarget) {
+
+            // We don't include unplayed words in the share string. This happens when
+            // there are too many wrong moves. The moveSummary includes the correct
+            // unplayed words leading from the last wrong word to the target, but we
+            // don't want to show them.
+            // TODO - this use-case is obsolete.  When there are too many wrong moves,
+            // the future words get summarized as SHOWN_MOVE, not FUTURE.
+
+            if ((moveRating == Const.FUTURE) || (moveRating == Const.CHANGE_NEXT)) {
+                break;
+            }
+
+            // Determine which color square to display for this word.
+            if (moveRating === Const.OK || moveRating === Const.SCRABBLE_WORD) {
+                // Word didn't increase the count; pick color indicating "good".
+                COV(4, CL);
+                emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
+            } else if (moveRating === Const.WRONG_MOVE) {
+                // Word increased the count; pick color indicating "bad".
+                COV(5, CL);
+                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+            } else if (moveRating === Const.GENIUS_MOVE) {
+                COV(6, CL);
+                emoji = colorblindMode ? Const.GOLD_SQUARE : Const.GOLD_SQUARE;
+            } else if (moveRating === Const.DODO_MOVE) {
+                // These used to be brown squares, but they were off-putting.
+                COV(7, CL);
+                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+            } else if (moveRating === Const.SHOWN_MOVE) {
+                COV(8, CL);
+                emoji = colorblindMode ? Const.GRAY_SQUARE : Const.GRAY_SQUARE;
+            }
+
+            // Now repeat that emoji for the length of the word and add a newline,
+            // creating a row that looks like the row of tiles in the game.
+            COV(9, CL);
+            shareString += emoji.repeat(wordLength) + "\n";
+        }
+
+        // Now, add the target
+        if (gameWon) {
+            COV(10, CL);
+            emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
+        } else {
+            COV(11, CL);
+            emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+        }
+
+        COV(12, CL);
+        shareString += emoji.repeat(targetLength) + "\n";
+
+        // Add the URL to the game and send the trimmed result.
+        // Note that in shareCallback() we are ONLY copying to the
+        // clipboard; if we ever go back to doing a "direct share"
+        // we will want to append Const.SHARE_URL_FOR_FB, a "faux" URL.
+        shareString += Const.SHARE_URL;
+        return shareString.trim();
     }
 
     getStat(whichStat) {

@@ -749,7 +749,24 @@ class DailyGameDisplay extends GameDisplay {
         COV(0, CL);
         super(appDisplay, gameDiv, pickerDiv, "daily-picker");
 
+        // Add a button to the "post game div" to share daily game results.
+        // Initially disable the button; it is enabled when the game is over.
+        this.shareButton = ElementUtilities.addElementTo(
+            "button", this.postGameDiv,
+            {class: "app-button non-header-button"},
+            "Share");
+        ElementUtilities.setButtonCallback(this.shareButton, this, this.shareCallback);
+
         this.game = new DailyGame(); // maybe recovered, maybe from scratch
+
+        // Enable or disable the share button based on whether the user has played the game.
+        if (this.game.isOver()) {
+            COV(1, CL);
+            ElementUtilities.enableButton(this.shareButton);
+        } else {
+            COV(2, CL);
+            ElementUtilities.disableButton(this.shareButton);
+        }
     }
 
     /* ----- Determination of Daily Game Information ----- */
@@ -766,6 +783,7 @@ class DailyGameDisplay extends GameDisplay {
             COV(1, CL);
             Const.GL_DEBUG && this.logDebug("current daily game is old", "daily");
             this.game = new DailyGame(); // it will try to recover, see the game is old, and make a new game
+            ElementUtilities.disableButton(this.shareButton);
             // Refresh the stats display in case it is open.
             this.appDisplay.refreshStats();
             this.updateDisplay();
@@ -774,7 +792,22 @@ class DailyGameDisplay extends GameDisplay {
         return makeNewGame;
     }
 
+    /* ----- Callbacks ----- */
+
+    shareCallback(__event) {
+        const CL = "DailyGameDisplay.shareCallback";
+        COV(0, CL);
+        return this.appDisplay.getShare(); // used in testing only
+    }
+
     /* ----- Utilities ----- */
+
+    // This will be called from GameDisplay when the game is determined to be over.
+    additionalGameOverActions() {
+        const CL = "DailyGameDisplay.additionalGameOverActions";
+        COV(0, CL);
+        ElementUtilities.enableButton(this.shareButton);
+    }
 
     isNewDailyGame() {
         const CL = "DailyGameDisplay.isNewDailyGame";
@@ -786,14 +819,6 @@ class DailyGameDisplay extends GameDisplay {
         const CL = "DailyGameDisplay.dailyGameNumber";
         COV(0, CL);
         return this.game.gameState.dailyGameNumber;
-    }
-
-    // A list summarizing the moves of the game.
-    // Unplayed words get a move rating of Const.FUTURE
-    getMoveSummary() {
-        const CL = "DailyGameDisplay.getMoveSummary";
-        COV(0, CL);
-        return this.getGameState().getMoveSummary();
     }
 
     gameIsBroken() {
@@ -829,6 +854,7 @@ class PracticeGameDisplay extends GameDisplay {
             {class: "app-button non-header-button"},
             "New Game");
         ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
+
         this.game = new PracticeGame(); // either recovered (in progress or done) or new (no saved state)
         if (!this.game.isOver()) {
             COV(1, CL);

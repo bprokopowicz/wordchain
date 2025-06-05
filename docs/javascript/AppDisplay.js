@@ -362,6 +362,70 @@ class AppDisplay extends BaseLogger {
         COV(2, CL);
     }
 
+    getShare() {
+        const CL = "AppDisplay.getShare";
+        COV(0, CL);
+
+        const dailyGameState = this.getDailyGameState(),
+              shareString = dailyGameState.getShareString();
+
+        if (shareString) {
+            COV(1, CL);
+            // We are currently copying to clipboard rather than the commented
+            // out "direct share first" code below because Facebook annoyingly
+            // won't properly share text along with a URL. When a URL is included
+            // in the text OR when it is included with a separate 'url' property
+            // in the object passed to navigator.share(), Facebook ONLY shows
+            // a clickable URL (sans our icon!) -- no share graphic!
+            // This approach requires users to paste their share to the app of
+            // their choice -- and both the graphic and a clickable URL will appear.
+            let copiedToClipboard = false;
+            if (typeof navigator.clipboard === "object") {
+                COV(2, CL);
+                navigator.clipboard.writeText(`${shareString}`);
+                copiedToClipboard = true;
+                this.showToast(Const.SHARE_TO_PASTE);
+            } else {
+                // TODO This is never reached from the testscurrently.  IF we add it,
+                // we need to update the COV points from here out in this function.
+                // COV(3, CL);
+                this.showToast(Const.SHARE_INSECURE);
+            }
+
+            /*
+            *************************************************************************************************
+            * NOTE: If we uncomment this code to do a direct share, we will need to use
+            * Const.SHARE_URL_FOR_FB in the share string. We may want to write the share
+            * graphic with the real URL to the clipboard clipboard after this if-else if-else.
+            *
+            * Const.GL_DEBUG && this.logDebug("shareCallback() navigator: ", navigator, "daily");
+            * // Are we in a *secure* environment that has a "share" button, like a smart phone?
+            * let shareData = { text: shareString, };
+            * if ((typeof navigator.canShare === "function") && navigator.canShare(shareData)) {
+            *   // Yes -- use the button to share the shareString.
+            *   navigator.share(shareData)
+            *   .catch((error) => {
+            *       if (error.toString().indexOf("cancellation") < 0) {
+            *           console.error("Failed to share: ", error);
+            *           this.showToast(Const.SHARE_FAILED);
+            *       }
+            *   });
+            * // Are we in a *secure* environment that has access to clipboard (probably on a laptop/desktop)?
+            * } else if (typeof navigator.clipboard === "object") {
+            *    navigator.clipboard.writeText(shareString);
+            *    this.showToast(Const.SHARE_COPIED);
+            * // Insecure.
+            * } else {
+            *   this.showToast(Const.SHARE_INSECURE);
+            * }
+            *************************************************************************************************
+            */
+        }
+
+        COV(3, CL);
+        return shareString; // used in testing only
+    }
+
     resetPracticeGameCounter() {
         //TODO - don't manage this here
         const CL = "AppDisplay.resetPracticeGameCounter";
@@ -392,12 +456,6 @@ class AppDisplay extends BaseLogger {
         const CL = "AppDisplay.getDailyGameState";
         COV(0, CL);
         return this.dailyGameDisplay.getGameState();
-    }
-
-    getDailyMoveSummary() {
-        const CL = "AppDisplay.getDailyGameSummary";
-        COV(0, CL);
-        return this.dailyGameDisplay.getMoveSummary();
     }
 
     getMsUntilNextGame() {
