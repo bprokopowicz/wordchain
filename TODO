@@ -14,8 +14,34 @@ Do in suggested order?
 - Analytics
 - Add remaining penalties indication (maybe in the header?)
 - Eliminate negativity from user experience
-- Add start/target words to share graphic
-- Put share on Daily page on completion
+
+New Game Play Ideas
+===================
+
+- Change in terminology from "penalty" to "extra steps"
+  - No limit on extra steps
+- One Show Next Move per game (currently multiple allowed, until game lost).
+  - Does it count as an extra step?
+  - Display BROWN in game and share (currently gray)
+- User move that adds steps displays GRAY in game and share (currently red/orange)
+- DODO move adds 2 extra steps
+  - Continue to display "Ugh! You added two steps!" toast
+  - Continue to display one row of in game and share, but use GRAY (currently red/orange)
+- GENIUS move reduces a step (2 steps?)
+  - No changes to what we display.
+- So score (extra steps) won't always line up with the number of gray (or non-green) rows.
+  - Maybe it's OK; at a minimum we need something in the FAQ about it.
+  - Put a line under the Nth row to indicate "par" -- number of steps in WC solution.
+    - where N is the number of rows in the initial display (after the target word).
+    - add styling to the tr for that row (bottom-border: 4px solid)
+  - With the "penalties" terminology I think the score always lined up with the number of red rows.
+  - Maybe if we display a running "extra step count" at the top it will mitigate that misalignment?
+- Stats:
+  - Won/Lost now shown as one stat: "Completed"
+  - "WRONG MOVE COUNTS" becomes "EXTRA STEP COUNTS"
+  - Need to think about migration of stats in cookie ... prolly just treat current "penalty" values as "extra steps" values.
+  - Continue to use "confounded" emoji for scores over N (currently N == 4; maybe we increase it?)
+- Streak reflects contiguous completed daily games (no matter how many steps it takes to get there)
 
 Maybe Someday
 =============
