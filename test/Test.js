@@ -2120,13 +2120,15 @@ class Test extends BaseLogger {
         const expGameNumber = Test.TEST_EPOCH_DAYS_AGO + 1;
         Persistence.saveTestEpochDaysAgo(expGameNumber);
         this.resetTheTestAppWindow();
-        let gameState = this.gameDisplay.getGameState();
+        let gameState = this.gameDisplay.getGameState(),
+            dailyShareButton = this.gameDisplay.shareButton;
 
         let [start, target, gameNumber] = [gameState.start, gameState.target, gameState.dailyGameNumber];
         let [expStart, expTarget] = Const.DAILY_GAMES[3].map(word => word.toUpperCase());
         this.verify(start == expStart, "After restart, expected start word: ", expStart, ", got: ", start) &&
             this.verify(target == expTarget, "After restart, expected target word: ", expTarget, ", got: ", target) &&
             this.verify(gameNumber == expGameNumber, "Expected daily game number", expGameNumber, " after restarting next day, got", gameNumber) &&
+            this.verify(dailyShareButton.hasAttribute('disabled') === true, "expected daily game share button to have 'disabled' attribute.") &&
             this.hadNoErrors();
     }
 
@@ -2250,41 +2252,22 @@ class Test extends BaseLogger {
      
         // re-open the app window
         this.resetTheTestAppWindow();
+
         // we should be running the broken daily game.
         const game = this.gameDisplay.game;
         // We can finish the broken game; this will exercise code to NOT display the share button because game is broken
         this.finishTheCurrentGame();
 
         // let's look at the share ...
-        let statsDisplay = this.openAndGetTheStatsDisplay();
-        let shareButton = statsDisplay.shareButton;
+        let statsDisplay = this.openAndGetTheStatsDisplay(),
+            dailyShareButton = this.gameDisplay.shareButton,
+            statsShareButton = statsDisplay.shareButton;
 
         this.verify(game.isBroken(), "Expected broken daily game") &&
             this.verify(game.isWinner(), "Expected game to be winner") &&
-        soFarSoGood && this.hadNoErrors();
-    }
-
-    displayBrokenDailyGameToastTest() {
-        this.testName = "DisplayBrokenDailyGameToast";
-        Persistence.saveTestEpochDaysAgo(1000000); // so long ago, there is no daily game for today
-     
-        // re-open the app window
-        this.resetTheTestAppWindow();
-        // we should be running the broken daily game.
-        const game = this.gameDisplay.game;
-        // We can finish the broken game; this will exercise code to NOT display the share button because game is broken
-        this.finishTheCurrentGame();
-
-        // let's look at the share ...
-        let statsDisplay = this.openAndGetTheStatsDisplay();
-        let shareButton = statsDisplay.shareButton;
-
-        this.verify(game.isBroken(), "Expected broken daily game") &&
-            this.verify(game.isWinner(), "Expected game to be winner") &&
-            this.verify(shareButton.style.display === "none", "Expected shareButton.style.display to be 'none', found",
-                    shareButton.style.display) &&
+            this.verify(dailyShareButton.hasAttribute('disabled') === true, "expected daily game screen share button to have 'disabled' attribute.") &&
+            this.verify(statsShareButton.hasAttribute('disabled') === true, "expected stats screen share button to have 'disabled' attribute.") &&
             this.hadNoErrors();
-
     }
 
     // a test that makes 0, 1, or 2 errors depending on which iteration
@@ -2582,8 +2565,9 @@ class Test extends BaseLogger {
         this.playLetter(1, "P"); // BOOR -> POOR
 
         // game is done.  Let's see what the saved stats and words played are:
-        const statsDisplay = this.openAndGetTheStatsDisplay();
-
+        const dailyShareButton = this.gameDisplay.shareButton,
+              statsDisplay = this.openAndGetTheStatsDisplay(),
+              statsShareButton = statsDisplay.shareButton;
 
         //  write the share string and verify it:
         // TODO: this only verifies the shareString contents, not whether the share is copied to clipboard or the devices
@@ -2598,6 +2582,8 @@ class Test extends BaseLogger {
         this.closeTheStatsDisplay();
 
         this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with ='${expShareString}', got '${actShareString}'`) &&
+            this.verify(dailyShareButton.hasAttribute('disabled') === false, "expected daily game screen share button NOT to have 'disabled' attribute.") &&
+            this.verify(statsShareButton.hasAttribute('disabled') === false, "expected stats screen share button NOT to have 'disabled' attribute.") &&
             this.hadNoErrors();
 
     }
@@ -2630,7 +2616,9 @@ class Test extends BaseLogger {
 
         // game is done.  Let's see what the saved stats and words played are:
         // open the stats window.  This should compute the shareString, start the countdown clock
-        const statsDisplay = this.openAndGetTheStatsDisplay();
+        const dailyShareButton = this.gameDisplay.shareButton,
+              statsDisplay = this.openAndGetTheStatsDisplay(),
+              statsShareButton = statsDisplay.shareButton;
 
         //  get the share string.  Note that after the final mistake, no more words are shown (unplayed) leading to the target.
 
@@ -2642,6 +2630,8 @@ class Test extends BaseLogger {
         this.closeTheStatsDisplay();
 
         this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with '${expShareString}', got '${actShareString}'`) &&
+            this.verify(dailyShareButton.hasAttribute('disabled') === false, "expected daily game screen share button NOT to have 'disabled' attribute.") &&
+            this.verify(statsShareButton.hasAttribute('disabled') === false, "expected stats screen share button NOT to have 'disabled' attribute.") &&
             this.hadNoErrors();
     }
 

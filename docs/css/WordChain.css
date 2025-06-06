@@ -232,11 +232,13 @@ hr {
     ** Also, setting width to anything greater than 97% results in a bottom scrollbar (despite
     ** hiding it) and the ability (on iPhone, at least) to move the content horizontally,
     ** which is really annoying.
+    ** NOTE: On 06/06/25 changed width to 100% to see whether that improved the left side clipping
+    ** situation for David Ness-Cohn.
     */
     flex-wrap: wrap;
     justify-content: center;
     padding-left: 10px;
-    width: 97%;
+    width: 100%;
 }
 
 /* This holds daily/practice-game-div -- these are hidden/shown when the Practic/Daily button is clicked. */

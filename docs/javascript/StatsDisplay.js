@@ -88,7 +88,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         this.stopCountdownClock();
     }
 
-    // This is called when the user opensStats screen, via the base class
+    // This is called when the user opens the Stats screen, via the base class
     // openAuxiliaryCallback().
     additionalOpenActions() {
         const CL = "StatsDisplay.additionalOpenActions";
@@ -142,20 +142,18 @@ class StatsDisplay extends AuxiliaryDisplay {
         clearInterval(this.clockIntervalTimer);
     }
 
-    // Hide or show the share callback based on whether the daily game solution
-    // has been shown. If the solution was shown or the daily game isn't over,
-    // the player is not allowed to share.
+    // Enable or disable the share callback based on whether the daily game is over. If the
+    // daily game isn't over (or it's the broken game), the player is not allowed to share.
     updateShareButton() {
         const CL = "StatsDisplay.updateShareButton";
         COV(0, CL);
         if (! this.appDisplay.isDailyGameOver() || this.appDisplay.isDailyGameBroken()) {
             COV(1, CL);
-            this.shareButton.style.display = "none";
+            ElementUtilities.disableButton(this.shareButton);
         } else {
             COV(2, CL);
-            this.shareButton.style.display = "block";
+            ElementUtilities.enableButton(this.shareButton);
         }
-        Const.GL_DEBUG && this.logDebug("share button style.display set to: ", this.shareButton.style.display, "daily");
         COV(3, CL);
     }
 

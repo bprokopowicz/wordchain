@@ -754,13 +754,7 @@ class DailyGameDisplay extends GameDisplay {
         this.game = new DailyGame(); // maybe recovered, maybe from scratch
 
         // Enable or disable the share button based on whether the user has played the game.
-        if (this.game.isOver()) {
-            COV(1, CL);
-            ElementUtilities.enableButton(this.shareButton);
-        } else {
-            COV(2, CL);
-            ElementUtilities.disableButton(this.shareButton);
-        }
+        this.updateShareButton();
     }
 
     /* ----- Determination of Daily Game Information ----- */
@@ -800,7 +794,7 @@ class DailyGameDisplay extends GameDisplay {
     additionalGameOverActions() {
         const CL = "DailyGameDisplay.additionalGameOverActions";
         COV(0, CL);
-        ElementUtilities.enableButton(this.shareButton);
+        this.updateShareButton();
     }
 
     isNewDailyGame() {
@@ -825,6 +819,19 @@ class DailyGameDisplay extends GameDisplay {
         const CL = "DailyGameDisplay.gameIsOver";
         COV(0, CL);
         return this.game.isOver();
+    }
+
+    // Enable or disable the share button based on whether the user has played the game.
+    updateShareButton() {
+        const CL = "DailyGameDisplay.updateShareButton";
+        if (this.game.isOver() && !this.game.isBroken()) {
+            COV(1, CL);
+            ElementUtilities.enableButton(this.shareButton);
+        } else {
+            COV(2, CL);
+            ElementUtilities.disableButton(this.shareButton);
+        }
+        COV(3, CL);
     }
 }
 
