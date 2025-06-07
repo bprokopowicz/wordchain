@@ -1503,6 +1503,7 @@ class Test extends BaseLogger {
         prep(); this.testGameShowTargetMove();
         prep(); this.testGameShowEveryMove();
         prep(); this.testGameFinishAlternatePath();
+        prep(); this.testGameStuckOnWrongSpaceAdded();
         prep(); this.testGameLossOnWrongLetterAdded();
         prep(); this.testGameLossOnWrongDelete();
         prep(); this.testGameLossOnWrongLetterChange();
@@ -2006,6 +2007,32 @@ class Test extends BaseLogger {
             this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
             this.hadNoErrors();
     }
+
+    testGameStuckOnWrongSpaceAdded() {
+        this.testName = "GameStuckOnWrongSpaceAdded";
+        let [start, target] = ["FISH", "SALTED"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict); 
+        let r1 = game.playLetter(4, "T"); // -> FIST
+        let r3 = game.playLetter(2, "A"); // -> FAST
+        let r4 = game.playDelete(3);      // -> FAT
+        let r14 = game.playAdd(0);         // -> _FAT At this point, no letter works to make a word.
+        let r15 = game.playLetter(1, "A"); // -> AFAT is not a word.  FAT should now be the active word.
+        let DIs = game.getDisplayInstructions();
+        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
+        let expectedDIsAsStrings = `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FAST,moveRating:ok),<br>(add,word:FAT),<br>(future,word:FATE,changePosition:0),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:0),<br>(target,word:SALTED)`;
+
+            this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
+                this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
+                this.verify(r4 == Const.OK, `expected r4=${Const.OK}, got ${r4}`) &&
+                this.verify(r14 == Const.OK, `expected r14=${Const.OK}, got ${r14}`) &&
+                this.verify(r15 == Const.NOT_A_WORD, `expected r15=${Const.NOT_A_WORD}, got ${r15}`) &&
+                this.verify(!game.isOver(), "game should not be over yet") &&
+                this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
+                this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
+                this.hadNoErrors();
+    }
+
 
     /*
     ** App Tests

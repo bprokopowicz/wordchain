@@ -307,8 +307,7 @@ class Game extends BaseLogger {
     }
 
     // letterPosition given is 1 to word.length
-    // returns true if resulting word is in dictionary; false otherwise
-    // returns null on other error (e.g. unexpected position)
+    // Returns true if resulting word is in dictionary; false otherwise
     playLetter(letterPosition, letter) {
         const CL = "Game.playLetter";
         COV(0, CL);
@@ -318,6 +317,9 @@ class Game extends BaseLogger {
         letterPosition -= 1;
         let oldWord = this.lastPlayedWord();
         let newWord = oldWord.substring(0,letterPosition) + letter + oldWord.substring(letterPosition+1);
+        if (GameState.wordHasHole(oldWord)) {
+            this.gameState.removeLastPlayedWord();
+        }
         Const.GL_DEBUG && this.logDebug("Game.playLetter(): ", oldWord, "becomes", newWord, "game");
         return this.addWordIfExists(newWord)
     }

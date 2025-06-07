@@ -86,6 +86,13 @@ class GameState {
         return this.lastRatedMove().word;
     }
 
+    removeLastPlayedWord() {
+        // This is used when the last played word has a hole, like F?AT, and we play 'L'.  
+        // We need to remove F?AT from the played words and we will add FLAT if it is a word.
+        // But if we play 'M', FMAT is not a word, so we don't add it to played words. 
+        this.ratedMoves.pop();
+    }
+
     getPlayedWordList() {
         return this.ratedMoves.map((ratedMove) => ratedMove.word);
     }
