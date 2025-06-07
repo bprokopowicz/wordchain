@@ -39,7 +39,8 @@ New Game Play Ideas
 - Stats:
   - Won/Lost now shown as one stat: "Completed"
   - "WRONG MOVE COUNTS" becomes "EXTRA STEP COUNTS"
-  - Need to think about migration of stats in cookie ... prolly just treat current "penalty" values as "extra steps" values.
+  - Need to think about migration of stats in cookie ... probably just treat current
+    "penalty" values as "extra steps" values.
   - Continue to use "confounded" emoji for scores over N (currently N == 4; maybe we increase it?)
 - Streak reflects contiguous completed daily games (no matter how many steps it takes to get there)
 

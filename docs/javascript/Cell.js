@@ -12,13 +12,19 @@ class Cell {
     }
 
     addClass(classNameOrList, element) {
+        const CL = "Cell.addClass";
+        COV(0, CL);
         if (! element) {
+            COV(1, CL);
             element = this.outerCellContainer;
         }
         ElementUtilities.addClass(element, classNameOrList);
+        COV(2, CL);
     }
 
     getElement() {
+        const CL = "Cell.getElement";
+        COV(0, CL);
         return this.outerCellContainer;
     }
 }
@@ -164,6 +170,7 @@ class ActiveLetterCell extends LetterCell {
             // Save the letter position so we can get it when the event comes.
             letterPicker.saveLetterPosition(letterPosition);
         }
+        COV(6, CL);
     }
 }
 
