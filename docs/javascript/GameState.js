@@ -299,7 +299,6 @@ class DailyGameState extends GameState{
         const CL = "DailyGameState.updateFromDeprecatedStatsBlob";
         COV(0, CL);
         let depStatsBlob = Persistence.getDeprecatedStatsBlob();
-        Persistence.clearDeprecatedCookies(); 
         if (depStatsBlob != null) {
             COV(1, CL);
             this.statsBlob = {

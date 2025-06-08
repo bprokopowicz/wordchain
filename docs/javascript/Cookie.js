@@ -67,7 +67,7 @@ class Cookie {
     static DEP_PRACTICE_GAME_STATE = "PracticeGameState";
     static DEP_PRACTICE_GAME_TARGET = "PracticeGameTarget";
     static DEP_PRACTICE_GAME_WORDS_PLAYED = "PracticeGameWordsPlayed";
-    static DEP_PRACTICE_GAMES_REMAINING = "PracticeGameWordsPlayed";
+    static DEP_PRACTICE_GAMES_REMAINING = "PracticeGamesRemaining";
 
     // These 3 are used for testing persistence only.  They don't affect game play
     static TEST_INT = "TestInt";

@@ -62,8 +62,6 @@ class AppDisplay extends BaseLogger {
         this.createScreens();
 
         // Now set the colors based on darkTheme and colorblindMode.
-        // This also calls showGameAfterMove() on the current
-        // (daily game) display to show the game upon construction.
         this.setColors();
 
         // Now, start the interval timer to check for new games:
@@ -75,6 +73,7 @@ class AppDisplay extends BaseLogger {
         this.showNoDaily();
 
         this.updatePracticeGameStatus();
+        Persistence.clearDeprecatedCookies();
     }
 
     startTimingCheckInterval() {
@@ -91,7 +90,7 @@ class AppDisplay extends BaseLogger {
                 this.checkForNewDailyGame();
                 this.updatePracticeGameStatus();
                 }, Const.DAILY_GAME_CHANGE_CHECK_INTERVAL);
-        Const.GL_DEBUG && this.logDebug("startTimingCheckInterval() created timer id: ", this.checkDailyIntervalTimer,  "display");
+        Const.GL_DEBUG && this.logDebug("startTimingCheckInterval() created timer id: ", this.checkDailyIntervalTimer, "display");
     }
 
     stopTimingCheckInterval() {
@@ -231,11 +230,6 @@ class AppDisplay extends BaseLogger {
         // We start on the daily game screen, so the Practice button should be visible.
         ElementUtilities.hide(this.switchToDailyGameButton);
         ElementUtilities.show(this.switchToPracticeGameButton);
-
-        // Disable the Practice button initially; if there are more games available
-        // it will get enabled almost immediately: we start an interval timer in
-        // constructor() and it will enable the button if there are games available.
-        ElementUtilities.disableButton(this.switchToPracticeGameButton);
     }
 
     createHeaderDiv() {
@@ -448,14 +442,6 @@ class AppDisplay extends BaseLogger {
         const CL = "AppDisplay.getMsUntilNextGame";
         COV(0, CL);
         return this.dailyGameDisplay.getMsUntilNextGame();
-    }
-
-    // PracticeGameDisplay calls this when the user finishes a game
-    // and there are no more remaining in this 24-hour period.
-    practiceGamesUsedUp() {
-        const CL = "AppDisplay.practiceGamesUsedUp";
-        COV(0, CL);
-        ElementUtilities.disableButton(this.switchToPracticeGameButton);
     }
 
     refreshStats() {

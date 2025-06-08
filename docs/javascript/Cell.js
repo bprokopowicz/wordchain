@@ -153,8 +153,9 @@ class ActiveLetterCell extends LetterCell {
             COV(2, CL);
             // No correctness class when selecting the position where a letter is
             // to be added; in that case we show the letter cell as transparent
-            // (and the "active background" shows through).
-            if (! wordFollowsAdd) {
+            // (and the "active background" shows through). However, we do want
+            // add a class if this is a shown move.
+            if (! wordFollowsAdd || moveRating == Const.SHOWN_MOVE) {
                 COV(3, CL);
                 this.addCorrectnessClass(moveRating);
             }

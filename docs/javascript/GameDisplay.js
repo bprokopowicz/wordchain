@@ -91,7 +91,7 @@ class GameDisplay extends BaseLogger {
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
 
-        let result = null;  
+        let result = null;
 
         if (this.gameIsOver()) {
             console.error("GameDisplay.letterPicked(): game is already over");
@@ -125,12 +125,15 @@ class GameDisplay extends BaseLogger {
         return newTd;
     }
 
-    // Called from derived class!
+    // Called from derived class. Game could be recovered or newly constructed,
+    // I either case, we don't want to show a "game over" toast.
     updateDisplay() {
         const CL = "GameDisplay.updateDisplay";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug ("GameDisplay.updateDisplay() called.", "game");
-        this.showGameAfterMove();
+
+        const skipToast = true;
+        this.showGameAfterMove(skipToast);
 
         // Scroll to the top of the window so that the user sees the start word.
         window.scrollTo({top: 0, behavior: 'smooth'});
@@ -257,7 +260,10 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell);
     }
 
-    showGameAfterMove(skipToast=false) {
+    // skipToast is a Boolean that indicates whether the "game over" toast
+    // should be skipped, e.g. in the case where we are displaying a
+    // newly created game.
+    showGameAfterMove(skipToast) {
         const CL = "GameDisplay.showGameAfterMove";
         COV(0, CL);
         // Delete old game container content; we're about to recreate it.
@@ -354,16 +360,21 @@ class GameDisplay extends BaseLogger {
         }
 
         // Were there more wrong words than the last time we showed a move?
-        // If so, we need to show a toast message. 
-        // NOTE: This function is called in AppDisplay construction, before the first
+        // If so, we need to show a toast message.
+        // NOTE: This function is called during AppDisplay construction, before the first
         // move; that's the only case where this.numPenalties would be null.
 
         const penaltyCount = this.game.numPenalties();
-        if (this.numPenalties != null && penaltyCount > this.numPenalties && !skipToast) {
+        // We don't think we need the skipToast check here, but leaving in for
+        // history, in case we see something funky relating to toasts; maybe this
+        // will lead to a solution.
+        if (this.numPenalties != null && penaltyCount > this.numPenalties /*&& !skipToast*/) {
             COV(11, CL);
-            // Just in case numPenalties never got set (which would be a bug)
-            // check for null and use WRONG_MOVE if null.
-            this.appDisplay.showToast(activeMoveRating || Const.WRONG_MOVE);
+            if (activeMoveRating) {
+                this.appDisplay.showToast(activeMoveRating);
+            } else {
+                console.error(CL, ": activeMoveRating should not be null/undefined");
+            }
         }
         this.numPenalties = penaltyCount;
 
@@ -513,7 +524,10 @@ class GameDisplay extends BaseLogger {
         } else {
             COV(1, CL);
             result = this.game.showNextMove();
-            this.showGameAfterMove();
+
+            // In case this finishes the game, we don't want to skip the "game over" toast.
+            const skipToast = false;
+            this.showGameAfterMove(skipToast);
 
             // Disable if no more moves remaining.
             if (this.gameIsOver()) {
@@ -691,7 +705,10 @@ class GameDisplay extends BaseLogger {
         }
 
         COV(2, CL);
-        this.showGameAfterMove();
+
+        // In case this finishes the game, we don't want to skip the "game over" toast.
+        const skipToast = false;
+        this.showGameAfterMove(skipToast);
     }
 
     // Changes the class on the appropriate element relative to the selected button
@@ -715,7 +732,7 @@ class GameDisplay extends BaseLogger {
     }
 
     // callGetAppCounters()/callClearAppCoverage are a hack for Test.js to access the
-    // coverage data in the execution context of the GameDisplay.  
+    // coverage data in the execution context of the GameDisplay.
 
     callGetAppCounters() {
         return getCounters();
@@ -755,6 +772,8 @@ class DailyGameDisplay extends GameDisplay {
 
         // Enable or disable the share button based on whether the user has played the game.
         this.updateShareButton();
+
+        this.updateDisplay();
     }
 
     /* ----- Determination of Daily Game Information ----- */
@@ -774,6 +793,7 @@ class DailyGameDisplay extends GameDisplay {
             ElementUtilities.disableButton(this.shareButton);
             // Refresh the stats display in case it is open.
             this.appDisplay.refreshStats();
+
             this.updateDisplay();
         }
         COV(2, CL);
@@ -879,6 +899,7 @@ class PracticeGameDisplay extends GameDisplay {
         ElementUtilities.deleteChildren(this.originalSolutionDiv);
         this.game = this.game.nextGame();
         this.updateDisplay();
+        ElementUtilities.disableButton(this.newGameButton);
     }
 
     /* ----- Utilities ----- */
@@ -895,10 +916,6 @@ class PracticeGameDisplay extends GameDisplay {
         } else {
             COV(2, CL);
             ElementUtilities.disableButton(this.newGameButton);
-
-            // Notify AppDisplay that there are no more games so it can
-            // disable its practice button.
-            this.appDisplay.practiceGamesUsedUp();
         }
         COV(3, CL);
     }
@@ -907,7 +924,7 @@ class PracticeGameDisplay extends GameDisplay {
     anyGamesRemaining() {
         const CL = "PracticeGameDisplay.anyGamesRemaining";
         COV(0, CL);
-        return this.game.gamesRemaining() > 0; 
+        return this.game.gamesRemaining() > 0;
     }
 
     // This is called by AppDisplay.resetPracticeGameCounter() to reset the practice game counter when the day rolls over
