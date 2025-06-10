@@ -371,6 +371,7 @@ class Test extends BaseLogger {
         }
 
     }
+
     resetTheTestAppWindow() {
         // This is a cheat to create a "new singleton" so that we get a fresh AppDisplay.
         this.logDebug("resetTheTestAppWindow(): calling resetSingletonObject.  newAppWindow:", this.getNewAppWindow(), "test");
@@ -2067,6 +2068,8 @@ class Test extends BaseLogger {
             this.displayModesTest,
             this.displayBrokenDailyGameToastTest,
             this.sameLetterPickedTest,
+            this.toastTestDailyWin,
+            this.toastTestRecoverDailyWin,
         ];
     }
 
@@ -2158,6 +2161,35 @@ class Test extends BaseLogger {
             this.verify(dailyShareButton.hasAttribute('disabled') === true, "expected daily game share button to have 'disabled' attribute.") &&
             this.hadNoErrors();
     }
+
+    toastTestDailyWin() {
+        this.testName = "ToastTestDailyWin";
+        // The newly opened URL should be showing the test daily game by default;
+        this.playTheCannedDailyGameOnce();
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const toastClass = appDisplay.toastDiv.getAttribute("class");
+        const toastMsg = appDisplay.toastDiv.innerHTML;
+        const expToastClass = "pop-up show";
+        const expToastMsg = Const.GAME_WON;
+        this.verify(toastClass == expToastClass, "expected toast class to be", expToastClass, "found", toastClass) && 
+            this.verify(toastMsg == expToastMsg, "expected toast message to be", expToastMsg, "found", toastMsg) && 
+            this.hadNoErrors();
+    }
+
+    toastTestRecoverDailyWin() {
+        this.testName = "ToastTestRecoverDailyWin";
+        // The newly opened URL should be showing the test daily game by default;
+        this.playTheCannedDailyGameOnce();
+        // The game is finished and persisted.  Now re-open the app.  The daily game is won; we should NOT
+        // see a toast for that.
+        this.resetTheTestAppWindow();
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const toastClass = appDisplay.toastDiv.getAttribute("class");
+        const toastMsg = appDisplay.toastDiv.innerHTML;
+        const expToastClass = "pop-up hide";
+        this.verify(toastClass == expToastClass, "expected toast class to be", expToastClass, "found", toastClass) && 
+            this.hadNoErrors();
+   }
 
     dailyGameNormalFinishStatsTest() {
         this.testName = "DailyGameNormalFinishStats";
