@@ -439,7 +439,7 @@ class DailyGameState extends GameState{
 
         let dailyGameState = new DailyGameState(dictionary);
 
-        dailyGameState.constructedAsNew = true;
+        dailyGameState.isConstructedAsNew = true;
 
         // initialize the player's stats blob
         // Note: gamesStarted >= gamesWon + gamesLost.
@@ -821,6 +821,8 @@ class PracticeGameState extends GameState{
             if (Persistence.hasTestPracticeGameWords()) {
                 let [testStart, testTarget] = Persistence.getTestPracticeGameWords();
                 if ((gameState.start != testStart) || (gameState.target != testTarget)) {
+                    // The recovered practice game doesn't use the test start,target words, 
+                    // so we just create a brand new game, which does use the test vars given.
                     COV(3, CL);
                     gameState = PracticeGameState.__fromScratch(dictionary);
                 }

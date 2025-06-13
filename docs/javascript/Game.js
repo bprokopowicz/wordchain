@@ -474,11 +474,11 @@ class PracticeGame extends Game {
             Const.GL_DEBUG && this.logDebug("PracticeGame.nextGame() no games remaining",  "game");
         } else {
             COV(2, CL);
-            let gamesRemaining = this.gamesRemaining();
+            let nGamesRemaining = this.gamesRemaining();
             // get a fresh game and update its gamesRemaining
             Persistence.clearPracticeGameState2(); 
             let practiceGame = new PracticeGame(); // will be from scratch after clearing game state.
-            practiceGame.gameState.gamesRemaining = gamesRemaining;
+            practiceGame.gameState.gamesRemaining = nGamesRemaining;
             practiceGame.gameState.persist();
             result = practiceGame;
         }

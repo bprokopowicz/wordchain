@@ -892,12 +892,18 @@ class PracticeGameDisplay extends GameDisplay {
     newGameCallback(event) {
         const CL = "PracticeGameDisplay.newGameCallback";
         COV(0, CL);
-        // Note that newGameCallback() will only be called when a game is over;
-        // otherwise, the button is disabled.
-        // Clear out info from current game.
+        // Note that newGameCallback() will only be called when a game is over, and there are more games remaining
+
+        // Clear out screen info from current game..
         ElementUtilities.deleteChildren(this.resultsDiv);
         ElementUtilities.deleteChildren(this.originalSolutionDiv);
-        this.game = this.game.nextGame();
+        const newGameOrNull = this.game.nextGame();
+        if (newGameOrNull == null) {
+            // we will still use the last game played as the current game, as if New Game were never clicked:
+            console.error("PracticeGameDisplay.newGameCallback(): New Game should not be clickable when no games are remaining!");
+        } else {
+            this.game = newGameOrNull;
+        }
         this.updateDisplay();
         ElementUtilities.disableButton(this.newGameButton);
     }
