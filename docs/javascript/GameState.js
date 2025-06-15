@@ -612,7 +612,7 @@ class DailyGameState extends GameState{
 
         // Show all the words played.
         let colorblindMode = Persistence.getColorblindMode();
-        Persistence.savePracticeGameState2(this);
+        Persistence.saveDailyGameState2(this);
         for (let [moveRating, wordLength] of wordsBetweenStartAndTarget) {
 
             // We don't include unplayed words in the share string. This happens when
