@@ -54,9 +54,10 @@ class Persistence {
     // saves JSON blob without the dictionary
     static savePracticeGameState2(gameState) {
 
-        // This fixes the bug where PracticeGameState was inadvertently saved with a DailyGameState.
-        if (gamestate instanceof DailyGameState2) {
-            console.error("savePracticeGameState2(): gameState is an instance of DailyGameState:", gameState);
+        // This fixes a user's cookie that got corrupted because the PracticeGameState was
+        // inadvertently saved with a DailyGameState (because of a now fixed bug).
+        if (gameState.statsBlob !== undefined) {
+            console.error("savePracticeGameState2(): gameState has a 'statsBlob' property:", gameState);
             Persistence.clearPracticeGameState2();
         } else {
             let copyObj = Object.assign({}, gameState);
