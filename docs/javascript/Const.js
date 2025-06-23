@@ -46,7 +46,7 @@ export const PRACTICE_START_WORDS          = [
     "SNOW", "WRITE", "SONG", "FISH", "WASH", "SINK", "STOPS", "SHOPS",
     "THINK", "PASTES", "BOWLS", "ASP", "CAT", "GAME", "SAND", "POKE",
     "PLANET", "ROPED", "SHINE", "TOAST", "PIG", "DREAMS", "STAIN", "HARK",
-    "FLAME", "RAKE", "RICE", "LAKE", "MALT"];
+    "FLAME", "RAKE", "RICE", "LAKE", "MALT", "TEASE", "LANCE", "HANG"];
 
 // Constants for game play toast notifications.
 // Note: OK is not displayed.
@@ -288,4 +288,34 @@ export const DAILY_GAMES = [
       ['hand', 'brooms'],
       ['clay', 'houses'],
       ['help', 'caller'], //100
+      ['tease', 'earth'],
+      ['cleat', 'saint'],
+      ['lance', 'shell'],
+      ['fan', 'media'],
+      ['pump', 'utter'],
+      ['hard', 'angle'],
+      ['share', 'loafer'],
+      ['haste', 'batons'],
+      ['flat', 'denial'],
+      ['scar', 'trends'], // 110
+      ['car', 'bogged'],
+      ['pot', 'shared'],
+      ['bane', 'fumble'],
+      ['ball', 'charms'],
+      ['bream', 'prints'],
+      ['face', 'deader'],
+      ['sword', 'jingle'],
+      ['lot', 'fatter'],
+      ['clay', 'recent'],
+      ['hang', 'crater'], // 120
+      ['click', 'gamble'],
+      ['lab', 'marked'],
+      ['song', 'gravel'],
+      ['left', 'handed'],
+      ['right', 'handed'],
+      ['toast', 'latkes'],
+      ['otter', 'tasks'],
+      ['lime', 'eating'],
+      ['shock', 'wave'],
+      ['flan', 'lovers'], // 130
 ];
