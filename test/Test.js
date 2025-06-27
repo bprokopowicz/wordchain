@@ -114,6 +114,7 @@ class Test extends BaseLogger {
     display() {
         this.outerDiv = ElementUtilities.addElement("div", {style: "margin: 2rem;"});
         this.displayTestSuite();
+        this.displayCookies();
         this.displayDictTester();
         this.displaySolverTester();
         this.displayPuzzleFinderTester();
@@ -847,7 +848,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15433;
+        const expectedMinDictSize = 15431;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -2439,7 +2440,7 @@ class Test extends BaseLogger {
         if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
             return
         const scoreDiv = children[0]
-        const expScoreStr = "Score: 2 penalties"
+        const expScoreStr = "Score: 2 extra steps"
         const actScoreStr = scoreDiv.textContent
 
         const originalSolutionDiv = children[1]
@@ -2464,7 +2465,7 @@ class Test extends BaseLogger {
         if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
             return;
         const scoreDiv = children[0];
-        const expScoreStr = "Score: 0 -- no penalties!";
+        const expScoreStr = "Score: 0 -- perfect!";
         const actScoreStr = scoreDiv.textContent;
 
         const originalSolutionDiv = children[1];
@@ -2499,7 +2500,7 @@ class Test extends BaseLogger {
         if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
             return;
         const scoreDiv = children[0];
-        const expScoreStr = "Score: 1 penalty";
+        const expScoreStr = "Score: 1 extra step";
         const actScoreStr = scoreDiv.textContent;
 
         const originalSolutionDiv = children[1];
@@ -2540,7 +2541,7 @@ class Test extends BaseLogger {
         const children = resultsDiv.children
 
         const scoreDiv = children[0]
-        const expScoreStr = "Score: 5 -- too many penalties!"
+        const expScoreStr = "Score: 5 -- too many extra steps!"
         const actScoreStr = scoreDiv.textContent
 
         const originalSolutionDiv = children[1]
@@ -3129,6 +3130,39 @@ class Test extends BaseLogger {
         ElementUtilities.setElementHTML("solveAnswer", solution.toHtml());
         ElementUtilities.setElementHTML("solveTiming",  `took ${(end-start)} ms`);
     }
+
+    displayCookies() {
+        this.addTitle("Local Storage - you must press enter for each change to take effect");
+        const allCookies = Cookie.ALL_TEST_VARS.concat(Cookie.ALL_GAME_VARS);
+        for (let varName of allCookies) {
+            var value = Cookie.get(varName);
+            if (value === null) {
+                value = "null";
+            }
+
+            ElementUtilities.addElementTo("label", this.outerDiv, {}, `${varName}: `);
+            const inputBox = ElementUtilities.addElementTo("input", this.outerDiv, {id: varName, type: "text", value: value});
+            inputBox.size = value.length + 1;
+            inputBox.addEventListener("keyup", this.varInputCallback); 
+            ElementUtilities.addElementTo("p", this.outerDiv);
+        }
+    }
+
+    varInputCallback(event) {
+        // called when user presses a key  on a variable input box
+        if (event.key === "Enter") {
+            const element = event.srcElement;
+            const varName = element.id;
+            const newValue = element.value;
+            if (newValue === "null") {
+                Cookie.remove(varName);
+            } else {
+                Cookie.save(varName, newValue);
+            }
+            element.size = newValue.length + 1;
+        }
+    }
+
 
     // ===== Puzzle Finder =====
 

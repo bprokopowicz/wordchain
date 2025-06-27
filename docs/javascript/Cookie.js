@@ -83,6 +83,26 @@ class Cookie {
     static TEST_EPOCH_DAYS_AGO = "TestEpochDaysAgo";
     static TEST_PRACTICE_GAMES_PER_DAY = "TestPracticeGamesPerDay";
 
+    static ALL_TEST_VARS = [
+        Cookie.TEST_DAILY_START,
+        Cookie.TEST_DAILY_TARGET,
+        Cookie.TEST_PRACTICE_START,
+        Cookie.TEST_PRACTICE_TARGET,
+        Cookie.TEST_MINUTES_PER_DAY,
+        Cookie.TEST_EPOCH_DAYS_AGO,
+        Cookie.TEST_PRACTICE_GAMES_PER_DAY,
+    ];
+
+    static ALL_GAME_VARS = [
+        Cookie.DEBUG,
+        Cookie.WCID,
+        Cookie.DARK_THEME,
+        Cookie.COLORBLIND_MODE,
+        Cookie.CONFIRMATION_MODE,
+        Cookie.DAILY_GAME_STATE_2,
+        Cookie.PRACTICE_GAME_STATE_2,
+    ];
+
     static ALL_COOKIE_NAMES = [
         Cookie.DEBUG,
         Cookie.WCID,

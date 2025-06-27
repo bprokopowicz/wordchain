@@ -147,7 +147,7 @@ class GameState {
             Const.GL_DEBUG && logger.logDebug("removing played word with hole", "gameState");
             this.ratedMoves.pop();
         }
-        let moveRating = Const.OK; // will override below based on new solution
+        let moveRating = Const.OK; // We will override this below, based on the new solution after playing 'word'
         if (word == this.unplayedWords[0]) {
             COV(2, CL);
             Const.GL_DEBUG && logger.logDebug("GameState.addWord()", word,
@@ -155,6 +155,8 @@ class GameState {
             // same word as WordChain used; remove the first unplayed word
             this.unplayedWords.shift();
         } else {
+            // The player played a different word than WordChain at this step.
+            // We need to re-solve from 'word' to 'target'.
             COV(3, CL);
             let stepsRemaining = this.unplayedWords.length;
             let solution = Solver.solve(this.dictionary, word, this.target);
@@ -179,11 +181,11 @@ class GameState {
                 moveRating = Const.DODO_MOVE;
             } else if (newStepsRemaining < stepsRemaining) {
                 COV(7, CL);
-                // different word, step shorter than WordChain used
+                // different word, shorter than WordChain used
                 moveRating = Const.GENIUS_MOVE;
             }
-            this.unplayedWords = solution.getSolutionWords().slice(); // get a copy, and remove the start word
-            this.unplayedWords.shift();
+            this.unplayedWords = solution.getSolutionWords().slice(); // get a copy (slice)
+            this.unplayedWords.shift();                               // and remove the start word
             COV(8, CL);
         }
         this.ratedMoves.push(new RatedMove(word, moveRating));
@@ -196,6 +198,9 @@ class GameState {
         COV(10, CL);
         return moveRating;
     }
+
+    // locationOfHole() and wordHasHole() are statics because they don't use 'this' and are called from
+    // outside as well as inside this class.
 
     static locationOfHole(word) {
         return word.indexOf(Const.HOLE);

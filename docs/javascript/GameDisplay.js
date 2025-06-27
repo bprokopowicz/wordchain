@@ -365,9 +365,11 @@ class GameDisplay extends BaseLogger {
         // move; that's the only case where this.numPenalties would be null.
 
         const penaltyCount = this.game.numPenalties();
+
         // We don't think we need the skipToast check here, but leaving in for
         // history, in case we see something funky relating to toasts; maybe this
         // will lead to a solution.
+
         if (this.numPenalties != null && penaltyCount > this.numPenalties /*&& !skipToast*/) {
             COV(11, CL);
             if (activeMoveRating) {

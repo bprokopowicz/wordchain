@@ -10,7 +10,7 @@ Near Term Changes
 
 Do in suggested order?
 
-- Add "set your variables" to the Testing page (instead of browser local storage)
+- Review this TODO file - some of it is done or not relevant
 - Analytics
 - Add remaining penalties indication (maybe in the header?)
 - Eliminate negativity from user experience
@@ -72,11 +72,6 @@ Not Affecting Game Play
 
 Testing Issues
 ==============
-
-Coverage.js uses a static map to hold counters for each place that COV is called.  But the static map is
-initialized twice - it seems to be a separate copy - in the case of App tests, which are executed "in the future" 
-using setTimeout().  It could be that the Coverage class is loaded twice, once when code is loaded, and again when
-the AppTest runs using the scheduler.  The second instance isn't printed out by Coverage.showResults().
 
 In IOS (phone, ipad) using Safari, wordchain.html will load and play OK, BUT:
 - if you force a hard reload (cmd-opt-R) from the web inspector while tethered to a Mac,
