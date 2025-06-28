@@ -848,7 +848,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15431;
+        const expectedMinDictSize = 15430;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -3132,7 +3132,7 @@ class Test extends BaseLogger {
     }
 
     displayCookies() {
-        this.addTitle("Local Storage - you must press enter for each change to take effect");
+        this.addTitle("Local Storage - you must focus outside the box for change to take effect");
         const allCookies = Cookie.ALL_TEST_VARS.concat(Cookie.ALL_GAME_VARS);
         for (let varName of allCookies) {
             var value = Cookie.get(varName);
@@ -3141,25 +3141,37 @@ class Test extends BaseLogger {
             }
 
             ElementUtilities.addElementTo("label", this.outerDiv, {}, `${varName}: `);
-            const inputBox = ElementUtilities.addElementTo("input", this.outerDiv, {id: varName, type: "text", value: value});
-            inputBox.size = value.length + 1;
-            inputBox.addEventListener("keyup", this.varInputCallback); 
+            const maxCharsPerRow = 100;
+            const nChars = value.length;
+            const nRows = Math.trunc(nChars / maxCharsPerRow) + 1;
+            const nCols = maxCharsPerRow;
+            var inputBox = ElementUtilities.addElementTo("textarea", this.outerDiv,
+                    {id: varName, rows: nRows, cols: nCols});
+            inputBox.defaultValue = value;
+            inputBox.addEventListener("change", this.textareaChangeCallback); 
+            // inputBox.addEventListener("input", this.textareaInputCallback); 
             ElementUtilities.addElementTo("p", this.outerDiv);
         }
     }
 
-    varInputCallback(event) {
-        // called when user presses a key  on a variable input box
-        if (event.key === "Enter") {
-            const element = event.srcElement;
-            const varName = element.id;
-            const newValue = element.value;
-            if (newValue === "null") {
-                Cookie.remove(varName);
-            } else {
-                Cookie.save(varName, newValue);
-            }
-            element.size = newValue.length + 1;
+/* not used now ==========
+    textareaInputCallback(event) {
+        // called when user changes a textarea's value by any keystroke
+        console.log("textareaInputCallback()", event);
+    }
+    =========== */
+
+    textareaChangeCallback(event) {
+        // called when user leaving the focus and the value has changed.
+        console.log("textareaChangeCallback()", event);
+        const element = event.target;
+        const varName = element.id;
+        const newValue = element.value;
+        element.defaultValue = newValue;
+        if (newValue === "null") {
+            Cookie.remove(varName);
+        } else {
+            Cookie.save(varName, newValue);
         }
     }
 

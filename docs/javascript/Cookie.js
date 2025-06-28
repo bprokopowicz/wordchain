@@ -211,8 +211,12 @@ class Cookie {
         }
     }
 
+    static prettyPrintJSON(val) {
+        return JSON.stringify(val).replaceAll(",", ", ");
+    }
+
     static saveJson(name, val) {
-        Cookie.save(name, JSON.stringify(val));
+        Cookie.save(name, Cookie.prettyPrintJSON(val));
     }
 }
 
