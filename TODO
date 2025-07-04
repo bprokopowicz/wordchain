@@ -27,7 +27,7 @@ New Game Play Ideas
 - DODO move adds 2 extra steps
   - Continue to display "Ugh! You added two steps!" toast
   - Continue to display one row of in game and share, but use GRAY (currently red/orange)
-- GENIUS move reduces a step (2 steps?)
+- GENIUS move reduces step(s) 
   - No changes to what we display.
 - So score (extra steps) won't always line up with the number of gray (or non-green) rows.
   - Maybe it's OK; at a minimum we need something in the FAQ about it.
