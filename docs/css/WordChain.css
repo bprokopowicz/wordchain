@@ -679,8 +679,11 @@ button.action-button {
 }
 
 .picker-inner-div {
-    width: 100%;
-    overflow: auto;
+    width: 325px; /* was 100% */
+    overflow: scroll;
+}
+
+.picker-and-arrows-table {
 }
 
 .picker-table {
@@ -690,6 +693,7 @@ button.action-button {
 }
 
 .picker-td {
+    vertical-align: middle;
 }
 
 .picker-button {
@@ -701,6 +705,27 @@ button.action-button {
     padding-right: 10px;
     margin-right: 2px;
     margin-bottom: 8px;
+    font-size: var(--picker-font-size);
+    font-weight: bold;
+    background: var(--user-input-bg);
+    color: var(--user-input-fg);
+    vertical-align: top;
+    /*
+    ** This turns off double-tap zooming on iPad. Note that setting this
+    ** to 'none' interferes with the ability to scroll the picker.
+    */
+    touch-action: pan-x;
+}
+
+.picker-arrow {
+    width: 20px;
+    height: 50px;
+    border: 1px solid black;
+    border-radius: 0%;
+    padding-left: 1px;
+    padding-right: 1px;
+    margin-right: 2px;
+    margin-bottom: 35px;
     font-size: var(--picker-font-size);
     font-weight: bold;
     background: var(--user-input-bg);

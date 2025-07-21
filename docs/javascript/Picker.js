@@ -25,29 +25,54 @@ class Picker extends BaseLogger {
         // Save each letter-button by letter, for access to buttons during testing.
         this.buttonsForLetters = new Map();
 
+        // the picker menu will be the center element of a three-column table, which holds 
+        // left-arrow | picker letter tiles | right-arrow
         // Add the picker menu, which will end up looking like this:
         //
-        //    <div class="picker-outer-div" id="pickerId">
-        //    <div class="picker-inner-div">
-        //    <table class="picker-table">
-        //        <tr class="picker-tr">
-        //            <td class="picker-td"><button class=`picker-button ${Const.UNSELECTED_STYLE}`>A</button></td>
-        //            ...
-        //            <td class="picker-td"><button class=`picker-button Const.UNSELECTED_STYLE`>Z</button></td>
-        //        </tr>
-        //    </table>
-        //    </div>
-        //    </div>
+        //    <div class="picker-div" id="picker-div">
+        //    <div class="picker-outer-div" id="picker-">
+        //    <table class="picker-and-arrows-table>
+        //      <tr class="picker-tr>
+        //      <td class="picker-td" <button class=picker-arrow '<'> < </button></td>
+        //      <td class="picker-td>
+        //         <div class="picker-inner-div">
+        //         <table class="picker-table">
+        //             <tr class="picker-tr">
+        //               <td class="picker-td"><button class=`picker-button ${Const.UNSELECTED_STYLE}`>A</button></td>
+        //               ...
+        //               <td class="picker-td"><button class=`picker-button Const.UNSELECTED_STYLE`>Z</button></td>
+        //             </tr>
+        //         </table>
+        //         </div>
+        //     </td>
+        //     <td class="picker-td" <button class=picker-arrow '>'> > </button></td>
+        //     </tr>
+        //   </table>
+        //   </div>
         //
         // The picker-outer-div class will have a fixed width that spans the game display.
         // The picker-inner-div class will be scrollable so that a user with a touch screen
         // device can easily scroll by dragging; a non-touch-screen user will need to
         // use a slider to move the letters.
-        this.pickerOuterDiv = ElementUtilities.addElementTo("div", pickerDiv, {class: "picker-outer-div", id: pickerId});
-        this.pickerInnerDiv = ElementUtilities.addElementTo("div", this.pickerOuterDiv, {class: "picker-inner-div"});
 
-        var table = ElementUtilities.addElementTo("table", this.pickerInnerDiv, {class: "picker-table"}),
-            row = ElementUtilities.addElementTo("tr", table, {class: "picker-tr"}),
+        this.pickerOuterDiv = ElementUtilities.addElementTo("div", pickerDiv, {class: "picker-outer-div", id: pickerId});
+        var pickerAndArrowsTable =  ElementUtilities.addElementTo("table", this.pickerOuterDiv, {class: "picker-and-arrows-table"});
+        var ptRow = ElementUtilities.addElementTo("tr", pickerAndArrowsTable, {class: "picker-tr"});
+
+        // add the left <
+        var td1 = ElementUtilities.addElementTo("td", ptRow, {class: "picker-td", align: "right"});
+        var lButton = ElementUtilities.addElementTo("button", td1, {class: `picker-arrow ${Const.UNSELECTED_STYLE}`, letter: '<'}, '<');
+
+        // add the inner div that holds the sliding letter tiles table
+        var td2 = ElementUtilities.addElementTo("td", ptRow, {class: "picker-td", align: "right"});
+        this.pickerInnerDiv = ElementUtilities.addElementTo("div", td2, {class: "picker-inner-div"});
+
+        // add the right >
+        var td3 = ElementUtilities.addElementTo("td", ptRow, {class: "picker-td", align: "left"});
+        var rButton = ElementUtilities.addElementTo("button", td3, {class: `picker-arrow ${Const.UNSELECTED_STYLE}`, letter: '>'}, '>');
+
+        var letterTilesTable = ElementUtilities.addElementTo("table", this.pickerInnerDiv, {class: "picker-table"}),
+            row = ElementUtilities.addElementTo("tr", letterTilesTable, {class: "picker-tr"}),
             codeLetterA = "A".charCodeAt(0),
             codeLetterZ = "Z".charCodeAt(0),
             letter, td, button;
@@ -84,13 +109,13 @@ class Picker extends BaseLogger {
         // elements don't move, which would be jarring to a user.`
         const CL = "Picker.disable";
         COV(0, CL);
-        ElementUtilities.hide(this.pickerInnerDiv);
+        ElementUtilities.hide(this.pickerOuterDiv); // was this.pickerInnerDiv
     }
 
     enable() {
         const CL = "Picker.ensable";
         COV(0, CL);
-        ElementUtilities.show(this.pickerInnerDiv);
+        ElementUtilities.show(this.pickerOuterDiv); // was this.pickerInnerDiv
     }
 
     // ActiveLetterCell saves the letter position in the picker so that when
