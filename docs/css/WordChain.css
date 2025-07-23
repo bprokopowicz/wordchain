@@ -680,7 +680,8 @@ button.action-button {
 
 .picker-inner-div {
     width: 100%;
-    overflow: scroll;
+    overflow: auto;
+    scroll-behavior: smooth;
 }
 
 .picker-table {

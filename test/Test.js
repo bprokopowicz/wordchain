@@ -1141,7 +1141,7 @@ class Test extends BaseLogger {
         prep(); this.testDailyGameStateGeniusMove();
         prep(); this.testDailyGameStateUsingScrabbleWord();
         // initialize every Daily game defined -- takes a long time!
-        // this.testGameStateSolveAllDailyGames();
+        // prep(); this.testGameStateSolveAllDailyGames();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -1155,6 +1155,13 @@ class Test extends BaseLogger {
         return (s1.gamesRemaining === s2.gamesRemaining) && this.compareGameStates(s1, s2);
     }
 
+    /*
+        This test takes a long time and isn't part of normal testing.  It is commented out in 
+        runGameStateTests().  It tests the viability of each game word pair by setting the 
+        test practice game words and then creating a new PracticeGameState.  In creating the 
+        new PracticeGameState, the factory will determine if the puzzle can be solved and return
+        null if it can't.
+     */
     testGameStateSolveAllDailyGames() {
         this.logDebug("in testGameStateSolveAllDailyGames()", "test");
         this.testName = "GameStateSolveAllDailyGames";
@@ -1162,10 +1169,10 @@ class Test extends BaseLogger {
             let [start, target] = wordPair;
             Persistence.saveTestPracticeGameWords(start, target);
             let gameState = PracticeGameState.factory(this.fullDict);
-            console.log("gamestate:", gameState);
+            this.logDebug("gamestate:", gameState, "test");
             if (! this.verify(gameState != null, `daily puzzle ${start}->${target} failed to initialize!`) ) {
-                console.log("short-circuit return");
                 return; // short-circuit the test if any puzzle fails.
+                this.logDebug(this.testName, " short-circuit because <", start, target, "> failed.", "test");
             }
         }
         this.hadNoErrors();

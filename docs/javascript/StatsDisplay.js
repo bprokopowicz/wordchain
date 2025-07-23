@@ -84,7 +84,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     additionalCloseActions() {
         const CL = "StatsDisplay.additionalCloseActions";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("StatsDisplay.additionalCloseActions(): clearing timer id: ", this.clockIntervalTimer, "daily");
+        Const.GL_DEBUG && this.logDebug("StatsDisplay.additionalCloseActions(): clearing timer id: ", this.clockIntervalTimer, "stats");
         this.stopCountdownClock();
     }
 
@@ -119,26 +119,49 @@ class StatsDisplay extends AuxiliaryDisplay {
         const CL = "StatsDisplay.startCountdownClock";
         COV(0, CL);
 
+        // a timer call-back counter.  This is used to determine which callback instance is happening, so that
+        // we can do different things on different callbacks.  For example, on even call-back counts, scroll
+        // left, and on odd ones, scroll right
+
+        this.countdownCallCounter = 0;
+
         function msToDuration(ms) {
             return new Date(ms).toISOString().substr(11, 8);
         }
 
-        // Set the initial clock display.
-        let msUntilNextGame = this.appDisplay.getMsUntilNextGame();
-        this.countdownClock.textContent = msToDuration(msUntilNextGame);
+        function selfScroll(statsDisplay) {
+            var picker = statsDisplay.appDisplay.currentGameDisplay.letterPicker;
+            var scrollingDiv = picker.pickerInnerDiv;
+            var scrollPix = 1;
+            if (statsDisplay.countdownCallCounter % 2 == 1) {
+                scrollPix = -scrollPix;
+            } 
+            /*
+             * var wheelEvent = document.createEvent('MouseEvents');
+             * wheelEvent.initEvent('wheel', true, true); // canBubbleArg, cancelableArg both true
+             * wheelEvent.deltaX = scrollPix;
+             * scrollingDiv.dispatchEvent(wheelEvent);
+             */
+            scrollingDiv.scrollBy(scrollPix, 0);
+        }
 
-        // Set a timer to change the clock and display every second.
+        // Set a 1000 ms timer to change the clock and display every second.
         this.clockIntervalTimer = setInterval(() => {
-            msUntilNextGame = this.appDisplay.getMsUntilNextGame();
+            let msUntilNextGame = this.appDisplay.getMsUntilNextGame();
             this.countdownClock.textContent = msToDuration(msUntilNextGame);
+            /*
+             * console.log("timer running");
+             * this.countdownCallCounter += 1;
+             * selfScroll(this);
+             */
         }, 1000);
-        Const.GL_DEBUG && this.logDebug("StatsDisplay.startCountdownClock() timer id: ", this.clockIntervalTimer, "daily");
+        Const.GL_DEBUG && this.logDebug("StatsDisplay.startCountdownClock() timer id: ", this.clockIntervalTimer, "stats");
     }
 
     stopCountdownClock() {
         const CL = "StatsDisplay.stopCountdownClock";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("StatsDisplay.stopCountdownClock() timer id: ", this.clockIntervalTimer, "daily");
+        Const.GL_DEBUG && this.logDebug("StatsDisplay.stopCountdownClock() timer id: ", this.clockIntervalTimer, "stats");
         clearInterval(this.clockIntervalTimer);
     }
 
