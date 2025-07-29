@@ -11,11 +11,12 @@ Near Term Changes
 Do in suggested order?
 
 - Review this TODO file - some of it is done or not relevant
+- Add a one-time pop-up/notice: swipe the letter tiles left and right, then tap a letter to select it.
 - Analytics
 - Add remaining penalties indication (maybe in the header?)
-- Eliminate negativity from user experience
+- Less negative user experience
 
-New Game Play Ideas
+Less negative user experience / game play
 ===================
 
 - Change in terminology from "penalty" to "extra steps"
@@ -43,6 +44,18 @@ New Game Play Ideas
     "penalty" values as "extra steps" values.
   - Continue to use "confounded" emoji for scores over N (currently N == 4; maybe we increase it?)
 - Streak reflects contiguous completed daily games (no matter how many steps it takes to get there)
+
+Analytics
+=========
+There is a class called Metrics.java that records event+data by fetching a URL with event+data in the 
+query string.  Data includes a word-chain player ID (WCID) which is persistent per player-platform.  The
+file fetched is wcm.html.  This file has Google analytics in it.  
+Our Google tag ID is G-ESCKD20EKK.  This is a Google Analytics 4 (GA4) tag.  
+It seems like GA4 supports counting events by type but not by individual user.  So we can track things like:
+- game #abc started at timestamp
+- game #abc finished in N moves, streak at K, at timestamp
+Things we can't do or maybe complicated:
+- user WCIDxyz has played 43 games
 
 Maybe Someday
 =============
