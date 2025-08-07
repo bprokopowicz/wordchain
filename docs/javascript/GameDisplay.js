@@ -36,8 +36,6 @@ class GameDisplay extends BaseLogger {
 
         this.createPicker();
 
-        this.numPenalties = null;
-
         // This will be used to keep track of a user's selection if we are in confirmation mode.
         this.selectedButton = null;
 
@@ -103,7 +101,7 @@ class GameDisplay extends BaseLogger {
         } else {
             COV(2, CL);
             result = this.game.playLetter(letterPosition, letter);
-            this.processGameResult(result);
+            this.processGamePlayResult(result);
         }
 
         COV(3, CL);
@@ -125,15 +123,13 @@ class GameDisplay extends BaseLogger {
         return newTd;
     }
 
-    // Called from derived class. Game could be recovered or newly constructed,
-    // I either case, we don't want to show a "game over" toast.
+    // Called from derived class. Game could be recovered or newly constructed.
     updateDisplay() {
         const CL = "GameDisplay.updateDisplay";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug ("GameDisplay.updateDisplay() called.", "game");
 
-        const skipToast = true;
-        this.showGameAfterMove(skipToast);
+        this.showGameAfterMove();
 
         // Scroll to the top of the window so that the user sees the start word.
         window.scrollTo({top: 0, behavior: 'smooth'});
@@ -260,10 +256,7 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getCell);
     }
 
-    // skipToast is a Boolean that indicates whether the "game over" toast
-    // should be skipped, e.g. in the case where we are displaying a
-    // newly created game.
-    showGameAfterMove(skipToast) {
+    showGameAfterMove() {
         const CL = "GameDisplay.showGameAfterMove";
         COV(0, CL);
         // Delete old game container content; we're about to recreate it.
@@ -274,40 +267,17 @@ class GameDisplay extends BaseLogger {
 
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
 
-
-        if (this.gameIsOver()) {
-            COV(1, CL);
-            // this should display the rest of the game
-            this.game.showUnplayedMoves();
-        }
+        COV(1, CL);
 
         let displayInstructions = this.game.getDisplayInstructions();
 
         // all words are played words until we hit the first future or target word:
 
-        let isStartWord = true,
-            showSameAsWordChainMessage = true,
-            activeMoveRating = null;
+        let isStartWord = true;
 
         // console.log("======================");
         for (let displayInstruction of displayInstructions) {
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
-
-            let wordWasPlayed =
-                (displayInstruction.displayType !== Const.FUTURE) &&
-                (displayInstruction.displayType !== Const.CHANGE_NEXT) &&
-                (displayInstruction.displayType !== Const.TARGET);
-
-            // Const.PLAYED indicates the word was played before the active one.
-            if (wordWasPlayed && displayInstruction.displayType != Const.PLAYED) {
-                COV(2, CL);
-                activeMoveRating = displayInstruction.moveRating;
-            }
-
-            if (displayInstruction.moveRating !== Const.OK) {
-                COV(3, CL);
-                showSameAsWordChainMessage = false;
-            }
 
             this.rowElement.displayAsActiveRow = false;
             Const.GL_DEBUG && this.logDebug("word:", displayInstruction.word, "displayType:", displayInstruction.displayType,
@@ -316,38 +286,38 @@ class GameDisplay extends BaseLogger {
             // These instructions all indicate the active word.
             // Note that the active word has also been played.
             if (displayInstruction.displayType === Const.ADD) {
-                COV(4, CL);
+                COV(2, CL);
                 this.rowElement.displayAsActiveRow = true;
                 this.displayAdd(displayInstruction, isStartWord);
                 this.lastActiveMoveWasAdd = true;
 
             } else if (displayInstruction.displayType === Const.CHANGE) {
-                COV(5, CL);
+                COV(3, CL);
                 this.rowElement.displayAsActiveRow = true;
                 this.displayChange(displayInstruction, isStartWord);
                 this.lastActiveMoveWasAdd = false;
 
             } else if (displayInstruction.displayType === Const.DELETE) {
-                COV(6, CL);
+                COV(4, CL);
                 this.rowElement.displayAsActiveRow = true;
                 this.displayDelete(displayInstruction, tableElement, isStartWord);
                 this.lastActiveMoveWasAdd = false;
 
             // These instructions indicate a word other than the active one.
             } else if (displayInstruction.displayType === Const.CHANGE_NEXT) {
-                COV(7, CL);
+                COV(5, CL);
                 this.displayChangeNext(displayInstruction);
 
             } else if (displayInstruction.displayType === Const.FUTURE) {
-                COV(8, CL);
+                COV(6, CL);
                 this.displayFuture(displayInstruction);
 
             } else if (displayInstruction.displayType === Const.PLAYED) {
-                COV(9, CL);
+                COV(7, CL);
                 this.displayPlayed(displayInstruction, isStartWord);
 
             } else if (displayInstruction.displayType === Const.TARGET) {
-                COV(10, CL);
+                COV(8, CL);
                 this.displayTarget(displayInstruction);
 
             } else {
@@ -359,37 +329,16 @@ class GameDisplay extends BaseLogger {
             this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
         }
 
-        // Were there more wrong words than the last time we showed a move?
-        // If so, we need to show a toast message.
-        // NOTE: This function is called during AppDisplay construction, before the first
-        // move; that's the only case where this.numPenalties would be null.
-
-        const penaltyCount = this.game.numPenalties();
-
-        // We don't think we need the skipToast check here, but leaving in for
-        // history, in case we see something funky relating to toasts; maybe this
-        // will lead to a solution.
-
-        if (this.numPenalties != null && penaltyCount > this.numPenalties /*&& !skipToast*/) {
-            COV(11, CL);
-            if (activeMoveRating) {
-                this.appDisplay.showToast(activeMoveRating);
-            } else {
-                console.error(CL, ": activeMoveRating should not be null/undefined");
-            }
-        }
-        this.numPenalties = penaltyCount;
-
         if (this.pickerEnabled) {
-            COV(12, CL);
+            COV(9, CL);
             this.enablePicker();
         } else {
-            COV(13, CL);
+            COV(10, CL);
             this.disablePicker();
         }
 
         if (this.gameIsOver()) {
-            COV(14, CL);
+            COV(11, CL);
 
             // Delete old results and create new divs to go in the results div.
             ElementUtilities.deleteChildren(this.resultsDiv);
@@ -397,20 +346,9 @@ class GameDisplay extends BaseLogger {
                 originalSolutionDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break original-solution-div"}),
                 iconDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break icon-div"});
 
-            if (!skipToast) {
-                COV(15, CL);
-                if (this.game.isWinner()) {
-                    COV(16, CL);
-                    this.appDisplay.showToast(Const.GAME_WON);
-                } else {
-                    COV(17, CL);
-                    this.appDisplay.showToast(Const.GAME_LOST);
-                }
-            }
-
-            const scoreText = Const.SCORE_TEXT[this.numPenalties];
-            Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): this.numPenalties:",
-                    this.numPenalties, "game");
+            const scoreText = Const.SCORE_TEXT[this.game.numPenalties()];
+            Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): this.game.numPenalties():",
+                    this.game.numPenalties(), "game");
             ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
 
             this.disablePicker();
@@ -420,7 +358,7 @@ class GameDisplay extends BaseLogger {
             // the game is over, call the function.
 
             if (this.additionalGameOverActions) {
-                COV(18, CL);
+                COV(12, CL);
                 this.additionalGameOverActions();
             }
 
@@ -431,16 +369,16 @@ class GameDisplay extends BaseLogger {
                 userSolutionWords = this.game.getUserSolutionWords();
 
             if (originalSolutionWords == userSolutionWords) {
-                COV(19, CL);
+                COV(13, CL);
                 // We don't want to show this message if the user clicked
-                // 'Show Next Move' to reveal a word (or all words!).
-                if (showSameAsWordChainMessage) {
-                    COV(20, CL);
+                // 'Show Next Move' to reveal a word (or all words!).  
+                if (this.game.numShownMoves() == 0) {
+                    COV(14, CL);
                     ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
                         "You found WordChain's solution!");
-                }
+                } // else no message regarding WordChain's solution.
             } else {
-                COV(21, CL);
+                COV(15, CL);
                 ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
                     `WordChain's solution:<br>${originalSolutionWords}`);
             }
@@ -451,10 +389,10 @@ class GameDisplay extends BaseLogger {
             ElementUtilities.addElementTo("img", iconDiv, {src: "/docs/images/favicon.png", class: "word-chain-icon"});
             ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
         } else {
-            COV(22, CL);
+            COV(16, CL);
             ElementUtilities.enableButton(this.showNextMoveButton);
         }
-        COV(23, CL);
+        COV(17, CL);
     }
 
     /* ----- Callbacks ----- */
@@ -479,7 +417,7 @@ class GameDisplay extends BaseLogger {
             let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
             result = this.game.playAdd(additionPosition);
 
-            this.processGameResult(result);
+            this.processGamePlayResult(result);
         }
 
         COV(3, CL);
@@ -505,7 +443,7 @@ class GameDisplay extends BaseLogger {
             let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
 
             result = this.game.playDelete(deletionPosition);
-            this.processGameResult(result);
+            this.processGamePlayResult(result);
         }
 
         COV(3, CL);
@@ -527,13 +465,12 @@ class GameDisplay extends BaseLogger {
             COV(1, CL);
             result = this.game.showNextMove();
 
-            // In case this finishes the game, we don't want to skip the "game over" toast.
-            const skipToast = false;
-            this.showGameAfterMove(skipToast);
+            this.showGameAfterMove();
 
             // Disable if no more moves remaining.
             if (this.gameIsOver()) {
                 COV(2, CL);
+                this.showGameOverToast();
                 ElementUtilities.disableButton(this.showNextMoveButton);
             }
         }
@@ -619,12 +556,6 @@ class GameDisplay extends BaseLogger {
     }
 
     // some pass-through functions to access game and gameState
-    gameIsOver() {
-        const CL = "GameDisplay.gameIsOver";
-        COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("GameDisplay.gameIsOver() game:", this.game, "game");
-        return this.game.isOver();
-    }
 
     getMsUntilNextGame() {
         const CL = "GameDisplay.getMsUntilNextGame";
@@ -691,26 +622,37 @@ class GameDisplay extends BaseLogger {
         return result;
     }
 
-    processGameResult(gameResult) {
-        const CL = "GameDisplay.processGameResult";
+    processGamePlayResult(gameResult) {
+        const CL = "GameDisplay.processGamePlayResult";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("GameDisplay.processGameResult() gameResult: ", gameResult, "callback");
+        Const.GL_DEBUG && this.logDebug("GameDisplay.processGamePlayResult() gameResult: ", gameResult, "callback");
         if (gameResult === Const.BAD_LETTER_POSITION) {
+            COV(1, CL);
             console.error(gameResult);
             this.appDisplay.showToast(Const.UNEXPECTED_ERROR);
-        } else if (gameResult !== Const.OK) {
-            COV(1, CL);
-            // D'OH, Genius moves are possible results as of Oct 2024.
-            // Ugh, Dodo moves are possible results as of Nov 2024.
-            // YAY, Scrabble Word moves are possible results as of Mar 2025.
+        } 
+        if ((gameResult == Const.WRONG_MOVE) || (gameResult == Const.DODO_MOVE)) { // TODO: include genius move? or not OK?
             this.appDisplay.showToast(gameResult);
         }
 
-        COV(2, CL);
+        this.showGameAfterMove();
 
-        // In case this finishes the game, we don't want to skip the "game over" toast.
-        const skipToast = false;
-        this.showGameAfterMove(skipToast);
+        if (this.game.isOver()) {
+            COV(2, CL);
+            this.showGameOverToast();
+        }
+    }
+
+    showGameOverToast() {
+        const CL = "GameDisplay.showGameOverToast";
+        COV(0, CL);
+        if (this.game.isWinner()) {
+            COV(1, CL);
+            this.appDisplay.showToast(Const.GAME_WON);
+        } else {
+            COV(2, CL);
+            this.appDisplay.showToast(Const.GAME_LOST);
+        }
     }
 
     // Changes the class on the appropriate element relative to the selected button
@@ -732,6 +674,14 @@ class GameDisplay extends BaseLogger {
         ElementUtilities.removeClass(unconfirmedElement, Const.UNCONFIRMED_STYLE)
         ElementUtilities.addClass(unconfirmedElement, Const.UNSELECTED_STYLE)
     }
+
+    // pass-through utility
+    gameIsOver() {
+        const CL = "GameDisplay.gameIsOver";
+        COV(0, CL);
+        return this.game.isOver();
+    }
+
 
     // callGetAppCounters()/callClearAppCoverage are a hack for Test.js to access the
     // coverage data in the execution context of the GameDisplay.
@@ -831,22 +781,16 @@ class DailyGameDisplay extends GameDisplay {
         return this.game.gameState.dailyGameNumber;
     }
 
-    gameIsBroken() {
-        const CL = "DailyGameDisplay.gameIsBroken";
+    dailyGameIsBroken() {
+        const CL = "DailyGameDisplay.dailyGameIsBroken";
         COV(0, CL);
-        return this.game.isBroken();
-    }
-
-    gameIsOver() {
-        const CL = "DailyGameDisplay.gameIsOver";
-        COV(0, CL);
-        return this.game.isOver();
+        return this.game.dailyGameIsBroken();
     }
 
     // Enable or disable the share button based on whether the user has played the game.
     updateShareButton() {
         const CL = "DailyGameDisplay.updateShareButton";
-        if (this.game.isOver() && !this.game.isBroken()) {
+        if (this.gameIsOver() && !this.dailyGameIsBroken()) {
             COV(1, CL);
             ElementUtilities.enableButton(this.shareButton);
         } else {
@@ -879,7 +823,7 @@ class PracticeGameDisplay extends GameDisplay {
         ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
 
         this.game = new PracticeGame(); // either recovered (in progress or done) or new (no saved state)
-        if (!this.game.isOver()) {
+        if (!this.gameIsOver()) {
             COV(1, CL);
             // disable the new game button because a practice game is in progress/new
             ElementUtilities.disableButton(this.newGameButton);
@@ -949,7 +893,7 @@ class PracticeGameDisplay extends GameDisplay {
         const CL = "PracticeGameDisplay.practiceGamesAvailable";
         COV(0, CL);
         // Enable only if we're not in the middle of a game.
-        if (this.game.isOver()) {
+        if (this.gameIsOver()) {
             COV(1, CL);
             ElementUtilities.enableButton(this.newGameButton);
         }

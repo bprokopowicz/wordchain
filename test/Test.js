@@ -1137,6 +1137,7 @@ class Test extends BaseLogger {
         prep(); this.testDailyGameStateSkippedDay();
         prep(); this.testDailyGameStateUsingNewTestVars();
         prep(); this.testDailyGameStateUsingRepeatTestVars();
+        prep(); this.testDailyGameStateWrongMove();
         prep(); this.testDailyGameStateDodoMove();
         prep(); this.testDailyGameStateGeniusMove();
         prep(); this.testDailyGameStateUsingScrabbleWord();
@@ -1435,6 +1436,24 @@ class Test extends BaseLogger {
             this.verify(dgs2.start == "PLANE", "expected start: PLANE, found:", dgs2.start) &&
             this.verify(dgs2.target == "PANED", "expected target: PANED, found:", dgs2.target) &&
             this.hadNoErrors();
+    }
+
+    testDailyGameStateWrongMove() {
+        this.testName = "DailyGameStateWrongMove";
+        // shortest solution is PLANE,PANE,PANED but wrong move is PLANE,PANE,PANES,PANED
+        Persistence.saveTestDailyGameWords("PLANE", "PANED");
+        let dgs = DailyGameState.factory(this.fullDict);
+        dgs.addWord("PANE"); // OK
+        const res = dgs.addWord("PANES"); // WRONG
+        this.verify(res == Const.WRONG_MOVE, "after addWord, expected", Const.WRONG_MOVE, "found", res) &&
+            this.verify(dgs.start == "PLANE", "expected start: PLANE, found:", dgs.start) &&
+            this.verify(dgs.target == "PANED", "expected target: PANED, found:", dgs.target) &&
+            this.verify(dgs.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER, "expected gameNumber:", Const.TEST_DAILY_GAME_NUMBER,
+                    "found:", dgs.dailyGameNumber) &&
+            this.verify(dgs.ratedMoves[2].rating == Const.WRONG_MOVE,
+                    "expected", Const.WRONG_MOVE, "for ratedMoves[2].rating, got:", dgs.ratedMoves[2].rating) &&
+            this.hadNoErrors();
+
     }
 
     testDailyGameStateDodoMove() {
@@ -1848,7 +1867,7 @@ class Test extends BaseLogger {
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict); 
 
-        game.showUnplayedMoves();
+        game.gameState.showUnplayedMoves();
 
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
         this.verify((displayInstructions.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructions.length}`) &&
@@ -1930,7 +1949,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings =
-            `(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:FATED,moveRating:ok),<br>(played,word:FATE,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FRAT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FEAT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FELT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FEET,moveRating:${Const.WRONG_MOVE}),<br>(future,word:FEST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:${Const.WRONG_MOVE})`;
+            `(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:FATED,moveRating:ok),<br>(played,word:FATE,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FRAT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FEAT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FELT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FEET,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FEST,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FIST,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FISH,moveRating:${Const.WRONG_MOVE})`;
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
                 this.verify(r2 == Const.OK, `expected r2=${Const.OK}, got ${r2}`) &&
                 this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
@@ -1970,7 +1989,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings =
-            `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FEST,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FAST,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FRAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FEAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(future,word:FAT,changePosition:0),<br>(future,word:FATE,changePosition:0),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:0),<br>(played,word:SALTED,moveRating:${Const.WRONG_MOVE})`;
+            `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FEST,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FAST,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FRAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FEAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FATE,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FATED,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:SATED,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:SALTED,moveRating:${Const.WRONG_MOVE})`;
 
             this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
                 this.verify(r2 == Const.WRONG_MOVE, `expected r2=${Const.WRONG_MOVE}, got ${r2}`) &&
@@ -2010,7 +2029,7 @@ class Test extends BaseLogger {
         let DIs = game.getDisplayInstructions();
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings =
-            `(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:DATED,moveRating:${Const.WRONG_MOVE}),<br>(played,word:DATE,moveRating:ok),<br>(played,word:MATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:RATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:LATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FATE,moveRating:ok),<br>(played,word:ATE,moveRating:${Const.DODO_MOVE}),<br>(future,word:FATE,changePosition:0),<br>(future,word:FAT,changePosition:0),<br>(future,word:FAST,changePosition:2),<br>(future,word:FIST,changePosition:4),<br>(played,word:FISH,moveRating:${Const.WRONG_MOVE})`
+            `(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:DATED,moveRating:${Const.WRONG_MOVE}),<br>(played,word:DATE,moveRating:ok),<br>(played,word:MATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:RATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:LATE,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FATE,moveRating:ok),<br>(played,word:ATE,moveRating:${Const.DODO_MOVE}),<br>(played,word:FATE,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FAT,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FAST,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FIST,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FISH,moveRating:${Const.WRONG_MOVE})`
             this.verify(game.isOver(), "game should be over after too many wrong moves") &&
             this.verify(game.isLoser(), "game should be lost after too many wrong moves") &&
             this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
@@ -2330,7 +2349,7 @@ class Test extends BaseLogger {
             dailyShareButton = this.gameDisplay.shareButton,
             statsShareButton = statsDisplay.shareButton;
 
-        this.verify(game.isBroken(), "Expected broken daily game") &&
+        this.verify(game.dailyGameIsBroken(), "Expected broken daily game") &&
             this.verify(game.isWinner(), "Expected game to be winner") &&
             this.verify(dailyShareButton.hasAttribute('disabled') === true, "expected daily game screen share button to have 'disabled' attribute.") &&
             this.verify(statsShareButton.hasAttribute('disabled') === true, "expected stats screen share button to have 'disabled' attribute.") &&

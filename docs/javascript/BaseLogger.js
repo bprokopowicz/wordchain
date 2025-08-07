@@ -4,6 +4,16 @@ class BaseLogger {
     constructor() {
     }
 
+    tagIsOn(tag) {
+        let debugTags = Cookie.get(Cookie.DEBUG);
+        if (debugTags) {
+            // return T/F if 'tag' is in the list.
+            return debugTags.split(',').includes(tag);
+        } else {
+            return false; // no tags saved in DEBUG cookie.
+        }
+    }
+
     logDebug(...args) {
         let debugTags = Cookie.get(Cookie.DEBUG),
             messageTags = args[arguments.length - 1];

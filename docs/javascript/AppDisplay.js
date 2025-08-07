@@ -422,7 +422,7 @@ class AppDisplay extends BaseLogger {
     isDailyGameBroken() {
         const CL = "AppDisplay.isDailyGameBroken";
         COV(0, CL);
-        return this.dailyGameDisplay.gameIsBroken();
+        return this.dailyGameDisplay.dailyGameIsBroken();
     }
 
     // Return the given CSS property value.
