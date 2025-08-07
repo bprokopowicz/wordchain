@@ -622,23 +622,25 @@ class GameDisplay extends BaseLogger {
         return result;
     }
 
+    shouldShowToastForResult(gameResult) {
+        return (gameResult == Const.WRONG_MOVE) ||
+               (gameResult == Const.DODO_MOVE) || 
+               (gameResult == Const.SCRABBLE_WORD) || 
+               (gameResult == Const.GENIUS_MOVE);
+    }
+
     processGamePlayResult(gameResult) {
         const CL = "GameDisplay.processGamePlayResult";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("GameDisplay.processGamePlayResult() gameResult: ", gameResult, "callback");
-        if (gameResult === Const.BAD_LETTER_POSITION) {
-            COV(1, CL);
-            console.error(gameResult);
-            this.appDisplay.showToast(Const.UNEXPECTED_ERROR);
-        } 
-        if ((gameResult == Const.WRONG_MOVE) || (gameResult == Const.DODO_MOVE)) { // TODO: include genius move? or not OK?
+        if (this.shouldShowToastForResult(gameResult)) {
             this.appDisplay.showToast(gameResult);
         }
 
         this.showGameAfterMove();
 
         if (this.game.isOver()) {
-            COV(2, CL);
+            COV(1, CL);
             this.showGameOverToast();
         }
     }
