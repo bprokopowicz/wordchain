@@ -626,6 +626,7 @@ class GameDisplay extends BaseLogger {
         return (gameResult == Const.WRONG_MOVE) ||
                (gameResult == Const.DODO_MOVE) || 
                (gameResult == Const.SCRABBLE_WORD) || 
+               (gameResult == Const.NOT_A_WORD) || 
                (gameResult == Const.GENIUS_MOVE);
     }
 
@@ -759,7 +760,7 @@ class DailyGameDisplay extends GameDisplay {
     shareCallback(__event) {
         const CL = "DailyGameDisplay.shareCallback";
         COV(0, CL);
-        return this.appDisplay.getShare(); // used in testing only
+        return this.appDisplay.getShare(); // The return value is used in testing only.  getShare() has side-effect to copy the share to clipboard.
     }
 
     /* ----- Utilities ----- */

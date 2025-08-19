@@ -69,6 +69,9 @@ class AppDisplay extends BaseLogger {
 
         window.theAppDisplayIsReady = true;
 
+        // for testing, we keep track of the last toast displayed, if any
+        this.lastToast = null;
+
         this.showedNoDaily = false;
         this.showNoDaily();
 
@@ -544,11 +547,23 @@ class AppDisplay extends BaseLogger {
     showToast(message, duration=Const.SHOW_TOAST_DURATION) {
         const CL = "AppDisplay.showToast";
         COV(0, CL);
+        Const.GL_DEBUG && this.logDebug("AppDisplay.showToast(): ", message, "display");
+        this.lastToast = message;
         this.toastDiv.innerHTML = message
         ElementUtilities.editClass(/hide/, "show", this.toastDiv);
         setTimeout(() => {
             ElementUtilities.editClass(/show/, "hide", this.toastDiv);
         }, duration);
+    }
+
+    getAndClearLastToast() {
+        const result = this.lastToast;
+        this.clearLastToast();
+        return result;
+    }
+
+    clearLastToast() {
+        this.lastToast = null;
     }
 
     // This is called on construction, when the periodic timer fires, and

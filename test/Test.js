@@ -2094,7 +2094,8 @@ class Test extends BaseLogger {
             this.changeMindOnSelectedLettersTest,
             this.displayModesTest,
             this.displayBrokenDailyGameToastTest,
-            this.sameLetterPickedTest,
+            this.sameLetterPickedToastTest,
+            this.notAWordToastTest,
             this.toastTestDailyWin,
             this.toastTestRecoverDailyWin,
         ];
@@ -2192,14 +2193,17 @@ class Test extends BaseLogger {
     toastTestDailyWin() {
         this.testName = "ToastTestDailyWin";
         // The newly opened URL should be showing the test daily game by default;
-        this.playTheCannedDailyGameOnce();
         const appDisplay = this.getNewAppWindow().theAppDisplay;
+
+        this.playTheCannedDailyGameOnce();
+        const toastAfterGame = appDisplay.getAndClearLastToast();
         const toastClass = appDisplay.toastDiv.getAttribute("class");
         const toastMsg = appDisplay.toastDiv.innerHTML;
         const expToastClass = "pop-up show";
         const expToastMsg = Const.GAME_WON;
         this.verify(toastClass == expToastClass, "expected toast class to be", expToastClass, "found", toastClass) && 
             this.verify(toastMsg == expToastMsg, "expected toast message to be", expToastMsg, "found", toastMsg) && 
+            this.verify(toastAfterGame == Const.GAME_WON, `expected ${Const.GAME_WON} toast, got: ${toastAfterGame}`) &&
             this.hadNoErrors();
     }
 
@@ -2339,6 +2343,8 @@ class Test extends BaseLogger {
         // re-open the app window
         this.resetTheTestAppWindow();
 
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const lastToast = appDisplay.getAndClearLastToast();
         // we should be running the broken daily game.
         const game = this.gameDisplay.game;
         // We can finish the broken game; this will exercise code to NOT display the share button because game is broken
@@ -2353,6 +2359,7 @@ class Test extends BaseLogger {
             this.verify(game.isWinner(), "Expected game to be winner") &&
             this.verify(dailyShareButton.hasAttribute('disabled') === true, "expected daily game screen share button to have 'disabled' attribute.") &&
             this.verify(statsShareButton.hasAttribute('disabled') === true, "expected stats screen share button to have 'disabled' attribute.") &&
+            this.verify(lastToast == Const.NO_DAILY, `expected ${Const.NO_DAILY} toast, got: ${lastToast}`) &&
             this.hadNoErrors();
     }
 
@@ -2646,7 +2653,10 @@ class Test extends BaseLogger {
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
         this.playLetter(1, "B"); // HOOT -> BOOT
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        appDisplay.clearLastToast();
         this.playLetter(4, "K"); // BOOT -> BOOK  D'OH wrong move
+        const toastAfterWrongMove = appDisplay.getAndClearLastToast();
         this.playLetter(4, "R"); // BOOK -> BOOR
         this.playLetter(1, "P"); // BOOR -> POOR
 
@@ -2670,6 +2680,7 @@ class Test extends BaseLogger {
         this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with ='${expShareString}', got '${actShareString}'`) &&
             this.verify(dailyShareButton.hasAttribute('disabled') === false, "expected daily game screen share button NOT to have 'disabled' attribute.") &&
             this.verify(statsShareButton.hasAttribute('disabled') === false, "expected stats screen share button NOT to have 'disabled' attribute.") &&
+            this.verify(toastAfterWrongMove == Const.WRONG_MOVE, `expected ${Const.WRONG_MOVE} toast, got: ${toastAfterWrongMove}`) &&
             this.hadNoErrors();
 
     }
@@ -2697,8 +2708,13 @@ class Test extends BaseLogger {
 
         this.playLetter(4, "T"); // BOOK -> BOOT  D'OH wrong move 5
 
-        // game should be over if Const.TOO_MANY_PENALTIES is 5
-        this.verify(game.isOver(), "after 5 wrong moves, game is not over!");
+        // game should be over if Const.TOO_MANY_PENALTIES is 5.
+        if (!this.verify(game.isOver(), "after 5 wrong moves, game is not over!")) {
+            return;
+        }
+
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const gameLostToast = appDisplay.getAndClearLastToast();
 
         // game is done.  Let's see what the saved stats and words played are:
         // open the stats window.  This should compute the shareString, start the countdown clock
@@ -2712,12 +2728,15 @@ class Test extends BaseLogger {
         let statsMockEvent = new MockEvent(statsSrcElement);
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
+        const shareToast = appDisplay.getAndClearLastToast();
         let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 😖\nStreak: 0\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n🟥🟥🟥🟥\n`;
         this.closeTheStatsDisplay();
 
         this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with '${expShareString}', got '${actShareString}'`) &&
             this.verify(dailyShareButton.hasAttribute('disabled') === false, "expected daily game screen share button NOT to have 'disabled' attribute.") &&
             this.verify(statsShareButton.hasAttribute('disabled') === false, "expected stats screen share button NOT to have 'disabled' attribute.") &&
+            this.verify(gameLostToast == Const.GAME_LOST, `expected ${Const.GAME_LOST} toast, got: ${gameLostToast}`) &&
+            this.verify(shareToast == Const.SHARE_TO_PASTE, `expected ${Const.SHARE_TO_PASTE} toast, got: ${shareToast}`) &&
             this.hadNoErrors();
     }
 
@@ -2876,7 +2895,8 @@ class Test extends BaseLogger {
 
         this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
         this.logDebug("Switching to practice game", "test");
-        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        appDisplay.switchToPracticeGameCallback();
         Persistence.saveConfirmationMode(confirm);
 
         this.logDebug("Done switching to practice game", "test");
@@ -2888,6 +2908,7 @@ class Test extends BaseLogger {
         let resultL1 = this.playLetter(1, "L");          // TEST -> LEST
         let resultDelete3 = this.deleteLetter(3);        // LEST -> LET
         let resultI2Wrong = this.playLetter(2, "I");     // LET -> LIT - wrong move!
+        const wrongMoveToast = appDisplay.getAndClearLastToast();
         let resultO2 = this.playLetter(2, "O");          // LIT -> LOT
         let resultInsertP0 = this.insertLetter(0, "P" ); // LOT -> PLOT
         let resultInsertI1 = this.insertLetter(1, "I");  // PLOT -> PxLOT
@@ -2901,18 +2922,42 @@ class Test extends BaseLogger {
             this.verify((resultO2 === Const.OK), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
             this.verify((resultInsertP0 == Const.OK), `insert P@0 returns ${resultInsertP0}, not ${Const.OK}`) &&
             this.verify((resultInsertI1 === Const.OK), `insert I@1 returns ${resultInsertI1}, not ${Const.OK}`) &&
+            this.verify(wrongMoveToast == Const.WRONG_MOVE, `expected ${Const.WRONG_MOVE} toast, got: ${wrongMoveToast}`) &&
             this.hadNoErrors();
     }
 
-    sameLetterPickedTest() {
-        this.testName = "SameLetterPicked";
+    notAWordToastTest() {
+        this.testName = "notAWordToast";
         // The newly opened URL should be showing the test daily game by default:
         const game = this.gameDisplay.game;
 
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        appDisplay.clearLastToast();
+        var result = this.playLetter(4, "X"); // SHORT -> SHOXT
+        const lastToast = appDisplay.getAndClearLastToast();
+
+        this.verify(result == Const.NOT_A_WORD, "expected result", Const.NOT_A_WORD, "found", result) &&
+            this.verify(lastToast == Const.NOT_A_WORD, `expected ${Const.NOT_A_WORD} toast, got: ${lastToast}`) &&
+            this.hadNoErrors();
+    }
+
+
+    sameLetterPickedToastTest() {
+        this.testName = "SameLetterPickedToast";
+        // The newly opened URL should be showing the test daily game by default:
+        const game = this.gameDisplay.game;
+
+        // SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        appDisplay.clearLastToast();
         var result = this.playLetter(4, "R"); // SHORT -> SHORT
+        const lastToast = appDisplay.getAndClearLastToast();
         this.verify(result == Const.PICK_NEW_LETTER, "expected", Const.PICK_NEW_LETTER, "found", result) &&
+            this.verify(lastToast == Const.PICK_NEW_LETTER, `expected ${Const.PICK_NEW_LETTER} toast, got: ${lastToast}`) &&
             this.hadNoErrors();
     }
 
@@ -3012,7 +3057,7 @@ class Test extends BaseLogger {
         soFarSoGood && this.hadNoErrors();
     }
 
-    // verifies a game ending that includes a genius move.  Checks the share, including the streak.
+    // verifies a game ending that includes a genius move.  Checks the share, including the streak.  Checks the genius toast
     geniusMoveAndShareTest() {
         this.testName = "GeniusMoveAndShare";
 
@@ -3022,6 +3067,8 @@ class Test extends BaseLogger {
         let resultO4 = this.playLetter(4, "O");       // SHORT -> SHOOT
         let resultDelete1 = this.deleteLetter(1);     // SHOOT -> HOOT
         let resultR4Genius = this.playLetter(4, "R"); // HOOT -> HOOR genius move
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const toastAfterGeniusMove = appDisplay.getAndClearLastToast();
         let resultP1 = this.playLetter(1, "P");       // HOOR -> POOR
 
         // let's look at the share ...
@@ -3039,6 +3086,7 @@ class Test extends BaseLogger {
             this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
             this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
             this.verify((actShareString.indexOf(expShareString) === 0), `sharestring: expected '${expShareString}', got '${actShareString}'`) &&
+            this.verify(toastAfterGeniusMove == Const.GENIUS_MOVE, `expected ${Const.GENIUS_MOVE} toast, got: ${toastAfterGeniusMove}`) &&
             this.hadNoErrors();
     }
 
