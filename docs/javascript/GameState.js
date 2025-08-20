@@ -354,7 +354,7 @@ class DailyGameState extends GameState{
             gameState.isConstructedAsNew = true;
             gameState.updateFromDeprecatedStatsBlob();
             gameState.persist();
-            result =  gameState;
+            result = gameState;
         } else {
             COV(2, CL);
 
