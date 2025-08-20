@@ -428,6 +428,10 @@ class DailyGame extends Game {
         const CL = "DailyGame.constructor";
         COV(0, CL);
         let gameState = DailyGameState.factory(dict);
+        if (window.dataLayer) {
+            // if dataLayer is not defined, we aren't connected to Google Analytics
+            window.dataLayer.push('event', 'gameStarted');
+        }
         super(gameState);
     }
 
