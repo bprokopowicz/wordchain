@@ -12,6 +12,7 @@ Do in suggested order?
 
 - Review this TODO file - some of it is done or not relevant
 - Add a one-time pop-up/notice: swipe the letter tiles left and right, then tap a letter to select it.
+- Make picker slider always visible
 - Analytics
 - Add remaining penalties indication (maybe in the header?)
 - Less negative user experience
