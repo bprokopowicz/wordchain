@@ -12,39 +12,44 @@ Do in suggested order?
 
 - Review this TODO file - some of it is done or not relevant
 - Add a one-time pop-up/notice: swipe the letter tiles left and right, then tap a letter to select it.
-- Make picker slider always visible
+- Make picker slider always visible (we failed on this, righ?)
 - Analytics
 - Add remaining penalties indication (maybe in the header?)
 - Less negative user experience
 
-Less negative user experience / game play
-===================
+Less Negative User Experience / Game Play
+=========================================
 
 - Change in terminology from "penalty" to "extra steps"
-  - No limit on extra steps
+  - No limit on extra steps?
+  - Increase limit?
 - One Show Next Move per game (currently multiple allowed, until game lost).
   - Does it count as an extra step?
   - Display BROWN in game and share (currently gray)
 - User move that adds steps displays GRAY in game and share (currently red/orange)
 - DODO move adds 2 extra steps
   - Continue to display "Ugh! You added two steps!" toast
-  - Continue to display one row of in game and share, but use GRAY (currently red/orange)
+  - Continue to display one row of "extra step color" (GRAY) in game and share
 - GENIUS move reduces step(s) 
   - No changes to what we display.
-- So score (extra steps) won't always line up with the number of gray (or non-green) rows.
-  - Maybe it's OK; at a minimum we need something in the FAQ about it.
-  - Put a line under the Nth row to indicate "par" -- number of steps in WC solution.
-    - where N is the number of rows in the initial display (after the target word).
-    - add styling to the tr for that row (bottom-border: 4px solid)
-  - With the "penalties" terminology I think the score always lined up with the number of red rows.
-  - Maybe if we display a running "extra step count" at the top it will mitigate that misalignment?
-- Stats:
+  - But score will be affected.
+- Score is # of extra steps
+  - Won't always line up with the number of gray/brown rows.
+    - With the "penalties" terminology I think the score always lines up with the number of red rows.
+    - Maybe it's OK; at a minimum we need something in the FAQ about it.
+  - Display a running "extra step count" (in the header?)
+    - May mitigate that misalignment.
+  - Display a line under the Nth row to indicate "par" -- number of steps in WC solution.
+    - N is the number of rows in the initial display (after the target word).
+    - Add styling to the <tr> for that row (bottom-border: 4px solid)
+    - This also may mitigate score != # gray/brown misalignment. 
+- Stats
   - Won/Lost now shown as one stat: "Completed"
   - "WRONG MOVE COUNTS" becomes "EXTRA STEP COUNTS"
+  - Continue to use "confounded" emoji for scores over N (currently N == 4; maybe we increase it?)
+  - Streak reflects contiguous completed daily games (no matter how many steps it takes to get there)
   - Need to think about migration of stats in cookie ... probably just treat current
     "penalty" values as "extra steps" values.
-  - Continue to use "confounded" emoji for scores over N (currently N == 4; maybe we increase it?)
-- Streak reflects contiguous completed daily games (no matter how many steps it takes to get there)
 
 Analytics
 =========
@@ -72,6 +77,15 @@ Affecting Game Play
     word would become unselectable.
 - Mode where future rows do not have change cells outlined thicker. (harder)
 - Allow "overriding" WordChain's suggested next move type (including which letter to change).
+  - 'My Way' button
+  - Will need to bring back keyboard
+  - Still must conform to single change per move (add/del/change one letter)
+- Option to exclude advanced dictionary from being used.
+  - Addresses Steven's irritation:
+    - Getting dinged when a word is in the advanced dictionary, and results
+      in a longer path using only words from common dictionary, when an equal
+      path using other words in advanced dictionary is possible.
+    - But maybe the 'My Way' button would obviate the need for this?
 
 Not Affecting Game Play
 -----------------------
