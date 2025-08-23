@@ -399,7 +399,25 @@ button:enabled {
 }
 
 .table-game {
-    border-spacing: .0rem;
+    border-spacing: 0rem;
+    /*
+    ** This fixes the "DJNC" (David J. Ness-Cohn) problem, in which the leftmost '+' was
+    ** obscured on words with 5 characters. It occurs because of this iPhone setting:
+    **
+    **     Settings > Apps > Safari > Page Zoom > 125%
+    **
+    ** With the value at 115% the '+' was partially clipped and could be clicked,
+    ** but at 125% it was completely obscured.
+    **
+    ** Setting minimum-scale and maximum-scale to 1.0 on the <meta name="viewport">
+    ** element had no effect. And indeed, even though user-scalable is 'no' Safari
+    ** seems not to honor that.
+    **
+    ** Setting "table-layout: fixed;" in this style, suggested somewhere online,
+    ** also had no effect. The key was width: 100%! I guess width can end up being
+    ** larger than 100% -- who knew?
+    */
+    width: 100%;
 }
 
 .tr-game {
