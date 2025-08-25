@@ -3,6 +3,7 @@ import { BaseLogger } from './BaseLogger.js';
 import { Solver, Solution } from './Solver.js';
 import { Persistence } from './Persistence.js';
 import { WordChainDict } from './WordChainDict.js';
+import { Metrics } from './Metrics.js';
 import { COV } from './Coverage.js';
 
 class RatedMove {
@@ -410,6 +411,9 @@ class DailyGameState extends GameState{
             }
         }
         COV(8, CL);
+        if (result && result.isNewDailyGame()) {
+            Metrics.recordDailyGameStarted();
+        }
         return result;
     }
 
@@ -787,6 +791,7 @@ class DailyGameState extends GameState{
     updateStateAfterGame() {
         const CL = "DailyGameState.updateStateAfterGame";
         COV(0, CL);
+        Metrics.recordDailyGameFinished();
         if (this.isWinner()) {
             COV(1, CL);
             this.incrementStat("gamesWon");

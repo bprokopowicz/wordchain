@@ -428,13 +428,6 @@ class DailyGame extends Game {
         const CL = "DailyGame.constructor";
         COV(0, CL);
         let gameState = DailyGameState.factory(dict);
-        if (gameState && gameState.isNewDailyGame()) {
-            if (window.dataLayer) {
-               // if dataLayer is not defined, we aren't connected to Google Analytics
-               // TODO - re-write Metrics.js to provide (static?) methods for all events.
-                window.dataLayer.push({'event': 'gameStarted'});
-            }
-        }
         super(gameState);
     }
 

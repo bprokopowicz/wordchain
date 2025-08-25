@@ -1141,6 +1141,8 @@ class Test extends BaseLogger {
         prep(); this.testDailyGameStateDodoMove();
         prep(); this.testDailyGameStateGeniusMove();
         prep(); this.testDailyGameStateUsingScrabbleWord();
+        prep(); this.testDailyGameStateStartedMetric();
+        prep(); this.testDailyGameStateFinishedMetric();
         // initialize every Daily game defined -- takes a long time!
         // prep(); this.testGameStateSolveAllDailyGames();
         const endTestTime = Date.now();
@@ -1505,6 +1507,37 @@ class Test extends BaseLogger {
             this.hadNoErrors();
     }
 
+    testDailyGameStateStartedMetric() {
+        this.testName = "DailyGameStateStartedMetric";
+        const metricEventCountBefore = window.dataLayer.length;
+        const dgsUnused = DailyGameState.factory(this.fullDict);
+        const metricEventCountAfter = window.dataLayer.length;
+        const expEventName = Metrics.GAME_STARTED;
+        const actEventName = window.dataLayer[metricEventCountAfter - 1]["event"];
+        this.logDebug("dataLayer is", window.dataLayer, "test");
+
+        this.verify(metricEventCountAfter == metricEventCountBefore + 1, `expected eventCount to be ${metricEventCountBefore + 1}, got ${metricEventCountAfter}`) &&
+            this.verify(actEventName == expEventName, `expected last metric event to be ${expEventName} but got ${actEventName}`) &&
+            this.hadNoErrors();
+    }
+
+    testDailyGameStateFinishedMetric() {
+        this.testName = "DailyGameFinishedMetric";
+        const dgs = DailyGameState.factory(this.fullDict);
+        const metricEventCountBefore = window.dataLayer.length;
+        dgs.finishGame();
+        const metricEventCountAfter = window.dataLayer.length;
+        const expEventName = Metrics.GAME_FINISHED;
+        const actEventName = window.dataLayer[metricEventCountAfter - 1]["event"];
+        this.logDebug("dataLayer is", window.dataLayer, "test");
+
+        this.verify(metricEventCountAfter == metricEventCountBefore + 1, `expected eventCount to be ${metricEventCountBefore + 1}, got ${metricEventCountAfter}`) &&
+            this.verify(actEventName == expEventName, `expected last metric event to be ${expEventName} but got ${actEventName}`) &&
+            this.hadNoErrors();
+    }
+
+
+
     /*
     ** Game tests
     */
@@ -1513,6 +1546,8 @@ class Test extends BaseLogger {
         const startTestTime = Date.now();
         function prep() {
             Persistence.clearAllNonDebug();
+            Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO); //Daily game be game #2
+            window.dataLayer = window.dataLayer
         }
         prep(); this.testGameCorrectFirstWord();
         prep(); this.testGameDeleteWrongLetter();
@@ -2060,8 +2095,6 @@ class Test extends BaseLogger {
                 this.verify(DIsAsStrings == expectedDIsAsStrings, `expected DIs:<p>${expectedDIsAsStrings}<p>but got:<p>${DIsAsStrings}`) &&
                 this.hadNoErrors();
     }
-
-
     /*
     ** App Tests
     ** App tests need to be run one after the other, pausing to wait for the app window to display, etc.

@@ -2,63 +2,37 @@ import { Persistence } from './Persistence.js';
 import * as Const from './Const.js';
 
 /**
- ** Static methods to record events (game started, game finished) tagged with a per-user&device&browser 
- ** permanent ID known as the WCID
+ ** Static methods to record events (game started, game finished) 
+ ** TODO: add a per user-device unique WordChain ID as a parameter to all these.
  **/
 
 class Metrics {
 
-    // Events are recorded in the query string when fetching the METRICS_URL.
-    static GAME_STARTED = "gs";
-    static GAME_FINISHED = "gf";
-    static GAME_NUMBER = "gn";
-    static GAME_WORDS_PLAYED = "gwp";
-    static EVENT_DATA = "data";
+    // these are strings that name 'events' for the GA4 server.  
+    static GAME_STARTED = "game_started";
+
+    static GAME_FINISHED = "game_finished";
+    // these are strings that name parameters of events for the GA4 server
+    static GAME_NUMBER = "game_number"; // TODO  - add as a parameter 
     static WCID = "wcid";
 
-    // abbreviations for word ratings:
+    // Doesn't rercord event parameters yet.
+    // Testing is done by inspected window.dataLayer[]
 
-    static abbrev = new Map([
-        [Const.OK, 'ok'],
-        [Const.WRONG_MOVE, 'wm'],
-        [Const.GENIUS_MOVE, 'gm'],
-        [Const.SCRABBLE_WORD, 'aw'], // advanced word
-        [Const.SHOWN_MOVE, 'sm'],
-        [Const.DODO_MOVE, 'dm'],
-        [true, '1'],
-        [false, '0']
-    ]);
-
-    // a dummy file that is retrieved from the current server
-    static METRICS_URL = "/docs/resources/wcm.html"; 
-
-    // an event-recording url looks like /docs/resources/wcm?wcid=<nnn>&<event>[&data=<datastr>]
-
-    static record(eventName, eventData=null) {
-        const wcid = Persistence.getWCID();
-        let url = `${Metrics.METRICS_URL}?${Metrics.WCID}=${wcid}&${eventName}`;
-        if (eventData != null) {
-            url = url + '&' + Metrics.EVENT_DATA + '='+ eventData;
+    static record(eventName) {
+        if (! window.dataLayer) {
+            console.error("can't record event:", eventName, "because window.dataLayer is missing.");
+            return;
         }
-        fetch(url);
-        return url; // for testing
+        window.dataLayer.push({'event': eventName});
     }
 
-    static recordGameStarted() {
-        return Metrics.record(Metrics.GAME_STARTED); // return value for testing
+    static recordDailyGameStarted() {
+        Metrics.record(Metrics.GAME_STARTED); 
     }
 
-    static recordGameFinished() {
-        return Metrics.record(Metrics.GAME_FINISHED); // return value for testing
-    }
-
-    // record the game, given the GameState list of 'word, wasPlayed, rating'
-    // recorded as /wcm?gwp&data=(word1:wasPlayed:rating),(word2:wasPlayed:rating),...)
-    // REFACTOR game state
-    static recordGameWordsPlayed(gameState) {
-        const eventData = gameState.map(tup => `(${tup[0]}:${Metrics.abbrev.get(tup[1])}:${Metrics.abbrev.get(tup[2])})`);
-        const eventDataStr = eventData.join();
-        return Metrics.record(Metrics.GAME_WORDS_PLAYED, eventDataStr); // return value for testing
+    static recordDailyGameFinished() {
+        Metrics.record(Metrics.GAME_FINISHED);
     }
 }
 
