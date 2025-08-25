@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+<!-- Google Tag Manager -->
+        <script>
+        (function(w,d,s,l,i){
+           w[l]=w[l]||[];
+           w[l].push({'gtm.start':
+           new Date().getTime(),event:'gtm.js'});
+           var f=d.getElementsByTagName(s)[0],
+                  j=d.createElement(s),
+                 dl= l!='dataLayer'?'&l='+l:'';
+             j.async=true;
+             j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+             f.parentNode.insertBefore(j,f);
+        })  // that defines an anonymous funtion, which we call with args:
+        (window,document,'script','dataLayer','GTM-5L4LMLJV');
+        </script>
+<!-- End Google Tag Manager -->
+
+<!-- our code to send an event names game_started -->
+        <script>
+        function sendEvent() {
+            console.log("before push, dataLayer is now: ", window.dataLayer.join());
+            console.log("before push, dataLayer is now: ", window.dataLayer);
+            window.dataLayer.push({'event': 'game_started'}); // GA4 convention is underscores
+            console.log("after push, dataLayer is now: ", window.dataLayer.join());
+            console.log("after push, dataLayer is now: ", window.dataLayer);
+        }
+
+        if (! window.dataLayer) {
+            console.log("window.dataLayer is not set");
+        }
+        </script>
+         <meta charset="UTF-8" />
+        <title>metrics test page</title>
+    </head>
+    <body>
+       <a href="#" name="button" onclick="sendEvent();">click to push to dataLayer</a>
+    </body>
+</html> 
+
