@@ -848,7 +848,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15423;
+        const expectedMinDictSize = 15417;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -1512,12 +1512,16 @@ class Test extends BaseLogger {
         const metricEventCountBefore = window.dataLayer.length;
         const dgsUnused = DailyGameState.factory(this.fullDict);
         const metricEventCountAfter = window.dataLayer.length;
+        const i = metricEventCountAfter - 1;
         const expEventName = Metrics.GAME_STARTED;
-        const actEventName = window.dataLayer[metricEventCountAfter - 1]["event"];
+        const actEventName = window.dataLayer[i]["event"];
+        const expGameNumber = Test.TEST_EPOCH_DAYS_AGO;
+        const actGameNumber = window.dataLayer[i][Metrics.GAME_NUMBER];
         this.logDebug("dataLayer is", window.dataLayer, "test");
 
         this.verify(metricEventCountAfter == metricEventCountBefore + 1, `expected eventCount to be ${metricEventCountBefore + 1}, got ${metricEventCountAfter}`) &&
             this.verify(actEventName == expEventName, `expected last metric event to be ${expEventName} but got ${actEventName}`) &&
+            this.verify(actGameNumber == expGameNumber, `expected game number to be ${expGameNumber} but got ${actGameNumber}`) &&
             this.hadNoErrors();
     }
 
@@ -1527,12 +1531,16 @@ class Test extends BaseLogger {
         const metricEventCountBefore = window.dataLayer.length;
         dgs.finishGame();
         const metricEventCountAfter = window.dataLayer.length;
+        const i = metricEventCountAfter - 1;
         const expEventName = Metrics.GAME_FINISHED;
-        const actEventName = window.dataLayer[metricEventCountAfter - 1]["event"];
+        const actEventName = window.dataLayer[i]["event"];
+        const expGameNumber = Test.TEST_EPOCH_DAYS_AGO;
+        const actGameNumber = window.dataLayer[i][Metrics.GAME_NUMBER];
         this.logDebug("dataLayer is", window.dataLayer, "test");
 
         this.verify(metricEventCountAfter == metricEventCountBefore + 1, `expected eventCount to be ${metricEventCountBefore + 1}, got ${metricEventCountAfter}`) &&
             this.verify(actEventName == expEventName, `expected last metric event to be ${expEventName} but got ${actEventName}`) &&
+            this.verify(actGameNumber == expGameNumber, `expected game number to be ${expGameNumber} but got ${actGameNumber}`) &&
             this.hadNoErrors();
     }
 

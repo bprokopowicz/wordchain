@@ -367,7 +367,7 @@ class DailyGameState extends GameState{
 
             Const.GL_DEBUG && logger.logDebug("DailyGameState.factory() GameState from object:",
                     recoveredDailyGameState, "gameState");
-            if  (recoveredDailyGameState.dailyGameNumber == Const.TEST_DAILY_GAME_NUMBER) {
+            if  (recoveredDailyGameState.getDailyGameNumber() == Const.TEST_DAILY_GAME_NUMBER) {
                 COV(3, CL);
                 recoveredDailyGameState.persist();
                 result = recoveredDailyGameState;
@@ -380,13 +380,13 @@ class DailyGameState extends GameState{
 
                 COV(4, CL);
                 let todaysGameNumber = recoveredDailyGameState.calculateGameNumber(); // computes TODAY's game number
-                if (recoveredDailyGameState.dailyGameNumber != todaysGameNumber) {
+                if (recoveredDailyGameState.getDailyGameNumber() != todaysGameNumber) {
                     // a new day, a new game.
                     COV(5, CL);
                     recoveredDailyGameState.isConstructedAsNew = true;
 
                     // need a new game, but not from scratch, to keep the recovered GameState for stats
-                    if (recoveredDailyGameState.dailyGameNumber <= todaysGameNumber - 2) {
+                    if (recoveredDailyGameState.getDailyGameNumber() <= todaysGameNumber - 2) {
                         // we didn't play yesterday's game; streak is over
                         COV(6, CL);
                         Const.GL_DEBUG && logger.logDebug("Did not play yesterday's game: streak is over", "daily");
@@ -412,7 +412,7 @@ class DailyGameState extends GameState{
         }
         COV(8, CL);
         if (result && result.isNewDailyGame()) {
-            Metrics.recordDailyGameStarted();
+            Metrics.recordDailyGameStarted(result.getDailyGameNumber());
         }
         return result;
     }
@@ -721,17 +721,17 @@ class DailyGameState extends GameState{
     dailyGameIsBroken() {
         const CL = "DailyGameState.dailyGameIsBroken";
         COV(0, CL);
-        return this.dailyGameNumber === Const.BROKEN_DAILY_GAME_NUMBER;
+        return this.getDailyGameNumber() === Const.BROKEN_DAILY_GAME_NUMBER;
     }
 
     gameIsOld() {
         const CL = "DailyGameState.gameIsOld";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("DailyGameState.gameIsOld() dailyGameNumber:", this.dailyGameNumber , "daily");
+        Const.GL_DEBUG && this.logDebug("DailyGameState.gameIsOld() dailyGameNumber:", this.getDailyGameNumber() , "daily");
         return
-            (this.dailyGameNumber != Const.TEST_DAILY_GAME_NUMBER) &&
+            (this.getDailyGameNumber() != Const.TEST_DAILY_GAME_NUMBER) &&
             (!this.dailyGameIsBroken()) && 
-            (this.calculateGameNumber() > this.dailyGameNumber);
+            (this.calculateGameNumber() > this.getDailyGameNumber());
     }
 
     calculateGameNumber() {
@@ -791,7 +791,7 @@ class DailyGameState extends GameState{
     updateStateAfterGame() {
         const CL = "DailyGameState.updateStateAfterGame";
         COV(0, CL);
-        Metrics.recordDailyGameFinished();
+        Metrics.recordDailyGameFinished(this.getDailyGameNumber());
         if (this.isWinner()) {
             COV(1, CL);
             this.incrementStat("gamesWon");
