@@ -1,5 +1,6 @@
 import { Persistence } from './Persistence.js';
 import * as Const from './Const.js';
+import { BaseLogger } from './BaseLogger.js';
 
 /**
  ** Static methods to record events (game started, game finished) 
@@ -16,6 +17,8 @@ class Metrics {
     static GAME_NUMBER = "game_number"; 
     static WCID = "wcid";
 
+    static logger = new BaseLogger();
+
     // Testing for record() is done by inspected window.dataLayer[]
     // eventData is an optional object of parameters (key: value) for the event.
 
@@ -26,6 +29,7 @@ class Metrics {
         }
         let eventObj = {event: eventName}
         let payload = { ...eventObj, ...eventData };
+        Const.GL_DEBUG && Metrics.logger.logDebug("Metrics.record() pushing payload to dataLayer:", payload, "metrics");
         window.dataLayer.push(payload);
     }
 

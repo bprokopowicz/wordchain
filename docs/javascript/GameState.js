@@ -412,6 +412,8 @@ class DailyGameState extends GameState{
         }
         COV(8, CL);
         if (result && result.isNewDailyGame()) {
+            COV(9, CL);
+            Const.GL_DEBUG && logger.logDebug("record daily game started", "daily");
             Metrics.recordDailyGameStarted(result.getDailyGameNumber());
         }
         return result;

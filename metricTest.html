@@ -20,11 +20,9 @@
 
 <!-- our code to send an event names game_started -->
         <script>
-        function sendEvent() {
-            console.log("before push, dataLayer is now: ", window.dataLayer.join());
+        function sendEvent(eventName) {
             console.log("before push, dataLayer is now: ", window.dataLayer);
-            window.dataLayer.push({'event': 'game_started'}); // GA4 convention is underscores
-            console.log("after push, dataLayer is now: ", window.dataLayer.join());
+            window.dataLayer.push({event: eventName, game_number: 123}); // GA4 convention is underscores
             console.log("after push, dataLayer is now: ", window.dataLayer);
         }
 
@@ -36,7 +34,9 @@
         <title>metrics test page</title>
     </head>
     <body>
-       <a href="#" name="button" onclick="sendEvent();">click to push to dataLayer</a>
+       <a href="#" name="button1" onclick="sendEvent('game_started');">click to push game_started event to dataLayer</a>
+       <br>
+       <a href="#" name="button2" onclick="sendEvent('game_finished');">click to push game_finished event to dataLayer</a>
     </body>
 </html> 
 
