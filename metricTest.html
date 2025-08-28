@@ -21,7 +21,6 @@
 <!-- our code to send an event names game_started -->
         <script>
         function sendEvent(eventName) {
-            console.log("before push, dataLayer is now: ", window.dataLayer);
             window.dataLayer.push({event: eventName, game_number: 123}); // GA4 convention is underscores
             console.log("after push, dataLayer is now: ", window.dataLayer);
         }
