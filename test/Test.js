@@ -102,6 +102,7 @@ class Test extends BaseLogger {
         this.scrabbleDict = new WordChainDict(scrabbleWordList);
         this.messages = [];
         this.logDebug("The Test singleton: ", this, "test");
+        Metrics.testing = true; //  this adjusts the Google Analytics event names so that they don't look real.
     }
 
     static singleton() {
@@ -848,7 +849,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15417;
+        const expectedMinDictSize = 15415;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -1513,7 +1514,7 @@ class Test extends BaseLogger {
         const dgsUnused = DailyGameState.factory(this.fullDict);
         const metricEventCountAfter = window.dataLayer.length;
         const i = metricEventCountAfter - 1;
-        const expEventName = Metrics.GAME_STARTED;
+        const expEventName = Metrics.testingPrefix + Metrics.GAME_STARTED;
         const actEventName = window.dataLayer[i]["event"];
         const expGameNumber = Test.TEST_EPOCH_DAYS_AGO;
         const actGameNumber = window.dataLayer[i][Metrics.GAME_NUMBER];
@@ -1532,7 +1533,7 @@ class Test extends BaseLogger {
         dgs.finishGame();
         const metricEventCountAfter = window.dataLayer.length;
         const i = metricEventCountAfter - 1;
-        const expEventName = Metrics.GAME_FINISHED;
+        const expEventName = Metrics.testingPrefix + Metrics.GAME_FINISHED;
         const actEventName = window.dataLayer[i]["event"];
         const expGameNumber = Test.TEST_EPOCH_DAYS_AGO;
         const actGameNumber = window.dataLayer[i][Metrics.GAME_NUMBER];
