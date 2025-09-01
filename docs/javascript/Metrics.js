@@ -22,12 +22,19 @@ class Metrics {
     // Testing for record() is done by inspected window.dataLayer[]
     // eventData is an optional object of parameters (key: value) for the event.
 
+    static testing = false;
+    static testingPrefix = "test_";
+
     static record(eventName, eventData = {}) {
         if (! window.dataLayer) {
             console.error("can't record event:", eventName, "because window.dataLayer is missing.");
             return;
         }
-        let eventObj = {event: eventName}
+        let prefix = "";
+        if (Metrics.testing) {
+            prefix = Metrics.testingPrefix;
+        }
+        let eventObj = {event: prefix + eventName}
         let payload = { ...eventObj, ...eventData };
         Const.GL_DEBUG && Metrics.logger.logDebug("Metrics.record() pushing payload to dataLayer:", payload, "metrics");
         window.dataLayer.push(payload);
