@@ -661,7 +661,7 @@ class Test extends BaseLogger {
               numMoves = game.getUnplayedWords().length;
 
         for (let i = 0; i < numMoves; i++) {
-            this.gameDisplay.showNextMoveCallback(mockEvent);
+            this.gameDisplay.showWordCallback(mockEvent);
         }
     }
 
@@ -1927,7 +1927,7 @@ class Test extends BaseLogger {
         const game = new PracticeGame(this.fullDict); 
         game.playDelete(1);     // SCAD -> CAD
         game.playLetter(1,"B"); // CAD -> BAD
-        const showNextMoveResult = game.showNextMove();
+        const showWordResult = game.showNextMove();
 
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
         this.verify((displayInstructions.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructions.length}`) &&
@@ -2122,7 +2122,7 @@ class Test extends BaseLogger {
             this.dailyGameRestartAfterDohTest,
             this.dailyGameRestartTest,
             this.dailyGameOneMistakeShareTest,
-            this.dailyGameShowNextMoveStatsTest,
+            this.dailyGameShowWordStatsTest,
             this.dailyGameResultsDivOnWinTest,
             this.dailyGameResultsDivOnExactWinTest,
             this.dailyGameResultsDivWithShownTest,
@@ -2504,7 +2504,7 @@ class Test extends BaseLogger {
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
         this.playLetter(1, "B"); // HOOT  -> BOOT
-        this.gameDisplay.showNextMoveCallback(mockEvent); // reveals BOOR
+        this.gameDisplay.showWordCallback(mockEvent); // reveals BOOR
         this.playLetter(4, "K"); // BOOR -> BOOK WRONG
         this.playLetter(4, "R"); // BOOK -> BOOR
         this.playLetter(1, "P"); // solved; results should be displayed
@@ -2566,7 +2566,7 @@ class Test extends BaseLogger {
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
         this.playLetter(1, "B"); // HOOT  -> BOOT
-        this.gameDisplay.showNextMoveCallback(mockEvent); // reveals BOOR
+        this.gameDisplay.showWordCallback(mockEvent); // reveals BOOR
         this.playLetter(1, "P"); // solved; results should be displayed
 
         const resultsDiv = this.gameDisplay.resultsDiv;
@@ -2635,17 +2635,17 @@ class Test extends BaseLogger {
     }
 
 
-    dailyGameShowNextMoveStatsTest() {
+    dailyGameShowWordStatsTest() {
         // we verify the following
         // Play the daily game, with 2 wrong words and then 3 shown words to lose
         // Target word should be loss (display instruction PLAYED,WRONG_MOVE)
         // Remaining words after the 3rd shown move are also shown
         // Streak reset to 0
         // Share is correct
-        // ShowNextMove button is disabled
+        // Show Word button is disabled
         // DailyStats has 1 played, 1 lost
 
-        this.testName = "DailyGameShowNextMoveStats";
+        this.testName = "DailyGameShowWordStats";
         const mockEvent = null; // not used by callback
 
         // The newly opened URL should be showing the test daily game by default:
@@ -2660,8 +2660,8 @@ class Test extends BaseLogger {
         this.deleteLetter(5);      // SHOOT -> SHOO DODO
         this.insertLetter(4, "T"); // SHOO-> SHOOT OK
         this.deleteLetter(5);      // SHOOT -> SHOO DODO
-        this.gameDisplay.showNextMoveCallback(mockEvent); // reveals SHOOK
-        this.gameDisplay.showNextMoveCallback(mockEvent); // reveals SPOOK, game should end
+        this.gameDisplay.showWordCallback(mockEvent); // reveals SHOOK
+        this.gameDisplay.showWordCallback(mockEvent); // reveals SPOOK, game should end
 
         let expStatsBlob = { gamesStarted : 1, gamesWon : 0, gamesLost : 1, streak : 0 };  
         // the only completed game has 5 wrong moves (3 errors, 2 shown moves)
@@ -3056,8 +3056,8 @@ class Test extends BaseLogger {
             if (gamesStarted < Const.PRACTICE_GAMES_PER_DAY) {
                 // Not last game
                 if (
-                        this.verify( (child1Text == "Show Next Move"), "on game", gamesStarted, "expected textContent=Show Next Move, got: ", child1Text) &&
-                        this.verify( child1IsDisabled, "on game", gamesStarted, "Show Next Move button was enabled and expected it to be disabled") &&
+                        this.verify( (child1Text == "Show Word"), "on game", gamesStarted, "expected textContent=Show Word, got: ", child1Text) &&
+                        this.verify( child1IsDisabled, "on game", gamesStarted, "Show Word button was enabled and expected it to be disabled") &&
                         this.verify( (child2Text == "New Game"), "on game", gamesStarted, "expected textContent=New Game, got: ", child2Text) &&
                         this.verify( !child2IsDisabled, "on game", gamesStarted, "New Game button was disabled and expected it to be enabled") &&
                         this.verify(this.gameDisplay.anyGamesRemaining(), "on game", gamesStarted, "anyGamesRemaining() should still be true")
