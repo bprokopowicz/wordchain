@@ -136,7 +136,7 @@ class GameState extends BaseLogger {
         let lastWord = this.lastPlayedWord();
         let [pre, post] = [lastWord.substring(0, spaceNumber), lastWord.substring(spaceNumber)];
         let wordWithSpace = pre + Const.HOLE + post;
-        this.ratedMoves.push(new RatedMove(wordWithSpace, Const.OK));
+        this.ratedMoves.push(new RatedMove(wordWithSpace, Const.VIRTUAL_STEP));
         return Const.OK;
     }
 
@@ -149,7 +149,7 @@ class GameState extends BaseLogger {
         const CL = "GameState.addWord";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playing word:", word, "last played word", this.lastPlayedWord(), "gameState");
-        // this.removeWordWithHoleIfNecessary();
+        this.removeWordWithHoleIfNecessary(); // TODO - was commented out
         let moveRating = Const.OK; // We will override this below, based on the new solution after playing 'word'
         if (word == this.unplayedWords[0]) {
             COV(1, CL);

@@ -12,11 +12,11 @@ class DisplayInstruction {
     // word: string is ignored for future; only length of it is used
     //
     // displayType: add, delete, change, future, played, target
-    //     add:         word should be displayed as the active word and color based on moveRating, with plus signs
+    //     add:         word should be displayed as the active word (yellow background) and letters colored based on moveRating, with plus signs
     //     delete:      word should be displayed as the active word and color based on moveRating, with minus signs
-    //     change:      word should be displayed as the active word and color based on moveRating, with thick outline at changePosition
-    //     changeNext:  word should be displayed with no color and letters shown ('?' for the one to fill in)
-    //                  (NOTE: next only applies to a letter change, including one that occurs after adding a space.)
+    //     change:      word should be displayed as the active word and color based on moveRating, with thick outline and letter (NOT '?') at changePosition
+    //     changeNext:  word should be displayed as an INactive word and letters NOT colored (clear) and one of them will be '?'
+    //                  (NOTE: changeNext only applies to a letter change, i.e. not a word with a '?' that appears after an add)
     //     future:      word should be displayed with no color or letter, with thick outline at changePosition
     //     played:      word should be diplayed with color based on moveRating (includes start word)
     //     target:      word should be displayed with "target color" and this type is not sent

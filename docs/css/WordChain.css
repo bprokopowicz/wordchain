@@ -431,6 +431,10 @@ button:enabled {
     display: block;
 }
 
+.tr-wc-solution-line {
+    border-bottom: 4px solid;
+}
+
 .td-game-active {
     background: var(--user-input-bg);
 }

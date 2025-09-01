@@ -46,12 +46,12 @@ class GameDisplay extends BaseLogger {
         // elements for the game.
         this.postGameDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break post-game-div"});
 
-        // Add Show Next Move button to postGameDiv.
-        this.showNextMoveButton = ElementUtilities.addElementTo(
+        // Add Show Word button to postGameDiv.
+        this.showWordButton = ElementUtilities.addElementTo(
             "button", this.postGameDiv,
             {class: "app-button non-header-button"},
-            "Show Next Move");
-        ElementUtilities.setButtonCallback(this.showNextMoveButton, this, this.showNextMoveCallback);
+            "Show Word");
+        ElementUtilities.setButtonCallback(this.showWordButton, this, this.showWordCallback);
 
         // Create an element to contain game results (score, WordChain solution).
         this.resultsDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break results-div"});
@@ -180,7 +180,7 @@ class GameDisplay extends BaseLogger {
         }
 
         // The Game class gives us a DisplayInstruction with an extra field
-        // for a 'Change Next" instruction, which is the "word with a hole" where
+        // for a "Change Next" instruction, which is the "word with a hole" where
         // the letter to be filled in is replaced with a '?' -- we need to give
         // displayCommon() an instruction with *that* word. However, don't want
         // to change the DisplayInstruction passed to us, because it is used
@@ -210,7 +210,7 @@ class GameDisplay extends BaseLogger {
         this.displayCommon(displayInstruction, getActiveLetterCell, hideAdditionCells);
 
         // Now we add an extra <tr> element for the deletion cell row. It is this row
-        // that is highlighted as active rather than the letter cells.
+        // that is highlighted as active rather than [IN ADDITION TO???] the letter cells.
         this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
         this.rowElement.displayAsActiveRow = true;
 
@@ -269,14 +269,18 @@ class GameDisplay extends BaseLogger {
 
         COV(1, CL);
 
-        let displayInstructions = this.game.getDisplayInstructions();
 
         // all words are played words until we hit the first future or target word:
 
-        let isStartWord = true;
+        let displayInstructions = this.game.getDisplayInstructions(),
+            wordChainSolutionLength = this.game.getOriginalSolutionLength(),
+            rowNum = 0;
 
-        // console.log("======================");
+        console.log("======================");
         for (let displayInstruction of displayInstructions) {
+            console.log(displayInstruction);
+            const isStartWord = rowNum === 0;
+
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
 
             this.rowElement.displayAsActiveRow = false;
@@ -324,9 +328,26 @@ class GameDisplay extends BaseLogger {
                 console.error("Unexpected displayType: ", displayInstruction.displayType);
             }
 
-            isStartWord = false;
+            rowNum += 1;
 
-            this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
+            // If we're at the original solution length, add a line to the display.
+            // Special case: if we are:
+            // - at the last move 
+            // - it's an ADD move
+            // - the + is clicked
+            // In this case currently the line appears in the wrong place: it is
+            // one row too high ... if no "mistakes" it's just above the target,
+            // but shoudl be just below.
+            // THEN ===================> WHAT? TODO TODO TODO  
+            if (rowNum === wordChainSolutionLength) {
+                ElementUtilities.addClass(this.rowElement, 'tr-wc-solution-line');
+            }
+
+            // Create the next row element if there is more to display
+            if (rowNum != displayInstructions.length) {
+                this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
+            }
+
         }
 
         if (this.pickerEnabled) {
@@ -352,7 +373,7 @@ class GameDisplay extends BaseLogger {
             ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
 
             this.disablePicker();
-            ElementUtilities.disableButton(this.showNextMoveButton);
+            ElementUtilities.disableButton(this.showWordButton);
 
             // If the derived GameDisplay class defined a function to do additional things when
             // the game is over, call the function.
@@ -371,7 +392,7 @@ class GameDisplay extends BaseLogger {
             if (originalSolutionWords == userSolutionWords) {
                 COV(13, CL);
                 // We don't want to show this message if the user clicked
-                // 'Show Next Move' to reveal a word (or all words!).  
+                // 'Show Word' to reveal a word (or all words!).  
                 if (this.game.numShownMoves() == 0) {
                     COV(14, CL);
                     ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
@@ -390,7 +411,7 @@ class GameDisplay extends BaseLogger {
             ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
         } else {
             COV(16, CL);
-            ElementUtilities.enableButton(this.showNextMoveButton);
+            ElementUtilities.enableButton(this.showWordButton);
         }
         COV(17, CL);
     }
@@ -450,16 +471,19 @@ class GameDisplay extends BaseLogger {
         return result;
     }
 
-    showNextMoveCallback(event) {
+    showWordCallback(event) {
 
-        const CL = "GameDisplay.showNextMoveCallback";
+        const CL = "GameDisplay.showWordCallback";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("GameDisplay.showNextMoveCallback(): event: ", event, "callback");
+        Const.GL_DEBUG && this.logDebug("GameDisplay.showWordCallback(): event: ", event, "callback");
 
         let result = null;
 
-        if (this.gameIsOver()) {
-            console.error("GameDisplay.showNextMoveCallback(): last move already shown");
+        if (this.showWordButton.disabled) {
+            console.error("GameDisplay.showWordCallback(): button is disabled!");
+            result = Const.UNEXPECTED_ERROR;
+        } else if (this.gameIsOver()) {
+            console.error("GameDisplay.showWordCallback(): last move already shown");
             result = Const.UNEXPECTED_ERROR;
         } else {
             COV(1, CL);
@@ -471,8 +495,10 @@ class GameDisplay extends BaseLogger {
             if (this.gameIsOver()) {
                 COV(2, CL);
                 this.showGameOverToast();
-                ElementUtilities.disableButton(this.showNextMoveButton);
             }
+
+            // Only one Show Move allowed per game!
+            ElementUtilities.disableButton(this.showWordButton);
         }
 
         COV(3, CL);
@@ -492,6 +518,7 @@ class GameDisplay extends BaseLogger {
             tdElement = null,
             wordLength = displayInstruction.wordLength,
             word = displayInstruction.word,
+            // TODO: WHAT IS THIS ABOUT? When would word be empty string?
             letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
             moveRating = displayInstruction.moveRating;
 

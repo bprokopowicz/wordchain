@@ -99,7 +99,7 @@ class Game extends BaseLogger {
             }
             // Else we have a ChangeAdd -- in this case we have put the word in playedList
             // (it's the one we processed previously, whose instruction we now have in
-            // lastDisplayInstrucction) *and* it's still the first one in the remainingSteps
+            // lastDisplayInstruction) *and* it's still the first one in the remainingSteps
             // list, which we have to skip because we've already handled it.
 
             // We've handled the first word on remainingSteps already, so start at 1.
@@ -183,6 +183,8 @@ class Game extends BaseLogger {
             // the last word in the played list is the word with a hole. Note that we also still have the word
             // in the list of remaining words.
             let indexOfHole = GameState.locationOfHole(lastWord);
+            // I THINK THE BUG IS HERE ... shouldn't pass indexOfHole+1 here, but rather the 
+            // change position of the *next* word. But why isn't this an issue for ALL the 'change' instructions?
             displayInstruction = new DisplayInstruction(lastWord, Const.CHANGE, indexOfHole+1, moveRating);
         } else {
             COV(2, CL);
@@ -200,7 +202,7 @@ class Game extends BaseLogger {
     // moveRating is Const.OK unless the game is lost; then it is Const.WRONG_MOVE
 
     instructionForTargetWord() {
-        const CL = "Game.instructionsForTargetWord";
+        const CL = "Game.instructionForTargetWord";
         COV(0, CL);
         let targetWord = this.gameState.target;
         let changePosition=-1; // not used - there is no change FROM target to something
@@ -343,6 +345,10 @@ class Game extends BaseLogger {
         COV(0, CL);
         const wordList = this.gameState.initialSolution;
         return this.listAsStringWithBreaks(wordList);
+    }
+
+    getOriginalSolutionLength() {
+        return this.gameState.initialSolution.length;
     }
 
     getUserSolutionWords() {
