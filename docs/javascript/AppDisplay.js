@@ -83,6 +83,7 @@ class AppDisplay extends BaseLogger {
         const CL = "AppDisplay.startTimingCheckInterval";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("startTimingCheckInterval() called", "display");
+
         // Stop any timer already running.
         this.stopTimingCheckInterval();
 
@@ -519,7 +520,8 @@ class AppDisplay extends BaseLogger {
         // Pass true to indicate that toast display should be skipped.
         COV(9, CL);
         const skipToast = true;
-        this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove(skipToast);
+        // ========== Faux
+        //this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove(skipToast);
     }
 
     // Set the given CSS property to the specified value.

@@ -420,7 +420,7 @@ class Test extends BaseLogger {
     // first selects the optionLetter, then letter, then confirms letter.
     //
     // returns
-    //   Const.OK if the letter is changed
+    //   Const.GOOD_MOVE if the letter is changed
     //   Const.UNEXPECTED_ERROR if app is in ConfirmationMode but picker doesn't return NEEDS_CONFIRMATION on first click
     //   some other error if the picker.selectionCallback fails
 
@@ -591,8 +591,8 @@ class Test extends BaseLogger {
         }
 
         const clickResult = this.gameDisplay.additionClickCallback(mockEvent);
-        if (clickResult != Const.OK) {
-            this.logDebug("got ", clickResult, " instead of ", Const.OK, "test");
+        if (clickResult != Const.GOOD_MOVE) {
+            this.logDebug("got ", clickResult, " instead of ", Const.GOOD_MOVE, "test");
             return clickResult;
         }
         if (!ElementUtilities.hasClass(mockInsertButton, Const.UNSELECTED_STYLE)) {
@@ -1267,12 +1267,12 @@ class Test extends BaseLogger {
         // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
         const res = pgs.addWord('SHOOT'); 
         const expUnplayedWords = "HOOT,BOOT,BOOR,POOR";
-        this.verify(res == Const.OK, "after addWord, expected", Const.OK, "found", res) &&
+        this.verify(res == Const.GOOD_MOVE, "after addWord, expected", Const.GOOD_MOVE, "found", res) &&
             this.verify(pgs.ratedMoves.length == 2, "expected 2 played words, found", pgs.ratedMoves) &&
             this.verify(pgs.getUnplayedWordsAsString() == expUnplayedWords, "expected unplayed words", expUnplayedWords,
                     "found", pgs.getUnplayedWordsAsString()) &&
-            this.verify(pgs.ratedMoves[1].rating == Const.OK,
-                    "expected", Const.OK, "for ratedMoves[1].rating, got:", pgs.ratedMoves[1].rating) &&
+            this.verify(pgs.ratedMoves[1].rating == Const.GOOD_MOVE,
+                    "expected", Const.GOOD_MOVE, "for ratedMoves[1].rating, got:", pgs.ratedMoves[1].rating) &&
             this.hadNoErrors();
     }
 
@@ -1323,12 +1323,12 @@ class Test extends BaseLogger {
         // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
         const res = dgs.addWord('SHOOT'); 
         const expUnplayedWords = "HOOT,BOOT,BOOR,POOR";
-        this.verify(res == Const.OK, "after addWord, expected", Const.OK, "found", res) &&
+        this.verify(res == Const.GOOD_MOVE, "after addWord, expected", Const.GOOD_MOVE, "found", res) &&
             this.verify(dgs.ratedMoves.length == 2, "expected 2 played words, found", dgs.ratedMoves) &&
             this.verify(dgs.getUnplayedWordsAsString() == expUnplayedWords, "expected unplayed words", expUnplayedWords,
                     "found", dgs.getUnplayedWordsAsString()) &&
-            this.verify(dgs.ratedMoves[1].rating == Const.OK,
-                    "expected", Const.OK, "for ratedMoves[1].rating, got:", dgs.ratedMoves[1].rating) &&
+            this.verify(dgs.ratedMoves[1].rating == Const.GOOD_MOVE,
+                    "expected", Const.GOOD_MOVE, "for ratedMoves[1].rating, got:", dgs.ratedMoves[1].rating) &&
             this.hadNoErrors();
     }
 
@@ -1341,7 +1341,7 @@ class Test extends BaseLogger {
         // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
         const res = dgs.addWord('SHOOT'); 
         const expUnplayedWords = "HOOT,BOOT,BOOR,POOR";
-        this.verify(res == Const.OK, "after addWord, expected", Const.OK, "found", res) &&
+        this.verify(res == Const.GOOD_MOVE, "after addWord, expected", Const.GOOD_MOVE, "found", res) &&
             this.verify(dgs.ratedMoves.length == 2, "expected 2 played words, found", dgs.ratedMoves) &&
             this.verify(dgs.unplayedWords.length == 4, "expected 4 unplayed words, found", dgs.unplayedWords) &&
             this.verify(dgs.getUnplayedWordsAsString() == expUnplayedWords, "expected unplayed words", expUnplayedWords,
@@ -1446,7 +1446,7 @@ class Test extends BaseLogger {
         // shortest solution is PLANE,PANE,PANED but wrong move is PLANE,PANE,PANES,PANED
         Persistence.saveTestDailyGameWords("PLANE", "PANED");
         let dgs = DailyGameState.factory(this.fullDict);
-        dgs.addWord("PANE"); // OK
+        dgs.addWord("PANE"); // GOOD_MOVE
         const res = dgs.addWord("PANES"); // WRONG
         this.verify(res == Const.WRONG_MOVE, "after addWord, expected", Const.WRONG_MOVE, "found", res) &&
             this.verify(dgs.start == "PLANE", "expected start: PLANE, found:", dgs.start) &&
@@ -1491,7 +1491,7 @@ class Test extends BaseLogger {
         this.logDebug("new daily game state after SAG:", dgs.toStr(), "test");
         this.verify(dgs.ratedMoves[1].rating == Const.GENIUS_MOVE, "expected ratedMoves[1].rating:", Const.GENIUS_MOVE, "got:",
                 dgs.ratedMoves[1].rating) &&
-        this.verify(dgs.ratedMoves[2].rating == Const.OK, "expected ratedMoves[2].rating:", Const.OK, "got:",
+        this.verify(dgs.ratedMoves[2].rating == Const.GOOD_MOVE, "expected ratedMoves[2].rating:", Const.GOOD_MOVE, "got:",
                 dgs.ratedMoves[2].rating) &&
             this.hadNoErrors();
     }
@@ -1594,7 +1594,7 @@ class Test extends BaseLogger {
         const game = new PracticeGame(smallDict);
 
         const playResult = game.playDelete(1);
-        this.verify((playResult === Const.OK), "Word played not OK") &&
+        this.verify((playResult === Const.GOOD_MOVE), "Word played not GOOD_MOVE") &&
             this.hadNoErrors();
     }
 
@@ -1639,7 +1639,7 @@ class Test extends BaseLogger {
             this.verify(! origSolution.getSolutionWords().includes('BADE'), "Original solution should not have 'BADE'"))) return;
 
         const playAddResult = game.playAdd(3);
-        if (!this.verify((playAddResult === Const.OK), "playAdd(3) not OK")) return;
+        if (!this.verify((playAddResult === Const.GOOD_MOVE), "playAdd(3) not GOOD_MOVE")) return;
 
         const playLetterResult = game.playLetter(4, "E");  // BAD BADE (BATE BAT CAT) or (BAD BAT CAT)
         if (!this.verify((playLetterResult === Const.DODO_MOVE), `playLetter(4, E) returns ${playLetterResult}, not DODO_MOVE`)) return;
@@ -1687,21 +1687,21 @@ class Test extends BaseLogger {
         this.verify((initialInstructions[1].toStr() === "(future,word:CAD,changePosition:1)"), `initial instruction[1] is ${initialInstructions[1].toStr()}`) &&
         this.verify((initialInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `initial instruction[2] is ${initialInstructions[2].toStr()}`) &&
         this.verify((initialInstructions[3].toStr() === "(target,word:BAT)"), `initial instruction[3] is ${initialInstructions[3].toStr()}`) &&
-        this.verify((playDeleteResult === Const.OK), "playDelete(1) not OK") &&
-        this.verify((afterDeleteInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
+        this.verify((playDeleteResult === Const.GOOD_MOVE), "playDelete(1) not GOOD_MOVE") &&
+        this.verify((afterDeleteInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
         this.verify((afterDeleteInstructions[1].toStr() === "(change,word:CAD,changePosition:1)"), `after delete instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
         this.verify((afterDeleteInstructions[2].toStr() === "(change-next,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
         this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
-        this.verify((playLetterBResult === Const.OK), "playLetterBResult(1) not OK") &&
-        this.verify((afterPlayLetterBInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after play letter B  instruction[0] is ${afterPlayLetterBInstructions[0].toStr()}`) &&
-        this.verify((afterPlayLetterBInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after play letter B  instruction[1] is ${afterPlayLetterBInstructions[1].toStr()}`) &&
+        this.verify((playLetterBResult === Const.GOOD_MOVE), "playLetterBResult(1) not GOOD_MOVE") &&
+        this.verify((afterPlayLetterBInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after play letter B  instruction[0] is ${afterPlayLetterBInstructions[0].toStr()}`) &&
+        this.verify((afterPlayLetterBInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.GOOD_MOVE})`), `after play letter B  instruction[1] is ${afterPlayLetterBInstructions[1].toStr()}`) &&
         this.verify((afterPlayLetterBInstructions[2].toStr() === "(change,word:BAD,changePosition:3)"), `after play letter B  instruction[2] is ${afterPlayLetterBInstructions[2].toStr()}`) &&
         this.verify((afterPlayLetterBInstructions[3].toStr() === "(target,word:BAT)"), `after play letter B  instruction[3] is ${afterPlayLetterBInstructions[3].toStr()}`) &&
-        this.verify((playLetterTResult === Const.OK), "playLetterTResult(1) not OK") &&
-        this.verify((afterPlayLetterTInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after play letter T instruction[0] is ${afterPlayLetterTInstructions[0].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after play letter T instruction[1] is ${afterPlayLetterTInstructions[1].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[2].toStr() === `(played,word:BAD,moveRating:${Const.OK})`), `after play letter T instruction[2] is ${afterPlayLetterTInstructions[2].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[3].toStr() === `(played,word:BAT,moveRating:${Const.OK})`), `after play letter T instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
+        this.verify((playLetterTResult === Const.GOOD_MOVE), "playLetterTResult(1) not GOOD_MOVE") &&
+        this.verify((afterPlayLetterTInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after play letter T instruction[0] is ${afterPlayLetterTInstructions[0].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.GOOD_MOVE})`), `after play letter T instruction[1] is ${afterPlayLetterTInstructions[1].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[2].toStr() === `(played,word:BAD,moveRating:${Const.GOOD_MOVE})`), `after play letter T instruction[2] is ${afterPlayLetterTInstructions[2].toStr()}`) &&
+        this.verify((afterPlayLetterTInstructions[3].toStr() === `(played,word:BAT,moveRating:${Const.GOOD_MOVE})`), `after play letter T instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
             this.hadNoErrors();
     }
 
@@ -1727,8 +1727,8 @@ class Test extends BaseLogger {
         this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete, instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
         this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete, instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
         this.verify((cadToCarResult === Const.WRONG_MOVE), `playLetter(3,R) expected ${Const.WRONG_MOVE}, got ${cadToCarResult}`) &&
-        this.verify((cadToCarInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing R, instruction[0] is ${cadToCarInstructions[0].toStr()}`) &&
-        this.verify((cadToCarInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after playing R, instruction[1] is ${cadToCarInstructions[1].toStr()}`) &&
+        this.verify((cadToCarInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after playing R, instruction[0] is ${cadToCarInstructions[0].toStr()}`) &&
+        this.verify((cadToCarInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.GOOD_MOVE})`), `after playing R, instruction[1] is ${cadToCarInstructions[1].toStr()}`) &&
         this.verify((cadToCarInstructions[2].toStr() === "(change,word:CAR,changePosition:3)"), `after playing R, instruction[2] is ${cadToCarInstructions[2].toStr()}`) &&
         this.verify((cadToCarInstructions[3].toStr() === "(change-next,word:CAT,changePosition:1)"), `after playing R, instruction[3] is ${cadToCarInstructions[3].toStr()}`) &&
         this.verify((cadToCarInstructions[4].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCarInstructions[4].toStr()}`) &&
@@ -1747,9 +1747,9 @@ class Test extends BaseLogger {
         const cadToCatResult = game.playLetter(3,"T"); // CAD TO CAT
         const cadToCatInstructions = game.getDisplayInstructions(); // SCAD,CAD,CAT,BAT
 
-        this.verify((cadToCatResult === Const.OK), `playLetter(3,T) expected ${Const.OK}, got ${cadToCatResult}`) &&
-        this.verify((cadToCatInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing R, instruction[0] is ${cadToCatInstructions[0].toStr()}`) &&
-        this.verify((cadToCatInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.OK})`), `after playing R, instruction[1] is ${cadToCatInstructions[1].toStr()}`) &&
+        this.verify((cadToCatResult === Const.GOOD_MOVE), `playLetter(3,T) expected ${Const.GOOD_MOVE}, got ${cadToCatResult}`) &&
+        this.verify((cadToCatInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after playing R, instruction[0] is ${cadToCatInstructions[0].toStr()}`) &&
+        this.verify((cadToCatInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.GOOD_MOVE})`), `after playing R, instruction[1] is ${cadToCatInstructions[1].toStr()}`) &&
         this.verify((cadToCatInstructions[2].toStr() === "(change,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCatInstructions[3].toStr()}`) &&
         this.verify((cadToCatInstructions[3].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCatInstructions[3].toStr()}`) &&
             this.hadNoErrors();
@@ -1779,8 +1779,8 @@ class Test extends BaseLogger {
         const scagToSagResult = game.playDelete(2); // SCAG to SAG.
         const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
         this.verify((scadToScagResult === Const.WRONG_MOVE), `playLetter(4,G) expected ${Const.WRONG_MOVE}, got ${scadToScagResult}`) &&
-        this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
-        this.verify((displayInstructionsAfterSAG[0].toStr() === `(played,word:SCAD,moveRating:${Const.OK})`), `after playing SAG, instruction[0] is ${displayInstructionsAfterSAG[0].toStr()}`) &&
+        this.verify((scagToSagResult === Const.GOOD_MOVE), `playDelete(2) expected ${Const.GOOD_MOVE}, got ${scagToSagResult}`) &&
+        this.verify((displayInstructionsAfterSAG[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after playing SAG, instruction[0] is ${displayInstructionsAfterSAG[0].toStr()}`) &&
         this.verify((displayInstructionsAfterSAG[1].toStr() === `(played,word:SCAG,moveRating:${Const.WRONG_MOVE})`), `after playing SAG, instruction[1] is ${displayInstructionsAfterSAG[1].toStr()}`) &&
         this.verify((displayInstructionsAfterSAG[2].toStr() === "(change,word:SAG,changePosition:3)"), `after playing SAG, instruction[2] is ${displayInstructionsAfterSAG[2].toStr()}`) &&
         this.verify((displayInstructionsAfterSAG[3].toStr() === "(change-next,word:SAT,changePosition:1)"), `after playing SAG, instruction[3] is ${displayInstructionsAfterSAG[3].toStr()}`) &&
@@ -1799,7 +1799,7 @@ class Test extends BaseLogger {
         const scagToSagResult = game.playDelete(2); // SCAG to SAG.
         const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
         this.verify((scadToScagResult === Const.GENIUS_MOVE), `playLetter(4,G) expected ${Const.GENIUS_MOVE}, got ${scadToScagResult}`) &&
-        this.verify((scagToSagResult === Const.OK), `playDelete(2) expected ${Const.OK}, got ${scagToSagResult}`) &&
+        this.verify((scagToSagResult === Const.GOOD_MOVE), `playDelete(2) expected ${Const.GOOD_MOVE}, got ${scagToSagResult}`) &&
             this.hadNoErrors();
     }
 
@@ -1814,19 +1814,19 @@ class Test extends BaseLogger {
         if (!this.verify((planeToPlanResult === Const.DODO_MOVE), `playDelete(5) expected DODO_MOVE, got ${planeToPlanResult}`)) return;
 
         const planToPanResult = game.playDelete(2); // PLAN to PAN; correct
-        if (!this.verify((planToPanResult === Const.OK), "playDelete(2) not OK")) return;
+        if (!this.verify((planToPanResult === Const.GOOD_MOVE), "playDelete(2) not GOOD_MOVE")) return;
 
         const panToPaneAddResult = game.playAdd(3); // PAN to PANx; correct
-        if (!this.verify((panToPaneAddResult === Const.OK), "playAdd(3) not OK")) return;
+        if (!this.verify((panToPaneAddResult === Const.GOOD_MOVE), "playAdd(3) not GOOD_MOVE")) return;
 
         const panToPaneChangeResult = game.playLetter(4, "E"); // PAN to PANE; correct
-        if (!this.verify((panToPaneChangeResult === Const.OK), `playLetter(4, E) returns ${panToPaneChangeResult}, not WRONG_MOVE`)) return;
+        if (!this.verify((panToPaneChangeResult === Const.GOOD_MOVE), `playLetter(4, E) returns ${panToPaneChangeResult}, not WRONG_MOVE`)) return;
 
         const paneToPanedAddResult = game.playAdd(4); // PANE to PANEx; correct
-        if (!this.verify((paneToPanedAddResult === Const.OK), "playAdd(4) not OK")) return;
+        if (!this.verify((paneToPanedAddResult === Const.GOOD_MOVE), "playAdd(4) not GOOD_MOVE")) return;
 
         const paneToPanedChangeResult = game.playLetter(5, "D"); // PANE to PANED; correct
-        if (!this.verify((paneToPanedChangeResult === Const.OK), `playLetter(5, E) returns ${paneToPanedChangeResult}, not WRONG_MOVE`)) return;
+        if (!this.verify((paneToPanedChangeResult === Const.GOOD_MOVE), `playLetter(5, E) returns ${paneToPanedChangeResult}, not WRONG_MOVE`)) return;
 
         this.hadNoErrors();
     }
@@ -1896,7 +1896,7 @@ class Test extends BaseLogger {
         const playedSolutionAsString = game.getUserSolutionWords();
         const expOriginalSolutionAsString = "SCAD⇒CAD⇒BAD⇒BAT";
         const expPlayedSolutionAsString = "SCAD⇒CAD⇒BAD⇒BAT";
-        this.verify((playResult === Const.OK), "Word played not OK") &&
+        this.verify((playResult === Const.GOOD_MOVE), "Word played not GOOD_MOVE") &&
             this.verify((displayInstructionsAfterFinish.length === 4), `after finishGame(), expected 4 display instructions, got ${displayInstructionsAfterFinish.length}`) &&
             this.verify((originalSolutionAsString == expOriginalSolutionAsString), `expected original string ${expOriginalSolutionAsString}, got ${originalSolutionAsString}`) &&
             this.verify((playedSolutionAsString == expPlayedSolutionAsString), `expected played string ${expPlayedSolutionAsString}, got ${playedSolutionAsString}`) &&
@@ -1994,11 +1994,11 @@ class Test extends BaseLogger {
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings =
             `(played,word:SALTED,moveRating:ok),<br>(played,word:SATED,moveRating:ok),<br>(played,word:FATED,moveRating:ok),<br>(played,word:FATE,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FRAT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FEAT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FELT,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FEET,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FEST,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FIST,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FISH,moveRating:${Const.WRONG_MOVE})`;
-            this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
-                this.verify(r2 == Const.OK, `expected r2=${Const.OK}, got ${r2}`) &&
-                this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
-                this.verify(r4 == Const.OK, `expected r4=${Const.OK}, got ${r4}`) &&
-                this.verify(r5 == Const.OK, `expected r5=${Const.OK}, got ${r5}`) &&
+            this.verify(r1 == Const.GOOD_MOVE, `expected r1=${Const.GOOD_MOVE}, got ${r1}`) &&
+                this.verify(r2 == Const.GOOD_MOVE, `expected r2=${Const.GOOD_MOVE}, got ${r2}`) &&
+                this.verify(r3 == Const.GOOD_MOVE, `expected r3=${Const.GOOD_MOVE}, got ${r3}`) &&
+                this.verify(r4 == Const.GOOD_MOVE, `expected r4=${Const.GOOD_MOVE}, got ${r4}`) &&
+                this.verify(r5 == Const.GOOD_MOVE, `expected r5=${Const.GOOD_MOVE}, got ${r5}`) &&
                 this.verify(r6 == Const.WRONG_MOVE, `expected r6=${Const.WRONG_MOVE}, got ${r6}`) &&
                 this.verify(r7 == Const.WRONG_MOVE, `expected r7=${Const.WRONG_MOVE}, got ${r7}`) &&
                 this.verify(r8 == Const.WRONG_MOVE, `expected r8=${Const.WRONG_MOVE}, got ${r8}`) &&
@@ -2035,20 +2035,20 @@ class Test extends BaseLogger {
         let expectedDIsAsStrings =
             `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FEST,moveRating:${Const.WRONG_MOVE}),<br>(played,word:FAST,moveRating:ok),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FRAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FEAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:ok),<br>(played,word:FLAT,moveRating:${Const.DODO_MOVE}),<br>(played,word:FAT,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FATE,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:FATED,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:SATED,moveRating:${Const.SHOWN_MOVE}),<br>(played,word:SALTED,moveRating:${Const.WRONG_MOVE})`;
 
-            this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
+            this.verify(r1 == Const.GOOD_MOVE, `expected r1=${Const.GOOD_MOVE}, got ${r1}`) &&
                 this.verify(r2 == Const.WRONG_MOVE, `expected r2=${Const.WRONG_MOVE}, got ${r2}`) &&
-                this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
-                this.verify(r4 == Const.OK, `expected r4=${Const.OK}, got ${r4}`) &&
-                this.verify(r5 == Const.OK, `expected r5=${Const.OK}, got ${r5}`) &&
+                this.verify(r3 == Const.GOOD_MOVE, `expected r3=${Const.GOOD_MOVE}, got ${r3}`) &&
+                this.verify(r4 == Const.GOOD_MOVE, `expected r4=${Const.GOOD_MOVE}, got ${r4}`) &&
+                this.verify(r5 == Const.GOOD_MOVE, `expected r5=${Const.GOOD_MOVE}, got ${r5}`) &&
                 this.verify(r6 == Const.DODO_MOVE, `expected r6=${Const.DODO_MOVE}, got ${r6}`) &&
-                this.verify(r7 == Const.OK, `expected r7=${Const.OK}, got ${r7}`) &&
-                this.verify(r8 == Const.OK, `expected r8=${Const.OK}, got ${r8}`) &&
+                this.verify(r7 == Const.GOOD_MOVE, `expected r7=${Const.GOOD_MOVE}, got ${r7}`) &&
+                this.verify(r8 == Const.GOOD_MOVE, `expected r8=${Const.GOOD_MOVE}, got ${r8}`) &&
                 this.verify(r9 == Const.DODO_MOVE, `expected r9=${Const.DODO_MOVE}, got ${r9}`) &&
-                this.verify(r10 == Const.OK, `expected r10=${Const.OK}, got ${r10}`) &&
-                this.verify(r11 == Const.OK, `expected r11=${Const.OK}, got ${r11}`) &&
+                this.verify(r10 == Const.GOOD_MOVE, `expected r10=${Const.GOOD_MOVE}, got ${r10}`) &&
+                this.verify(r11 == Const.GOOD_MOVE, `expected r11=${Const.GOOD_MOVE}, got ${r11}`) &&
                 this.verify(r12 == Const.DODO_MOVE, `expected r12=${Const.DODO_MOVE}, got ${r12}`) &&
-                this.verify(r13 == Const.OK, `expected r13=${Const.OK}, got ${r13}`) &&
-                this.verify(r14 == Const.OK, `expected r14=${Const.OK}, got ${r14}`) &&
+                this.verify(r13 == Const.GOOD_MOVE, `expected r13=${Const.GOOD_MOVE}, got ${r13}`) &&
+                this.verify(r14 == Const.GOOD_MOVE, `expected r14=${Const.GOOD_MOVE}, got ${r14}`) &&
                 this.verify(r15 == Const.DODO_MOVE, `expected r15=${Const.DODO_MOVE}, got ${r15}`) &&
                 this.verify(game.isOver(), "game should be over after too many wrong moves") &&
                 this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
@@ -2094,10 +2094,10 @@ class Test extends BaseLogger {
         let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
         let expectedDIsAsStrings = `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FAST,moveRating:ok),<br>(add,word:FAT),<br>(future,word:FATE,changePosition:0),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:0),<br>(target,word:SALTED)`;
 
-            this.verify(r1 == Const.OK, `expected r1=${Const.OK}, got ${r1}`) &&
-                this.verify(r3 == Const.OK, `expected r3=${Const.OK}, got ${r3}`) &&
-                this.verify(r4 == Const.OK, `expected r4=${Const.OK}, got ${r4}`) &&
-                this.verify(r14 == Const.OK, `expected r14=${Const.OK}, got ${r14}`) &&
+            this.verify(r1 == Const.GOOD_MOVE, `expected r1=${Const.GOOD_MOVE}, got ${r1}`) &&
+                this.verify(r3 == Const.GOOD_MOVE, `expected r3=${Const.GOOD_MOVE}, got ${r3}`) &&
+                this.verify(r4 == Const.GOOD_MOVE, `expected r4=${Const.GOOD_MOVE}, got ${r4}`) &&
+                this.verify(r14 == Const.GOOD_MOVE, `expected r14=${Const.GOOD_MOVE}, got ${r14}`) &&
                 this.verify(r15 == Const.NOT_A_WORD, `expected r15=${Const.NOT_A_WORD}, got ${r15}`) &&
                 this.verify(!game.isOver(), "game should not be over yet") &&
                 this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
@@ -2198,12 +2198,12 @@ class Test extends BaseLogger {
         const changeLetterResult2 = this.playLetter(1, "P");      // HOT -> POT
         const changeLetterResult3 = this.playLetter(3, "O");      // POT -> POO
         const insertLetterResult1 = this.insertLetter(3, "R", 0);  // POO -> xPOO change mind -> POOx -> POOR
-        this.verify(changeLetterResult1 == Const.OK, "after changing mind from Z to O, expected: ", Const.OK, " got: ", changeLetterResult1) &&
+        this.verify(changeLetterResult1 == Const.GOOD_MOVE, "after changing mind from Z to O, expected: ", Const.GOOD_MOVE, " got: ", changeLetterResult1) &&
             this.verify(deleteLetterResult1 == Const.WRONG_MOVE, "after changing mind from HOOT to SHOT, expected: ", Const.WRONG_MOVE, " got: ", deleteLetterResult1) &&
-            this.verify(deleteLetterResult2 == Const.OK, "after SHOT to HOT, expected: ", Const.OK, " got: ", deleteLetterResult2) &&
-            this.verify(changeLetterResult2 == Const.OK, "after HOT to POT, expected: ", Const.OK, " got: ", changeLetterResult1) &&
-            this.verify(changeLetterResult3 == Const.OK, "after POT to POO, expected: ", Const.OK, " got: ", changeLetterResult1) &&
-            this.verify(insertLetterResult1 == Const.OK, "after changing mind from POO ->  xPOO to POOx->POOR, expected: ", Const.OK, " got: ", insertLetterResult1) &&
+            this.verify(deleteLetterResult2 == Const.GOOD_MOVE, "after SHOT to HOT, expected: ", Const.GOOD_MOVE, " got: ", deleteLetterResult2) &&
+            this.verify(changeLetterResult2 == Const.GOOD_MOVE, "after HOT to POT, expected: ", Const.GOOD_MOVE, " got: ", changeLetterResult1) &&
+            this.verify(changeLetterResult3 == Const.GOOD_MOVE, "after POT to POO, expected: ", Const.GOOD_MOVE, " got: ", changeLetterResult1) &&
+            this.verify(insertLetterResult1 == Const.GOOD_MOVE, "after changing mind from POO ->  xPOO to POOx->POOR, expected: ", Const.GOOD_MOVE, " got: ", insertLetterResult1) &&
             this.hadNoErrors();
     }
 
@@ -2657,9 +2657,9 @@ class Test extends BaseLogger {
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(5);      // SHOOT -> SHOO DODO
-        this.insertLetter(4, "T"); // SHOO-> SHOOT OK
+        this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
         this.deleteLetter(5);      // SHOOT -> SHOO DODO
-        this.insertLetter(4, "T"); // SHOO-> SHOOT OK
+        this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
         this.deleteLetter(5);      // SHOOT -> SHOO DODO
         this.gameDisplay.showWordCallback(mockEvent); // reveals SHOOK
         this.gameDisplay.showWordCallback(mockEvent); // reveals SPOOK, game should end
@@ -2843,8 +2843,8 @@ class Test extends BaseLogger {
 
         let resultsSoFar =
             this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
-            this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `instruction[0] is ${di[0].toStr()}`) &&
-            this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `instruction[1] is ${di[1].toStr()}`) &&
+            this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.GOOD_MOVE})`), `instruction[0] is ${di[0].toStr()}`) &&
+            this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.GOOD_MOVE})`), `instruction[1] is ${di[1].toStr()}`) &&
             this.verify((di[2].toStr() === "(change,word:HOOT,changePosition:1)"), `instruction[2] is ${di[2].toStr()}`) &&
             this.verify((di[3].toStr() === "(change-next,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
             this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
@@ -2856,9 +2856,9 @@ class Test extends BaseLogger {
             const playedR = this.playLetter(4, "R"); // BOOT -> BOOR
             const playedP = this.playLetter(1, "P"); // BOOR -> POOR
 
-            resultsSoFar = this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
-                this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
-                this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK);
+            resultsSoFar = this.verify((playedB == Const.GOOD_MOVE), `played B, got ${playedB}, not `, Const.GOOD_MOVE) &&
+                this.verify((playedR == Const.GOOD_MOVE), `played R, got ${playedR}, not `, Const.GOOD_MOVE) &&
+                this.verify((playedP == Const.GOOD_MOVE), `played P, got ${playedP}, not `, Const.GOOD_MOVE);
         }
 
         // ... and close and re-open it after it is solved
@@ -2894,9 +2894,9 @@ class Test extends BaseLogger {
         const game = this.gameDisplay.game;
         let di = game.getDisplayInstructions();
         if ( this.verify((di.length == 7), `expected 7 display instructions after restore, got ${di.length}`) &&
-                this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `instruction[0] is ${di[0].toStr()}`) &&
-                this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `instruction[1] is ${di[1].toStr()}`) &&
-                this.verify((di[2].toStr() === `(played,word:HOOT,moveRating:${Const.OK})`), `instruction[2] is ${di[2].toStr()}`) &&
+                this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.GOOD_MOVE})`), `instruction[0] is ${di[0].toStr()}`) &&
+                this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.GOOD_MOVE})`), `instruction[1] is ${di[1].toStr()}`) &&
+                this.verify((di[2].toStr() === `(played,word:HOOT,moveRating:${Const.GOOD_MOVE})`), `instruction[2] is ${di[2].toStr()}`) &&
                 this.verify((di[3].toStr() === "(change,word:SOOT,changePosition:1)"), `instruction[3] is ${di[3].toStr()}`) &&
                 this.verify((di[4].toStr() === "(change-next,word:BOOT,changePosition:4)"), `instruction[4] is ${di[4].toStr()}`) &&
                 this.verify((di[5].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[5] is ${di[5].toStr()}`) &&
@@ -2909,17 +2909,17 @@ class Test extends BaseLogger {
             const playedP = this.playLetter(1, "P"); // BOOR -> POOR
             di = game.getDisplayInstructions();
 
-            this.verify((playedB == Const.OK), `played B, got ${playedB}, not `, Const.OK) &&
-                this.verify((playedR == Const.OK), `played R, got ${playedR}, not `, Const.OK) &&
-                this.verify((playedP == Const.OK), `played P, got ${playedP}, not `, Const.OK) &&
+            this.verify((playedB == Const.GOOD_MOVE), `played B, got ${playedB}, not `, Const.GOOD_MOVE) &&
+                this.verify((playedR == Const.GOOD_MOVE), `played R, got ${playedR}, not `, Const.GOOD_MOVE) &&
+                this.verify((playedP == Const.GOOD_MOVE), `played P, got ${playedP}, not `, Const.GOOD_MOVE) &&
                 this.verify((di.length == 7), `expected 7 display instructions after finishing game, got ${di.length}`) &&
-                this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.OK})`), `di[0] is ${di[0].toStr()}`) &&
-                this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.OK})`), `di[1] is ${di[1].toStr()}`) &&
-                this.verify((di[2].toStr() === `(played,word:HOOT,moveRating:${Const.OK})`), `di[2] is ${di[2].toStr()}`) &&
+                this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.GOOD_MOVE})`), `di[0] is ${di[0].toStr()}`) &&
+                this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.GOOD_MOVE})`), `di[1] is ${di[1].toStr()}`) &&
+                this.verify((di[2].toStr() === `(played,word:HOOT,moveRating:${Const.GOOD_MOVE})`), `di[2] is ${di[2].toStr()}`) &&
                 this.verify((di[3].toStr() === `(played,word:SOOT,moveRating:${Const.WRONG_MOVE})`), `di[3] is ${di[3].toStr()}`) &&
-                this.verify((di[4].toStr() === `(played,word:BOOT,moveRating:${Const.OK})`), `di[4] is ${di[4].toStr()}`) &&
-                this.verify((di[5].toStr() === `(played,word:BOOR,moveRating:${Const.OK})`), `di[5] is ${di[5].toStr()}`) &&
-                this.verify((di[6].toStr() === `(played,word:POOR,moveRating:${Const.OK})`), `di[6] is ${di[6].toStr()}`) &&
+                this.verify((di[4].toStr() === `(played,word:BOOT,moveRating:${Const.GOOD_MOVE})`), `di[4] is ${di[4].toStr()}`) &&
+                this.verify((di[5].toStr() === `(played,word:BOOR,moveRating:${Const.GOOD_MOVE})`), `di[5] is ${di[5].toStr()}`) &&
+                this.verify((di[6].toStr() === `(played,word:POOR,moveRating:${Const.GOOD_MOVE})`), `di[6] is ${di[6].toStr()}`) &&
                 this.hadNoErrors();
         }
     }
@@ -2958,12 +2958,12 @@ class Test extends BaseLogger {
         // restore default confirmation mode
         Persistence.saveConfirmationMode(false);
 
-        this.verify((resultL1 === Const.OK), `playLetter(1, L) returns ${resultL1}, not ${Const.OK}`) &&
-            this.verify((resultDelete3 === Const.OK), `playDelete(3) returns ${resultDelete3}, not ${Const.OK}`) &&
-            this.verify((resultI2Wrong === Const.WRONG_MOVE), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
-            this.verify((resultO2 === Const.OK), `playLetter(2, O) returns ${resultO2}, not ${Const.OK}`) &&
-            this.verify((resultInsertP0 == Const.OK), `insert P@0 returns ${resultInsertP0}, not ${Const.OK}`) &&
-            this.verify((resultInsertI1 === Const.OK), `insert I@1 returns ${resultInsertI1}, not ${Const.OK}`) &&
+        this.verify((resultL1 === Const.GOOD_MOVE), `playLetter(1, L) returns ${resultL1}, not ${Const.GOOD_MOVE}`) &&
+            this.verify((resultDelete3 === Const.GOOD_MOVE), `playDelete(3) returns ${resultDelete3}, not ${Const.GOOD_MOVE}`) &&
+            this.verify((resultI2Wrong === Const.WRONG_MOVE), `playLetter(2, O) returns ${resultO2}, not ${Const.GOOD_MOVE}`) &&
+            this.verify((resultO2 === Const.GOOD_MOVE), `playLetter(2, O) returns ${resultO2}, not ${Const.GOOD_MOVE}`) &&
+            this.verify((resultInsertP0 == Const.GOOD_MOVE), `insert P@0 returns ${resultInsertP0}, not ${Const.GOOD_MOVE}`) &&
+            this.verify((resultInsertI1 === Const.GOOD_MOVE), `insert I@1 returns ${resultInsertI1}, not ${Const.GOOD_MOVE}`) &&
             this.verify(wrongMoveToast == Const.WRONG_MOVE, `expected ${Const.WRONG_MOVE} toast, got: ${wrongMoveToast}`) &&
             this.hadNoErrors();
     }
@@ -3123,10 +3123,10 @@ class Test extends BaseLogger {
         let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} ⭐\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟩🟩🟩🟩\n`;
         this.closeTheStatsDisplay();
 
-        this.verify((resultO4 === Const.OK), `playLetter(4, O) returns ${resultO4}, not ${Const.OK}`) &&
-            this.verify((resultDelete1 === Const.OK), `deleteLetter(1) returns ${resultDelete1}, not ${Const.OK}`) &&
+        this.verify((resultO4 === Const.GOOD_MOVE), `playLetter(4, O) returns ${resultO4}, not ${Const.GOOD_MOVE}`) &&
+            this.verify((resultDelete1 === Const.GOOD_MOVE), `deleteLetter(1) returns ${resultDelete1}, not ${Const.GOOD_MOVE}`) &&
             this.verify((resultR4Genius === Const.GENIUS_MOVE), `playLetter(4, R) returns ${resultR4Genius}, not ${Const.GENIUS_MOVE}`) &&
-            this.verify((resultP1 === Const.OK), `playLetter(1, P) returns ${resultP1}, not ${Const.OK}`) &&
+            this.verify((resultP1 === Const.GOOD_MOVE), `playLetter(1, P) returns ${resultP1}, not ${Const.GOOD_MOVE}`) &&
             this.verify((actShareString.indexOf(expShareString) === 0), `sharestring: expected '${expShareString}', got '${actShareString}'`) &&
             this.verify(toastAfterGeniusMove == Const.GENIUS_MOVE, `expected ${Const.GENIUS_MOVE} toast, got: ${toastAfterGeniusMove}`) &&
             this.hadNoErrors();

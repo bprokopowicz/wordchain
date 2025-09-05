@@ -56,7 +56,7 @@ class Solver {
 
             for (let word of nextWords) {
                 workingDict.removeWord(word);
-                let moveRating = Const.OK;
+                let moveRating = Const.GOOD_MOVE;
                 let isPlayed = false;
                 let newWorkingSolution = solution.copy().addWord(word, isPlayed, moveRating);
                 Const.GL_DEBUG && Solver.logger.logDebug("   checking ", newWorkingSolution, "solver-details");
@@ -125,7 +125,7 @@ class Solver {
                 for (let nextWord of nextWords) {
                     localDictionary.removeWord(nextWord);
                     let newPuzzle = puzzle.copy();
-                    let moveRating = Const.OK;
+                    let moveRating = Const.GOOD_MOVE;
                     let isPlayed = false;
                     newPuzzle.addWord(nextWord, isPlayed, moveRating);
                     listOfPossiblePuzzles.push(newPuzzle);
@@ -174,12 +174,16 @@ class Solver {
     //       letter = the letter to change to or insert.  Not used on DELETE actions
     //   null:
     //       if you can't get from a to b in one operation
+    // special case:
+    //   if word A has a hole (?) in it and is the same length word B, 
 
     static getTransformationStep(wordA, wordB) {
         const CL = "Solver.getTransformationStep";
+        console.log("wordA", wordA, "wordB", wordB);
         COV(0, CL);
         if (wordA.length === wordB.length) {
             COV(1, CL);
+            let mismatchIndex = -1; // indicates no mismatch found
             for (let i = 0; i < wordA.length; i++) {
                 if (wordA[i] != wordB[i]) {
                     COV(2, CL);

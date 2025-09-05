@@ -57,7 +57,7 @@ class GameState extends BaseLogger {
             this.start = start;
             this.target = target;
             this.initialSolution = solution.getSolutionWords(); // list of bare words, including start and target
-            this.ratedMoves = [new RatedMove(start, Const.OK)]; // the start word is recorded as a RatedMove
+            this.ratedMoves = [new RatedMove(start, Const.GOOD_MOVE)]; // the start word is recorded as a RatedMove
             this.unplayedWords = solution.getSolutionWords().slice(); // copy the whole solution list ...
             this.unplayedWords.shift(1); // ... and remove the start word
             this.persist();
@@ -137,7 +137,7 @@ class GameState extends BaseLogger {
         let [pre, post] = [lastWord.substring(0, spaceNumber), lastWord.substring(spaceNumber)];
         let wordWithSpace = pre + Const.HOLE + post;
         this.ratedMoves.push(new RatedMove(wordWithSpace, Const.VIRTUAL_STEP));
-        return Const.OK;
+        return Const.GOOD_MOVE;
     }
 
     // Plays 'word'.  
@@ -150,7 +150,7 @@ class GameState extends BaseLogger {
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playing word:", word, "last played word", this.lastPlayedWord(), "gameState");
         this.removeWordWithHoleIfNecessary(); // TODO - was commented out
-        let moveRating = Const.OK; // We will override this below, based on the new solution after playing 'word'
+        let moveRating = Const.GOOD_MOVE; // We will override this below, based on the new solution after playing 'word'
         if (word == this.unplayedWords[0]) {
             COV(1, CL);
             Const.GL_DEBUG && this.logDebug("GameState.addWord()", word,
@@ -655,7 +655,7 @@ class DailyGameState extends GameState{
             }
 
             // Determine which color square to display for this word.
-            if (moveRating === Const.OK || moveRating === Const.SCRABBLE_WORD) {
+            if (moveRating === Const.GOOD_MOVE || moveRating === Const.SCRABBLE_WORD) {
                 // Word didn't increase the count; pick color indicating "good".
                 COV(4, CL);
                 emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;

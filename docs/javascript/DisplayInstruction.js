@@ -9,36 +9,108 @@ import * as Const from './Const.js';
 // See Const.js for definitions of constant strings for the displayTypes.
 class DisplayInstruction {
     //
-    // word: string is ignored for future; only length of it is used
+    // word:
+    //     - the word to display
+    //     - may have a '?' in it; see below
+    //     - is ignored for displayType future; only length of it is used
     //
-    // displayType: add, delete, change, future, played, target
-    //     add:         word should be displayed as the active word (yellow background) and letters colored based on moveRating, with plus signs
-    //     delete:      word should be displayed as the active word and color based on moveRating, with minus signs
-    //     change:      word should be displayed as the active word and color based on moveRating, with thick outline and letter (NOT '?') at changePosition
-    //     changeNext:  word should be displayed as an INactive word and letters NOT colored (clear) and one of them will be '?'
-    //                  (NOTE: changeNext only applies to a letter change, i.e. not a word with a '?' that appears after an add)
-    //     future:      word should be displayed with no color or letter, with thick outline at changePosition
-    //     played:      word should be diplayed with color based on moveRating (includes start word)
-    //     target:      word should be displayed with "target color" and this type is not sent
-    //                  for the target word if the game is over; instead, displayType will be 'played'
+    // displayType:
+    //     PLAYED_ADD:
+    //         - letter background color based on move rating
+    //         - word displayed as active (yellow background)
+    //         - plus signs displayed
+    //         - changePosition should be 0 (no letters with thick borders)
+    //     WORD_AFTER_ADD:
+    //         - no letter background color
+    //         - word displayed as active (yellow background)
+    //         - letter at changePosition will have a thick border, unless changePosition is 0
+    //         - word length is one more than length of preceding word
+    //         - one letter in word is '?'
+    //         - moveRating unused
+    //     PLAYED_CHANGE:
+    //         - letter background color based on move rating
+    //         - word displayed as active (yellow background)
+    //         - letter at changePosition will have a thick border
+    //     WORD_AFTER_CHANGE:
+    //         - no letter background color
+    //         - word NOT displayed as active
+    //         - letter at changePosition will have a thick border, unless changePosition is 0
+    //         - word length is equal to length of preceding word
+    //         - one letter in word is '?'
+    //         - moveRating unused
+    //     PLAYED_DELETE:
+    //         - letter background color based on move rating
+    //         - word displayed as active (yellow background)
+    //         - minus signs displayed
+    //         - changePosition should be 0 (no letters with thick borders)
+    //     FUTURE:
+    //         - word NOT displayed as active
+    //         - no letter background color
+    //         - letter at changePosition will have a thick border
+    //         - all letters in word are blank
+    //         - moveRating unused
+    //     PLAYED:
+    //         - word NOT displayed as active
+    //         - letter background color based on move rating
+    //         - changePosition should be 0 (no letters with thick borders) -- actually irrelevant
     //
-    // changePosition: relevant only for change and future; 1..word.length
+    //     TARGET:
+    //         - word NOT displayed as active
+    //         - one letter in word MAY BE '?' (if it follows a playedChange)
+    //         - letter background color purple or green???
+    //         - changePosition should be 0 (no letters with thick borders) -- actually irrelevant
     //
-    // moveRating: OK, WRONG_MOVE, GENIUS_MOVE, SCRABBLE_WORD, DODO_MOVE, SHOWN_MOVE
-    //             (not relevant for future or target displayType)
-    //     OK:           a word that did NOT increase the solution length
-    //     WRONG_MOVE    a word that increased the solution length by 1
-    //     GENIUS_MOVE   a word that was in the Scrabble dictionary and causes the solution to get shorter
-    //     SCRABBLE_WORD a word that was in the Scrabble dictionary, but does not cause the solution to get shorter
-    //     DODO_MOVE     a word that increased the solution length by 2
-    //     SHOWN_MOVE    a word given to the player when he/she clicks 'Show Next Move' or when the game is lost
+    //     On a fresh game, the start word instruction will be one of 'playedAdd', 'playedDelet',
+    //     or 'playedChange'; the start word is always thought of as a played word.
     //
-    constructor(word, displayType, changePosition, moveRating) {
+    //     The target word instruction will always be 'target' or 'wordAfterAdd' -- in the
+    //     latter case the target word will have a '?' in it. The 'target' instruction word will
+    //     have a '?' in it if the prior instruction is 'playedChange'.
+    //
+    // changePosition: 1..word.length
+    //     - the position in the word that should change
+    //     - 0 if no change
+    //
+    // moveRating:
+    //     DODO_MOVE:
+    //         - a word that increased the solution length by 2
+    //
+    //     GENIUS_MOVE:
+    //         - a word that was in the Scrabble dictionary and causes the solution to get shorter
+    //
+    //     GOOD_MOVE:
+    //         - a word that did NOT increase the solution length
+    //
+    //     NO_RATING:
+    //         - a word for which there is no rating
+    //         - instruction where isStartWord is true
+    //         - a word in a WORD_AFTER_ADD/CHANGE or FUTURE instruction
+    //         - a TARGET instruction before the game is complete
+    //
+    //     SCRABBLE_WORD:
+    //         - a word that was in the Scrabble dictionary
+    //         - does not cause the solution to get shorter (GENIUS_MOVE)
+    //         - does not cause the solution to get longer (WRONG_MOVE or DODO_MOVE)
+    //
+    //     SHOWN_MOVE:
+    //         - a word given to the player when he/she clicks 'Show Move'
+    //
+    //     WRONG_MOVE:
+    //         - a word that increased the solution length by 1
+    //
+    // isStartWord: true for the first word in list of display instructions; false otherwise
+    //
+    // showParLine: true if "par line" should be shown at the bottom of this word; false otherwise
+    //              (NOTE: this should be true for exactly one instruction per list of
+    //              DisplayInstruction; initially it's the target word instruction.)
+    //
+    constructor(word, displayType, changePosition, moveRating, isStartWord, showParLine) {
         this.word = word;
-        this.wordLength = word.length;
         this.displayType = displayType;
         this.changePosition = changePosition;
         this.moveRating = moveRating;
+        this.isStartWord = isStartWord;
+        this.showParLine = showParLine;
     }
 
     copy() {
@@ -54,23 +126,163 @@ class DisplayInstruction {
     toStr() {
         var returnStr = `(${this.displayType}`;
 
-        if (this.word.length !== 0) {
-            returnStr += `,word:${this.word}`;
-        } else {
-            returnStr += `,wordLength:${this.wordLength}`;
-        }
+        returnStr += `,word:${this.word}`;
+        returnStr += `,changePosition:${this.changePosition}`;
+        returnStr += `,moveRating:${this.moveRating}`;
+        returnStr += `,isStartWord:${this.isStartWord}`;
+        returnStr += `,showParLine:${this.showParLine}`;
 
-        if (this.displayType === Const.PLAYED) {
-            returnStr += `,moveRating:${this.moveRating}`;
-        }
-
-        if (this.displayType === Const.CHANGE || this.displayType == Const.CHANGE_NEXT || this.displayType === Const.FUTURE) {
-            returnStr += `,changePosition:${this.changePosition}`;
-        }
         returnStr += ")";
 
         return returnStr;
     }
+
+    // ============================ FAUX GAMES ============================
+
+    // Change and last move Add -- no mistakes.
+    static FAUX_1 = [
+        [
+                                 // word      displayType              change  moveRating           isStart  parLine
+            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'C'
+            new DisplayInstruction("BORN",    Const.PLAYED,            1,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User clicks first '+'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'A'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+        ],
+    ];
+
+    // Change and last move Add -- mistake on finishing add.
+    static FAUX_2 = [
+        [
+                                 // word      displayType              change  moveRating           isStart  parLine
+            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'C'
+            new DisplayInstruction("BORN",    Const.PLAYED,            1,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User clicks first '+'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'S'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("SCORN",   Const.PLAYED_CHANGE,     1,      Const.WRONG_MOVE,    false,   true),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+        ],
+        [
+            // User plays 'A'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("SCORN",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   true),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
+        ],
+    ];
+
+    // Add (not to target) followed by change; last move Change
+    static FAUX_3 = [
+        [
+                                 // word      displayType              change  moveRating           isStart  parLine
+            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("ACORN",   Const.FUTURE,            2,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ADORN",   Const.FUTURE,            5,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User clicks first '+'
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    2,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ADORN",   Const.FUTURE,            5,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'A'
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("ACORN",   Const.PLAYED_CHANGE,     2,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("A?ORN",   Const.WORD_AFTER_CHANGE, 5,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'D'
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("ACORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ADOR?",   Const.PLAYED_CHANGE,     5,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'E'
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("ACORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ADORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+        ],
+    ];
+
+    // Deletions and a last move Add
+    static FAUX_4 = [
+        [
+                                 // word      displayType              change  moveRating           isStart  parLine
+            new DisplayInstruction("PLACE",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("LACE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ACE",     Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ACED",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User clicks first '-'
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED_DELETE,     0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACE",     Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ACED",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User clicks first '-'
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACE",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACED",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User clicks last '+'
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACE",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACE?",    Const.WORD_AFTER_ADD,    4,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'D'
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACE",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACED",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+        ],
+    ];
+
+    static FAUX_5 = [
+    ];
 }
 
 export { DisplayInstruction };

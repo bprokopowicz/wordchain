@@ -453,7 +453,7 @@ button:enabled {
 
 /*
 ** This style is used with letter-outer-cell and action-outer-cell
-** to ensure that the deletion line up properly under their corresponding
+** to ensure that the deletion buttons line up properly under their corresponding
 ** letters. Having the same width, border-width, and margins is the key!
 */
 .outer-cell {

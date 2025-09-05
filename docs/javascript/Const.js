@@ -48,34 +48,41 @@ export const PRACTICE_START_WORDS          = [
     "PLANET", "ROPED", "SHINE", "TOAST", "PIG", "DREAMS", "STAIN", "HARK",
     "FLAME", "RAKE", "RICE", "LAKE", "MALT", "TEASE", "LANCE", "HANG"];
 
-// Constants for game play toast notifications.
-// Note: OK is not displayed.
-// --- Returned from Game class.
+// Toast Notification Constants
+
 export const SHOW_TOAST_DURATION = 3000; // milliseconds
-export const OK                  = "ok";
-export const NOT_A_WORD          = "Not in word list";
-// --- Displayed from one of the *Display classes.
-export const GAME_WON            = "Solved! You win!";
-export const GAME_LOST           = "Too many wrong/shown moves";
-export const PICK_NEW_LETTER     = "Pick a different letter";      // Displayed when user selects the letter already in the cell to be changed.
-export const UNEXPECTED_ERROR    = "Yikes! Something went wrong";
-export const NO_DAILY            = "Unable to create daily game;<br>here is a fun back-up";
-export const SHARE_FAILED        = "Failed to share";
-export const SHARE_COPIED        = "Copied to clipboard";
-export const SHARE_TO_PASTE      = "Copied; paste into text, FB, etc.";
-export const SHARE_INSECURE      = "Cannot share in insecure environment";
-export const NO_STATS            = "Stats unavailable";
-export const WRONG_MOVE          = "D'oh! You added a step";
-export const GENIUS_MOVE         = "Genius play!";
-export const SCRABBLE_WORD       = "Advanced word!";
+
+// --- Returned from game play and are used as Move Ratings in DisplayInstructions
 export const DODO_MOVE           = "Ugh! You added two steps!";
+export const GENIUS_MOVE         = "Genius play!";
+export const NO_RATING           = "No move rating";             // not shown to user
+export const GOOD_MOVE           = "Good move";                  // not shown to user
+export const SCRABBLE_WORD       = "Advanced word!";
 export const SHOWN_MOVE          = "Best next move";
+export const WRONG_MOVE          = "D'oh! You added a step";
+
+// --- Returned from game play that are not used as move ratings.
 export const BAD_POSITION        = "Bad letter position";
+export const NOT_A_WORD          = "Not in word list";
+
+// --- Displayed from one of the *Display classes.
+export const GAME_LOST           = "Too many wrong/shown moves";
+export const GAME_WON            = "Solved! You win!";
+export const NEEDS_CONFIRMATION  = "Input needs confirmation";   // not shown to user
 export const NEW_DAILY_GAME      = "Time for a new Daily game";
-export const WORKING_ON_NEW_GAME = "Working on a new game for you";
-// --- Not shown to user; returned when user makes a move that requires confirmation.
-export const NEEDS_CONFIRMATION  = "Input needs confirmation";
-export const HOLE                = "?";   // inserted into a word when the user adds a space
+export const NO_DAILY            = "Unable to create daily game;<br>here is a fun back-up";
+export const NO_STATS            = "Stats unavailable";
+// Displayed when user selects the letter already in the cell to be changed.
+export const PICK_NEW_LETTER     = "Pick a different letter";
+export const SHARE_INSECURE      = "Cannot share in insecure environment";
+export const SHARE_TO_PASTE      = "Copied; paste into text, FB, etc.";
+export const UNEXPECTED_ERROR    = "Yikes! Something went wrong";
+
+// --- Currently used only in commented out code
+//export const SHARE_COPIED        = "Copied to clipboard";
+//export const SHARE_FAILED        = "Failed to share";
+
+// End of Toast Notification Constants
 
 // If we force the daily game using stored test variables, this will be the game number.
 export const TEST_DAILY_GAME_NUMBER = -1;
@@ -85,17 +92,22 @@ export const TEST_DAILY_GAME_NUMBER = -1;
 export const BROKEN_DAILY_GAME_NUMBER = -2;
 export const UNINIT_DAILY_GAME_NUMBER = -1000;
 
+// Inserted into a word as part of an Add or Change move,
+// indicating the letter to be changed.
+export const HOLE               = "?";
+
 // Returns from Game class that indicate a bug in its input from GameDisplay.
 export const BAD_LETTER_POSITION = "bad letter position";
 
 // DisplayInstruction displayTypes.
-export const ADD         = "add";
-export const CHANGE      = "change";
-export const DELETE      = "delete";
-export const CHANGE_NEXT = "change-next";
-export const FUTURE      = "future";
-export const PLAYED      = "played";
-export const TARGET      = "target";
+export const FUTURE             = "future";
+export const PLAYED             = "played";
+export const PLAYED_ADD         = "playedAdd";
+export const PLAYED_CHANGE      = "playedChange";
+export const PLAYED_DELETE      = "playedDelete";
+export const TARGET             = "target";
+export const WORD_AFTER_ADD     = "wordAfterAdd";
+export const WORD_AFTER_CHANGE  = "wordAfterChange";
 
 // Special characters used in Game.showGame() return string;
 // a few other classes use these.

@@ -104,35 +104,130 @@ class LetterCell extends Cell {
         const CL = "LetterCell.constructor";
         COV(0, CL);
 
+        // In the case of empty cells the letter will be ' '.
+        // In the case of change cells that are not empty the
+        // letter will be '?'.
         this.letter = letter;
 
+        // OuterCellContainer has either a transparent border or thick border,
+        // the latter indicating a current or future change move. The transparent
+        // and thick borders are the same width, enabling all the cells to line
+        // up properly in the grid, regardless of whether they indicate a change.
         this.outerCellContainer = ElementUtilities.createElement("div", {class: "circle outer-cell letter-outer-cell"});
+
         this.cellContainer = ElementUtilities.addElementTo("div", this.outerCellContainer, {class: "circle letter-cell"});
         this.cellContents = ElementUtilities.addElementTo("div", this.cellContainer, {}, this.letter);
 
         this.addClass("letter", this.cellContents);
     }
 
-    addCorrectnessClass(moveRating) {
-        const CL = "LetterCell.constructor";
+    handleLetterChangeIfNeeded(letterPosition, changePosition, letterPicker) {
+        const CL = "LetterCell.handleLetterCellChangeIfNeeded";
         COV(0, CL);
-        if (moveRating == Const.OK || moveRating == Const.SCRABBLE_WORD) {
+
+        // We'll set the *outer* cell's styling to be visible (i.e. not transparent).
+        if (letterPosition === changePosition) {
             COV(1, CL);
-            this.addClass("letter-cell-good", this.cellContainer);
+            this.addClass("letter-cell-change", this.outerCellContainer);
+
+            // If we have a letter picker, save the letter position in it so we can get
+            // it when the event comes.
+            if (letterPicker) {
+                COV(2, CL);
+                letterPicker.saveLetterPosition(letterPosition);
+            }
         }
-        else if (moveRating == Const.GENIUS_MOVE) {
-            COV(2, CL);
-            this.addClass("letter-cell-genius", this.cellContainer);
-        }
-        else if (moveRating == Const.DODO_MOVE) {
-            COV(3, CL);
-            this.addClass("letter-cell-dodo", this.cellContainer);
-        }
-        else if (moveRating == Const.SHOWN_MOVE) {
-            COV(4, CL);
-            this.addClass("letter-cell-shown", this.cellContainer);
+        COV(3, CL);
+    }
+}
+
+// These cells have no letter, no background color, but the border may indicate change.
+// Used for 'future' display instructions.
+class EmptyLetterCell extends LetterCell {
+    constructor(letterPosition, changePosition) {
+        // For this class, we hard-code letter to be a space, because we don't want
+        // to have a letter showing.
+        super(' ');
+
+        const CL = "EmptyLetterCell.constructor";
+        COV(0, CL);
+
+        this.addClass("letter-cell-future", this.cellContainer);
+
+        // No letter has changed in this case; we're just showing that this
+        // is a cell that will change in the future.
+        const letterPicker = null;
+        this.handleLetterChangeIfNeeded(letterPosition, changePosition, letterPicker);
+    }
+}
+
+// These cells have a letter (possibly '?'), no background color, and the border may indicate change.
+// Used for 'wordAfterAdd' and 'wordAfterChange' display instructions.
+class LetterCellNoBackground extends LetterCell {
+    constructor(letter, letterPosition, changePosition, letterPicker) {
+        super(letter);
+
+        const CL = "LetterCellWithBackground.constructor";
+        COV(0, CL);
+
+        this.handleLetterChangeIfNeeded(letterPosition, changePosition, letterPicker);
+    }
+}
+
+// These cells have a letter (possibly '?'), a background color, and the border may indicate change.
+// Used for all 'played' display instructions.
+class LetterCellWithBackground extends LetterCell {
+    constructor(letter, letterPosition, changePosition, letterPicker, moveRating, isStartWord, isTargetWord) {
+        super(letter);
+        const CL = "LetterCellWithBackground.constructor";
+        COV(0, CL);
+
+        this.addBackgroundClass(moveRating, isStartWord, isTargetWord);
+        this.handleLetterChangeIfNeeded(letterPosition, changePosition, letterPicker);
+    }
+
+    addBackgroundClass(moveRating, isStart, isTarget) {
+        const CL = "LetterCell.addBackgroundClass";
+        COV(0, CL);
+        if (isStart) {
+            COV(1, CL);
+            this.addClass("letter-cell-start", this.cellContainer);
+        } else if (isTarget) {
+            if (moveRating == Const.NO_RATING) {
+                COV(2, CL);
+                this.addClass("letter-cell-target", this.cellContainer);
+            } else {
+                COV(3, CL);
+                // TODO: Maybe this should just pass Const.GOOD_MOVE so always green if game
+                // is finished, even if last word was shown. Target word can't have
+                // moveRating SCRABBLE_WORD, GENIUS_MOVE, DODO_MOVE, or WRONG_MOVE.
+                this.addBackgroundClassBasedOnMoveRating(moveRating);
+            }
         }
         else {
+            COV(4, CL);
+            this.addBackgroundClassBasedOnMoveRating(moveRating);
+        }
+        COV(5, CL);
+    }
+
+    addBackgroundClassBasedOnMoveRating(moveRating) {
+        const CL = "LetterCell.addBackgroundClassBasedOnMoveRating";
+        COV(0, CL);
+
+        if (moveRating == Const.GOOD_MOVE || moveRating == Const.SCRABBLE_WORD) {
+            COV(1, CL);
+            this.addClass("letter-cell-good", this.cellContainer);
+        } else if (moveRating == Const.GENIUS_MOVE) {
+            COV(2, CL);
+            this.addClass("letter-cell-genius", this.cellContainer);
+        } else if (moveRating == Const.DODO_MOVE) {
+            COV(3, CL);
+            this.addClass("letter-cell-dodo", this.cellContainer);
+        } else if (moveRating == Const.SHOWN_MOVE) {
+            COV(4, CL);
+            this.addClass("letter-cell-shown", this.cellContainer);
+        } else {
             COV(5, CL);
             this.addClass("letter-cell-bad", this.cellContainer);
         }
@@ -140,102 +235,4 @@ class LetterCell extends Cell {
     }
 }
 
-class ActiveLetterCell extends LetterCell {
-    constructor(letter, letterPosition, letterPicker, moveRating, changePosition, firstWord, wordFollowsAdd) {
-        super(letter);
-        const CL = "ActiveLetterCell.constructor";
-        COV(0, CL);
-
-        if (firstWord) {
-            COV(1, CL);
-            this.addClass("letter-cell-start", this.cellContainer);
-        } else {
-            COV(2, CL);
-            // No correctness class when selecting the position where a letter is
-            // to be added; in that case we show the letter cell as transparent
-            // (and the "active background" shows through). However, we do want
-            // add a class if this is a shown move.
-            if (! wordFollowsAdd || moveRating == Const.SHOWN_MOVE) {
-                COV(3, CL);
-                this.addCorrectnessClass(moveRating);
-            }
-        }
-        COV(4, CL);
-
-        // This will only be true if the user is expected to pick a letter.
-        // We'll set the *outer* cell's styling to be visible (i.e. not transparent).
-        if (letterPosition === changePosition) {
-            COV(5, CL);
-            this.addClass("letter-cell-change", this.outerCellContainer);
-
-            // Save the letter position so we can get it when the event comes.
-            letterPicker.saveLetterPosition(letterPosition);
-        }
-        COV(6, CL);
-    }
-}
-
-class FutureLetterCell extends LetterCell {
-    constructor(letter, letterPosition, changePosition) {
-        super("");
-        const CL = "FutureLetterCell.constructor";
-        COV(0, CL);
-
-        this.addClass("letter-cell-future", this.cellContainer);
-
-        if (letterPosition === changePosition)
-        {
-            COV(1, CL);
-            // We'll set the *outer* cell's styling to be visible (i.e. not transparent).
-            this.addClass("letter-cell-future-change", this.outerCellContainer);
-        }
-        COV(2, CL);
-    }
-}
-
-class ChangeNextLetterCell extends LetterCell {
-    constructor(letter, letterPosition, changePosition) {
-        super(letter);
-        const CL = "ChangeNextLetterCell.constructor";
-        COV(0, CL);
-
-        this.addClass("letter-cell-future", this.cellContainer);
-
-        if (letterPosition === changePosition)
-        {
-            COV(1, CL);
-            // We'll set the *outer* cell's styling to be visible (i.e. not transparent).
-            this.addClass("letter-cell-future-change", this.outerCellContainer);
-        }
-        COV(2, CL);
-    }
-}
-
-class PlayedLetterCell extends LetterCell {
-    constructor(letter, moveRating, firstWord) {
-        super(letter);
-        const CL = "PlayedLetterCell.constructor";
-        COV(0, CL);
-
-        if (firstWord) {
-            COV(1, CL);
-            this.addClass("letter-cell-start", this.cellContainer);
-        } else {
-            COV(2, CL);
-            this.addCorrectnessClass(moveRating);
-        }
-        COV(3, CL);
-    }
-}
-
-class TargetLetterCell extends LetterCell {
-    constructor(letter) {
-        super(letter);
-        const CL = "TargetLetterCell.constructor";
-        COV(0, CL);
-        this.addClass("letter-cell-target", this.cellContainer);
-    }
-}
-
-
-export { AdditionCell, DeletionCell, ActiveLetterCell, ChangeNextLetterCell, FutureLetterCell, PlayedLetterCell, TargetLetterCell };
+export { AdditionCell, DeletionCell, EmptyLetterCell, LetterCellNoBackground, LetterCellWithBackground };

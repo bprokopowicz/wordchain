@@ -133,12 +133,12 @@ class Game extends BaseLogger {
         const CL = "Game.instructionsForChangeNextWord";
         COV(0, CL);
         // we show next word after a change with the letters visible
-        // exept the changing letter.
+        // except the changing letter.
         const changeNextWord = this.gameState.getUnplayedWord(0),
               nextFutureWord = this.gameState.getUnplayedWord(1),
-              moveRating = Const.OK,
+              moveRating = Const.GOOD_MOVE,
               index = changePosition - 1,
-              changeWordWithHole = changeNextWord.substring(0, index) + '?' + changeNextWord.substring(index + 1);
+              changeWordWithHole = changeNextWord.substring(0, index) + Const.HOLE + changeNextWord.substring(index + 1);
 
         let displayInstruction = this.instructionForPlayingFromWordToWord(changeNextWord, nextFutureWord, moveRating);
 
@@ -158,7 +158,7 @@ class Game extends BaseLogger {
         // we show hints in the future words that require a single letter-change to the next word
         const futureWord = this.gameState.getUnplayedWord(stepIndex);
         const nextFutureWord = this.gameState.getUnplayedWord(stepIndex+1);
-        const moveRating = Const.OK;
+        const moveRating = Const.GOOD_MOVE;
         let displayInstruction = this.instructionForPlayingFromWordToWord(futureWord, nextFutureWord, moveRating);
         displayInstruction.displayType = Const.FUTURE;
         Const.GL_DEBUG && this.logDebug("  instructionForFutureWord() stepIndex", stepIndex, ":", displayInstruction, "instruction");
@@ -175,31 +175,28 @@ class Game extends BaseLogger {
         let lastRatedMove = this.gameState.lastRatedMove(),
             lastWord = lastRatedMove.word,
             moveRating = lastRatedMove.rating,
+            nextWord = this.gameState.getUnplayedWord(0),
             displayInstruction = null;
         if (GameState.wordHasHole(lastWord)) {
             COV(1, CL);
             // after user clicks plus somewhere, the list of played words includes the last word played with a hole
             // in it where the user clicked '+'.  This word with a hole is what we will return to the display to show.
-            // the last word in the played list is the word with a hole. Note that we also still have the word
-            // in the list of remaining words.
-            let indexOfHole = GameState.locationOfHole(lastWord);
             // I THINK THE BUG IS HERE ... shouldn't pass indexOfHole+1 here, but rather the 
             // change position of the *next* word. But why isn't this an issue for ALL the 'change' instructions?
+            let indexOfHole = GameState.locationOfHole(lastWord);
             displayInstruction = new DisplayInstruction(lastWord, Const.CHANGE, indexOfHole+1, moveRating);
         } else {
-            COV(2, CL);
-            let nextWord = this.gameState.getUnplayedWord(0);
             displayInstruction = this.instructionForPlayingFromWordToWord(lastWord, nextWord, moveRating);
         }
 
         Const.GL_DEBUG && this.logDebug("  instructionForLastPlayedWord() lastRatedMove", lastRatedMove.word, ":", displayInstruction, "instruction");
-        COV(3, CL);
+        COV(2, CL);
         return displayInstruction;
     }
 
     // this method is for displaying the target, either as Const.TARGET if not played yet,
     // or Const.PLAYED if the game is either solved or lost.
-    // moveRating is Const.OK unless the game is lost; then it is Const.WRONG_MOVE
+    // moveRating is Const.GOOD_MOVE unless the game is lost; then it is Const.WRONG_MOVE
 
     instructionForTargetWord() {
         const CL = "Game.instructionForTargetWord";
@@ -207,7 +204,7 @@ class Game extends BaseLogger {
         let targetWord = this.gameState.target;
         let changePosition=-1; // not used - there is no change FROM target to something
         let displayType = Const.TARGET; // unless the game is over; then it is PLAYED
-        let moveRating = Const.OK; // unless the game is over and we lost; then it is WRONG_MOVE
+        let moveRating = Const.GOOD_MOVE; // unless the game is over and we lost; then it is WRONG_MOVE
         if (this.isOver()) {
             COV(1, CL);
             displayType = Const.PLAYED;
@@ -259,12 +256,12 @@ class Game extends BaseLogger {
     }
 
 
-    // the GUI needs to know if a played word was acceptable (OK, GENIUS_MOVE, SCRABBLE_WORD, DODO_MOVE, WRONG_MOVE, SHOWN_MOVE)
+    // the GUI needs to know if a played word was acceptable (GOOD_MOVE, GENIUS_MOVE, SCRABBLE_WORD, DODO_MOVE, WRONG_MOVE, SHOWN_MOVE)
     // vs invalid (NOT_A_WORD or technical problems like BAD_POSITION)
     static moveIsValid(moveRating) {
         const CL = "Game.moveIsValid";
         COV(0, CL);
-        return (moveRating == Const.OK) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.SCRABBLE_WORD) ||
+        return (moveRating == Const.GOOD_MOVE) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.SCRABBLE_WORD) ||
                (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE) || (moveRating == Const.SHOWN_MOVE);
     }
 

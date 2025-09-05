@@ -10,12 +10,13 @@ import { COV, clearCoverage, getCounters, setCoverageOn, setCoverageOff } from '
 import {
     AdditionCell,
     DeletionCell,
-    ActiveLetterCell,
-    ChangeNextLetterCell,
-    FutureLetterCell,
-    PlayedLetterCell,
-    TargetLetterCell,
+    EmptyLetterCell,
+    LetterCellNoBackground,
+    LetterCellWithBackground,
 } from './Cell.js';
+
+// ========== Faux
+import { DisplayInstruction } from './DisplayInstruction.js';
 
 
 class GameDisplay extends BaseLogger {
@@ -46,17 +47,17 @@ class GameDisplay extends BaseLogger {
         // elements for the game.
         this.postGameDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break post-game-div"});
 
-        // Add Show Word button to postGameDiv.
+        // Add Show Word button to postGameDiv and enable it.
         this.showWordButton = ElementUtilities.addElementTo(
             "button", this.postGameDiv,
             {class: "app-button non-header-button"},
             "Show Word");
         ElementUtilities.setButtonCallback(this.showWordButton, this, this.showWordCallback);
+        // TODO: Need to keep something in state to indicate whether the button should be enabled on restore.
+        ElementUtilities.enableButton(this.showWordButton);
 
         // Create an element to contain game results (score, WordChain solution).
         this.resultsDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break results-div"});
-
-        this.lastActiveMoveWasAdd = false;
 
         // Derived class constructor must call updateDisplay().
     }
@@ -100,7 +101,9 @@ class GameDisplay extends BaseLogger {
             result = Const.PICK_NEW_LETTER;
         } else {
             COV(2, CL);
-            result = this.game.playLetter(letterPosition, letter);
+            // ========== Faux
+            //result = this.game.playLetter(letterPosition, letter);
+            result = Const.GOOD_MOVE
             this.processGamePlayResult(result);
         }
 
@@ -135,79 +138,85 @@ class GameDisplay extends BaseLogger {
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
-    displayAdd(displayInstruction, isStartWord) {
-        const CL = "GameDisplay.displayAdd";
+    displayFuture(displayInstruction) {
+        const CL = "GameDisplay.displayFuture";
         COV(0, CL);
-        const me = this;
-
-        // Disable the picker; it's not used for ADD moves.
-        this.pickerEnabled = false;
 
         function getCell(letter, letterPosition) {
-            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord, me.lastActiveMoveWasAdd);
+            return new EmptyLetterCell(letterPosition, displayInstruction.changePosition);
         }
 
-        const hideAdditionCells = false;
-        this.displayCommon(displayInstruction, getCell, hideAdditionCells);
+        this.displayCommon(displayInstruction, getCell);
     }
 
-    displayChange(displayInstruction, isStartWord) {
-        const CL = "GameDisplay.displayChange";
+    displayPlayed(displayInstruction, isStartWord) {
+        const CL = "GameDisplay.displayPlayed";
         COV(0, CL);
-        const me = this;
 
-        // We need the picker for CHANGE moves.
-        this.pickerEnabled = true;
+        const me = this,
+              isTargetWord = false;
 
         function getCell(letter, letterPosition) {
-            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord, me.lastActiveMoveWasAdd);
+            return new LetterCellWithBackground(letter,
+                letterPosition, displayInstruction.changePosition,
+                me.letterPicker, displayInstruction.moveRating,
+                displayInstruction.isStartWord, isTargetWord);
+        }
+
+        this.displayCommon(displayInstruction, getCell)
+    }
+
+    displayPlayedAdd(displayInstruction) {
+        const CL = "GameDisplay.displayPlayedAdd";
+        COV(0, CL);
+        const me = this,
+              isTargetWord = false;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellWithBackground(letter,
+                letterPosition, displayInstruction.changePosition,
+                me.letterPicker, displayInstruction.moveRating,
+                displayInstruction.isStartWord, isTargetWord);
+        }
+
+        this.displayCommon(displayInstruction, getCell);
+    }
+
+    displayPlayedChange(displayInstruction) {
+        const CL = "GameDisplay.displayPlayedChange";
+        COV(0, CL);
+        const me = this,
+              isTargetWord = false;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellWithBackground(letter,
+                letterPosition, displayInstruction.changePosition,
+                me.letterPicker, displayInstruction.moveRating,
+                displayInstruction.isStartWord, isTargetWord);
         }
 
         // changePosition goes 1..wordLength, so need to subtract 1.
+        // =========== splain why we save this!
         this.currentLetter = displayInstruction.word[displayInstruction.changePosition - 1];
-
-        const hideAdditionCells = true;
-        this.displayCommon(displayInstruction, getCell, hideAdditionCells);
+        this.displayCommon(displayInstruction, getCell);
     }
 
-    displayChangeNext(displayInstruction) {
-        const CL = "GameDisplay.displayChangeNext";
+    displayPlayedDelete(displayInstruction, tableElement) {
+        const CL = "GameDisplay.displayPlayedDelete";
         COV(0, CL);
-        function getCell(letter, letterPosition) {
-            return new ChangeNextLetterCell(letter, letterPosition, displayInstruction.changePosition);
-        }
 
-        // The Game class gives us a DisplayInstruction with an extra field
-        // for a "Change Next" instruction, which is the "word with a hole" where
-        // the letter to be filled in is replaced with a '?' -- we need to give
-        // displayCommon() an instruction with *that* word. However, don't want
-        // to change the DisplayInstruction passed to us, because it is used
-        // elsewhere, where it is expected to be the word sans hole. So copy it
-        // and change its word to wordWithHole.
-        let newDisplayInstruction = displayInstruction.copy();
-        newDisplayInstruction.word = displayInstruction.wordWithHole;
+        const me = this,
+              isTargetWord = false;
 
-        this.displayCommon(newDisplayInstruction, getCell);
-    }
-
-    displayDelete(displayInstruction, tableElement, isStartWord) {
-        const CL = "GameDisplay.displayDelete";
-        COV(0, CL);
-        const me = this;
-
-        // Disable the picker; it's not used for DELETE moves.
-        this.pickerEnabled = false;
-
-        function getActiveLetterCell(letter, letterPosition) {
-            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord, me.lastActiveMoveWasAdd);
+        function getLetterCell(letter, letterPosition) {
+            return new LetterCellWithBackground(letter,
+                letterPosition, displayInstruction.changePosition,
+                me.letterPicker, displayInstruction.moveRating,
+                displayInstruction.isStartWord, isTargetWord);
         }
 
         // First, display the letter cells.
-        const hideAdditionCells = true;
-        this.displayCommon(displayInstruction, getActiveLetterCell, hideAdditionCells);
+        this.displayCommon(displayInstruction, getLetterCell);
 
         // Now we add an extra <tr> element for the deletion cell row. It is this row
         // that is highlighted as active rather than [IN ADDITION TO???] the letter cells.
@@ -219,41 +228,67 @@ class GameDisplay extends BaseLogger {
             return new DeletionCell(letterPosition, me, me.deletionClickCallback);
         }
 
-        this.displayCommon(displayInstruction, getDeletionCell, hideAdditionCells);
+        this.displayCommon(displayInstruction, getDeletionCell);
     }
-
-    displayFuture(displayInstruction) {
-        const CL = "GameDisplay.displayFuture";
-        COV(0, CL);
-        function getCell(letter, letterPosition) {
-            return new FutureLetterCell(letter, letterPosition, displayInstruction.changePosition);
-        }
-
-        this.displayCommon(displayInstruction, getCell);
-    }
-
-    displayPlayed(displayInstruction, isStartWord) {
-        const CL = "GameDisplay.displayPlayed";
-        COV(0, CL);
-        function getCell(letter, letterPosition) {
-            return new PlayedLetterCell(letter, displayInstruction.moveRating, isStartWord);
-        }
-
-        this.displayCommon(displayInstruction, getCell);
-    }
-
-    // we only display the Target as Target if the game is not over.  If it is over, it will be
-    // displayed as Played, not Target.
 
     displayTarget(displayInstruction) {
         const CL = "GameDisplay.displayTarget";
         COV(0, CL);
 
-        function getCell(letter, __letterPosition) {
-            return new TargetLetterCell(letter);
+        const letterPicker = null,
+              isTargetWord = true;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellWithBackground(letter,
+                letterPosition, displayInstruction.changePosition,
+                letterPicker, displayInstruction.moveRating,
+                displayInstruction.isStartWord, isTargetWord);
         }
 
         this.displayCommon(displayInstruction, getCell);
+    }
+
+    displayWordAfterAdd(displayInstruction) {
+        const CL = "GameDisplay.displayWordAfterAdd";
+        COV(0, CL);
+
+        const me = this;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellNoBackground(letter,
+                letterPosition, displayInstruction.changePosition, me.letterPicker);
+        }
+
+        this.displayCommon(displayInstruction, getCell);
+    }
+
+    displayWordAfterChange(displayInstruction) {
+        const CL = "GameDisplay.displayWordAfterChange";
+        COV(0, CL);
+
+        const me = this;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellNoBackground(letter,
+                letterPosition, displayInstruction.changePosition, me.letterPicker);
+        }
+
+        this.displayCommon(displayInstruction, getCell);
+    }
+
+    // ========== Faux
+    initFauxDisplayInstructions() {
+        this.fauxDisplayInstructions = DisplayInstruction.FAUX_4;
+        console.log("instructions:", this.fauxDisplayInstructions);
+        this.fauxMoveNum = 0;
+    }
+
+    // ========== Faux
+    getFauxDisplayInstructions() {
+        var instructions = this.fauxDisplayInstructions[this.fauxMoveNum];
+        this.fauxMoveNum += 1;
+
+        return instructions;
     }
 
     showGameAfterMove() {
@@ -269,59 +304,66 @@ class GameDisplay extends BaseLogger {
 
         COV(1, CL);
 
-
         // all words are played words until we hit the first future or target word:
 
-        let displayInstructions = this.game.getDisplayInstructions(),
-            wordChainSolutionLength = this.game.getOriginalSolutionLength(),
+        // ========== Faux
+        //let displayInstructions = this.game.getDisplayInstructions(),
+        let displayInstructions = this.getFauxDisplayInstructions(),
+            pickerEnabled = false,
             rowNum = 0;
 
         console.log("======================");
         for (let displayInstruction of displayInstructions) {
             console.log(displayInstruction);
-            const isStartWord = rowNum === 0;
 
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
 
+            this.hideAdditionCells = true;
             this.rowElement.displayAsActiveRow = false;
             Const.GL_DEBUG && this.logDebug("word:", displayInstruction.word, "displayType:", displayInstruction.displayType,
-                    "moveRating:", displayInstruction.moveRating, "lastActiveMoveWasAdd:", this.lastActiveMoveWasAdd, "instruction");
+                    "moveRating:", displayInstruction.moveRating, "instruction");
 
-            // These instructions all indicate the active word.
-            // Note that the active word has also been played.
-            if (displayInstruction.displayType === Const.ADD) {
+            // These instructions all indicate the active word that has also been played.
+            if (displayInstruction.displayType === Const.PLAYED_ADD) {
                 COV(2, CL);
+                this.hideAdditionCells = false;
                 this.rowElement.displayAsActiveRow = true;
-                this.displayAdd(displayInstruction, isStartWord);
-                this.lastActiveMoveWasAdd = true;
+                this.displayPlayedAdd(displayInstruction);
 
-            } else if (displayInstruction.displayType === Const.CHANGE) {
+            } else if (displayInstruction.displayType === Const.PLAYED_CHANGE) {
                 COV(3, CL);
+                pickerEnabled = true;
                 this.rowElement.displayAsActiveRow = true;
-                this.displayChange(displayInstruction, isStartWord);
-                this.lastActiveMoveWasAdd = false;
+                this.displayPlayedChange(displayInstruction);
 
-            } else if (displayInstruction.displayType === Const.DELETE) {
+            } else if (displayInstruction.displayType === Const.PLAYED_DELETE) {
                 COV(4, CL);
                 this.rowElement.displayAsActiveRow = true;
-                this.displayDelete(displayInstruction, tableElement, isStartWord);
-                this.lastActiveMoveWasAdd = false;
+                this.displayPlayedDelete(displayInstruction, tableElement);
 
-            // These instructions indicate a word other than the active one.
-            } else if (displayInstruction.displayType === Const.CHANGE_NEXT) {
+            // These instructions are always after a specific type of move.
+            } else if (displayInstruction.displayType === Const.WORD_AFTER_ADD) {
                 COV(5, CL);
-                this.displayChangeNext(displayInstruction);
+                pickerEnabled = true;
+                this.rowElement.displayAsActiveRow = true;
+                this.displayWordAfterAdd(displayInstruction);
+
+            } else if (displayInstruction.displayType === Const.WORD_AFTER_CHANGE) {
+                COV(6, CL);
+                this.displayWordAfterChange(displayInstruction);
+
+            // These are the "less interesting" instructions.
 
             } else if (displayInstruction.displayType === Const.FUTURE) {
-                COV(6, CL);
+                COV(7, CL);
                 this.displayFuture(displayInstruction);
 
             } else if (displayInstruction.displayType === Const.PLAYED) {
-                COV(7, CL);
-                this.displayPlayed(displayInstruction, isStartWord);
+                COV(8, CL);
+                this.displayPlayed(displayInstruction);
 
             } else if (displayInstruction.displayType === Const.TARGET) {
-                COV(8, CL);
+                COV(9, CL);
                 this.displayTarget(displayInstruction);
 
             } else {
@@ -330,90 +372,95 @@ class GameDisplay extends BaseLogger {
 
             rowNum += 1;
 
-            // If we're at the original solution length, add a line to the display.
-            // Special case: if we are:
-            // - at the last move 
-            // - it's an ADD move
-            // - the + is clicked
-            // In this case currently the line appears in the wrong place: it is
-            // one row too high ... if no "mistakes" it's just above the target,
-            // but shoudl be just below.
-            // THEN ===================> WHAT? TODO TODO TODO  
-            if (rowNum === wordChainSolutionLength) {
+            // Did the instruction tell us to show the par line?
+            if (displayInstruction.showParLine) {
+                COV(10, CL);
                 ElementUtilities.addClass(this.rowElement, 'tr-wc-solution-line');
             }
 
             // Create the next row element if there is more to display
             if (rowNum != displayInstructions.length) {
+                COV(11, CL);
                 this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
             }
-
         }
 
-        if (this.pickerEnabled) {
-            COV(9, CL);
+        if (pickerEnabled) {
+            COV(12, CL);
             this.enablePicker();
         } else {
-            COV(10, CL);
+            COV(13, CL);
             this.disablePicker();
         }
 
         if (this.gameIsOver()) {
-            COV(11, CL);
-
-            // Delete old results and create new divs to go in the results div.
-            ElementUtilities.deleteChildren(this.resultsDiv);
-            var scoreDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break score-div"}),
-                originalSolutionDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break original-solution-div"}),
-                iconDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break icon-div"});
-
-            const scoreText = Const.SCORE_TEXT[this.game.numPenalties()];
-            Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): this.game.numPenalties():",
-                    this.game.numPenalties(), "game");
-            ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
-
-            this.disablePicker();
-            ElementUtilities.disableButton(this.showWordButton);
-
-            // If the derived GameDisplay class defined a function to do additional things when
-            // the game is over, call the function.
-
-            if (this.additionalGameOverActions) {
-                COV(12, CL);
-                this.additionalGameOverActions();
-            }
-
-            // Display WordChain's original solution if different from the user's solution.
-            // Otherwise display a message indicating that they are the same.
-
-            var originalSolutionWords = this.game.getOriginalSolutionWords(),
-                userSolutionWords = this.game.getUserSolutionWords();
-
-            if (originalSolutionWords == userSolutionWords) {
-                COV(13, CL);
-                // We don't want to show this message if the user clicked
-                // 'Show Word' to reveal a word (or all words!).  
-                if (this.game.numShownMoves() == 0) {
-                    COV(14, CL);
-                    ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                        "You found WordChain's solution!");
-                } // else no message regarding WordChain's solution.
-            } else {
-                COV(15, CL);
-                ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                    `WordChain's solution:<br>${originalSolutionWords}`);
-            }
-
-            Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,
-                    " user solution words: ", userSolutionWords,  "game");
-
-            ElementUtilities.addElementTo("img", iconDiv, {src: "/docs/images/favicon.png", class: "word-chain-icon"});
-            ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
-        } else {
-            COV(16, CL);
-            ElementUtilities.enableButton(this.showWordButton);
+            COV(14, CL);
+            // ========== Faux
+            //this.showGameOverGoodies();
         }
-        COV(17, CL);
+
+        COV(15, CL);
+    }
+
+    showGameOverGoodies() {
+        const CL = "GameDisplay.showGameOverGoodies";
+        COV(0, CL);
+
+        // Picker and Show Word should be disabled after the game.
+        this.disablePicker();
+        ElementUtilities.disableButton(this.showWordButton);
+
+        // Delete old results and create new divs to go in the results div.
+        ElementUtilities.deleteChildren(this.resultsDiv);
+        var scoreDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break score-div"}),
+            originalSolutionDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break original-solution-div"}),
+            iconDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break icon-div"});
+
+        // Add the score.
+        const scoreText = Const.SCORE_TEXT[this.game.numPenalties()];
+        Const.GL_DEBUG && this.logDebug("GameDisplay.showGameOverGoodies(): this.game.numPenalties():",
+                this.game.numPenalties(), "game");
+        ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
+
+        // If the derived GameDisplay class defined a function to do additional things when
+        // the game is over, call the function.
+        if (this.additionalGameOverActions) {
+            COV(1, CL);
+            this.additionalGameOverActions();
+        }
+
+        // Display WordChain's original solution if different from the user's solution.
+        // Otherwise display a message indicating that they are the same.
+        var originalSolutionWords = this.game.getOriginalSolutionWords(),
+            userSolutionWords = this.game.getUserSolutionWords();
+
+        if (originalSolutionWords == userSolutionWords) {
+            COV(2, CL);
+            ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
+                "You found WordChain's solution!");
+            /*
+            // OLD CODE: I don't think this is relevant anymore; even if they Show Move
+            // on the last word, we should give them the message.
+            //
+            // We don't want to show this message if the user clicked
+            // 'Show Word' to reveal a word (or all words!).
+            if (this.game.numShownMoves() == 0) {
+            } // else no message regarding WordChain's solution.
+            */
+        } else {
+            COV(3, CL);
+            ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
+                `WordChain's solution:<br>${originalSolutionWords}`);
+        }
+
+        Const.GL_DEBUG && this.logDebug("GameDisplay.showGameOverGoodies(): original solution words: ", originalSolutionWords,
+                " user solution words: ", userSolutionWords,  "game");
+
+        // Finally, toot our horn.
+        ElementUtilities.addElementTo("img", iconDiv, {src: "/docs/images/favicon.png", class: "word-chain-icon"});
+        ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
+
+        COV(4, CL);
     }
 
     /* ----- Callbacks ----- */
@@ -436,7 +483,9 @@ class GameDisplay extends BaseLogger {
         } else {
             COV(2, CL);
             let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
-            result = this.game.playAdd(additionPosition);
+            // ========== Faux
+            //result = this.game.playAdd(additionPosition);
+            result = Const.GOOD_MOVE;
 
             this.processGamePlayResult(result);
         }
@@ -463,7 +512,9 @@ class GameDisplay extends BaseLogger {
             COV(2, CL);
             let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
 
-            result = this.game.playDelete(deletionPosition);
+            // ========== Faux
+            //result = this.game.playDelete(deletionPosition);
+            result = Const.GOOD_MOVE;
             this.processGamePlayResult(result);
         }
 
@@ -509,17 +560,16 @@ class GameDisplay extends BaseLogger {
 
     // cellCreator is a factory method to produce the right kind of cell,
     // including when the cell is for the start word.
-    displayCommon(displayInstruction, cellCreator, hideAdditionCells=true) {
+    displayCommon(displayInstruction, cellCreator) {
         const CL = "GameDisplay.displayCommon";
         COV(0, CL);
         var additionPosition = 0,
             additionCell = null,
             letterCell = null,
             tdElement = null,
-            wordLength = displayInstruction.wordLength,
             word = displayInstruction.word,
-            // TODO: WHAT IS THIS ABOUT? When would word be empty string?
-            letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
+            wordLength = word.length,
+            letters = word.split(''),
             moveRating = displayInstruction.moveRating;
 
         // We add AdditionCells for every word we display so that we use up their
@@ -527,7 +577,7 @@ class GameDisplay extends BaseLogger {
         // The AdditionCells are hidden except when displaying an active row that
         // requires adding a letter.
         tdElement = this.addTd();
-        additionCell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+        additionCell = new AdditionCell(additionPosition, this.hideAdditionCells, this, this.additionClickCallback);
 
         // Add special class to first addition cell to give it extra space on the left.
         additionCell.addClass("action-cell-addition-first");
@@ -535,14 +585,17 @@ class GameDisplay extends BaseLogger {
         ElementUtilities.addElementTo(additionCell.getElement(), tdElement);
         additionPosition++;
 
+        console.log("displayCommon(): word", word);
+
         for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
             // Add the letter cell for this current letter.
             tdElement = this.addTd();
+            console.log("call cellCreator() with letter:", letters[letterIndex], "letterPosition:", letterIndex + 1);
             letterCell = cellCreator(letters[letterIndex], letterIndex + 1);
             ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 
             // Add the next addition cell.
-            additionCell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+            additionCell = new AdditionCell(additionPosition, this.hideAdditionCells, this, this.additionClickCallback);
 
             tdElement = this.addTd();
             ElementUtilities.addElementTo(additionCell.getElement(), tdElement);
@@ -649,14 +702,6 @@ class GameDisplay extends BaseLogger {
         return result;
     }
 
-    shouldShowToastForResult(gameResult) {
-        return (gameResult == Const.WRONG_MOVE) ||
-               (gameResult == Const.DODO_MOVE) || 
-               (gameResult == Const.SCRABBLE_WORD) || 
-               (gameResult == Const.NOT_A_WORD) || 
-               (gameResult == Const.GENIUS_MOVE);
-    }
-
     processGamePlayResult(gameResult) {
         const CL = "GameDisplay.processGamePlayResult";
         COV(0, CL);
@@ -671,6 +716,14 @@ class GameDisplay extends BaseLogger {
             COV(1, CL);
             this.showGameOverToast();
         }
+    }
+
+    shouldShowToastForResult(gameResult) {
+        return (gameResult == Const.WRONG_MOVE) ||
+               (gameResult == Const.DODO_MOVE) ||
+               (gameResult == Const.SCRABBLE_WORD) ||
+               (gameResult == Const.NOT_A_WORD) ||
+               (gameResult == Const.GENIUS_MOVE);
     }
 
     showGameOverToast() {
@@ -705,7 +758,7 @@ class GameDisplay extends BaseLogger {
         ElementUtilities.addClass(unconfirmedElement, Const.UNSELECTED_STYLE)
     }
 
-    // pass-through utility
+    // Pass-through utility
     gameIsOver() {
         const CL = "GameDisplay.gameIsOver";
         COV(0, CL);
@@ -755,6 +808,8 @@ class DailyGameDisplay extends GameDisplay {
         // Enable or disable the share button based on whether the user has played the game.
         this.updateShareButton();
 
+        // ========== Faux
+        this.initFauxDisplayInstructions();
         this.updateDisplay();
     }
 
@@ -859,7 +914,8 @@ class PracticeGameDisplay extends GameDisplay {
             ElementUtilities.disableButton(this.newGameButton);
         }
         COV(2, CL);
-        this.updateDisplay();
+        // ========== Faux
+        // this.updateDisplay();
     }
 
     /* ----- Callbacks ----- */
