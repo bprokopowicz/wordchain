@@ -139,72 +139,8 @@ class DisplayInstruction {
 
     // ============================ FAUX GAMES ============================
 
-    // Change and last move Add -- no mistakes.
-    static FAUX_1 = [
-        [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
-        ],
-        [
-            // User plays 'C'
-            new DisplayInstruction("BORN",    Const.PLAYED,            1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
-        ],
-        [
-            // User clicks first '+'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
-        ],
-        [
-            // User plays 'A'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
-        ],
-    ];
-
-    // Change and last move Add -- mistake on finishing add.
-    static FAUX_2 = [
-        [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
-        ],
-        [
-            // User plays 'C'
-            new DisplayInstruction("BORN",    Const.PLAYED,            1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
-        ],
-        [
-            // User clicks first '+'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
-        ],
-        [
-            // User plays 'S'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SCORN",   Const.PLAYED_CHANGE,     1,      Const.WRONG_MOVE,    false,   true),
-            new DisplayInstruction("?CORN",   Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
-        ],
-        [
-            // User plays 'A'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SCORN",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   true),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
-        ],
-    ];
-
     // Add (not to target) followed by change; last move Change
-    static FAUX_3 = [
+    static FAUX_1 = [
         [
                                  // word      displayType              change  moveRating           isStart  parLine
             new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.NO_RATING,     true,    false),
@@ -239,6 +175,70 @@ class DisplayInstruction {
             new DisplayInstruction("ACORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("ADORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+        ],
+    ];
+
+    // Change and last move Add -- no mistakes.
+    static FAUX_2 = [
+        [
+                                 // word      displayType              change  moveRating           isStart  parLine
+            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'C'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User clicks first '+'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'A'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+        ],
+    ];
+
+    // Change and last move Add -- mistake on finishing add.
+    static FAUX_3 = [
+        [
+                                 // word      displayType              change  moveRating           isStart  parLine
+            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'C'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User clicks first '+'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'S'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("SCORN",   Const.PLAYED_CHANGE,     1,      Const.WRONG_MOVE,    false,   true),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+        ],
+        [
+            // User plays 'A'
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("SCORN",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   true),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
         ],
     ];
 
