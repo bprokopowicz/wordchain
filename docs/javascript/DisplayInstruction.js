@@ -1,9 +1,9 @@
 import * as Const from './Const.js';
 
-// This class provides the interface between the GameDisplay and Game classes.
+// This class provides the interface between the GameDisplay and Game/GameState classes.
 // When displaying the game grid, GameDisplay requests display instructions from
-// Game in a loop until Game returns null. Game Display converts the DisplayInstruction
-// into web elements. A fresh grid is displayed with each user interaction (click of
+// Game in a loop. Game Display converts the DisplayInstruction into web elements.
+// A fresh grid is displayed with each user interaction (click of
 // an add/delete button or selection of a letter to change the word).
 //
 // See Const.js for definitions of constant strings for the displayTypes.
@@ -27,6 +27,9 @@ class DisplayInstruction {
     //         - word length is one more than length of preceding word
     //         - one letter in word is '?'
     //         - moveRating unused
+    //         - WORD_AFTER_ADD is not in the same instruction list as its companion PLAYED_ADD
+    //           (unlike WORD_AFTER_CHANGE); it's in the next instruction list, following a
+    //           PLAYED instruction.
     //     PLAYED_CHANGE:
     //         - letter background color based on move rating
     //         - word displayed as active (yellow background)
@@ -38,6 +41,8 @@ class DisplayInstruction {
     //         - word length is equal to length of preceding word
     //         - one letter in word is '?'
     //         - moveRating unused
+    //         - WORD_AFTER_CHANGE is in the same instruction list as its companion PLAYED_CHANGE
+    //           (unlike WORD_AFTER_ADD), immediately after it.
     //     PLAYED_DELETE:
     //         - letter background color based on move rating
     //         - word displayed as active (yellow background)
@@ -87,7 +92,7 @@ class DisplayInstruction {
     //         - a word in a WORD_AFTER_ADD/CHANGE or FUTURE instruction
     //         - a TARGET instruction before the game is complete
     //
-    //     SCRABBLE_WORD:
+    //     SCRABBLE_MOVE:
     //         - a word that was in the Scrabble dictionary
     //         - does not cause the solution to get shorter (GENIUS_MOVE)
     //         - does not cause the solution to get longer (WRONG_MOVE or DODO_MOVE)
@@ -139,7 +144,29 @@ class DisplayInstruction {
 
     // ============================ FAUX GAMES ============================
 
+    // Would be nice if all of these cases were covered (has a *):
+    //
+    // * 1  - First move is Add
+    // * 2  - First move is Change
+    // * 3  - First move is Delete
+    //   4  - Add then Add
+    // * 5  - Add then Change
+    //   6  - Add then Delete
+    // * 7  - Change then Add
+    //   8  - Change then Change
+    //   9  - Change then Delete
+    // * 10 - Delete then Add
+    // * 11 - Delete then Change
+    // * 12 - Delete then Delete
+    // * 13 - Last move is Add
+    // * 14 - Last move is Change
+    // * 15 - Last move is Delete
+    //
+    // Would also be nice to have an example where there are several wrong moves,
+    // to show the par line in various places.
+
     // Add (not to target) followed by change; last move Change
+    // Covers cases: 1, 5, 14
     static FAUX_1 = [
         [
                                  // word      displayType              change  moveRating           isStart  parLine
@@ -179,6 +206,7 @@ class DisplayInstruction {
     ];
 
     // Change and last move Add -- no mistakes.
+    // Covers cases: 2, 7, 13
     static FAUX_2 = [
         [
                                  // word      displayType              change  moveRating           isStart  parLine
@@ -207,6 +235,7 @@ class DisplayInstruction {
     ];
 
     // Change and last move Add -- mistake on finishing add.
+    // Covers cases: 2, 7, 14
     static FAUX_3 = [
         [
                                  // word      displayType              change  moveRating           isStart  parLine
@@ -242,46 +271,50 @@ class DisplayInstruction {
         ],
     ];
 
-    // Deletions and a last move Add
+    // Two deletion moves.
+    // Covers cases: 3, 12, 15
     static FAUX_4 = [
         [
                                  // word      displayType              change  moveRating           isStart  parLine
             new DisplayInstruction("PLACE",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("LACE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACE",     Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACED",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ],
         [
             // User clicks first '-'
             new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("LACE",    Const.PLAYED_DELETE,     0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACE",     Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACED",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ],
         [
             // User clicks first '-'
             new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACE",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACED",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
-        ],
-        [
-            // User clicks last '+'
-            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACE",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACE?",    Const.WORD_AFTER_ADD,    4,      Const.NO_RATING,     false,   true),
-        ],
-        [
-            // User plays 'D'
-            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACE",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACED",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
         ],
     ];
 
+    // Deletion, change, and a last move Add
+    // Covers cases: 3, 11, 14
     static FAUX_5 = [
+        [
+                                 // word      displayType              change  moveRating           isStart  parLine
+            new DisplayInstruction("PLACE",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("LACE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("RACE",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User clicks first '-'
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("?ACE",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true),
+        ],
+        [
+            // User plays 'R'
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("RACE",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+        ],
     ];
 }
 

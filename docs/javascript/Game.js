@@ -256,12 +256,13 @@ class Game extends BaseLogger {
     }
 
 
-    // the GUI needs to know if a played word was acceptable (GOOD_MOVE, GENIUS_MOVE, SCRABBLE_WORD, DODO_MOVE, WRONG_MOVE, SHOWN_MOVE)
+    // the GUI needs to know if a played word was acceptable
+    // (GOOD_MOVE, GENIUS_MOVE, SCRABBLE_MOVE, DODO_MOVE, WRONG_MOVE, SHOWN_MOVE)
     // vs invalid (NOT_A_WORD or technical problems like BAD_POSITION)
     static moveIsValid(moveRating) {
         const CL = "Game.moveIsValid";
         COV(0, CL);
-        return (moveRating == Const.GOOD_MOVE) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.SCRABBLE_WORD) ||
+        return (moveRating == Const.GOOD_MOVE) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.SCRABBLE_MOVE) ||
                (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE) || (moveRating == Const.SHOWN_MOVE);
     }
 

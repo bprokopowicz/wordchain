@@ -1503,7 +1503,7 @@ class Test extends BaseLogger {
         // shortest solution is BAD,BAT,CAT,CAR  alt using scrabble: BAD,MAD,MAR,CAR  MAD is the genius word
         let dgs = DailyGameState.factory(smallDict);
         dgs.addWord("MAD"); // BAD to MAD is a scrabble word here, but not a genius move (same length solution)
-        this.verify (dgs.ratedMoves[1].rating === Const.SCRABBLE_WORD, "BAD->MAD should return", Const.SCRABBLE_WORD, "got",
+        this.verify (dgs.ratedMoves[1].rating === Const.SCRABBLE_MOVE, "BAD->MAD should return", Const.SCRABBLE_MOVE, "got",
                 dgs.ratedMoves[1].rating) &&
             this.hadNoErrors();
     }
@@ -1764,7 +1764,7 @@ class Test extends BaseLogger {
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
         const badToMadResult = game.playLetter(1,"M");
-        this.verify (badToMadResult === Const.SCRABBLE_WORD, "BAD->MAD should return", Const.SCRABBLE_WORD, "got", badToMadResult) &&
+        this.verify (badToMadResult === Const.SCRABBLE_MOVE, "BAD->MAD should return", Const.SCRABBLE_MOVE, "got", badToMadResult) &&
             this.hadNoErrors();
     }
 

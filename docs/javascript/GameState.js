@@ -170,7 +170,7 @@ class GameState extends BaseLogger {
                 // different word, same length as WordChain used
                 // let them know if it was a scrabble word, although not genius.
                 if ( !this.dictionary.isWord(word) ) {
-                    moveRating = Const.SCRABBLE_WORD;
+                    moveRating = Const.SCRABBLE_MOVE;
                     // add 'word' to the standard dictionary, because it might be needed again by Solver
                     this.dictionary.addWord(word);
                 };
@@ -655,7 +655,7 @@ class DailyGameState extends GameState{
             }
 
             // Determine which color square to display for this word.
-            if (moveRating === Const.GOOD_MOVE || moveRating === Const.SCRABBLE_WORD) {
+            if (moveRating === Const.GOOD_MOVE || moveRating === Const.SCRABBLE_MOVE) {
                 // Word didn't increase the count; pick color indicating "good".
                 COV(4, CL);
                 emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;

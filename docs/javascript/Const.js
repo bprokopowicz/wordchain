@@ -57,7 +57,7 @@ export const DODO_MOVE           = "Ugh! You added two steps!";
 export const GENIUS_MOVE         = "Genius play!";
 export const NO_RATING           = "No move rating";             // not shown to user
 export const GOOD_MOVE           = "Good move";                  // not shown to user
-export const SCRABBLE_WORD       = "Advanced word!";
+export const SCRABBLE_MOVE       = "Advanced word!";
 export const SHOWN_MOVE          = "Best next move";
 export const WRONG_MOVE          = "D'oh! You added a step";
 

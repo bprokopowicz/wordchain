@@ -200,7 +200,7 @@ class LetterCellWithBackground extends LetterCell {
                 COV(3, CL);
                 // TODO: Maybe this should just pass Const.GOOD_MOVE so always green if game
                 // is finished, even if last word was shown. Target word can't have
-                // moveRating SCRABBLE_WORD, GENIUS_MOVE, DODO_MOVE, or WRONG_MOVE.
+                // moveRating SCRABBLE_MOVE, GENIUS_MOVE, DODO_MOVE, or WRONG_MOVE.
                 this.addBackgroundClassBasedOnMoveRating(moveRating);
             }
         }
@@ -215,7 +215,7 @@ class LetterCellWithBackground extends LetterCell {
         const CL = "LetterCell.addBackgroundClassBasedOnMoveRating";
         COV(0, CL);
 
-        if (moveRating == Const.GOOD_MOVE || moveRating == Const.SCRABBLE_WORD) {
+        if (moveRating == Const.GOOD_MOVE || moveRating == Const.SCRABBLE_MOVE) {
             COV(1, CL);
             this.addClass("letter-cell-good", this.cellContainer);
         } else if (moveRating == Const.GENIUS_MOVE) {

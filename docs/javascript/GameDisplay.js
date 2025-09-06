@@ -278,7 +278,7 @@ class GameDisplay extends BaseLogger {
 
     // ========== Faux
     initFauxDisplayInstructions() {
-        this.fauxDisplayInstructions = DisplayInstruction.FAUX_4;
+        this.fauxDisplayInstructions = DisplayInstruction.FAUX_5;
         console.log("instructions:", this.fauxDisplayInstructions);
         this.fauxMoveNum = 0;
     }
@@ -721,7 +721,7 @@ class GameDisplay extends BaseLogger {
     shouldShowToastForResult(gameResult) {
         return (gameResult == Const.WRONG_MOVE) ||
                (gameResult == Const.DODO_MOVE) ||
-               (gameResult == Const.SCRABBLE_WORD) ||
+               (gameResult == Const.SCRABBLE_MOVE) ||
                (gameResult == Const.NOT_A_WORD) ||
                (gameResult == Const.GENIUS_MOVE);
     }
