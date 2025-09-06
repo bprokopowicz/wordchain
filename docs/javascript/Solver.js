@@ -468,8 +468,8 @@ class Solution extends BaseLogger {
         } else if (toHtml) {
             // display the words and the choice stats
             return this.solutionWords.join(", ")
-                + " difficulty: " +  this.difficulty
-                + " choices at each step: " + this.nChoicesOnStep.join(",");
+                + " -- difficulty: " +  this.difficulty
+                + "; choices at each step: " + this.nChoicesOnStep.join(",");
         } else {
             // just the words
             const separator = " ";

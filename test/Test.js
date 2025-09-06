@@ -3205,13 +3205,20 @@ class Test extends BaseLogger {
     displaySolverTester() {
         this.addTitle("Solver Tester");
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "Start word: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "solverStartWord", type: "text"});
-        ElementUtilities.addElementTo("p", this.outerDiv);
+        var table = ElementUtilities.addElementTo("table", this.outerDiv),
+            tr, td;
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "Target word: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "solverTargetWord", type: "text"});
-        ElementUtilities.addElementTo("p", this.outerDiv);
+        tr = ElementUtilities.addElementTo("tr", table);
+        td = ElementUtilities.addElementTo("td", tr, {style: "text-align: right;"});
+        ElementUtilities.addElementTo("label", td, {}, "Start word: ");
+        td = ElementUtilities.addElementTo("td", tr);
+        ElementUtilities.addElementTo("input", td, {id: "solverStartWord", type: "text"});
+
+        tr = ElementUtilities.addElementTo("tr", table);
+        td = ElementUtilities.addElementTo("td", tr, {style: "text-align: right;"});
+        ElementUtilities.addElementTo("label", td, {}, "Target word: ");
+        td = ElementUtilities.addElementTo("td", tr);
+        ElementUtilities.addElementTo("input", td, {id: "solverTargetWord", type: "text"});
 
         var button = ElementUtilities.addElementTo("button", this.outerDiv, {id: "solve"}, "Solve!");
 
@@ -3249,6 +3256,10 @@ class Test extends BaseLogger {
 
     displayCookies() {
         this.addTitle("Local Storage - you must focus outside the box for change to take effect");
+
+        var table = ElementUtilities.addElementTo("table", this.outerDiv),
+            tr, td;
+
         const allCookies = Cookie.ALL_TEST_VARS.concat(Cookie.ALL_GAME_VARS);
         for (let varName of allCookies) {
             var value = Cookie.get(varName);
@@ -3256,17 +3267,20 @@ class Test extends BaseLogger {
                 value = "null";
             }
 
-            ElementUtilities.addElementTo("label", this.outerDiv, {}, `${varName}: `);
+            tr = ElementUtilities.addElementTo("tr", table);
+            td = ElementUtilities.addElementTo("td", tr, {style: "text-align: right;"});
+            ElementUtilities.addElementTo("label", td, {}, `${varName}: `);
+
             const maxCharsPerRow = 100;
             const nChars = value.length;
             const nRows = Math.trunc(nChars / maxCharsPerRow) + 1;
             const nCols = maxCharsPerRow;
-            var inputBox = ElementUtilities.addElementTo("textarea", this.outerDiv,
+
+            var inputBox = ElementUtilities.addElementTo("textarea", td,
                     {id: varName, rows: nRows, cols: nCols});
             inputBox.defaultValue = value;
             inputBox.addEventListener("change", this.textareaChangeCallback); 
             // inputBox.addEventListener("input", this.textareaInputCallback); 
-            ElementUtilities.addElementTo("p", this.outerDiv);
         }
     }
 
@@ -3297,37 +3311,28 @@ class Test extends BaseLogger {
     displayPuzzleFinderTester() {
         this.addTitle("Puzzle Finder");
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "Start word: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderStartWord", type: "text"});
-        ElementUtilities.addElementTo("p", this.outerDiv);
+        var table = ElementUtilities.addElementTo("table", this.outerDiv),
+            tr, td;
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 1: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen1", type: "text", value: Const.PRACTICE_REQ_WORD_LEN_1.toString()});
-        ElementUtilities.addElementTo("p", this.outerDiv);
+        const inputList = [
+            {label: "start word",                  id: "puzleFinderStartWord",           value: ""},
+            {label: "required word len 1",         id: "puzleFinderReqWordLen1",         value: Const.PRACTICE_REQ_WORD_LEN_1},
+            {label: "required word len 2",         id: "puzleFinderReqWordLen2",         value: Const.PRACTICE_REQ_WORD_LEN_2},
+            {label: "final word len (0 for any)",  id: "puzleFinderFinalWordLen",        value: Const.PRACTICE_TARGET_WORD_LEN},
+            {label: "min words",                   id: "puzleFinderMinWords",            value: Const.PRACTICE_STEPS_MINIMUM},
+            {label: "max words",                   id: "puzleFinderMaxWords",            value: Const.PRACTICE_STEPS_MAXIMUM},
+            {label: "min difficulty",              id: "puzleFinderMinDifficulty",       value: Const.PRACTICE_DIFFICULTY_MINIMUM},
+            {label: "min choices per step (>=1)",  id: "puzzleFinderMinChoicesPerStep",  value: Const.PRACTICE_MIN_CHOICES_PER_STEP},
+        ];
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "required word len 2: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderReqWordLen2", type: "text", value: Const.PRACTICE_REQ_WORD_LEN_2.toString()});
-        ElementUtilities.addElementTo("p", this.outerDiv);
+        for (let input of inputList) {
+            tr = ElementUtilities.addElementTo("tr", table);
+            td = ElementUtilities.addElementTo("td", tr, {style: "text-align: right;"});
+            ElementUtilities.addElementTo("label", td, {}, `${input.label}:`);
 
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "final word len (0 for any): ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderFinalWordLen", type: "text", value: Const.PRACTICE_TARGET_WORD_LEN.toString()});
-        ElementUtilities.addElementTo("p", this.outerDiv);
-
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min words: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinWords", type: "text", value: Const.PRACTICE_STEPS_MINIMUM.toString()});
-        ElementUtilities.addElementTo("p", this.outerDiv);
-
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "max words: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMaxWords", type: "text", value: Const.PRACTICE_STEPS_MAXIMUM.toString()});
-        ElementUtilities.addElementTo("p", this.outerDiv);
-
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min difficulty: ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinDifficulty", type: "text", value: Const.PRACTICE_DIFFICULTY_MINIMUM.toString()});
-        ElementUtilities.addElementTo("p", this.outerDiv);
-
-        ElementUtilities.addElementTo("label", this.outerDiv, {}, "min choices per step (>=1): ");
-        ElementUtilities.addElementTo("input", this.outerDiv, {id: "puzzleFinderMinChoicesPerStep", type: "text", value: Const.PRACTICE_MIN_CHOICES_PER_STEP.toString() });
-        ElementUtilities.addElementTo("p", this.outerDiv);
+            td = ElementUtilities.addElementTo("td", tr);
+            ElementUtilities.addElementTo("input", td, {id: input.id, type: "text", value: input.value.toString()});
+        }
 
         var button = ElementUtilities.addElementTo("button", this.outerDiv, {id: "puzzleFinderFind"}, "Find!");
 

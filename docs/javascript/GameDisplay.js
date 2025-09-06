@@ -278,7 +278,7 @@ class GameDisplay extends BaseLogger {
 
     // ========== Faux
     initFauxDisplayInstructions() {
-        this.fauxDisplayInstructions = DisplayInstruction.FAUX_5;
+        this.fauxDisplayInstructions = DisplayInstruction.FAUX_8;
         console.log("instructions:", this.fauxDisplayInstructions);
         this.fauxMoveNum = 0;
     }
