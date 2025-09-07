@@ -18,6 +18,85 @@ class Game extends BaseLogger {
         this.scrabbleDictionary = new WordChainDict(scrabbleWordList);
     }
 
+    getDisplayInstructionsNEW() {
+    /*
+        For each word in played list except last:
+        (Start word counts as played, so in the first list
+        of the game, this chunk doesn't apply.)
+        - displayType = PLAYED
+        - changePosition = 0
+        - If word is start word:
+          - moveRating = NO_RATING
+        - Else:
+          - moveRating != NO_RATING
+
+        For last played word:
+        (which is start word in the first play of the game)
+        - If next word is longer:
+          - displayType = PLAYED_ADD
+          - changePosition = 0
+        - Else if next word is shorter:
+          - displayType = PLAYED_DELETE
+          - changePosition = 0
+        - Else:
+          - displayType = PLAYED_CHANGE
+          - changePosition != 0
+
+        - If word is start word:
+          - moveRating = NO_RATING
+        - Else:
+          - moveRating != NO_RATING
+
+        For first unplayed word:
+        - If previousDisplayType is PLAYED_ADD:
+          - displayType = FUTURE
+          - if next word is same length: changePosition != 0
+          - moveRating = NO_RATING
+        - Else if previousDisplayType is PLAYED_DELETE:
+          - displayType = FUTURE
+          - changePosition = 0
+          - moveRating = NO_RATING
+        - Else if previousDisplayType is PLAYED_CHANGE:
+          - displayType = WORD_AFTER_CHANGE
+          - word has hole
+          - if next word is same length: changePosition != 0
+          - moveRating = NO_RATING
+        - Else if previousDisplayType is PLAYED:
+            - If this word is longer than previous word:
+              - displayType = WORD_AFTER_ADD
+              - word has hole
+              - if next word is same length: changePosition != 0
+              - moveRating = NO_RATING
+            - Else if word is target word:
+              - displayType = TARGET
+              - changePosition = 0
+              - moveRating != MOVE_RATING (background of cells is based on moveRating)
+            - Else:
+              - displayType = FUTURE
+              - if next word is same length: changePosition != 0
+              - moveRating = NO_RATING
+        - Else if previousDisplayType is FUTURE:
+            - If word is target word:
+              - displayType = TARGET
+              - changePosition = 0
+              - moveRating = NO_RATING (this means background of cells is purple)
+            - Else:
+              - displayType = FUTURE
+              - if next word is same length: changePosition != 0
+              - moveRating = NO_RATING
+
+        For remaining unplayed words (if any):
+        - If word is target:
+          - displayType = TARGET
+          - changePosition = 0
+          - moveRating != NO_RATING (background of cells is based on moveRating)
+        -Else:
+         - displayType = FUTURE
+         - if next word is same length: changePosition != 0
+         - moveRating = NO_RATING
+    */
+    }
+
     // This function returns a list to display all the steps of the puzzle
     // for ONE MOVE. This function is called every time the user makes a move.
     //
