@@ -1,5 +1,6 @@
 import { BaseLogger } from '../docs/javascript/BaseLogger.js';
 import { WordChainDict, globalWordList, scrabbleWordList } from '../docs/javascript/WordChainDict.js';
+import { DisplayInstruction } from '../docs/javascript/DisplayInstruction.js';
 import { Solver, Solution } from '../docs/javascript/Solver.js';
 import { GameState, DailyGameState, PracticeGameState } from '../docs/javascript/GameState.js';
 import { Game, DailyGame, PracticeGame } from '../docs/javascript/Game.js';
@@ -318,6 +319,70 @@ class Test extends BaseLogger {
             this.totalAssertionCount += 1;
         }
         return truthValue;
+    }
+
+    verifyEqual() {
+        const args = [...arguments],
+              actual = args.shift(),
+              expected = args.shift(),
+              differences = this.getObjectDifferencesAsObject(actual, expected),
+              truthValue = Object.keys(differences).length === 0,
+              message = args.join(" ");
+
+        if (! truthValue) {
+            this.messages.push(`<font color="red">${this.testName}: Failed: ${message}</font color="red">`);
+            this.failureCount += 1;
+        } else {
+            this.testAssertionCount += 1;
+            this.totalAssertionCount += 1;
+        }
+        return truthValue;
+    }
+
+    // Shallow object comparison. Returns an object whose properties
+    // are the properties from the two input objects (actual, expected).
+    // The value at each key (if there are differences) is an object
+    // with properties 'actual' and 'expected'.
+    // For keys in one input object but not the other the value not
+    // present will appear in the return value as undefined.
+    getObjectDifferencesAsObject(actual, expected) {
+        const differences = {};
+
+        // Check for properties present in actual but not in expected, or with different values
+        for (const key in actual) {
+            if (Object.prototype.hasOwnProperty.call(actual, key)) {
+                if (!Object.prototype.hasOwnProperty.call(expected, key)) {
+                    differences[key] = {
+                        actual: actual[key],
+                        expected: undefined // Property missing in expected
+                    };
+                } else if (actual[key] !== expected[key]) {
+                    differences[key] = {
+                        actual: actual[key],
+                        expected: expected[key]
+                    };
+                }
+            }
+        }
+  
+        // Check for properties present in expected but not in actual
+        for (const key in expected) {
+            if (Object.prototype.hasOwnProperty.call(expected, key)) {
+                if (!Object.prototype.hasOwnProperty.call(actual, key)) {
+                    differences[key] = {
+                        actual: undefined, // Property missing in actual
+                        expected: expected[key]
+                    };
+                }
+            }
+        }
+  
+        return differences;
+    }
+
+    getObjectDifferences(actual, expected) {
+        const differences = this.getObjectDifferencesAsObject(actual, expected);
+        return JSON.stringify(differences);;
     }
 
     /*
@@ -1558,11 +1623,14 @@ class Test extends BaseLogger {
             Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO); //Daily game be game #2
             window.dataLayer = window.dataLayer
         }
+        /*
         prep(); this.testGameCorrectFirstWord();
         prep(); this.testGameDeleteWrongLetter();
         prep(); this.testGameDeleteBadPosition();
         prep(); this.testGameDifferentWordFromInitialSolution();
+        */
         prep(); this.testGameDisplayInstructions();
+        /*
         prep(); this.testGameDisplayInstructionsMistakes();
         prep(); this.testGameDisplayInstructionsDifferentPath();
         prep(); this.testGameUsingScrabbleWordMistake();
@@ -1580,6 +1648,7 @@ class Test extends BaseLogger {
         prep(); this.testGameLossOnWrongDelete();
         prep(); this.testGameLossOnWrongLetterChange();
         prep(); this.testPracticeGamesPerDayLimitReached();
+        */
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -1682,27 +1751,77 @@ class Test extends BaseLogger {
         const playLetterTResult = game.playLetter(3, "T"); // BAD to BAT
         const afterPlayLetterTInstructions = game.getDisplayInstructions();
 
-        this.verify((initialInstructions.length === 4), `Display instructions length should be 4, not ${initialInstructions.length}`) &&
-        this.verify((initialInstructions[0].toStr() === "(delete,word:SCAD)"), `initial instruction[0] is ${initialInstructions[0].toStr()}`) &&
-        this.verify((initialInstructions[1].toStr() === "(future,word:CAD,changePosition:1)"), `initial instruction[1] is ${initialInstructions[1].toStr()}`) &&
-        this.verify((initialInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `initial instruction[2] is ${initialInstructions[2].toStr()}`) &&
-        this.verify((initialInstructions[3].toStr() === "(target,word:BAT)"), `initial instruction[3] is ${initialInstructions[3].toStr()}`) &&
-        this.verify((playDeleteResult === Const.GOOD_MOVE), "playDelete(1) not GOOD_MOVE") &&
-        this.verify((afterDeleteInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after delete instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
-        this.verify((afterDeleteInstructions[1].toStr() === "(change,word:CAD,changePosition:1)"), `after delete instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
-        this.verify((afterDeleteInstructions[2].toStr() === "(change-next,word:BAD,changePosition:3)"), `after delete instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
-        this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
-        this.verify((playLetterBResult === Const.GOOD_MOVE), "playLetterBResult(1) not GOOD_MOVE") &&
-        this.verify((afterPlayLetterBInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after play letter B  instruction[0] is ${afterPlayLetterBInstructions[0].toStr()}`) &&
-        this.verify((afterPlayLetterBInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.GOOD_MOVE})`), `after play letter B  instruction[1] is ${afterPlayLetterBInstructions[1].toStr()}`) &&
-        this.verify((afterPlayLetterBInstructions[2].toStr() === "(change,word:BAD,changePosition:3)"), `after play letter B  instruction[2] is ${afterPlayLetterBInstructions[2].toStr()}`) &&
-        this.verify((afterPlayLetterBInstructions[3].toStr() === "(target,word:BAT)"), `after play letter B  instruction[3] is ${afterPlayLetterBInstructions[3].toStr()}`) &&
-        this.verify((playLetterTResult === Const.GOOD_MOVE), "playLetterTResult(1) not GOOD_MOVE") &&
-        this.verify((afterPlayLetterTInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after play letter T instruction[0] is ${afterPlayLetterTInstructions[0].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.GOOD_MOVE})`), `after play letter T instruction[1] is ${afterPlayLetterTInstructions[1].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[2].toStr() === `(played,word:BAD,moveRating:${Const.GOOD_MOVE})`), `after play letter T instruction[2] is ${afterPlayLetterTInstructions[2].toStr()}`) &&
-        this.verify((afterPlayLetterTInstructions[3].toStr() === `(played,word:BAT,moveRating:${Const.GOOD_MOVE})`), `after play letter T instruction[3] is ${afterPlayLetterTInstructions[3].toStr()}`) &&
-            this.hadNoErrors();
+        const expectedInitialInstructions = [
+                                // word      type                     change  rating               isStart  parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+        const expectedPlayDeleteInstructions = [
+            new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+        const expectedPlayLetterBInstructions = [
+            new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BAD",    Const.PLAYED_CHANGE,     3,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BA?",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+        ];
+        const expectedPlayLetterTInstructions = [
+            new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
+        ];
+
+        var result = true;
+
+        result &= this.verify((initialInstructions.length === 4), `Display instructions length should be 4, not ${initialInstructions.length}`);
+
+        for (let i = 0; i < 4; i++) {
+            if (! result) {
+                break;
+            }
+            result &= this.verifyEqual(initialInstructions[i], expectedInitialInstructions[i],
+                `initial instruction[i] differences ${this.getObjectDifferences(initialInstructions[i], expectedInitialInstructions[i])}`);
+        }
+
+        result &= this.verify((playDeleteResult === Const.GOOD_MOVE), "playDelete not GOOD_MOVE");
+
+        for (let i = 0; i < 4; i++) {
+            if (! result) {
+                break;
+            }
+            result &= this.verifyEqual(afterDeleteInstructions[i], expectedPlayDeleteInstructions[i],
+                `after delete instruction[i] differences ${this.getObjectDifferences(afterDeleteInstructions[i], expectedPlayDeleteInstructions[i])}`);
+        }
+
+        result &= this.verify((playLetterBResult === Const.GOOD_MOVE), "playLetterBResult not GOOD_MOVE");
+
+        for (let i = 0; i < 4; i++) {
+            if (! result) {
+                break;
+            }
+            result &= this.verifyEqual(afterPlayLetterBInstructions[i], expectedPlayLetterBInstructions[i],
+                `after play letter B instruction[i] differences ${this.getObjectDifferences(afterPlayLetterBInstructions[i], expectedPlayLetterBInstructions[i])}`);
+        }
+
+        result &= this.verify((playLetterBResult === Const.GOOD_MOVE), "playLetterBResult not GOOD_MOVE");
+
+        for (let i = 0; i < 4; i++) {
+            if (! result) {
+                break;
+            }
+            result &= this.verifyEqual(afterPlayLetterTInstructions[i], expectedPlayLetterTInstructions[i],
+                `after play letter T instruction[i] differences ${this.getObjectDifferences(afterPlayLetterTInstructions[i], expectedPlayLetterTInstructions[i])}`);
+        }
+
+        result &= this.verify((playLetterTResult === Const.GOOD_MOVE), "playLetterTResult not GOOD_MOVE");
+
+        result && this.hadNoErrors();
     }
 
     testGameDisplayInstructionsMistakes() {

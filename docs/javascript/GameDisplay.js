@@ -102,8 +102,8 @@ class GameDisplay extends BaseLogger {
         } else {
             COV(2, CL);
             // ========== Faux
-            //result = this.game.playLetter(letterPosition, letter);
-            result = Const.GOOD_MOVE
+            result = this.game.playLetter(letterPosition, letter);
+            //result = Const.GOOD_MOVE
             this.processGamePlayResult(result);
         }
 
@@ -278,7 +278,7 @@ class GameDisplay extends BaseLogger {
 
     // ========== Faux
     initFauxDisplayInstructions() {
-        this.fauxDisplayInstructions = DisplayInstruction.FAUX_8;
+        this.fauxDisplayInstructions = DisplayInstruction.FAUX_1;
         console.log("instructions:", this.fauxDisplayInstructions);
         this.fauxMoveNum = 0;
     }
@@ -307,8 +307,8 @@ class GameDisplay extends BaseLogger {
         // all words are played words until we hit the first future or target word:
 
         // ========== Faux
-        //let displayInstructions = this.game.getDisplayInstructions(),
-        let displayInstructions = this.getFauxDisplayInstructions(),
+        let displayInstructions = this.game.getDisplayInstructions(),
+        //let displayInstructions = this.getFauxDisplayInstructions(),
             pickerEnabled = false,
             rowNum = 0;
 
@@ -397,6 +397,7 @@ class GameDisplay extends BaseLogger {
             COV(14, CL);
             // ========== Faux
             //this.showGameOverGoodies();
+            this.showGameOverGoodies();
         }
 
         COV(15, CL);
@@ -484,8 +485,8 @@ class GameDisplay extends BaseLogger {
             COV(2, CL);
             let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
             // ========== Faux
-            //result = this.game.playAdd(additionPosition);
-            result = Const.GOOD_MOVE;
+            result = this.game.playAdd(additionPosition);
+            //result = Const.GOOD_MOVE;
 
             this.processGamePlayResult(result);
         }
@@ -513,8 +514,8 @@ class GameDisplay extends BaseLogger {
             let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
 
             // ========== Faux
-            //result = this.game.playDelete(deletionPosition);
-            result = Const.GOOD_MOVE;
+            result = this.game.playDelete(deletionPosition);
+            //result = Const.GOOD_MOVE;
             this.processGamePlayResult(result);
         }
 
@@ -590,7 +591,7 @@ class GameDisplay extends BaseLogger {
         for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
             // Add the letter cell for this current letter.
             tdElement = this.addTd();
-            console.log("call cellCreator() with letter:", letters[letterIndex], "letterPosition:", letterIndex + 1);
+            //console.log("call cellCreator() with letter:", letters[letterIndex], "letterPosition:", letterIndex + 1);
             letterCell = cellCreator(letters[letterIndex], letterIndex + 1);
             ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 
@@ -809,7 +810,7 @@ class DailyGameDisplay extends GameDisplay {
         this.updateShareButton();
 
         // ========== Faux
-        this.initFauxDisplayInstructions();
+        //this.initFauxDisplayInstructions();
         this.updateDisplay();
     }
 
@@ -916,6 +917,7 @@ class PracticeGameDisplay extends GameDisplay {
         COV(2, CL);
         // ========== Faux
         // this.updateDisplay();
+        this.updateDisplay();
     }
 
     /* ----- Callbacks ----- */

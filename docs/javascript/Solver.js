@@ -165,7 +165,7 @@ class Solver {
         return true;
     }
 
-    // a utility function to determine how to get from word A to word B in one-step,
+    // a utility function to determine how to get from word A to word B in one step,
     // if it's possible.
     // Returns:
     //   [action, position, letter]:
@@ -174,8 +174,6 @@ class Solver {
     //       letter = the letter to change to or insert.  Not used on DELETE actions
     //   null:
     //       if you can't get from a to b in one operation
-    // special case:
-    //   if word A has a hole (?) in it and is the same length word B, 
 
     static getTransformationStep(wordA, wordB) {
         const CL = "Solver.getTransformationStep";
@@ -272,20 +270,6 @@ class Solution extends BaseLogger {
     addWord(newWord) {
         this.solutionWords.push(newWord);
         return this;
-    }
-
-    findChangedLetterLocation(word1, word2) {
-        const CL = "Solution.findChangedLetterLocation";
-        COV(0, CL);
-        for (let i=0; i < word1.length; i++) {
-            if (word1[i] != word2[i]) {
-                COV(1, CL);
-                return i;
-            }
-        }
-        console.error("can't find difference between ", word1, " and ", word2);
-        COV(2, CL);
-        return -1;
     }
 
     // side effect: sets this.difficulty, this.nChoicesEasiestStep, and this.nChoicesOnStep (array)

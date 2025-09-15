@@ -1,4 +1,4 @@
-export var GL_DEBUG = false;
+export var GL_DEBUG = true;
 
 // Turn on/off debugging.  We use var instead of const so that we can turn it on/off from
 // code as well as by hard-coding it here, BUT:
@@ -52,7 +52,7 @@ export const PRACTICE_START_WORDS          = [
 
 export const SHOW_TOAST_DURATION = 3000; // milliseconds
 
-// --- Returned from game play and are used as Move Ratings in DisplayInstructions
+// --- Returned from game play and are used as Move Ratings in DisplayInstructions and GameState
 export const DODO_MOVE           = "Ugh! You added two steps!";
 export const GENIUS_MOVE         = "Genius play!";
 export const NO_RATING           = "No move rating";             // not shown to user

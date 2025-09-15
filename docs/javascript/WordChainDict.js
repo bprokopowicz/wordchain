@@ -189,9 +189,15 @@ class WordChainDict extends BaseLogger {
         return replacements;
     }
 
-    findChangedLetterLocation(word1, word2) {
+    // returns zero-based location of (first, if any) changed letter.  
+    // -1 if no letters are different.
+    static findChangedLetterLocation(word1, word2) {
         const CL = "WordChainDict.findChangedLetterLocation";
         COV(0, CL);
+        if (word1.length != word2.length) {
+            console.error("findChangedLetterLocation() must be given same-length words.");
+            return -1;
+        }
         for (let i=0; i < word1.length; i++) {
             if (word1[i] != word2[i]) {
                 COV(1, CL);
@@ -201,6 +207,12 @@ class WordChainDict extends BaseLogger {
         console.error("can't find difference between ", word1, " and ", word2);
         return -1;
     }    
+
+    // put the HOLE characted at 'pos' in 'word'.  pos is 1-indexed, to agree with changePosition in the display code.
+    static putHoleAtCharacterPos(word, pos) {
+        const wordWithHole = word.substring(0, pos-1) + Const.HOLE + word.substring(pos);
+        return wordWithHole;
+    }
 
     // findOptionsAtWordStep is only used to measure a solution's difficulty.  Given the known step
     // 'thisWord' -> 'nextWord', what are all the words possible that have the
@@ -216,7 +228,7 @@ class WordChainDict extends BaseLogger {
             COV(1, CL);
             // we tell the user which letter location to change, so only the changes of that
             // location should count towards difficulty
-            let loc = this.findChangedLetterLocation(thisWord, nextWord);
+            let loc = WordChainDict.findChangedLetterLocation(thisWord, nextWord);
             if (loc >= 0) {
                 replacementWords = this.findReplacementWordsAtLoc(thisWord, loc);
             } else {

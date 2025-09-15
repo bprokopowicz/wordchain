@@ -15,6 +15,26 @@ class DisplayInstruction {
     //     - is ignored for displayType future; only length of it is used
     //
     // displayType:
+    //     played words:
+    //        PLAYED - all but the last played.
+    //        The last played word is subtyped by the action now needed on it.
+    //          PLAYED_ADD - the last played word, and user needs to add a letter now.
+    //          PLAYED_CHANGE - the last played word, and user needs to change a letter now.
+    //          PLAYED_DELETE - the last played word, and user needs to delete a letter now.
+    //     unplayed words:
+    //        The first unplayed word is one of:
+    //          WORD_AFTER_CHANGE - follows a played word, PLAYED_CHANGE subtype only.
+    //              Has a '?'  Same length as last played word
+    //              Indicates the word that the user is trying to reach target by changing one letter.
+    //          WORD_AFTER_ADD - follows a played word (PLAYED, not a subtype) where this word
+    //              is one longer and has a '?' to fill.
+    //              Indicates the word that the user is trying to reach by changing one letter,
+    //              after adding a space.
+    //          FUTURE - an unplayed word immediately following a PLAYED_DELETE, WORD_AFTER_CHANGE,
+    //             WORD_AFTER_ADD, or other FUTURE word -- and not the target word.
+    //        TARGET - the last unplayed word of the puzzle.
+    //
+    //
     //     PLAYED_ADD:
     //         - letter background color based on move rating
     //         - word displayed as active (yellow background)
@@ -28,7 +48,7 @@ class DisplayInstruction {
     //         - one letter in word is '?'
     //         - moveRating unused
     //         - WORD_AFTER_ADD is not in the same instruction list as its companion PLAYED_ADD
-    //           (unlike WORD_AFTER_CHANGE); it's in the next instruction list, following a
+    //           (unlike WORD_AFTER_CHANGE); it's in the next instruction list, following the last
     //           PLAYED instruction.
     //     PLAYED_CHANGE:
     //         - letter background color based on move rating
@@ -193,8 +213,8 @@ class DisplayInstruction {
             // User plays 'D'
             new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("ACORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ADOR?",   Const.PLAYED_CHANGE,     5,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("ADORN",   Const.PLAYED_CHANGE,     5,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("ADOR?",   Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true),
         ],
         [
             // User plays 'E'
@@ -324,7 +344,7 @@ class DisplayInstruction {
                                  // word      displayType              change  moveRating           isStart  parLine
             new DisplayInstruction("BANG",    Const.PLAYED_CHANGE,     4,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("BAN?",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BA?E",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BASE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("ABASE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ],
