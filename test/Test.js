@@ -321,16 +321,33 @@ class Test extends BaseLogger {
         return truthValue;
     }
 
-    verifyEqual() {
-        const args = [...arguments],
-              actual = args.shift(),
-              expected = args.shift(),
-              differences = this.getObjectDifferencesAsObject(actual, expected),
-              truthValue = Object.keys(differences).length === 0,
-              message = args.join(" ");
+    /*
+     * verifyInstructionList(actualInstructions, expectedInstructions, description)
+     * Iterate over two same-length lists of display instructions, and compare them with verifyEqual.
+     * description should describe what game-step the instruction list represents.
+     */
+
+    verifyInstructionList(actualInstructions, expectedInstructions, description) {
+        for (let i = 0; i < actualInstructions.length; i++) {
+            if (! this.verifyEqual(actualInstructions[i], expectedInstructions[i], `${description}[${i}]`)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /*
+     * verifyEqual (actual, expected, description)
+     * returns true if actual and expected objects shallow-match
+     * prints out mismatches and description if there is a mismatch
+     */
+
+    verifyEqual(actual, expected, description) {
+        const differences = this.getObjectDifferencesAsObject(actual, expected),
+              truthValue = Object.keys(differences).length === 0;
 
         if (! truthValue) {
-            this.messages.push(`<font color="red">${this.testName}: Failed: ${message}</font color="red">`);
+            this.messages.push(`<font color="red">${this.testName}: Failed: ${description} differences: ${JSON.stringify(differences)}</font color="red">`);
             this.failureCount += 1;
         } else {
             this.testAssertionCount += 1;
@@ -1630,8 +1647,8 @@ class Test extends BaseLogger {
         prep(); this.testGameDifferentWordFromInitialSolution();
         */
         prep(); this.testGameDisplayInstructions();
-        /*
         prep(); this.testGameDisplayInstructionsMistakes();
+        /*
         prep(); this.testGameDisplayInstructionsDifferentPath();
         prep(); this.testGameUsingScrabbleWordMistake();
         prep(); this.testGameUsingScrabbleWordOK();
@@ -1740,14 +1757,14 @@ class Test extends BaseLogger {
         const initialInstructions = game.getDisplayInstructions();
 
         const playDeleteResult = game.playDelete(1); // SCAD to CAD
-        this.logDebug(this.testName, "delete 1 SCAD->CAD", "test");
+        this.logDebug("test", this.testName, "delete 1 SCAD->CAD", "test");
         const afterDeleteInstructions = game.getDisplayInstructions();
 
-        this.logDebug(this.testName, "change 1 CAD->BAD", "test");
+        this.logDebug("test", this.testName, "change 1 CAD->BAD", "test");
         const playLetterBResult = game.playLetter(1, "B"); // CAD to BAD
         const afterPlayLetterBInstructions = game.getDisplayInstructions();
 
-        this.logDebug(this.testName, "change 3 BAD->BAT done", "test");
+        this.logDebug("test", this.testName, "change 3 BAD->BAT done", "test");
         const playLetterTResult = game.playLetter(3, "T"); // BAD to BAT
         const afterPlayLetterTInstructions = game.getDisplayInstructions();
 
@@ -1777,51 +1794,16 @@ class Test extends BaseLogger {
             new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
         ];
 
-        var result = true;
-
-        result &= this.verify((initialInstructions.length === 4), `Display instructions length should be 4, not ${initialInstructions.length}`);
-
-        for (let i = 0; i < 4; i++) {
-            if (! result) {
-                break;
-            }
-            result &= this.verifyEqual(initialInstructions[i], expectedInitialInstructions[i],
-                `initial instruction[i] differences ${this.getObjectDifferences(initialInstructions[i], expectedInitialInstructions[i])}`);
-        }
-
-        result &= this.verify((playDeleteResult === Const.GOOD_MOVE), "playDelete not GOOD_MOVE");
-
-        for (let i = 0; i < 4; i++) {
-            if (! result) {
-                break;
-            }
-            result &= this.verifyEqual(afterDeleteInstructions[i], expectedPlayDeleteInstructions[i],
-                `after delete instruction[i] differences ${this.getObjectDifferences(afterDeleteInstructions[i], expectedPlayDeleteInstructions[i])}`);
-        }
-
-        result &= this.verify((playLetterBResult === Const.GOOD_MOVE), "playLetterBResult not GOOD_MOVE");
-
-        for (let i = 0; i < 4; i++) {
-            if (! result) {
-                break;
-            }
-            result &= this.verifyEqual(afterPlayLetterBInstructions[i], expectedPlayLetterBInstructions[i],
-                `after play letter B instruction[i] differences ${this.getObjectDifferences(afterPlayLetterBInstructions[i], expectedPlayLetterBInstructions[i])}`);
-        }
-
-        result &= this.verify((playLetterBResult === Const.GOOD_MOVE), "playLetterBResult not GOOD_MOVE");
-
-        for (let i = 0; i < 4; i++) {
-            if (! result) {
-                break;
-            }
-            result &= this.verifyEqual(afterPlayLetterTInstructions[i], expectedPlayLetterTInstructions[i],
-                `after play letter T instruction[i] differences ${this.getObjectDifferences(afterPlayLetterTInstructions[i], expectedPlayLetterTInstructions[i])}`);
-        }
-
-        result &= this.verify((playLetterTResult === Const.GOOD_MOVE), "playLetterTResult not GOOD_MOVE");
-
-        result && this.hadNoErrors();
+        this.verify((initialInstructions.length === 4), `Display instructions length should be 4, not ${initialInstructions.length}`) &&
+            this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial instructions") &&
+            this.verify((playDeleteResult === Const.GOOD_MOVE), "playDelete not GOOD_MOVE") &&
+            this.verifyInstructionList(afterDeleteInstructions, expectedPlayDeleteInstructions, "after delete instruction") &&
+            this.verify((playLetterBResult === Const.GOOD_MOVE), "playLetterBResult not GOOD_MOVE") &&
+            this.verifyInstructionList(afterPlayLetterBInstructions, expectedPlayLetterBInstructions, "after play letter B instruction") &&
+            this.verify((playLetterBResult === Const.GOOD_MOVE), "playLetterBResult not GOOD_MOVE") &&
+            this.verifyInstructionList(afterPlayLetterTInstructions, expectedPlayLetterTInstructions, "after play letter T instruction") &&
+            this.verify((playLetterTResult === Const.GOOD_MOVE), "playLetterTResult not GOOD_MOVE") &&
+            this.hadNoErrors();
     }
 
     testGameDisplayInstructionsMistakes() {
@@ -1830,6 +1812,24 @@ class Test extends BaseLogger {
         let [start, target] = ["SCAD", "BAT"];
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
+
+        const expectedAfterDeleteInstructions = [
+                                // word      type                     change  rating               isStart  parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+        const expectedCadToCarInstructions = [
+                                // word      type                     change  rating               isStart  parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            1,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("CAR",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("CAT",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
 
         const playDeleteResult = game.playDelete(4); // SCAD to SCA
         const afterDeleteInstructions = game.getDisplayInstructions();
@@ -1841,16 +1841,9 @@ class Test extends BaseLogger {
         this.logDebug(this.testName, "after CAD to CAR, display instructions are", cadToCarInstructions, "test");
 
         this.verify((playDeleteResult === Const.NOT_A_WORD), `playDelete(4) expected ${Const.NOT_A_WORD}, got ${playDeleteResult}`) &&
-        this.verify((afterDeleteInstructions[0].toStr() === "(delete,word:SCAD)"), `after delete, instruction[0] is ${afterDeleteInstructions[0].toStr()}`) &&
-        this.verify((afterDeleteInstructions[1].toStr() === "(future,word:CAD,changePosition:1)"), `after delete, instruction[1] is ${afterDeleteInstructions[1].toStr()}`) &&
-        this.verify((afterDeleteInstructions[2].toStr() === "(future,word:BAD,changePosition:3)"), `after delete, instruction[2] is ${afterDeleteInstructions[2].toStr()}`) &&
-        this.verify((afterDeleteInstructions[3].toStr() === "(target,word:BAT)"), `after delete, instruction[3] is ${afterDeleteInstructions[3].toStr()}`) &&
-        this.verify((cadToCarResult === Const.WRONG_MOVE), `playLetter(3,R) expected ${Const.WRONG_MOVE}, got ${cadToCarResult}`) &&
-        this.verify((cadToCarInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after playing R, instruction[0] is ${cadToCarInstructions[0].toStr()}`) &&
-        this.verify((cadToCarInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.GOOD_MOVE})`), `after playing R, instruction[1] is ${cadToCarInstructions[1].toStr()}`) &&
-        this.verify((cadToCarInstructions[2].toStr() === "(change,word:CAR,changePosition:3)"), `after playing R, instruction[2] is ${cadToCarInstructions[2].toStr()}`) &&
-        this.verify((cadToCarInstructions[3].toStr() === "(change-next,word:CAT,changePosition:1)"), `after playing R, instruction[3] is ${cadToCarInstructions[3].toStr()}`) &&
-        this.verify((cadToCarInstructions[4].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCarInstructions[4].toStr()}`) &&
+            this.verifyInstructionList(afterDeleteInstructions, expectedAfterDeleteInstructions, "after delete instructions") &&
+            this.verify((cadToCarResult === Const.WRONG_MOVE), `playLetter(3,R) expected ${Const.WRONG_MOVE}, got ${cadToCarResult}`) &&
+            this.verifyInstructionList(cadToCarInstructions, expectedCadToCarInstructions, "after playing R, instruction") &&
             this.hadNoErrors();
     }
 

@@ -60,8 +60,8 @@ class Game extends BaseLogger {
         const moveRating = isStartWord ? Const.NO_RATING : ratedMove.rating;
         const showParLine = false; // TODO
 
-        Const.GL_DEBUG && this.logDebug("addInstructionForPlayedWord(): i:", i,
-            ", ratedMove:", ratedMove,
+        Const.GL_DEBUG && this.logDebug("addInstructionForPlayedWord(", i, ")",
+            "  ratedMove:", ratedMove,
             ", displayType:", displayType,
             ", changePosition:", changePosition,
             ", moveRating:", moveRating,
@@ -69,6 +69,8 @@ class Game extends BaseLogger {
             "instruction");
 
         let displayInstruction = new DisplayInstruction(ratedMove.word, displayType, changePosition, moveRating, isStartWord, showParLine);
+        Const.GL_DEBUG && this.logDebug("addInstructionPlayedWord(", i, "): display instruction for", ratedMove.word, "is",
+                displayInstruction, "instruction");
         this.instructions.push(displayInstruction);
     }
 
@@ -124,6 +126,8 @@ class Game extends BaseLogger {
             }
         }
         let displayInstruction = new DisplayInstruction(ratedMove.word, displayType, changePosition, moveRating, lastPlayedWordIsStart, showParLine);
+        Const.GL_DEBUG && this.logDebug("addInstructionLastPlayedWord(): display instruction for",
+                ratedMove.word, "is", displayInstruction, "instruction");
         this.instructions.push(displayInstruction);
     }
 
@@ -182,49 +186,44 @@ class Game extends BaseLogger {
             "instruction");
 
         // these variables are defaults for the display instruction - they are overridden in the special cases below.
-        var displayType = Const.FUTURE;;
-        var moveRating = Const.NO_RATING;;
-        var changePosition = 0;
+        var displayType = Const.FUTURE;
+        var moveRating = Const.NO_RATING;
+
+        // Indicate which letter now needs to change if the next move is also a change.
+        const changePosition = nextWordsAreSameLen ?
+            WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) + 1 :
+            0;
 
         if (previousDisplayType === Const.PLAYED_ADD) {
-            if (nextWordsAreSameLen) {
-                changePosition = WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) + 1;
-            }
+            // nothing to do
         } else if (previousDisplayType === Const.PLAYED_DELETE) {
-            if (nextWordsAreSameLen) {
-                changePosition = WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) + 1;
-            }
+            // nothing to do
         } else if (previousDisplayType=== Const.PLAYED_CHANGE) {
             displayType = Const.WORD_AFTER_CHANGE;
-            // add the hole in the word-after-change
-
-            if (nextWordsAreSameLen) {
-                changePosition = WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) + 1;
-            }
+            // Add the hole in this word-after-change.  The change position is in the prior display instruction.
+            const holePosition = previousDisplayInstruction.changePosition; // 1-based.  
+            firstUnplayedWord = WordChainDict.putHoleAtCharacterPos(firstUnplayedWord, holePosition);
         } else if (previousDisplayType === Const.PLAYED) {
             if (firstUnplayedWord.length > lastPlayedWord.length) {
                 displayType = Const.WORD_AFTER_ADD;
-                // need to add hole to first unplayed word here
+                // Add the hole to this first unplayed word here
                 const holePosition = previousDisplayInstruction.changePosition;
                 firstUnplayedWord = WordChainDict.putHoleAtPosition(firstUnplayedWord, holePosition);
-                if (nextWordsAreSameLen) {
-                    changePosition = WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) + 1;
-                }
             } else if (firstUnplayedWordIsTarget) {
                 displayType = Const.TARGET;
                 moveRating = Const.NO_RATING; // TODO - what should this be?
             } else {
                 displayType = Const.FUTURE;
-                if (nextWordsAreSameLen) {
-                    changePosition = WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) + 1;
-                }
             }
                 
         } else {
             console.error("unknown previous display type", previousDisplayType);
             return;
         }
-        let displayInstruction = new DisplayInstruction(firstUnplayedWord, displayType, changePosition, moveRating, firstUnplayedWordIsStart, showParLine);
+        let displayInstruction = new DisplayInstruction(firstUnplayedWord, displayType, changePosition, moveRating,
+                firstUnplayedWordIsStart, showParLine);
+        Const.GL_DEBUG && this.logDebug("addInstructionForFirstUnplayedWord(): display instruction for",
+                firstUnplayedWord, "is", displayInstruction, "instruction");
         this.instructions.push(displayInstruction);
     };
 
@@ -248,8 +247,8 @@ class Game extends BaseLogger {
         const isStartWord = false;  // start word is by definition always played
         const showParLine = false; // TODO
 
-        Const.GL_DEBUG && this.logDebug("addInstructionForUnplayedWord(): i:", i, 
-            ", thisUnplayedWord:", thisUnplayedWord,
+        Const.GL_DEBUG && this.logDebug("addInstructionForUnplayedWord(", i, 
+            "), thisUnplayedWord:", thisUnplayedWord,
             ", thisUnplayedWordIsTarget:", thisUnplayedWordIsTarget,
             ", nextUnplayedWordIfAny:", nextUnplayedWordIfAny,
             ", nextWordsAreSameLen:", nextWordsAreSameLen,
@@ -268,6 +267,8 @@ class Game extends BaseLogger {
             }
         }
         let displayInstruction = new DisplayInstruction(thisUnplayedWord, displayType, changePosition, moveRating, isStartWord, showParLine);
+        Const.GL_DEBUG && this.logDebug("addInstructionForUnplayedWord(", i, "): display instruction for",
+                thisUnplayedWord, "is", displayInstruction, "instruction");
         this.instructions.push(displayInstruction);
     }
 

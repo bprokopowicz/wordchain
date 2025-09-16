@@ -210,7 +210,7 @@ class WordChainDict extends BaseLogger {
 
     // put the HOLE characted at 'pos' in 'word'.  pos is 1-indexed, to agree with changePosition in the display code.
     static putHoleAtCharacterPos(word, pos) {
-        const wordWithHole = word.substring(0, pos-1) + Const.HOLE + word.substring(pos);
+        const wordWithHole = word.substr(0, pos-1) + Const.HOLE + word.substr(pos);
         return wordWithHole;
     }
 
