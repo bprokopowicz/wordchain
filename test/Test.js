@@ -328,14 +328,14 @@ class Test extends BaseLogger {
      */
 
     verifyInstructionList(actualInstructions, expectedInstructions, description) {
-        const lengthsMatch = this.verifyEqual(actualInstructions.length, expectedInstructions.length, description);
+        const lengthsMatch = this.verifyEqual(actualInstructions.length, expectedInstructions.length, description + ", num instructions");
 
         if (! lengthsMatch) {
             return false;
         }
 
         for (let i = 0; i < actualInstructions.length; i++) {
-            if (! this.verifyEqual(actualInstructions[i], expectedInstructions[i], `${description}[${i}]`)) {
+            if (! this.verifyEqual(actualInstructions[i], expectedInstructions[i], `${description} instruction[${i}]`)) {
                 return false;
             }
         }
@@ -1663,14 +1663,14 @@ class Test extends BaseLogger {
         prep(); this.testGameDeleteWrongLetter();
         prep(); this.testGameDeleteBadPosition();
         prep(); this.testGameDifferentWordFromInitialSolution();
-        */
         prep(); this.testGameDisplayInstructions();
         prep(); this.testGameDisplayInstructionsMistakes();
-        /*
         prep(); this.testGameDisplayInstructionsDifferentPath();
-        prep(); this.testGameUsingScrabbleWordMistake();
         prep(); this.testGameUsingScrabbleWordOK();
+        prep(); this.testGameUsingScrabbleWordMistake();
+        */
         prep(); this.testGameUsingGeniusMove();
+        /*
         prep(); this.testGameUsingDodoMove();
         prep(); this.testGameRequiringWordReplay();
         prep(); this.testGameRequiringScrabbleWordReplay();
@@ -1818,13 +1818,13 @@ class Test extends BaseLogger {
             new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
         ];
 
-        this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial instructions") &&
+        this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
             this.verifyEqual(playDeleteResult, Const.GOOD_MOVE, "playDelete") &&
-            this.verifyInstructionList(afterDeleteInstructions, expectedPlayDeleteInstructions, "after delete instruction") &&
+            this.verifyInstructionList(afterDeleteInstructions, expectedPlayDeleteInstructions, "after delete") &&
             this.verifyEqual(playLetterBResult, Const.GOOD_MOVE, "playLetterBResult") &&
-            this.verifyInstructionList(afterPlayLetterBInstructions, expectedPlayLetterBInstructions, "after play letter B instruction") &&
+            this.verifyInstructionList(afterPlayLetterBInstructions, expectedPlayLetterBInstructions, "after play letter B") &&
             this.verifyEqual(playLetterBResult, Const.GOOD_MOVE, "playLetterBResult") &&
-            this.verifyInstructionList(afterPlayLetterTInstructions, expectedPlayLetterTInstructions, "after play letter T instruction") &&
+            this.verifyInstructionList(afterPlayLetterTInstructions, expectedPlayLetterTInstructions, "after play letter T") &&
             this.verifyEqual(playLetterTResult, Const.GOOD_MOVE, "playLetterTResult") &&
             this.hadNoErrors();
     }
@@ -1876,11 +1876,11 @@ class Test extends BaseLogger {
         const cadToCarResult = game.playLetter(3,"R"); // CAD TO CAR
         const cadToCarInstructions = game.getDisplayInstructions(); // SCAD,CAD,CAR,CAT,BAT
 
-        this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial instructions") &&
+        this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
             this.verifyEqual(playDeleteNotAWord, Const.NOT_A_WORD, "playDelete(4)") &&
-            this.verifyInstructionList(afterDeleteInstructions, expectedAfterDeleteInstructions, "after delete instructions") &&
+            this.verifyInstructionList(afterDeleteInstructions, expectedAfterDeleteInstructions, "after delete") &&
             this.verifyEqual(cadToCarResult, Const.WRONG_MOVE, "playLetter(3,R)") &&
-            this.verifyInstructionList(cadToCarInstructions, expectedCadToCarInstructions, "after playing R, instruction") &&
+            this.verifyInstructionList(cadToCarInstructions, expectedCadToCarInstructions, "after playing R") &&
             this.hadNoErrors();
     }
 
@@ -1889,50 +1889,123 @@ class Test extends BaseLogger {
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD"]);
         let [start, target] = ["SCAD", "BAT"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
+        const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT but SCAD,CAD,CAT,BAT also works
+
+        const expectedInitialInstructions = [
+                                // word      type                     change  rating               isStart  parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+        // after delete "S"
+        const expectedAfterDeleteInstructions = [
+            new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+        // after playing CAD->CAT instead of CAD->BAD
+        const expectedCadToCatInstructions = [
+            new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("CAT",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("?AT",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+        ];
+
+        const initialInstructions = game.getDisplayInstructions();
 
         game.playDelete(1); // SCAD to CAD
+        const afterDeleteInstructions = game.getDisplayInstructions();
 
-        const cadToCatResult = game.playLetter(3,"T"); // CAD TO CAT
+        const cadToCatResult = game.playLetter(3,"T"); // CAD TO CAT instead of CAD to BAD
         const cadToCatInstructions = game.getDisplayInstructions(); // SCAD,CAD,CAT,BAT
 
-        this.verify((cadToCatResult === Const.GOOD_MOVE), `playLetter(3,T) expected ${Const.GOOD_MOVE}, got ${cadToCatResult}`) &&
-        this.verify((cadToCatInstructions[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after playing R, instruction[0] is ${cadToCatInstructions[0].toStr()}`) &&
-        this.verify((cadToCatInstructions[1].toStr() === `(played,word:CAD,moveRating:${Const.GOOD_MOVE})`), `after playing R, instruction[1] is ${cadToCatInstructions[1].toStr()}`) &&
-        this.verify((cadToCatInstructions[2].toStr() === "(change,word:CAT,changePosition:1)"), `after playing R, instruction[2] is ${cadToCatInstructions[3].toStr()}`) &&
-        this.verify((cadToCatInstructions[3].toStr() === "(target,word:BAT)"), `after playing R, instruction[3] is ${cadToCatInstructions[3].toStr()}`) &&
+        this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
+            this.verifyInstructionList(afterDeleteInstructions, expectedAfterDeleteInstructions, "after delete") &&
+            this.verifyEqual(cadToCatResult, Const.GOOD_MOVE, "playLetter(3,T)") &&
+            this.verifyInstructionList(cadToCatInstructions, expectedCadToCatInstructions, "after playing T") &&
             this.hadNoErrors();
     }
 
     testGameUsingScrabbleWordOK() {
         this.testName = "GameUsingScrabbleWordOK";
         const smallDict = new WordChainDict(["BAD", "BAT", "CAT", "MAR", "CAR"]);
-        // shortest solution is BAD,BAT,CAT,CAR  alt using scrabble: BAD,MAD,MAR,CAR  MAD is the genius word
-        // or, using the scrabble dictionsary: SCAD,CAD
+        // shortest solution is BAD,BAT,CAT,CAR  alt using scrabble: BAD,MAD,MAR,CAR  MAD is the scrabble word
         let [start, target] = ["BAD", "CAR"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT but via BAD is earlier
+     
+        const expectedInitialInstructions = [
+            new DisplayInstruction("BAD",    Const.PLAYED_CHANGE,     3,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("BA?",    Const.WORD_AFTER_CHANGE, 1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("CAT",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("CAR",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+        const expectedAfterMInstructions = [
+            new DisplayInstruction("BAD",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("MAD",    Const.PLAYED_CHANGE,     3,      Const.SCRABBLE_MOVE, false,   false),
+            new DisplayInstruction("MA?",    Const.WORD_AFTER_CHANGE, 1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("CAR",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+
+        const game = new PracticeGame(smallDict); 
+        const initialInstructions = game.getDisplayInstructions();
         const badToMadResult = game.playLetter(1,"M");
+        const afterMInstructions = game.getDisplayInstructions();
+
         this.verify (badToMadResult === Const.SCRABBLE_MOVE, "BAD->MAD should return", Const.SCRABBLE_MOVE, "got", badToMadResult) &&
+            this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
+            this.verifyInstructionList(afterMInstructions, expectedAfterMInstructions, "after playing MAD") &&
             this.hadNoErrors();
     }
 
     testGameUsingScrabbleWordMistake() {
         this.testName = "GameUsingScrabbleWordMistake";
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
-        let [start, target] = ["SCAD", "BAT"];
+        let [start, target] = ["SCAD", "BAT"]; // SCAD,CAD,BAD,BAT but we play SCAD,SCAG, (SAG, SAT, BAT)
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT
 
-        const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
+        const expectedInitialInstructions = [
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+        const expectedAfterScagInstructions = [
+            new DisplayInstruction("SCAD",    Const.PLAYED,           0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("SCAG",    Const.PLAYED_DELETE,    0,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("SAG",     Const.FUTURE,           3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SAT",     Const.FUTURE,           1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",     Const.TARGET,           0,      Const.NO_RATING,     false,   false),
+        ];
+        const expectedAfterSagInstructions = [
+            new DisplayInstruction("SCAD",    Const.PLAYED,           0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("SCAG",    Const.PLAYED,           0,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("SAG",     Const.PLAYED_CHANGE,    3,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("SA?",     Const.WORD_AFTER_CHANGE,1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",     Const.TARGET,           0,      Const.NO_RATING,     false,   false),
+        ];
+
+        // starting
+        const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT or SCAD,CAD,CAT,BAT
+        const initialInstructions = game.getDisplayInstructions();
+
+        // play SCAD to SCAG using scrabble word instead of SCAD to CAD
+        const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word, which is also a mistake
+        const afterScagInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
+
+        // play SCAG to SAG which is correct now.
         const scagToSagResult = game.playDelete(2); // SCAG to SAG.
-        const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
-        this.verify((scadToScagResult === Const.WRONG_MOVE), `playLetter(4,G) expected ${Const.WRONG_MOVE}, got ${scadToScagResult}`) &&
-        this.verify((scagToSagResult === Const.GOOD_MOVE), `playDelete(2) expected ${Const.GOOD_MOVE}, got ${scagToSagResult}`) &&
-        this.verify((displayInstructionsAfterSAG[0].toStr() === `(played,word:SCAD,moveRating:${Const.GOOD_MOVE})`), `after playing SAG, instruction[0] is ${displayInstructionsAfterSAG[0].toStr()}`) &&
-        this.verify((displayInstructionsAfterSAG[1].toStr() === `(played,word:SCAG,moveRating:${Const.WRONG_MOVE})`), `after playing SAG, instruction[1] is ${displayInstructionsAfterSAG[1].toStr()}`) &&
-        this.verify((displayInstructionsAfterSAG[2].toStr() === "(change,word:SAG,changePosition:3)"), `after playing SAG, instruction[2] is ${displayInstructionsAfterSAG[2].toStr()}`) &&
-        this.verify((displayInstructionsAfterSAG[3].toStr() === "(change-next,word:SAT,changePosition:1)"), `after playing SAG, instruction[3] is ${displayInstructionsAfterSAG[3].toStr()}`) &&
+        const afterSagInstructions = game.getDisplayInstructions(); 
+
+        this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
+            this.verifyEqual(scadToScagResult, Const.WRONG_MOVE, "playLetter(4,G)") &&
+            this.verifyInstructionList(afterScagInstructions, expectedAfterScagInstructions, "afterScag instructions") &&
+            this.verifyEqual(scagToSagResult, Const.GOOD_MOVE, "playDelete(2)") &&
+            this.verifyInstructionList(afterSagInstructions, expectedAfterSagInstructions, "afterSag instructions") &&
             this.hadNoErrors();
     }
 
@@ -1944,11 +2017,38 @@ class Test extends BaseLogger {
         // shortest solution is SCAD,CAD,CAT,SAT,SAG, but genius solution is SCAD,SCAG,SAG
         const game = new PracticeGame(smallDict); 
 
+        const expectedInitialInstructions = [
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("CAT",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SAT",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SAG",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+        const expectedAfterScagInstructions = [
+            new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("SCAG",   Const.PLAYED_DELETE,     0,      Const.GENIUS_MOVE,   false,   false),
+            new DisplayInstruction("SAG",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+        const expectedAfterSagInstructions = [
+            new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("SCAG",   Const.PLAYED,            0,      Const.GENIUS_MOVE,   false,   false),
+            new DisplayInstruction("SAG",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
+        ];
+
+
+        const initialInstructions = game.getDisplayInstructions();
         const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
+        const afterScagInstructions = game.getDisplayInstructions();
         const scagToSagResult = game.playDelete(2); // SCAG to SAG.
-        const displayInstructionsAfterSAG = game.getDisplayInstructions(); // Solution should now be SCAD, SCAG, SAG, SAT, BAT
-        this.verify((scadToScagResult === Const.GENIUS_MOVE), `playLetter(4,G) expected ${Const.GENIUS_MOVE}, got ${scadToScagResult}`) &&
-        this.verify((scagToSagResult === Const.GOOD_MOVE), `playDelete(2) expected ${Const.GOOD_MOVE}, got ${scagToSagResult}`) &&
+        const afterSagInstructions = game.getDisplayInstructions();
+
+        this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial instructions") &&
+            this.verifyEqual(scadToScagResult, Const.GENIUS_MOVE, "after playing scag result") &&
+            this.verifyInstructionList(afterScagInstructions, expectedAfterScagInstructions, "afterScag instructions") &&
+            this.verify(scagToSagResult, Const.GOOD_MOVE, "after playing sag result") &&
+            this.verifyInstructionList(afterSagInstructions, expectedAfterSagInstructions, "afterScag instructions") &&
             this.hadNoErrors();
     }
 

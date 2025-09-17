@@ -133,6 +133,7 @@ class Game extends BaseLogger {
 
     /*
         For first unplayed word:
+        TODO - what if the first unplayed word is the target word?
         - If previousDisplayType is PLAYED_ADD:
           - displayType = FUTURE
           - if the second unplayed word is same length as first unplayed word: changePosition = 1-based location 
