@@ -195,10 +195,13 @@ class Game extends BaseLogger {
             WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) + 1 :
             0;
 
-        if (previousDisplayType === Const.PLAYED_ADD) {
-            // nothing to do
+        // If the first unplayed word is the target, its display doesn't depend on anything else
+        if (firstUnplayedWordIsTarget) {
+                displayType = Const.TARGET;
+        } else if (previousDisplayType === Const.PLAYED_ADD) {
+            // nothing more to do
         } else if (previousDisplayType === Const.PLAYED_DELETE) {
-            // nothing to do
+            // nothing more to do
         } else if (previousDisplayType=== Const.PLAYED_CHANGE) {
             displayType = Const.WORD_AFTER_CHANGE;
             // Add the hole in this word-after-change.  The change position is in the prior display instruction.
@@ -212,7 +215,6 @@ class Game extends BaseLogger {
                 firstUnplayedWord = WordChainDict.putHoleAtPosition(firstUnplayedWord, holePosition);
             } else if (firstUnplayedWordIsTarget) {
                 displayType = Const.TARGET;
-                moveRating = Const.NO_RATING; // TODO - what should this be?
             } else {
                 displayType = Const.FUTURE;
             }

@@ -1668,10 +1668,10 @@ class Test extends BaseLogger {
         prep(); this.testGameDisplayInstructionsDifferentPath();
         prep(); this.testGameUsingScrabbleWordOK();
         prep(); this.testGameUsingScrabbleWordMistake();
-        */
         prep(); this.testGameUsingGeniusMove();
-        /*
+        */
         prep(); this.testGameUsingDodoMove();
+        /*
         prep(); this.testGameRequiringWordReplay();
         prep(); this.testGameRequiringScrabbleWordReplay();
         prep(); this.testGameFinish();
@@ -2037,7 +2037,6 @@ class Test extends BaseLogger {
             new DisplayInstruction("SAG",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
         ];
 
-
         const initialInstructions = game.getDisplayInstructions();
         const scadToScagResult = game.playLetter(4,"G"); // SCAD to SCAG uses scrabble word
         const afterScagInstructions = game.getDisplayInstructions();
@@ -2059,25 +2058,53 @@ class Test extends BaseLogger {
         const game = new PracticeGame(this.fullDict); 
         // shortest solution is PLANE,PANE,PANED, but dodo move is PLANE,PLAN,PAN,PANE,PANED
 
+        const expectedInitialInstructions = [
+            new DisplayInstruction("PLANE",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("PANE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+        const expectedPlaneToPlanInstructions = [
+            new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("PLAN",    Const.PLAYED_DELETE,     0,      Const.DODO_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PANE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+ 
+        const expectedPlanToPanInstructions = [
+            new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PAN?",    Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+       const initialInstructions = game.getDisplayInstructions();
+
         const planeToPlanResult = game.playDelete(5); // PLANE to PLAN; the dodo move
-        if (!this.verify((planeToPlanResult === Const.DODO_MOVE), `playDelete(5) expected DODO_MOVE, got ${planeToPlanResult}`)) return;
+        const planeToPlanInstructions = game.getDisplayInstructions();
 
         const planToPanResult = game.playDelete(2); // PLAN to PAN; correct
-        if (!this.verify((planToPanResult === Const.GOOD_MOVE), "playDelete(2) not GOOD_MOVE")) return;
+        const planToPanInstructions = game.getDisplayInstructions();
 
-        const panToPaneAddResult = game.playAdd(3); // PAN to PANx; correct
-        if (!this.verify((panToPaneAddResult === Const.GOOD_MOVE), "playAdd(3) not GOOD_MOVE")) return;
+        const panToPanXAddResult = game.playAdd(3); // PAN to PAN?; correct (really should be unrated?)
+        const panToPanXInstructions = game.getDisplayInstructions();
 
         const panToPaneChangeResult = game.playLetter(4, "E"); // PAN to PANE; correct
-        if (!this.verify((panToPaneChangeResult === Const.GOOD_MOVE), `playLetter(4, E) returns ${panToPaneChangeResult}, not WRONG_MOVE`)) return;
 
         const paneToPanedAddResult = game.playAdd(4); // PANE to PANEx; correct
-        if (!this.verify((paneToPanedAddResult === Const.GOOD_MOVE), "playAdd(4) not GOOD_MOVE")) return;
 
         const paneToPanedChangeResult = game.playLetter(5, "D"); // PANE to PANED; correct
-        if (!this.verify((paneToPanedChangeResult === Const.GOOD_MOVE), `playLetter(5, E) returns ${paneToPanedChangeResult}, not WRONG_MOVE`)) return;
 
-        this.hadNoErrors();
+        this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial instructions") &&
+            this.verifyEqual(planeToPlanResult, Const.DODO_MOVE, "Plane to Plan result") &&
+            this.verifyInstructionList(planeToPlanInstructions, expectedPlaneToPlanInstructions, "plane to plan instructions") &&
+            this.verifyEqual(planToPanResult, Const.GOOD_MOVE, "Plan to Pan result") &&
+            this.verifyInstructionList(planToPanInstructions, expectedPlanToPanInstructions, "plan to pan instructions") &&
+            this.verifyEqual(panToPanXResult, Const.GOOD_MOVE, "Pan to PanX result") &&
+            this.verifyInstructionList(panToPaneInstructions, expectedPanToPanXInstructions, "pan to panX instructions") &&
+            this.hadNoErrors();
     }
 
     testGameRequiringWordReplay() {
