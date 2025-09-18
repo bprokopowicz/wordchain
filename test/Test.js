@@ -328,7 +328,13 @@ class Test extends BaseLogger {
      */
 
     verifyInstructionList(actualInstructions, expectedInstructions, description) {
-        const lengthsMatch = this.verifyEqual(actualInstructions.length, expectedInstructions.length, description + ", num instructions");
+        var actualInstructionsAsStr = JSON.stringify(actualInstructions, null, "<br>");
+
+        actualInstructionsAsStr = actualInstructionsAsStr.replaceAll(/<br>\s*<br>/g, "<br>");
+        actualInstructionsAsStr = actualInstructionsAsStr.replaceAll(/},\s*<br>\s*{/g, "}, {");
+
+        const lengthsMatch = this.verifyEqual(actualInstructions.length, expectedInstructions.length,
+            description + `, num instructions (actual: <code>${actualInstructionsAsStr}</code>)`);
 
         if (! lengthsMatch) {
             return false;
@@ -2076,11 +2082,43 @@ class Test extends BaseLogger {
             new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
             new DisplayInstruction("PAN",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PANE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+        const expectedPanToPanXInstructions = [
+            new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("PAN?",    Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
         ];
 
-       const initialInstructions = game.getDisplayInstructions();
+        const expectedPanToPaneInstructions = [
+            new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PANE",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+        const expectedPaneToPaneXInstructions = [
+            new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PANE?",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false),
+        ];
+
+        const expectedPaneToPanedInstructions = [
+            new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
+        ];
+
+        const initialInstructions = game.getDisplayInstructions();
 
         const planeToPlanResult = game.playDelete(5); // PLANE to PLAN; the dodo move
         const planeToPlanInstructions = game.getDisplayInstructions();
@@ -2092,18 +2130,27 @@ class Test extends BaseLogger {
         const panToPanXInstructions = game.getDisplayInstructions();
 
         const panToPaneChangeResult = game.playLetter(4, "E"); // PAN to PANE; correct
+        const panToPaneInstructions = game.getDisplayInstructions();
 
-        const paneToPanedAddResult = game.playAdd(4); // PANE to PANEx; correct
+        const paneToPaneXAddResult = game.playAdd(4); // PANE to PANEx; correct
+        const paneToPaneXInstructions = game.getDisplayInstructions();
 
         const paneToPanedChangeResult = game.playLetter(5, "D"); // PANE to PANED; correct
+        const paneToPanedInstructions = game.getDisplayInstructions();
 
         this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial instructions") &&
             this.verifyEqual(planeToPlanResult, Const.DODO_MOVE, "Plane to Plan result") &&
             this.verifyInstructionList(planeToPlanInstructions, expectedPlaneToPlanInstructions, "plane to plan instructions") &&
             this.verifyEqual(planToPanResult, Const.GOOD_MOVE, "Plan to Pan result") &&
             this.verifyInstructionList(planToPanInstructions, expectedPlanToPanInstructions, "plan to pan instructions") &&
-            this.verifyEqual(panToPanXResult, Const.GOOD_MOVE, "Pan to PanX result") &&
-            this.verifyInstructionList(panToPaneInstructions, expectedPanToPanXInstructions, "pan to panX instructions") &&
+            this.verifyEqual(panToPanXAddResult, Const.GOOD_MOVE, "Pan to PanX result") &&
+            this.verifyInstructionList(panToPanXInstructions, expectedPanToPanXInstructions, "pan to panX instructions") &&
+            this.verifyEqual(panToPaneAddResult, Const.GOOD_MOVE, "Pan to Pane result") &&
+            this.verifyInstructionList(panToPaneInstructions, expectedPanToPaneInstructions, "pan to pane instructions") &&
+            this.verifyEqual(panToPaneXAddResult, Const.GOOD_MOVE, "Pane to PaneX result") &&
+            this.verifyInstructionList(paneToPaneXInstructions, expectedPaneToPaneXInstructions, "pane to paneX instructions") &&
+            this.verifyEqual(panToPanedChangeResult, Const.GOOD_MOVE, "Pane to PaneX result") &&
+            this.verifyInstructionList(paneToPanedInstructions, expectedPaneToPanedInstructions, "pane to paned instructions") &&
             this.hadNoErrors();
     }
 
