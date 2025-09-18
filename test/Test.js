@@ -1664,6 +1664,7 @@ class Test extends BaseLogger {
             Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO); //Daily game be game #2
             window.dataLayer = window.dataLayer
         }
+
         /*
         prep(); this.testGameCorrectFirstWord();
         prep(); this.testGameDeleteWrongLetter();
@@ -1739,7 +1740,7 @@ class Test extends BaseLogger {
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAT", "DOG", "SCAD"]);
         const origSolution = Solver.solve(smallDict, "BAD", "CAT");
-        let [start, target] = ["BAD", "CAT"];
+        let [start, target] = ["BAD", "CAT"]; // BAD BAT CAT
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(smallDict);
         const origWord1 = game.gameState.getUnplayedWord(0);
@@ -1773,15 +1774,15 @@ class Test extends BaseLogger {
 
     testGameDisplayInstructions() {
         this.testName = "GameDisplayInstructions";
-        let [start, target] = ["SCAD", "BAT"];
+        let [start, target] = ["SCAD", "BAT"]; // SCAD CAD BAD BAT
         Persistence.saveTestPracticeGameWords(start, target);
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         const game = new PracticeGame(smallDict);
 
         const initialInstructions = game.getDisplayInstructions();
 
-        const playDeleteResult = game.playDelete(1); // SCAD to CAD
         this.logDebug("test", this.testName, "delete 1 SCAD->CAD", "test");
+        const playDeleteResult = game.playDelete(1); // SCAD to CAD
         const afterDeleteInstructions = game.getDisplayInstructions();
 
         this.logDebug("test", this.testName, "change 1 CAD->BAD", "test");
@@ -2018,9 +2019,10 @@ class Test extends BaseLogger {
     testGameUsingGeniusMove() {
         this.testName = "GameUsingGeniusMove";
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
-        let [start, target] = ["SCAD", "SAG"];
-        Persistence.saveTestPracticeGameWords(start, target);
+
         // shortest solution is SCAD,CAD,CAT,SAT,SAG, but genius solution is SCAD,SCAG,SAG
+        let [start, target] = ["SCAD", "SAG"]; 
+        Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(smallDict); 
 
         const expectedInitialInstructions = [
@@ -2094,7 +2096,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
         ];
 
-        const expectedPanToPaneInstructions = [
+        const expectedPanXToPaneInstructions = [
             new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
             new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
@@ -2110,7 +2112,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("PANE?",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false),
         ];
 
-        const expectedPaneToPanedInstructions = [
+        const expectedPaneXToPanedInstructions = [
             new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
             new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
@@ -2129,14 +2131,14 @@ class Test extends BaseLogger {
         const panToPanXAddResult = game.playAdd(3); // PAN to PAN?; correct (really should be unrated?)
         const panToPanXInstructions = game.getDisplayInstructions();
 
-        const panToPaneChangeResult = game.playLetter(4, "E"); // PAN to PANE; correct
-        const panToPaneInstructions = game.getDisplayInstructions();
+        const panXToPaneChangeResult = game.playLetter(4, "E"); // PAN? to PANE; correct
+        const panXToPaneInstructions = game.getDisplayInstructions();
 
-        const paneToPaneXAddResult = game.playAdd(4); // PANE to PANEx; correct
+        const paneToPaneXAddResult = game.playAdd(4); // PANE to PANE?; correct
         const paneToPaneXInstructions = game.getDisplayInstructions();
 
-        const paneToPanedChangeResult = game.playLetter(5, "D"); // PANE to PANED; correct
-        const paneToPanedInstructions = game.getDisplayInstructions();
+        const paneXToPanedChangeResult = game.playLetter(5, "D"); // PANE? to PANED; correct
+        const paneXToPanedInstructions = game.getDisplayInstructions();
 
         this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial instructions") &&
             this.verifyEqual(planeToPlanResult, Const.DODO_MOVE, "Plane to Plan result") &&
@@ -2145,12 +2147,12 @@ class Test extends BaseLogger {
             this.verifyInstructionList(planToPanInstructions, expectedPlanToPanInstructions, "plan to pan instructions") &&
             this.verifyEqual(panToPanXAddResult, Const.GOOD_MOVE, "Pan to PanX result") &&
             this.verifyInstructionList(panToPanXInstructions, expectedPanToPanXInstructions, "pan to panX instructions") &&
-            this.verifyEqual(panToPaneAddResult, Const.GOOD_MOVE, "Pan to Pane result") &&
-            this.verifyInstructionList(panToPaneInstructions, expectedPanToPaneInstructions, "pan to pane instructions") &&
+            this.verifyEqual(panXToPaneAddResult, Const.GOOD_MOVE, "PanX to Pane result") &&
+            this.verifyInstructionList(panXToPaneInstructions, expectedPanXToPaneInstructions, "panX to pane instructions") &&
             this.verifyEqual(panToPaneXAddResult, Const.GOOD_MOVE, "Pane to PaneX result") &&
             this.verifyInstructionList(paneToPaneXInstructions, expectedPaneToPaneXInstructions, "pane to paneX instructions") &&
-            this.verifyEqual(panToPanedChangeResult, Const.GOOD_MOVE, "Pane to PaneX result") &&
-            this.verifyInstructionList(paneToPanedInstructions, expectedPaneToPanedInstructions, "pane to paned instructions") &&
+            this.verifyEqual(paneXToPanedChangeResult, Const.GOOD_MOVE, "PaneX to Paned result") &&
+            this.verifyInstructionList(paneXToPanedInstructions, expectedPaneXToPanedInstructions, "paneX to paned instructions") &&
             this.hadNoErrors();
     }
 

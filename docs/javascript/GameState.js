@@ -130,16 +130,6 @@ class GameState extends BaseLogger {
     // NOTE: these functions do not validate that word added is actually OK to add, as that 
     // should be done before adding a word, in the Game class.
 
-    addSpace(spaceNumber) {
-        // Adds a played word as a copy of the last played word, with a '?' inserted in the 
-        // the new space.
-        let lastWord = this.lastPlayedWord();
-        let [pre, post] = [lastWord.substring(0, spaceNumber), lastWord.substring(spaceNumber)];
-        let wordWithSpace = pre + Const.HOLE + post;
-        this.ratedMoves.push(new RatedMove(wordWithSpace, Const.VIRTUAL_STEP));
-        return Const.GOOD_MOVE;
-    }
-
     // Plays 'word'.  
     // Returns the move rating.
     // DOES NOT VERIFY IF word is a valid word, or if word can be reached from previous word.
