@@ -312,9 +312,9 @@ class GameDisplay extends BaseLogger {
             pickerEnabled = false,
             rowNum = 0;
 
-        console.log("======================");
+        //console.log("======================");
         for (let displayInstruction of displayInstructions) {
-            console.log(displayInstruction);
+            //console.log(displayInstruction);
 
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
 
@@ -586,12 +586,9 @@ class GameDisplay extends BaseLogger {
         ElementUtilities.addElementTo(additionCell.getElement(), tdElement);
         additionPosition++;
 
-        console.log("displayCommon(): word", word);
-
         for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
             // Add the letter cell for this current letter.
             tdElement = this.addTd();
-            //console.log("call cellCreator() with letter:", letters[letterIndex], "letterPosition:", letterIndex + 1);
             letterCell = cellCreator(letters[letterIndex], letterIndex + 1);
             ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 

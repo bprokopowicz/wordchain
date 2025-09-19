@@ -273,7 +273,8 @@ class GameState extends BaseLogger {
     isLoser() {
         const CL = "GameState.isLoser";
         COV(0, CL);
-        return this.numPenalties() >= Const.TOO_MANY_PENALTIES;
+        return false;
+        //return this.numPenalties() >= Const.TOO_MANY_PENALTIES;
     }
 
     isWinner() {

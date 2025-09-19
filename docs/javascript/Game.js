@@ -142,8 +142,6 @@ class Game extends BaseLogger {
 
     /*
         For first unplayed word:
-        TODO - if previousDisplayType is PLAYED, that should be impossible.  It should be one of PLAYED_ADD, PLAYED_DELETE, or
-        PLAYED_CHANGE.  No - see WORD_AFTER_CHANGE scenario.
         - If previousDisplayType is PLAYED_ADD:
           - displayType = FUTURE or TARGET
           - if the second unplayed word is same length as first unplayed word: changePosition = 1-based location 
@@ -153,13 +151,13 @@ class Game extends BaseLogger {
           - if second unplayed word is same length as first unplayed word: changePosition is pos of difference between them.
           - moveRating = NO_RATING
         - Else if previousDisplayType is PLAYED_CHANGE:
-          - displayType = WORD_AFTER_CHANGE (NOT TARGET?) 
+          - displayType = WORD_AFTER_CHANGE (even if the word is the target)
           - word in instruction needs to have hole where the previous instruction (PLAYED_CHANGE) changePosition is.
           - if the second unplayed word is same length as first unplayed word: changePosition = changePosition of lastPlayedMove?
           - moveRating = NO_RATING
-        - Else if previousDisplayType is PLAYED:  TODO - this can not happen???
+        - Else if previousDisplayType is PLAYED:
             - If first unplayed word is longer than last played word:
-              - displayType = WORD_AFTER_ADD TODO can this be or would previous display type be PLAYED_ADD?
+              - displayType = WORD_AFTER_ADD
               - the first unplayed word will need a hole where the space was added.  
               - if second unplayed word is same length as first unplayed word: changePosition is pos of difference between them.
               - moveRating = NO_RATING
@@ -176,7 +174,7 @@ class Game extends BaseLogger {
     addInstructionForFirstUnplayedWord() {
         const lastRatedMove = this.gameState.lastRatedMove();
         const lastPlayedWord = lastRatedMove.word;
-        var  firstUnplayedWord = this.gameState.getUnplayedWord(0);
+        const firstUnplayedWord = this.gameState.getUnplayedWord(0);
         const firstUnplayedWordIsTarget = this.gameState.getUnplayedWords().length == 1;
         const firstUnplayedWordIsStart = false;  // start word is by definition always played
         const nextUnplayedWordIfAny = firstUnplayedWordIsTarget ? null : this.gameState.getUnplayedWord(1);
@@ -184,6 +182,8 @@ class Game extends BaseLogger {
         const previousDisplayInstruction = this.instructions[this.instructions.length-1];
         const previousDisplayType = previousDisplayInstruction.displayType;
         const showParLine = false; // TODO
+
+        var displayedFirstUnplayedWord = firstUnplayedWord;
 
         Const.GL_DEBUG && this.logDebug("addInstructionForFirstUnplayedWord():",
                 ", lastRatedMove:", lastRatedMove,
@@ -200,28 +200,31 @@ class Game extends BaseLogger {
         var displayType = firstUnplayedWordIsTarget? Const.TARGET : Const.FUTURE;
         var moveRating = Const.NO_RATING;
 
-        // Indicate which letter now needs to change if the next move is also a change.
-        const changePosition = nextWordsAreSameLen ?
-            WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) + 1 :
-            0;
+        // Indicate which letter will need to change in this unplayed word
+        // if the word after it is the same length.
+        const changePosition = ! nextWordsAreSameLen ? 0 :
+            WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) + 1;
 
         if (previousDisplayType === Const.PLAYED_ADD) {
             // nothing more to do
         } else if (previousDisplayType === Const.PLAYED_DELETE) {
             // nothing more to do
         } else if (previousDisplayType=== Const.PLAYED_CHANGE) {
-            displayType = Const.WORD_AFTER_CHANGE; // TODO or Target?
+            displayType = Const.WORD_AFTER_CHANGE;
             // Add the hole in this word-after-change.  The change position is in the prior display instruction.
             const holePosition = previousDisplayInstruction.changePosition; // 1-based.  
-            firstUnplayedWord = WordChainDict.putHoleAtCharacterPos(firstUnplayedWord, holePosition);
+            displayedFirstUnplayedWord = WordChainDict.replaceCharacterAtPositionWithHole(firstUnplayedWord, holePosition);
+
         } else if (previousDisplayType === Const.PLAYED) {
-            //TODO remove this?
-            console.error("TODO display instruction PLAYED should not precede first unplayed word");
             if (firstUnplayedWord.length > lastPlayedWord.length) {
+                if (! this.addSpaceInProgress) {
+                    console.error("this.addSpaceInProgress is false when adding display type WORD_AFTER_ADD");
+                }
                 displayType = Const.WORD_AFTER_ADD;
-                // Add the hole to this first unplayed word here
-                const holePosition = previousDisplayInstruction.changePosition;
-                firstUnplayedWord = WordChainDict.putHoleAtCharacterPos(firstUnplayedWord, holePosition);
+                // Add the hole where the user added space to this first unplayed word here;
+                // add one because addPosition is 0-word.length.
+                const holePosition = this.addPosition + 1;
+                displayedFirstUnplayedWord = WordChainDict.insertHoleBeforePosition(lastPlayedWord, holePosition);
             } else if (firstUnplayedWordIsTarget) {
                 // target following Const.PLAYED is only for the game being finished.  
                 displayType = Const.TARGET;
@@ -233,7 +236,7 @@ class Game extends BaseLogger {
             console.error("unknown previous display type", previousDisplayType);
             return;
         }
-        let displayInstruction = new DisplayInstruction(firstUnplayedWord, displayType, changePosition, moveRating,
+        let displayInstruction = new DisplayInstruction(displayedFirstUnplayedWord, displayType, changePosition, moveRating,
                 firstUnplayedWordIsStart, showParLine);
         Const.GL_DEBUG && this.logDebug("addInstructionForFirstUnplayedWord(): display instruction for",
                 firstUnplayedWord, "is", displayInstruction, "instruction");
