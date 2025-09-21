@@ -121,7 +121,7 @@ class LetterCell extends Cell {
         this.addClass("letter", this.cellContents);
     }
 
-    handleLetterChangeIfNeeded(letterPosition, changePosition, letterPicker) {
+    handleLetterChangeIfNeeded(letterPosition, changePosition) {
         const CL = "LetterCell.handleLetterCellChangeIfNeeded";
         COV(0, CL);
 
@@ -129,15 +129,8 @@ class LetterCell extends Cell {
         if (letterPosition === changePosition) {
             COV(1, CL);
             this.addClass("letter-cell-change", this.outerCellContainer);
-
-            // If we have a letter picker, save the letter position in it so we can get
-            // it when the event comes.
-            if (letterPicker) {
-                COV(2, CL);
-                letterPicker.saveLetterPosition(letterPosition);
-            }
         }
-        COV(3, CL);
+        COV(2, CL);
     }
 }
 
@@ -154,36 +147,41 @@ class EmptyLetterCell extends LetterCell {
 
         this.addClass("letter-cell-future", this.cellContainer);
 
-        // No letter has changed in this case; we're just showing that this
-        // is a cell that will change in the future.
-        const letterPicker = null;
-        this.handleLetterChangeIfNeeded(letterPosition, changePosition, letterPicker);
+        this.handleLetterChangeIfNeeded(letterPosition, changePosition);
     }
 }
 
 // These cells have a letter (possibly '?'), no background color, and the border may indicate change.
 // Used for 'wordAfterAdd' and 'wordAfterChange' display instructions.
 class LetterCellNoBackground extends LetterCell {
-    constructor(letter, letterPosition, changePosition, letterPicker) {
+    constructor(letter, letterPosition, holePosition, changePosition, letterPicker ) {
         super(letter);
 
         const CL = "LetterCellWithBackground.constructor";
         COV(0, CL);
 
-        this.handleLetterChangeIfNeeded(letterPosition, changePosition, letterPicker);
+        // If this is where the hole goes, save the letter position in the letter
+        // picker so that when the user clicks on a letter, we can tell the Game class
+        // what the letter position is for the clicked letter.
+        if (letterPosition === holePosition) {
+            COV(1, CL);
+            letterPicker.saveLetterPosition(letterPosition);
+        }
+
+        this.handleLetterChangeIfNeeded(letterPosition, changePosition);
     }
 }
 
 // These cells have a letter (possibly '?'), a background color, and the border may indicate change.
 // Used for all 'played' display instructions.
 class LetterCellWithBackground extends LetterCell {
-    constructor(letter, letterPosition, changePosition, letterPicker, moveRating, isStartWord, isTargetWord) {
+    constructor(letter, letterPosition, changePosition, moveRating, isStartWord, isTargetWord) {
         super(letter);
         const CL = "LetterCellWithBackground.constructor";
         COV(0, CL);
 
         this.addBackgroundClass(moveRating, isStartWord, isTargetWord);
-        this.handleLetterChangeIfNeeded(letterPosition, changePosition, letterPicker);
+        this.handleLetterChangeIfNeeded(letterPosition, changePosition);
     }
 
     addBackgroundClass(moveRating, isStart, isTarget) {

@@ -101,6 +101,10 @@ class GameState extends BaseLogger {
         }
     }
 
+    getWordChainSolutionLength() {
+        return this.initialSolution.length;
+    }
+
     getPlayedWordList() {
         return this.ratedMoves.map((ratedMove) => ratedMove.word);
     }
@@ -204,17 +208,15 @@ class GameState extends BaseLogger {
         return (GameState.locationOfHole(word) >= 0);
     }
 
-    isPenalty(rating) {
-        return (rating == Const.WRONG_MOVE) || (rating == Const.DODO_MOVE) || (rating == Const.SHOWN_MOVE);
+    getScore() {
+        // Score will be negative if user had one or more genius
+        // moves (unless they made mistakes too).
+        return this.ratedMoves.length - this.initialSolution.length;
     }
 
-    // Count the number of mistakes and shown moves.  Limit the result to no more than TOO_MANY_PENALTIES
-    numPenalties() {
-        let numPenalties = this.ratedMoves.filter((ratedMove) => this.isPenalty(ratedMove.rating)).length;
-        if (numPenalties > Const.TOO_MANY_PENALTIES) {
-            numPenalties = Const.TOO_MANY_PENALTIES;
-        }
-        return numPenalties;
+    getNormalizedScore() {
+        const score = this.getScore();
+        return score >= 0 ? score : 0;
     }
 
     numShownMoves() {
@@ -260,7 +262,7 @@ class GameState extends BaseLogger {
 
     // ----- functions relating to end of game -----
 
-    // The game is done if the last played word is the target, or there are too many penalties.
+    // The game is done if the last played word is the target, or there are too many extra steps.
     isOver() {
         const CL = "GameState.isOver";
         COV(0, CL);
@@ -273,8 +275,7 @@ class GameState extends BaseLogger {
     isLoser() {
         const CL = "GameState.isLoser";
         COV(0, CL);
-        return false;
-        //return this.numPenalties() >= Const.TOO_MANY_PENALTIES;
+        return this.getScore() >= Const.TOO_MANY_EXTRA_STEPS;
     }
 
     isWinner() {
@@ -285,7 +286,7 @@ class GameState extends BaseLogger {
 }
 
 class DailyGameState extends GameState{
-    // adds gameNumber, statsBlob, penaltyHistogram, isConstructedAsNew 
+    // adds gameNumber, statsBlob, extraStepsHistogram, isConstructedAsNew 
 
     constructor(dictionary) {
         const CL = "DailyGameState.constructor";
@@ -315,8 +316,8 @@ class DailyGameState extends GameState{
               gamesLost: depStatsBlob.gamesLost,
               streak: depStatsBlob.streak,
             };
-            for (let i=0; i <= Const.TOO_MANY_PENALTIES; i++) {
-                this.penaltyHistogram[i] = depStatsBlob[i];
+            for (let i=0; i <= Const.TOO_MANY_EXTRA_STEPS; i++) {
+                this.extraStepsHistogram[i] = depStatsBlob[i];
             }
         }
         COV(2, CL);
@@ -471,11 +472,11 @@ class DailyGameState extends GameState{
         };
 
         // Now create a histogram for each number of wrong moves, and initialize
-        // their values to 0. The stat properties for these is 0..TOO_MANY_PENALTIES.
+        // their values to 0. The stat properties for these is 0..TOO_MANY_EXTRA_STEPS.
 
-        dailyGameState.penaltyHistogram = [];
-        for (let nPenalties = 0; nPenalties <= Const.TOO_MANY_PENALTIES; nPenalties++) {
-            dailyGameState.penaltyHistogram[nPenalties] = 0;
+        dailyGameState.extraStepsHistogram = [];
+        for (let nExtraSteps = 0; nExtraSteps <= Const.TOO_MANY_EXTRA_STEPS; nExtraSteps++) {
+            dailyGameState.extraStepsHistogram[nExtraSteps] = 0;
         }
 
         // Will return null if something goes bad; e.g. puzzle cannot be solved.
@@ -592,17 +593,17 @@ class DailyGameState extends GameState{
         let shareString = `WordChain #${this.getDailyGameNumber() + 1} `,
             gameWon;
 
-        // Determine what emoji to use to show the user's "score".
-        if (this.numPenalties() >= Const.TOO_MANY_PENALTIES) {
+        // Determine what emoji to use to show the user's score.
+        if (this.getScore() >= Const.TOO_MANY_EXTRA_STEPS) {
             COV(1, CL);
             // Too many wrong moves.
             shareString += Const.CONFOUNDED;
             gameWon = false;
         } else {
             COV(2, CL);
-            // Show the emoji in NUMBERS corresponding to how many wrong moves.
+            // Show the emoji in NUMBERS corresponding to the score.
             // A bit of a misnomer, but the value for 0 is a star.
-            shareString += Const.NUMBERS[this.numPenalties()];
+            shareString += Const.NUMBERS[this.getNormalizedScore()];
             gameWon = true;
         }
 
@@ -795,14 +796,14 @@ class DailyGameState extends GameState{
             this.setStat("streak", 0);
         }
 
-        let penaltyCount = this.numPenalties();
-        if (penaltyCount >= Const.TOO_MANY_PENALTIES) {
+        let extraStepsCount = this.getScore();
+        if (extraStepsCount >= Const.TOO_MANY_EXTRA_STEPS) {
             COV(3, CL);
             // Failed games show the remaining words, which count as wrong steps,
             // but we don't want to count that in the stat.
-            penaltyCount = Const.TOO_MANY_PENALTIES;
+            extraStepsCount = Const.TOO_MANY_EXTRA_STEPS;
         }
-        this.penaltyHistogram[penaltyCount] += 1;
+        this.extraStepsHistogram[extraStepsCount] += 1;
         COV(4, CL);
     }
 }

@@ -776,7 +776,7 @@ class Test extends BaseLogger {
 
     static statsContainer = null;
 
-    verifyStats(expStatsBlob, expPenaltyHistogram) {
+    verifyStats(expStatsBlob, expExtraStepsHistogram) {
 
         // get the saved stats cookie
         let savedDailyState = Persistence.getDailyGameState2();
@@ -785,11 +785,11 @@ class Test extends BaseLogger {
             return false;
         }
         let savedStatsBlob = savedDailyState.statsBlob;
-        let savedPenaltyHistogram = savedDailyState.penaltyHistogram;
+        let savedExtraStepsHistogram = savedDailyState.extraStepsHistogram;
 
         let testRes = true;
 
-        this.logDebug("verifyStats() savedStatsBlob", savedStatsBlob, "penaltyHistogram", savedPenaltyHistogram, "test");
+        this.logDebug("verifyStats() savedStatsBlob", savedStatsBlob, "extraStepsHistogram", savedExtraStepsHistogram, "test");
 
         // open the stats window.  This should compute the shareString and start the countdown clock
         const statsDisplay = this.openAndGetTheStatsDisplay();
@@ -797,7 +797,7 @@ class Test extends BaseLogger {
         // the statsContainer is a GUI element with at least 3 children: Played, Won and Lost
         let statsContainer = statsDisplay.statsContainer;
 
-        // the statsDistribution is a GUI element with one bar for each possible number of wrong moves: 0 .. Const.TOO_MANY_PENALTIES
+        // the statsDistribution is a GUI element with one bar for each possible number of wrong moves: 0 .. Const.TOO_MANY_EXTRA_STEPS
         let statsDistribution = statsDisplay.statsDistribution;
 
         this.logDebug("verifyStats() statsContainer:", statsContainer, "test");
@@ -807,7 +807,7 @@ class Test extends BaseLogger {
         let expContainerLen = 4;
         let actContainerLen = statsContainer.children.length;
 
-        let expDistributionLen = Const.TOO_MANY_PENALTIES + 1;
+        let expDistributionLen = Const.TOO_MANY_EXTRA_STEPS + 1;
         let actDistributionLen = statsDistribution.children.length;
 
         // four calculated text values we expect to find on the stats screen.  They are labels and values for Played, Won, Lost, and Streak
@@ -837,11 +837,11 @@ class Test extends BaseLogger {
             this.verify(savedStatsBlob.gamesStarted >= savedStatsBlob.gamesWon + savedStatsBlob.gamesLost, `assertion failed: #started not >= #won+#lost`);
         this.closeTheStatsDisplay();
 
-        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_PENALTIES; wrongMoves++) {
-            // check the penalty histogram 
+        for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_EXTRA_STEPS; wrongMoves++) {
+            // check the extraSteps histogram 
             testRes = testRes &&
-                this.verify(savedPenaltyHistogram[wrongMoves]==expPenaltyHistogram[wrongMoves],
-                        `expected savedPenaltyHistogram.${wrongMoves}==${expPenaltyHistogram[wrongMoves]}, got ${savedPenaltyHistogram[wrongMoves]}`);
+                this.verify(savedExtraStepsHistogram[wrongMoves]==expExtraStepsHistogram[wrongMoves],
+                        `expected savedExtraStepsHistogram.${wrongMoves}==${expExtraStepsHistogram[wrongMoves]}, got ${savedExtraStepsHistogram[wrongMoves]}`);
 
             // check the DOM contents of the stats screen for the distribution of wrong-move counts.
             let actDistributionText = statsDistribution.children[wrongMoves].innerText.trim();
@@ -849,7 +849,7 @@ class Test extends BaseLogger {
             // on Feb 15, 2025, the new-line character disappeared, at least in chrome
             // so we added a newline between the two components below ... and then it
             // was gone by May 23, 2025, so we removed it.
-            let expDistributionText = Const.NUMBERS[wrongMoves] + /*"\n" +*/ expPenaltyHistogram[wrongMoves];
+            let expDistributionText = Const.NUMBERS[wrongMoves] + /*"\n" +*/ expExtraStepsHistogram[wrongMoves];
             testRes = testRes &&
                 this.verify(actDistributionText==expDistributionText, `expected statsDistribution.children.${wrongMoves}.innerText=='${expDistributionText}', got '${actDistributionText}'`);
         }
@@ -1311,12 +1311,12 @@ class Test extends BaseLogger {
             this.verify(dgs.statsBlob.gamesWon == 2, "expected gamesWon=2, got", dgs.statsBlob.gamesWon) &&
             this.verify(dgs.statsBlob.gamesLost == 3, "expected gamesLost=3, got", dgs.statsBlob.gamesLost) &&
             this.verify(dgs.statsBlob.streak == 4, "expected streak=4, got", dgs.statsBlob.streak) &&
-            this.verify(dgs.penaltyHistogram[0] == 1, "expected penaltyHistogram[0]=1, got", dgs.penaltyHistogram[0]) &&
-            this.verify(dgs.penaltyHistogram[1] == 2, "expected penaltyHistogram[1]=2, got", dgs.penaltyHistogram[1]) &&
-            this.verify(dgs.penaltyHistogram[2] == 3, "expected penaltyHistogram[2]=3, got", dgs.penaltyHistogram[2]) &&
-            this.verify(dgs.penaltyHistogram[3] == 4, "expected penaltyHistogram[3]=4, got", dgs.penaltyHistogram[3]) &&
-            this.verify(dgs.penaltyHistogram[4] == 5, "expected penaltyHistogram[4]=5, got", dgs.penaltyHistogram[4]) &&
-            this.verify(dgs.penaltyHistogram[5] == 6, "expected penaltyHistogram[5]=6, got", dgs.penaltyHistogram[5]) &&
+            this.verify(dgs.extraStepsHistogram[0] == 1, "expected extraStepsHistogram[0]=1, got", dgs.extraStepsHistogram[0]) &&
+            this.verify(dgs.extraStepsHistogram[1] == 2, "expected extraStepsHistogram[1]=2, got", dgs.extraStepsHistogram[1]) &&
+            this.verify(dgs.extraStepsHistogram[2] == 3, "expected extraStepsHistogram[2]=3, got", dgs.extraStepsHistogram[2]) &&
+            this.verify(dgs.extraStepsHistogram[3] == 4, "expected extraStepsHistogram[3]=4, got", dgs.extraStepsHistogram[3]) &&
+            this.verify(dgs.extraStepsHistogram[4] == 5, "expected extraStepsHistogram[4]=5, got", dgs.extraStepsHistogram[4]) &&
+            this.verify(dgs.extraStepsHistogram[5] == 6, "expected extraStepsHistogram[5]=6, got", dgs.extraStepsHistogram[5]) &&
             this.hadNoErrors();
     }
 
@@ -1793,7 +1793,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("BAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
 
         // after delete S
@@ -1801,7 +1801,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
 
         // after play B
@@ -1809,7 +1809,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("BAD",    Const.PLAYED_CHANGE,     3,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BA?",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BA?",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true),
         ];
 
         // after play T
@@ -1817,7 +1817,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("BAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
         ];
 
         this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
@@ -1847,7 +1847,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("BAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
 
         // after delete "S"
@@ -1855,7 +1855,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
 
         // after play R
@@ -1863,7 +1863,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("CAR",    Const.PLAYED_CHANGE,     3,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("CA?",    Const.WORD_AFTER_CHANGE, 1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("CA?",    Const.WORD_AFTER_CHANGE, 1,      Const.NO_RATING,     false,   true),
             new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
         ];
 
@@ -1898,7 +1898,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("BAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
 
         // after delete "S"
@@ -1906,7 +1906,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
 
         // after playing CAD->CAT instead of CAD->BAD
@@ -1914,7 +1914,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("CAT",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?AT",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("?AT",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true),
         ];
 
         const initialInstructions = game.getDisplayInstructions();
@@ -1940,16 +1940,17 @@ class Test extends BaseLogger {
         Persistence.saveTestPracticeGameWords(start, target);
      
         const expectedInitialInstructions = [
+                                // word      type                     change  rating               isStart  parLine
             new DisplayInstruction("BAD",    Const.PLAYED_CHANGE,     3,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("BA?",    Const.WORD_AFTER_CHANGE, 1,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("CAT",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("CAR",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("CAR",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
         const expectedAfterMInstructions = [
             new DisplayInstruction("BAD",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("MAD",    Const.PLAYED_CHANGE,     3,      Const.SCRABBLE_MOVE, false,   false),
             new DisplayInstruction("MA?",    Const.WORD_AFTER_CHANGE, 1,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("CAR",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("CAR",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
 
 
@@ -1971,23 +1972,24 @@ class Test extends BaseLogger {
         Persistence.saveTestPracticeGameWords(start, target);
 
         const expectedInitialInstructions = [
+                                // word      type                     change  rating               isStart  parLine
             new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("BAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
         const expectedAfterScagInstructions = [
             new DisplayInstruction("SCAD",    Const.PLAYED,           0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("SCAG",    Const.PLAYED_DELETE,    0,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("SAG",     Const.FUTURE,           3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SAT",     Const.FUTURE,           1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SAT",     Const.FUTURE,           1,      Const.NO_RATING,     false,   true),
             new DisplayInstruction("BAT",     Const.TARGET,           0,      Const.NO_RATING,     false,   false),
         ];
         const expectedAfterSagInstructions = [
             new DisplayInstruction("SCAD",    Const.PLAYED,           0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("SCAG",    Const.PLAYED,           0,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("SAG",     Const.PLAYED_CHANGE,    3,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SA?",     Const.WORD_AFTER_CHANGE,1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SA?",     Const.WORD_AFTER_CHANGE,1,      Const.NO_RATING,     false,   true),
             new DisplayInstruction("BAT",     Const.TARGET,           0,      Const.NO_RATING,     false,   false),
         ];
 
@@ -2021,11 +2023,12 @@ class Test extends BaseLogger {
         const game = new PracticeGame(smallDict); 
 
         const expectedInitialInstructions = [
+                                // word      type                     change  rating               isStart  parLine
             new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("CAT",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("SAT",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SAG",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SAG",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
 
         const expectedAfterScagInstructions = [
@@ -2062,15 +2065,16 @@ class Test extends BaseLogger {
         // shortest solution is PLANE,PANE,PANED, but dodo move is PLANE,PLAN,PAN,PANE,PANED
 
         const expectedInitialInstructions = [
+                                // word       type                     change  rating               isStart  parLine
             new DisplayInstruction("PLANE",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PANE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
         ];
 
         const expectedPlaneToPlanInstructions = [
             new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED_DELETE,     0,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PAN",     Const.FUTURE,            0,      Const.NO_RATING,     false,   true),
             new DisplayInstruction("PANE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
         ];
@@ -2078,7 +2082,7 @@ class Test extends BaseLogger {
         const expectedPlanToPanInstructions = [
             new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   true),
             new DisplayInstruction("PANE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
         ];
@@ -2086,7 +2090,7 @@ class Test extends BaseLogger {
         const expectedPanToPanXInstructions = [
             new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   true),
             new DisplayInstruction("PAN?",    Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
         ];
@@ -2094,7 +2098,7 @@ class Test extends BaseLogger {
         const expectedPanXToPaneInstructions = [
             new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   true),
             new DisplayInstruction("PANE",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
         ];
@@ -2102,7 +2106,7 @@ class Test extends BaseLogger {
         const expectedPaneToPaneXInstructions = [
             new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   true),
             new DisplayInstruction("PANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("PANE?",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false),
         ];
@@ -2110,7 +2114,7 @@ class Test extends BaseLogger {
         const expectedPaneXToPanedInstructions = [
             new DisplayInstruction("PLANE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   true),
             new DisplayInstruction("PANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("PANED",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
         ];
@@ -2163,8 +2167,8 @@ class Test extends BaseLogger {
         const blissToBlipsResult = game.playLetter(4,"P");
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be BLISS, BLIPS, BLISS, BLESS, LESS, LEST
         game.finishGame();
-        const score = game.numPenalties();
-        const expScore = 1; // one penalty for the dodo move, even though it added two steps
+        const score = game.getNormalizedScore();
+        const expScore = 2; // dodo move adds two steps
         this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
         this.verify((blissToBlipsResult === Const.DODO_MOVE), `playLetter(4,P) expected ${Const.DODO_MOVE}, got ${blissToBlipsResult}`) &&
         this.verify(score == expScore, "expected score:", expScore, "got", score) &&
@@ -2238,7 +2242,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
             new DisplayInstruction("BAD",    Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.SHOWN_MOVE,    false,   true),
         ];
 
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
@@ -2263,7 +2267,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("SCAD",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("CAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("BAD",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("BAT",    Const.TARGET,            0,      Const.SHOWN_MOVE,    false,   true),
         ];
 
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
@@ -2337,7 +2341,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("FLAT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("FRAT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FEAT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("FEAT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   true),
             new DisplayInstruction("FELT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("FEET",   Const.PLAYED_CHANGE,     3,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("FE?T",   Const.WORD_AFTER_CHANGE, 2,      Const.NO_RATING,     false,   false),
@@ -2392,7 +2396,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("FRAT",   Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
             new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FEAT",   Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
+            new DisplayInstruction("FEAT",   Const.PLAYED,            0,      Const.DODO_MOVE,     false,   true),
             new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("FLAT",   Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
             new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
@@ -2449,7 +2453,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("MATE",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("RATE",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("LATE",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FATE",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("FATE",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   true),
             new DisplayInstruction("ATE",    Const.PLAYED_ADD,        0,      Const.DODO_MOVE,     false,   false),
             new DisplayInstruction("FATE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("FAT",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
@@ -2464,6 +2468,7 @@ class Test extends BaseLogger {
         this.hadNoErrors();
     }
 
+    // TODO - this test is not being used
     testGameStuckOnWrongSpaceAdded() {
         this.testName = "GameStuckOnWrongSpaceAdded";
         let [start, target] = ["FISH", "SALTED"];
@@ -2659,8 +2664,8 @@ class Test extends BaseLogger {
 
         // create and verify an expected DailyStats blob
         let expStatsBlob = { gamesStarted : 1, gamesWon : 1, gamesLost : 0, streak : 1 };  
-        let expPenaltyHistogram = { 0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-        let testResults = this.verifyStats(expStatsBlob, expPenaltyHistogram);
+        let expExtraStepsHistogram = { 0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        let testResults = this.verifyStats(expStatsBlob, expExtraStepsHistogram);
 
         // now, get and check the share string:
 
@@ -2705,8 +2710,8 @@ class Test extends BaseLogger {
 
         // create an expected DailyStats blob
         let expStatsBlob = { gamesStarted : 3, gamesWon : 3, gamesLost : 0, streak : 3 };  
-        let expPenaltyHistogram = { 0: 3, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-        this.verifyStats(expStatsBlob, expPenaltyHistogram) && this.hadNoErrors();
+        let expExtraStepsHistogram = { 0: 3, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        this.verifyStats(expStatsBlob, expExtraStepsHistogram) && this.hadNoErrors();
     }
 
     displayModesTest () {
@@ -2823,8 +2828,8 @@ class Test extends BaseLogger {
 
         // create the expected daily stats blob
         let expStatsBlob = { gamesStarted : 3, gamesWon : 3, gamesLost : 0, streak : 3 };  
-        let expPenaltyHistogram = { 0: 1, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0 };
-        this.verifyStats(expStatsBlob, expPenaltyHistogram) && this.hadNoErrors();
+        let expExtraStepsHistogram = { 0: 1, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0 };
+        this.verifyStats(expStatsBlob, expExtraStepsHistogram) && this.hadNoErrors();
     }
 
     // multiIncompleteGameStatsTest plays the daily game 3 times:
@@ -2870,8 +2875,8 @@ class Test extends BaseLogger {
 
         // create and verify an expected DailyStats blob
         let expStatsBlob = { gamesStarted : 3, gamesWon : 1, gamesLost : 0, streak : 0 };  
-        let expPenaltyHistogram = { 0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
-        this.verifyStats(expStatsBlob, expPenaltyHistogram) && this.hadNoErrors();
+        let expExtraStepsHistogram = { 0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
+        this.verifyStats(expStatsBlob, expExtraStepsHistogram) && this.hadNoErrors();
     }
 
     dailyGameResultsDivOnWinTest() {
@@ -2991,7 +2996,7 @@ class Test extends BaseLogger {
         this.playLetter(4, "K"); // BOOT -> BOOK  D'OH wrong move 4
         this.playLetter(4, "T"); // BOOK -> BOOT  D'OH wrong move 5
 
-        // game should be over if Const.TOO_MANY_PENALTIES is 5
+        // game should be over if Const.TOO_MANY_EXTRA_STEPS is 5
         const game = this.gameDisplay.game;
         if (!this.verify(game.isOver(), "after 5 wrong moves, game is not over!"))
             return
@@ -3050,8 +3055,8 @@ class Test extends BaseLogger {
 
         let expStatsBlob = { gamesStarted : 1, gamesWon : 0, gamesLost : 1, streak : 0 };  
         // the only completed game has 5 wrong moves (3 errors, 2 shown moves)
-        let expPenaltyHistogram = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
-        let statsTestResult = this.verifyStats(expStatsBlob, expPenaltyHistogram); 
+        let expExtraStepsHistogram = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
+        let statsTestResult = this.verifyStats(expStatsBlob, expExtraStepsHistogram); 
         this.logDebug("statsTestResult: ", statsTestResult, "test");
 
         if (statsTestResult) {
@@ -3134,7 +3139,7 @@ class Test extends BaseLogger {
 
         this.playLetter(4, "T"); // BOOK -> BOOT  D'OH wrong move 5
 
-        // game should be over if Const.TOO_MANY_PENALTIES is 5.
+        // game should be over if Const.TOO_MANY_EXTRA_STEPS is 5.
         if (!this.verify(game.isOver(), "after 5 wrong moves, game is not over!")) {
             return;
         }

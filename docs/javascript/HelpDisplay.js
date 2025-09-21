@@ -26,7 +26,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         <h2>
         Change words one step at a time (add/delete/change a letter)
         to get from the starting word to the target word in as few steps as possible.
-        If you have ${Const.TOO_MANY_PENALTIES} penalty moves you lose the game.
+        If you have ${Const.TOO_MANY_EXTRA_STEPS} penalty moves you lose the game.
         </h2>
 
         <h3>
@@ -147,14 +147,14 @@ class HelpDisplay extends AuxiliaryDisplay {
         <img src="/docs/images/Help12.v1.jpg" width="350px"/>
         <p>
         The gray letters indicate you got some help; this is also a penalty.
-        If you have ${Const.TOO_MANY_PENALTIES} penalty moves you lose the game.
+        If you have ${Const.TOO_MANY_EXTRA_STEPS} penalty moves you lose the game.
         </p>
 
         <img src="/docs/images/Help13.v1.jpg" width="350px"/>
         <p>
         If you reach the target word you win the game.
         Your score is the number of penalty moves you made,
-        from 0 to ${Const.TOO_MANY_PENALTIES}.
+        from 0 to ${Const.TOO_MANY_EXTRA_STEPS}.
         In this case, HARM and HAD resulted in a score of 2.
         The first time this game was played,
         there were no mistakes and so the score was 0.

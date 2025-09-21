@@ -15,7 +15,7 @@ import * as Const from './Const.js';
 **    Integer: number of games that ended because of too many wrong moves.
 ** streak
 **    Integer: number of consecutive daily games won.
-** 0 .. <Const.TOO_MANY_PENALTIES>
+** 0 .. <Const.TOO_MANY_EXTRA_STEPS>
 **    Integer: Number of games that had 0, 1, ... wrong moves.
 */
 
@@ -102,7 +102,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     shareCallback(event) {
         const CL = "StatsDisplay.shareCallback";
         COV(0, CL);
-        return this.appDisplay.getShare(); // used in testing only
+        return this.appDisplay.getShare(); // return value used in testing only
     }
 
     /* ----- Utilities ----- */
@@ -217,14 +217,14 @@ class StatsDisplay extends AuxiliaryDisplay {
         this.dailyStreak = gameState.getStat('streak');
 
         // Next we'll display a bar graph showing how many games there were at each "wrong moves value",
-        // i.e. 0 .. <Const.TOO_MANY_PENALTIES> *and* "games that ended because of too many
+        // i.e. 0 .. <Const.TOO_MANY_EXTRA_STEPS> *and* "games that ended because of too many
         // wrong moves". First, determine the maximum value among all the "wrong moves values"
         // to use to in calculating the length of the bars.
         let maxWrongWordsValue = 0;
-        let penaltyHistogram = gameState.penaltyHistogram;
-        for (let numPenalties = 0; numPenalties <= Const.TOO_MANY_PENALTIES; numPenalties++) {
-            if (penaltyHistogram[numPenalties] > maxWrongWordsValue) {
-                maxWrongWordsValue = penaltyHistogram[numPenalties];
+        let extraStepsHistogram = gameState.extraStepsHistogram;
+        for (let numExtraSteps = 0; numExtraSteps <= Const.TOO_MANY_EXTRA_STEPS; numExtraSteps++) {
+            if (extraStepsHistogram[numExtraSteps] > maxWrongWordsValue) {
+                maxWrongWordsValue = extraStepsHistogram[numExtraSteps];
             }
         }
 
@@ -248,9 +248,9 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Add a bar for each of the possible values; the emojis for these are in Const.NUMBERS.
-        for (let numPenalties = 0; numPenalties <= Const.TOO_MANY_PENALTIES; numPenalties++) {
-            const barValue = penaltyHistogram[numPenalties];
-            addBar(barValue, Const.NUMBERS[numPenalties], this.statsDistribution);
+        for (let numExtraSteps = 0; numExtraSteps <= Const.TOO_MANY_EXTRA_STEPS; numExtraSteps++) {
+            const barValue = extraStepsHistogram[numExtraSteps];
+            addBar(barValue, Const.NUMBERS[numExtraSteps], this.statsDistribution);
         }
     }
 }

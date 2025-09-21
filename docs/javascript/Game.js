@@ -42,6 +42,10 @@ class Game extends BaseLogger {
         return this.instructions;
     }
 
+    needsParLine() {
+        return (this.instructions.length + 1 === this.gameState.getWordChainSolutionLength());
+    }
+
     /*
        For each word in played list except last:
        (Start word counts as played, so in the first list
@@ -60,7 +64,6 @@ class Game extends BaseLogger {
         const changePosition = 0;
         const isStartWord = (i === 0);
         const moveRating = isStartWord ? Const.NO_RATING : ratedMove.rating;
-        const showParLine = false; // TODO
 
         Const.GL_DEBUG && this.logDebug("addInstructionForPlayedWord(", i, ")",
                 "  ratedMove:", ratedMove,
@@ -70,7 +73,7 @@ class Game extends BaseLogger {
                 ", isStartWord:", isStartWord,
                 "instruction");
 
-        let displayInstruction = new DisplayInstruction(ratedMove.word, displayType, changePosition, moveRating, isStartWord, showParLine);
+        let displayInstruction = new DisplayInstruction(ratedMove.word, displayType, changePosition, moveRating, isStartWord, this.needsParLine());
         Const.GL_DEBUG && this.logDebug("addInstructionPlayedWord(", i, "): display instruction for", ratedMove.word, "is",
                 displayInstruction, "instruction");
         this.instructions.push(displayInstruction);
@@ -102,7 +105,6 @@ class Game extends BaseLogger {
         const lastPlayedWordIsTarget = this.gameState.getUnplayedWords().length === 0;
         const lastPlayedWordIsStart = nPlayedWords === 1;
         const moveRating = (this.instructions.length == 0) ? Const.NO_RATING : lastRatedMove.rating;
-        const showParLine = false; // TODO
         var changePosition = 0; 
         var displayType;
 
@@ -134,7 +136,7 @@ class Game extends BaseLogger {
                 }
             }
         }
-        let displayInstruction = new DisplayInstruction(lastPlayedWord, displayType, changePosition, moveRating, lastPlayedWordIsStart, showParLine);
+        let displayInstruction = new DisplayInstruction(lastPlayedWord, displayType, changePosition, moveRating, lastPlayedWordIsStart, this.needsParLine());
         Const.GL_DEBUG && this.logDebug("addInstructionLastPlayedWord(): display instruction for",
                 lastPlayedWord, "is", displayInstruction, "instruction");
         this.instructions.push(displayInstruction);
@@ -181,7 +183,6 @@ class Game extends BaseLogger {
         const nextWordsAreSameLen = (nextUnplayedWordIfAny != null) && (firstUnplayedWord.length === nextUnplayedWordIfAny.length);
         const previousDisplayInstruction = this.instructions[this.instructions.length-1];
         const previousDisplayType = previousDisplayInstruction.displayType;
-        const showParLine = false; // TODO
 
         var displayedFirstUnplayedWord = firstUnplayedWord;
 
@@ -222,9 +223,8 @@ class Game extends BaseLogger {
                 }
                 displayType = Const.WORD_AFTER_ADD;
                 // Add the hole where the user added space to this first unplayed word here;
-                // add one because addPosition is 0-word.length.
-                const holePosition = this.addPosition + 1;
-                displayedFirstUnplayedWord = WordChainDict.insertHoleBeforePosition(lastPlayedWord, holePosition);
+                // Note: addPosition is 0-word.length, which is what insertHoleBeforePosition() expects.
+                displayedFirstUnplayedWord = WordChainDict.insertHoleBeforePosition(lastPlayedWord, this.addPosition);
             } else if (firstUnplayedWordIsTarget) {
                 // target following Const.PLAYED is only for the game being finished.  
                 displayType = Const.TARGET;
@@ -237,7 +237,7 @@ class Game extends BaseLogger {
             return;
         }
         let displayInstruction = new DisplayInstruction(displayedFirstUnplayedWord, displayType, changePosition, moveRating,
-                firstUnplayedWordIsStart, showParLine);
+                firstUnplayedWordIsStart, this.needsParLine());
         Const.GL_DEBUG && this.logDebug("addInstructionForFirstUnplayedWord(): display instruction for",
                 firstUnplayedWord, "is", displayInstruction, "instruction");
         this.instructions.push(displayInstruction);
@@ -261,7 +261,6 @@ class Game extends BaseLogger {
         const nextUnplayedWordIfAny = thisUnplayedWordIsTarget ? null : this.gameState.getUnplayedWord(i + 1);
         const nextWordsAreSameLen = (nextUnplayedWordIfAny != null) && (thisUnplayedWord.length === nextUnplayedWordIfAny.length);
         const isStartWord = false;  // start word is by definition always played
-        const showParLine = false; // TODO
 
         Const.GL_DEBUG && this.logDebug("addInstructionForUnplayedWord(", i, 
                 "), thisUnplayedWord:", thisUnplayedWord,
@@ -282,7 +281,7 @@ class Game extends BaseLogger {
                 changePosition = WordChainDict.findChangedLetterLocation(thisUnplayedWord, nextUnplayedWordIfAny) + 1;
             }
         }
-        let displayInstruction = new DisplayInstruction(thisUnplayedWord, displayType, changePosition, moveRating, isStartWord, showParLine);
+        let displayInstruction = new DisplayInstruction(thisUnplayedWord, displayType, changePosition, moveRating, isStartWord, this.needsParLine());
         Const.GL_DEBUG && this.logDebug("addInstructionForUnplayedWord(", i, "): display instruction for",
                 thisUnplayedWord, "is", displayInstruction, "instruction");
         this.instructions.push(displayInstruction);
@@ -296,7 +295,7 @@ class Game extends BaseLogger {
         if (this.gameState.dictionary.isWord(word) || this.scrabbleDictionary.isWord(word)) {
             COV(1, CL);
             result = this.gameState.addWord(word);
-        } 
+        }
         COV(2, CL);
         return result;
     }
@@ -367,12 +366,14 @@ class Game extends BaseLogger {
                 "addSpaceInProgress?", this.addSpaceInProgress, "at position:", this.addPosition,
                 "this.gameState", this.gameState, "game");
         Const.GL_DEBUG && this.logDebug("steps played: ", this.gameState.getPlayedWordsAsString(), "game");
+
         var oldWord = this.lastPlayedWord();
         if (this.addSpaceInProgress) {
             this.addSpaceInProgress = false;
             // put the hole into oldWord at the location of the space added (0 to oldWord.length);
             oldWord = oldWord.substr(0,this.addPosition) + Const.HOLE + oldWord.substr(this.addPosition);
         }
+
         // construct the new word with 'letter' at letterPosition.
         letterPosition -= 1; // adjust for zero based
         let newWord = oldWord.substring(0,letterPosition) + letter + oldWord.substring(letterPosition+1);
@@ -384,11 +385,17 @@ class Game extends BaseLogger {
     // pass-throughs to GameState
     /////////
 
-    // Returns the number of actually played wrong moves, including dodo moves, and shown moves.
-    numPenalties() {
-        const CL = "Game.numPenalties";
+    // Returns the number of extra steps, 0..N
+    getNormalizedScore() {
+        const CL = "Game.getNormalizedScore";
         COV(0, CL);
-        return this.gameState.numPenalties();
+
+        if (!this.isOver()) {
+            console.error("GameState.getNormalizedScore() called before game is over");
+            return 1000;
+        }
+
+        return this.gameState.getNormalizedScore();
     }
  
     numShownMoves() {

@@ -15,9 +15,6 @@ import {
     LetterCellWithBackground,
 } from './Cell.js';
 
-// ========== Faux
-import { DisplayInstruction } from './DisplayInstruction.js';
-
 
 class GameDisplay extends BaseLogger {
 
@@ -101,9 +98,7 @@ class GameDisplay extends BaseLogger {
             result = Const.PICK_NEW_LETTER;
         } else {
             COV(2, CL);
-            // ========== Faux
             result = this.game.playLetter(letterPosition, letter);
-            //result = Const.GOOD_MOVE
             this.processGamePlayResult(result);
         }
 
@@ -142,8 +137,9 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayFuture";
         COV(0, CL);
 
+        const changePosition = displayInstruction.changePosition;
         function getCell(letter, letterPosition) {
-            return new EmptyLetterCell(letterPosition, displayInstruction.changePosition);
+            return new EmptyLetterCell(letterPosition, changePosition);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -157,10 +153,8 @@ class GameDisplay extends BaseLogger {
               isTargetWord = false;
 
         function getCell(letter, letterPosition) {
-            return new LetterCellWithBackground(letter,
-                letterPosition, displayInstruction.changePosition,
-                me.letterPicker, displayInstruction.moveRating,
-                displayInstruction.isStartWord, isTargetWord);
+            return new LetterCellWithBackground(letter, letterPosition, displayInstruction.changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
         }
 
         this.displayCommon(displayInstruction, getCell)
@@ -169,14 +163,13 @@ class GameDisplay extends BaseLogger {
     displayPlayedAdd(displayInstruction) {
         const CL = "GameDisplay.displayPlayedAdd";
         COV(0, CL);
+
         const me = this,
               isTargetWord = false;
 
         function getCell(letter, letterPosition) {
-            return new LetterCellWithBackground(letter,
-                letterPosition, displayInstruction.changePosition,
-                me.letterPicker, displayInstruction.moveRating,
-                displayInstruction.isStartWord, isTargetWord);
+            return new LetterCellWithBackground(letter, letterPosition, displayInstruction.changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -189,10 +182,8 @@ class GameDisplay extends BaseLogger {
               isTargetWord = false;
 
         function getCell(letter, letterPosition) {
-            return new LetterCellWithBackground(letter,
-                letterPosition, displayInstruction.changePosition,
-                me.letterPicker, displayInstruction.moveRating,
-                displayInstruction.isStartWord, isTargetWord);
+            return new LetterCellWithBackground(letter, letterPosition, displayInstruction.changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
         }
 
         // changePosition goes 1..wordLength, so need to subtract 1.
@@ -206,13 +197,12 @@ class GameDisplay extends BaseLogger {
         COV(0, CL);
 
         const me = this,
+              changePosition = displayInstruction.changePosition,
               isTargetWord = false;
 
         function getLetterCell(letter, letterPosition) {
-            return new LetterCellWithBackground(letter,
-                letterPosition, displayInstruction.changePosition,
-                me.letterPicker, displayInstruction.moveRating,
-                displayInstruction.isStartWord, isTargetWord);
+            return new LetterCellWithBackground(letter, letterPosition, changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
         }
 
         // First, display the letter cells.
@@ -235,14 +225,12 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayTarget";
         COV(0, CL);
 
-        const letterPicker = null,
+        const changePosition = displayInstruction.changePosition,
               isTargetWord = true;
 
         function getCell(letter, letterPosition) {
-            return new LetterCellWithBackground(letter,
-                letterPosition, displayInstruction.changePosition,
-                letterPicker, displayInstruction.moveRating,
-                displayInstruction.isStartWord, isTargetWord);
+            return new LetterCellWithBackground(letter, letterPosition, changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -252,11 +240,19 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayWordAfterAdd";
         COV(0, CL);
 
-        const me = this;
+        const changePosition = displayInstruction.changePosition,
+              me = this;
+
+        var holePosition = displayInstruction.word.indexOf(Const.HOLE);
+        if (holePosition < 0) {
+            console.error("displayWordAfterAdd(): no hole in word:", displayInstruction.word);
+        } else {
+            holePosition += 1;
+        }
 
         function getCell(letter, letterPosition) {
-            return new LetterCellNoBackground(letter,
-                letterPosition, displayInstruction.changePosition, me.letterPicker);
+            return new LetterCellNoBackground(letter, letterPosition,
+                holePosition, changePosition, me.letterPicker);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -266,29 +262,22 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayWordAfterChange";
         COV(0, CL);
 
-        const me = this;
+        const changePosition = displayInstruction.changePosition,
+              me = this;
+
+        var holePosition = displayInstruction.word.indexOf(Const.HOLE);
+        if (holePosition < 0) {
+            console.error("displayWordAfterChange(): no hole in word:", displayInstruction.word);
+        } else {
+            holePosition += 1;
+        }
 
         function getCell(letter, letterPosition) {
-            return new LetterCellNoBackground(letter,
-                letterPosition, displayInstruction.changePosition, me.letterPicker);
+            return new LetterCellNoBackground(letter, letterPosition,
+                holePosition, changePosition, me.letterPicker);
         }
 
         this.displayCommon(displayInstruction, getCell);
-    }
-
-    // ========== Faux
-    initFauxDisplayInstructions() {
-        this.fauxDisplayInstructions = DisplayInstruction.FAUX_1;
-        console.log("instructions:", this.fauxDisplayInstructions);
-        this.fauxMoveNum = 0;
-    }
-
-    // ========== Faux
-    getFauxDisplayInstructions() {
-        var instructions = this.fauxDisplayInstructions[this.fauxMoveNum];
-        this.fauxMoveNum += 1;
-
-        return instructions;
     }
 
     showGameAfterMove() {
@@ -306,9 +295,7 @@ class GameDisplay extends BaseLogger {
 
         // all words are played words until we hit the first future or target word:
 
-        // ========== Faux
         let displayInstructions = this.game.getDisplayInstructions(),
-        //let displayInstructions = this.getFauxDisplayInstructions(),
             pickerEnabled = false,
             rowNum = 0;
 
@@ -395,8 +382,6 @@ class GameDisplay extends BaseLogger {
 
         if (this.gameIsOver()) {
             COV(14, CL);
-            // ========== Faux
-            //this.showGameOverGoodies();
             this.showGameOverGoodies();
         }
 
@@ -417,11 +402,10 @@ class GameDisplay extends BaseLogger {
             originalSolutionDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break original-solution-div"}),
             iconDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break icon-div"});
 
-        // Add the score.
-        const scoreText = Const.SCORE_TEXT[this.game.numPenalties()];
-        Const.GL_DEBUG && this.logDebug("GameDisplay.showGameOverGoodies(): this.game.numPenalties():",
-                this.game.numPenalties(), "game");
-        ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
+        // Get the normalized score (0..N) and add it to the display.
+        var score = this.game.getNormalizedScore();
+        Const.GL_DEBUG && this.logDebug("GameDisplay.showGameOverGoodies(): raw score():", score, "game");
+        ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${Const.SCORE_TEXT[score]}`);
 
         // If the derived GameDisplay class defined a function to do additional things when
         // the game is over, call the function.
@@ -484,9 +468,7 @@ class GameDisplay extends BaseLogger {
         } else {
             COV(2, CL);
             let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
-            // ========== Faux
             result = this.game.playAdd(additionPosition);
-            //result = Const.GOOD_MOVE;
 
             this.processGamePlayResult(result);
         }
@@ -513,9 +495,7 @@ class GameDisplay extends BaseLogger {
             COV(2, CL);
             let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
 
-            // ========== Faux
             result = this.game.playDelete(deletionPosition);
-            //result = Const.GOOD_MOVE;
             this.processGamePlayResult(result);
         }
 
@@ -806,8 +786,6 @@ class DailyGameDisplay extends GameDisplay {
         // Enable or disable the share button based on whether the user has played the game.
         this.updateShareButton();
 
-        // ========== Faux
-        //this.initFauxDisplayInstructions();
         this.updateDisplay();
     }
 
@@ -912,8 +890,6 @@ class PracticeGameDisplay extends GameDisplay {
             ElementUtilities.disableButton(this.newGameButton);
         }
         COV(2, CL);
-        // ========== Faux
-        // this.updateDisplay();
         this.updateDisplay();
     }
 
