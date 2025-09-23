@@ -106,7 +106,7 @@ class Picker extends BaseLogger {
     selectionCallback(event) {
         const CL = "Picker.selectionCallback";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("Picker.selectionCallback() event:", event, "picker");
+        Const.GL_DEBUG && this.logDebug("Picker.selectionCallback() event:", event, "Picker's letterPosition:", this.letterPosition, "picker");
 
         let result = null;
 

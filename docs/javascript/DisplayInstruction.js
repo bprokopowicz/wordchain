@@ -43,7 +43,7 @@ class DisplayInstruction {
     //     WORD_AFTER_ADD:
     //         - no letter background color
     //         - word displayed as active (yellow background)
-    //         - letter at changePosition will have a thick border, unless changePosition is 0
+    //         - letter at changePosition will have a thick border, unless changePosition is < 0
     //         - word length is one more than length of preceding word
     //         - one letter in word is '?'
     //         - moveRating unused
@@ -57,7 +57,7 @@ class DisplayInstruction {
     //     WORD_AFTER_CHANGE:
     //         - no letter background color
     //         - word NOT displayed as active
-    //         - letter at changePosition will have a thick border, unless changePosition is 0
+    //         - letter at changePosition will have a thick border, unless changePosition is < 0
     //         - word length is equal to length of preceding word
     //         - one letter in word is '?'
     //         - moveRating unused
@@ -67,7 +67,7 @@ class DisplayInstruction {
     //         - letter background color based on move rating
     //         - word displayed as active (yellow background)
     //         - minus signs displayed
-    //         - changePosition should be 0 (no letters with thick borders)
+    //         - changePosition should be < 0 (no letters with thick borders)
     //     FUTURE:
     //         - word NOT displayed as active
     //         - no letter background color
@@ -77,13 +77,13 @@ class DisplayInstruction {
     //     PLAYED:
     //         - word NOT displayed as active
     //         - letter background color based on move rating
-    //         - changePosition should be 0 (no letters with thick borders) -- actually irrelevant
+    //         - changePosition should be < 0 (no letters with thick borders) -- actually irrelevant
     //
     //     TARGET:
     //         - word NOT displayed as active
     //         - one letter in word MAY BE '?' (if it follows a playedChange)
     //         - letter background color purple or green???
-    //         - changePosition should be 0 (no letters with thick borders) -- actually irrelevant
+    //         - changePosition should be < 0 (no letters with thick borders) -- actually irrelevant
     //
     //     On a fresh game, the start word instruction will be one of 'playedAdd', 'playedDelet',
     //     or 'playedChange'; the start word is always thought of as a played word.
@@ -92,7 +92,7 @@ class DisplayInstruction {
     //     latter case the target word will have a '?' in it. The 'target' instruction word will
     //     have a '?' in it if the prior instruction is 'playedChange'.
     //
-    // changePosition: 1..word.length
+    // changePosition: 0..word.length-1
     //     - the position in the word that should change
     //     - 0 if no change
     //

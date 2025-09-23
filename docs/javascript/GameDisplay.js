@@ -16,6 +16,14 @@ import {
 } from './Cell.js';
 
 
+/*
+ * Notes on letter and tile positions:  
+ * letterPosition   [0, wordLength-1] - index into the current word being displayed.  Saved in GameDisplay
+ * changePosition   [0, wordLength-1] - the index of the letter to be changed in 
+ * holePosition     [0, wordLength-1] - the index of the hole ('?') in the word after adding a space
+ * additionPosition [0, wordLength]   - the index of a space to be added, in front of the letter at additionPosition.
+ *                                      When additionPosition == wordLength, the space is to be added after the last letter
+ */
 class GameDisplay extends BaseLogger {
 
     /* ----- Construction ----- */
@@ -186,9 +194,8 @@ class GameDisplay extends BaseLogger {
                 displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
         }
 
-        // changePosition goes 1..wordLength, so need to subtract 1.
-        // =========== splain why we save this!
-        this.currentLetter = displayInstruction.word[displayInstruction.changePosition - 1];
+        // =========== splain why we save this! TODO - not needed?
+        this.currentLetter = displayInstruction.word[displayInstruction.changePosition /* - 1*/];
         this.displayCommon(displayInstruction, getCell);
     }
 
@@ -246,9 +253,9 @@ class GameDisplay extends BaseLogger {
         var holePosition = displayInstruction.word.indexOf(Const.HOLE);
         if (holePosition < 0) {
             console.error("displayWordAfterAdd(): no hole in word:", displayInstruction.word);
-        } else {
+        } /*else {
             holePosition += 1;
-        }
+        }*/
 
         function getCell(letter, letterPosition) {
             return new LetterCellNoBackground(letter, letterPosition,
@@ -268,9 +275,9 @@ class GameDisplay extends BaseLogger {
         var holePosition = displayInstruction.word.indexOf(Const.HOLE);
         if (holePosition < 0) {
             console.error("displayWordAfterChange(): no hole in word:", displayInstruction.word);
-        } else {
+        } /* else {
             holePosition += 1;
-        }
+        } */
 
         function getCell(letter, letterPosition) {
             return new LetterCellNoBackground(letter, letterPosition,
@@ -468,6 +475,7 @@ class GameDisplay extends BaseLogger {
         } else {
             COV(2, CL);
             let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
+            Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): additionPosition: ", additionPosition, "callback");
             result = this.game.playAdd(additionPosition);
 
             this.processGamePlayResult(result);
@@ -544,7 +552,7 @@ class GameDisplay extends BaseLogger {
     displayCommon(displayInstruction, cellCreator) {
         const CL = "GameDisplay.displayCommon";
         COV(0, CL);
-        var additionPosition = 0,
+        var additionPosition = 0, // the index of a 'plus' cell, which agrees with the letter to the right of the plus cell
             additionCell = null,
             letterCell = null,
             tdElement = null,
@@ -572,7 +580,7 @@ class GameDisplay extends BaseLogger {
             letterCell = cellCreator(letters[letterIndex], letterIndex + 1);
             ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 
-            // Add the next addition cell.
+            // Add the next addition cell after the letter cell.  AdditionCell positions go from 0 to wordLength
             additionCell = new AdditionCell(additionPosition, this.hideAdditionCells, this, this.additionClickCallback);
 
             tdElement = this.addTd();

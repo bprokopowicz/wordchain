@@ -170,7 +170,7 @@ class Solver {
     // Returns:
     //   [action, position, letter]:
     //       action = CHANGE,ADD, or DELETE
-    //       position = 1-based letter index to change, delete, or insert (after).  Uses 0 for insert before the first letter
+    //       position = 0-based letter index to change, delete, or insert (after).  Uses 0 for insert before the first letter
     //       letter = the letter to change to or insert.  Not used on DELETE actions
     //   null:
     //       if you can't get from a to b in one operation
@@ -188,7 +188,7 @@ class Solver {
                     if (wordA.substr(i+1) === wordB.substr(i+1)) {
                         // rest of strings past i match.
                         COV(3, CL);
-                        return [Const.CHANGE, i+1, wordB[i]]; // one-indexed result
+                        return [Const.CHANGE, i, wordB[i]]; 
                     } else {
                         COV(4, CL);
                         return null; // there are two or more mismatches
@@ -207,7 +207,7 @@ class Solver {
                     // do the strings match if we remove letter at 'i' from a?
                     if (wordA.substr(i+1) === wordB.substr(i)) {
                         COV(8, CL);
-                        return [Const.DELETE, i+1, null];
+                        return [Const.DELETE, i, null];
                     } else {
                         COV(9, CL);
                         return null; // there are two or more mismatches
@@ -217,7 +217,7 @@ class Solver {
             // If we reach here, there are no difference between wordA and wordB in the first wordB.length letters.
             // So the result is to delete the last letter in wordA
             COV(10, CL);
-            return [Const.DELETE, wordA.length, null]; 
+            return [Const.DELETE, wordA.length-1, null]; 
         } else if (wordA.length+1 === wordB.length) {
             COV(11, CL);
             // wordA is shorter

@@ -1,4 +1,4 @@
-export var GL_DEBUG = true;
+export var GL_DEBUG = false;
 
 // Turn on/off debugging.  We use var instead of const so that we can turn it on/off from
 // code as well as by hard-coding it here, BUT:
@@ -108,6 +108,11 @@ export const PLAYED_DELETE      = "playedDelete";
 export const TARGET             = "target";
 export const WORD_AFTER_ADD     = "wordAfterAdd";
 export const WORD_AFTER_CHANGE  = "wordAfterChange";
+
+// Solver transformation types
+export const ADD = "add";
+export const DELETE = "delete";
+export const CHANGE = "change";
 
 // Special characters used in Game.showGame() return string;
 // a few other classes use these.
