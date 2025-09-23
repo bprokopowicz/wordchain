@@ -188,7 +188,7 @@ class GameState extends BaseLogger {
         this.ratedMoves.push(new RatedMove(word, moveRating));
         if (this.isOver()) {
             COV(8, CL);
-            Const.GL_DEBUG && this.logDebug ("GameState.addWord() game is over", "gameState");
+            Const.GL_DEBUG && this.logDebug ("GameState.addWord() game is now over", "gameState");
             this.showUnplayedMoves();
             this.updateStateAfterGame(); // dispatches to sub-class for Daily vs Practice
         }
@@ -208,15 +208,31 @@ class GameState extends BaseLogger {
         return (GameState.locationOfHole(word) >= 0);
     }
 
+    /* 
+     * Score indicates the best-case number of words actually used vs WordChain's solution.
+     * When a game is in progress, it counts words played plus the best-case remaining words.
+     * When a game is over, the remaining words are zero.
+     * Score will be negative if user had one or more genius
+     * moves (unless they made mistakes too).
+     * Score can grow indefinetly if we allow unlimited moves.
+     */
+
     getScore() {
-        // Score will be negative if user had one or more genius
-        // moves (unless they made mistakes too).
-        return this.ratedMoves.length - this.initialSolution.length;
+        return this.unplayedWords.length + this.ratedMoves.length - this.initialSolution.length;
     }
 
+    /*
+     * For display & stats, we limit the score from 0 to TOO_MANY_EXTRA_STEPS
+     */
     getNormalizedScore() {
         const score = this.getScore();
-        return score >= 0 ? score : 0;
+        if (score < 0) {
+            return 0;
+        } else if (score >= Const.TOO_MANY_EXTRA_STEPS) {
+            return Const.TOO_MANY_EXTRA_STEPS;
+        } else {
+            return score;
+        }
     }
 
     numShownMoves() {
@@ -331,9 +347,11 @@ class DailyGameState extends GameState{
         const logger = new BaseLogger();
         if (Const.GL_DEBUG) {
             logger.logDebug("DailyGameState.factory() called.", "gameState");
+            /*
             if (logger.tagIsOn("gameState")) {
                 console.trace();
             }
+            */
         }
         const CL = "DailyGameState.factory";
         COV(0, CL);
@@ -343,6 +361,7 @@ class DailyGameState extends GameState{
         if (recoveredObj == null) {
             // nothing persisted. 
             COV(1, CL);
+            Const.GL_DEBUG && logger.logDebug("no recovered daily game, so streak starts at 1.", "daily");
             let gameState = DailyGameState.__fromScratch(dictionary);
             gameState.isConstructedAsNew = true;
             gameState.updateFromDeprecatedStatsBlob();
@@ -367,7 +386,7 @@ class DailyGameState extends GameState{
 
                 // Check to see if the recovered daily game is today's game.  If so, use it as is.
                 // Otherwise, set state to today's daily game.
-                // If we recovered yesterday's game, and didn't win, the streak is over.
+                // If we recovered yesterday's game the streak is still good.
                 // If the game we recovered is more than 2 days old, the streak is over.
 
                 COV(4, CL);
@@ -378,20 +397,15 @@ class DailyGameState extends GameState{
                     recoveredDailyGameState.isConstructedAsNew = true;
 
                     // need a new game, but not from scratch, to keep the recovered GameState for stats
-                    if (recoveredDailyGameState.getDailyGameNumber() <= todaysGameNumber - 2) {
-                        // we didn't play yesterday's game; streak is over
+                    if (recoveredDailyGameState.getDailyGameNumber() === todaysGameNumber - 1) {
                         COV(6, CL);
+                        Const.GL_DEBUG && logger.logDebug("recovered yesterday's game, so streak continues.", "daily");
+                        recoveredDailyGameState.incrementStat("streak");
+                    } else {
+                        // we didn't play yesterday's game; streak is over
+                        COV(7, CL);
                         Const.GL_DEBUG && logger.logDebug("Did not play yesterday's game: streak is over", "daily");
                         recoveredDailyGameState.setStat("streak", 0);
-                    } else {
-                        // must be yesterday's game.  Did we win?
-                        // The case we're handling here is that it's an unfinished game.
-                        // If it was a lost game, we would have already set the streak
-                        // to 0 when it was lost.
-                        COV(7, CL);
-                        if (!recoveredDailyGameState.isWinner()) {
-                            recoveredDailyGameState.setStat("streak", 0);
-                        }
                     }
                     // now, update game state to today's game, playing from the start.
                     recoveredDailyGameState.setToTodaysGame();
@@ -468,7 +482,7 @@ class DailyGameState extends GameState{
             gamesStarted: 0,
             gamesWon: 0,
             gamesLost: 0,
-            streak: 0,
+            streak: 1, // streak can not be zero, because just starting the game via opening the app is a streak of atleast one.
         };
 
         // Now create a histogram for each number of wrong moves, and initialize
@@ -708,6 +722,8 @@ class DailyGameState extends GameState{
             this.statsBlob[whichStat] = statValue;
             Const.GL_DEBUG && this.logDebug("DailyGameState.setStat() setting and saving", whichStat, "to", statValue, "daily");
             this.persist();
+        } else {
+            console.log("not saving stats because obecause of broken daily game.");
         }
         COV(2, CL);
     }
@@ -789,14 +805,14 @@ class DailyGameState extends GameState{
         if (this.isWinner()) {
             COV(1, CL);
             this.incrementStat("gamesWon");
-            this.incrementStat("streak");
+            //this.incrementStat("streak");
         } else if (this.isLoser()) {
             COV(2, CL);
             this.incrementStat("gamesLost");
-            this.setStat("streak", 0);
+            //this.setStat("streak", 0);
         }
 
-        let extraStepsCount = this.getScore();
+        let extraStepsCount = this.getNormalizedScore(); // [0 .. TOO_MANY_EXTRA], not [-n,...0, 1, 2, ...)
         if (extraStepsCount >= Const.TOO_MANY_EXTRA_STEPS) {
             COV(3, CL);
             // Failed games show the remaining words, which count as wrong steps,

@@ -709,7 +709,7 @@ class Test extends BaseLogger {
         // If we are in confirmation mode, we have already clicked twice successfully
         // So we can now play the letter.
 
-        let playResult = this.playLetter(position+1, letter);
+        let playResult = this.playLetter(position+1, letter); 
         this.logDebug("insertLetter(", position, ",", letter, ") returns: ", clickResult, " then ", playResult,  "test");
         return playResult;
     }
@@ -1682,9 +1682,9 @@ class Test extends BaseLogger {
         prep(); this.testGameFinishAlternatePath();
         prep(); this.testGameShowTargetMove();
         prep(); this.testGameShowEveryMove();
-        prep(); this.testGameUnfinishedAfterMistakes();
-        prep(); this.testGameUnfinishedOnWrongDelete();
-        prep(); this.testGameUnfinishedOnWrongLetterChange();
+        prep(); this.testGameLosesAfterMistakes();
+        prep(); this.testGameLosesOnWrongDelete();
+        prep(); this.testGameLosesOnWrongLetterChange();
         prep(); this.testPracticeGamesPerDayLimitReached();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
@@ -2315,8 +2315,8 @@ class Test extends BaseLogger {
             this.hadNoErrors();
     }
 
-    testGameUnfinishedOnWrongLetterChange() {
-        this.testName = "GameUnfinishedOnWrongLetterChange";
+    testGameLosesOnWrongLetterChange() {
+        this.testName = "GameLosesOnWrongLetterChange";
         let [start, target] = ["SALTED", "FISH"];
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict); 
@@ -2329,9 +2329,28 @@ class Test extends BaseLogger {
         let r7 = game.playLetter(2, "R"); // -> FRAT wrong
         let r8 = game.playLetter(2, "E"); // -> FEAT wrong
         let r9 = game.playLetter(3, "L"); // -> FELT wrong
+        const beforeLossDisplayInstructions = game.getDisplayInstructions();
         let r10 = game.playLetter(3, "E"); // -> FEET wrong
 
-        const displayInstructions = game.getDisplayInstructions();
+        const finalDisplayInstructions = game.getDisplayInstructions();
+
+        const expectedBeforeLossInstructions = [
+                                // word      type                     change  rating               isStart  parLine
+            new DisplayInstruction("SALTED", Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("SATED",  Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("FATED",  Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("FATE",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("FLAT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("FRAT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("FEAT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   true),
+            new DisplayInstruction("FELT",   Const.PLAYED_CHANGE,     3,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("FE?T",   Const.WORD_AFTER_CHANGE, 2,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("FIST",   Const.FUTURE,            4,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("FISH",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+        ];
+
+
         const expectedFinalInstructions = [
                                 // word      type                     change  rating               isStart  parLine
             new DisplayInstruction("SALTED", Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
@@ -2343,10 +2362,10 @@ class Test extends BaseLogger {
             new DisplayInstruction("FRAT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("FEAT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   true),
             new DisplayInstruction("FELT",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FEET",   Const.PLAYED_CHANGE,     3,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FE?T",   Const.WORD_AFTER_CHANGE, 2,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FIST",   Const.FUTURE,            4,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FISH",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("FEET",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("FEST",   Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("FIST",   Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("FISH",   Const.TARGET,            0,      Const.SHOWN_MOVE,    false,   false),
         ];
 
         this.verify(r1 == Const.GOOD_MOVE, `expected r1=${Const.GOOD_MOVE}, got ${r1}`) &&
@@ -2359,14 +2378,15 @@ class Test extends BaseLogger {
             this.verify(r8 == Const.WRONG_MOVE, `expected r8=${Const.WRONG_MOVE}, got ${r8}`) &&
             this.verify(r9 == Const.WRONG_MOVE, `expected r9=${Const.WRONG_MOVE}, got ${r9}`) &&
             this.verify(r10 == Const.WRONG_MOVE, `expected r10=${Const.WRONG_MOVE}, got ${r10}`) &&
-            this.verifyInstructionList(displayInstructions, expectedFinalInstructions, "unfinished game final") &&
-            this.verify(!game.isOver(), "unfinished game should be NOT over") &&
-            this.verify(!game.isWinner(), "unfinished game should not be a winner") &&
+            this.verifyInstructionList(beforeLossDisplayInstructions, expectedBeforeLossInstructions, "before last extra step") &&
+            this.verifyInstructionList(finalDisplayInstructions, expectedFinalInstructions, "losing game final") &&
+            this.verify(game.isOver(), "losing game should be over") &&
+            this.verify(!game.isWinner(), "losing game should not be a winner") &&
             this.hadNoErrors();
     }
 
-    testGameUnfinishedAfterMistakes() {
-        this.testName = "testGameUnfinishedAfterMistakes";
+    testGameLosesAfterMistakes() {
+        this.testName = "GameLosesAfterMistakes";
         let [start, target] = ["FISH", "SALTED"];
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict); 
@@ -2378,13 +2398,7 @@ class Test extends BaseLogger {
         let r6 = game.playLetter(2, "R"); // -> FRAT dodo - requires undoing back to FAT
         let r7 = game.playDelete(2);      // -> FAT
         let r8 = game.playAdd(1);         // -> F_AT
-        let r9 = game.playLetter(2, "E"); // -> FEAT dodo
-        let r10 = game.playDelete(2);      // -> FAT
-        let r11 = game.playAdd(1);         // -> F_AT
-        let r12 = game.playLetter(2, "L"); // -> FLAT dodo
-        let r13 = game.playDelete(2);      // -> FAT
-        let r14 = game.playAdd(1);         // -> F_AT
-        let r15 = game.playLetter(2, "L"); // -> FLAT dodo
+        let r9 = game.playLetter(2, "E"); // -> FEAT dodo -- score is now 5+
 
         const displayInstructions = game.getDisplayInstructions();
         const expectedFinalInstructions = [
@@ -2397,15 +2411,11 @@ class Test extends BaseLogger {
             new DisplayInstruction("FRAT",   Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
             new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("FEAT",   Const.PLAYED,            0,      Const.DODO_MOVE,     false,   true),
-            new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FLAT",   Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FLAT",   Const.PLAYED_DELETE,     0,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("FAT",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FATE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FATED",  Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SATED",  Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SALTED", Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("EAT",    Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("SAT",    Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("SATE",   Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("SATED",  Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("SALTED", Const.TARGET,            0,      Const.SHOWN_MOVE,    false,   false),
         ];
 
         this.verify(r1 == Const.GOOD_MOVE, `expected r1=${Const.GOOD_MOVE}, got ${r1}`) &&
@@ -2417,20 +2427,22 @@ class Test extends BaseLogger {
             this.verify(r7 == Const.GOOD_MOVE, `expected r7=${Const.GOOD_MOVE}, got ${r7}`) &&
             this.verify(r8 == Const.GOOD_MOVE, `expected r8=${Const.GOOD_MOVE}, got ${r8}`) &&
             this.verify(r9 == Const.DODO_MOVE, `expected r9=${Const.DODO_MOVE}, got ${r9}`) &&
+            /*
             this.verify(r10 == Const.GOOD_MOVE, `expected r10=${Const.GOOD_MOVE}, got ${r10}`) &&
             this.verify(r11 == Const.GOOD_MOVE, `expected r11=${Const.GOOD_MOVE}, got ${r11}`) &&
             this.verify(r12 == Const.DODO_MOVE, `expected r12=${Const.DODO_MOVE}, got ${r12}`) &&
             this.verify(r13 == Const.GOOD_MOVE, `expected r13=${Const.GOOD_MOVE}, got ${r13}`) &&
             this.verify(r14 == Const.GOOD_MOVE, `expected r14=${Const.GOOD_MOVE}, got ${r14}`) &&
             this.verify(r15 == Const.DODO_MOVE, `expected r15=${Const.DODO_MOVE}, got ${r15}`) &&
-            this.verifyInstructionList(displayInstructions, expectedFinalInstructions, "unfinished game final") &&
-            this.verify(!game.isOver(), "unfinished game should be NOT over") &&
-            this.verify(!game.isWinner(), "unfinished game should not be a winner") &&
+            */
+            this.verifyInstructionList(displayInstructions, expectedFinalInstructions, "lost game final") &&
+            this.verify(game.isOver(), "losing game should be over") &&
+            this.verify(!game.isWinner(), "losing game should not be a winner") &&
             this.hadNoErrors();
     }
 
-    testGameUnfinishedOnWrongDelete() {
-        this.testName = "GameUnfinishedOnWrongDelete";
+    testGameLosesOnWrongDelete() {
+        this.testName = "GameLosesOnWrongDelete";
         let [start, target] = ["SALTED", "FISH"];
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict); 
@@ -2454,17 +2466,17 @@ class Test extends BaseLogger {
             new DisplayInstruction("RATE",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("LATE",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
             new DisplayInstruction("FATE",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   true),
-            new DisplayInstruction("ATE",    Const.PLAYED_ADD,        0,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("FATE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FAT",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FAST",   Const.FUTURE,            2,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FIST",   Const.FUTURE,            4,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FISH",   Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("ATE",    Const.PLAYED,            0,      Const.DODO_MOVE,     false,   false),
+            new DisplayInstruction("FATE",   Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("FAT",    Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("FAST",   Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("FIST",   Const.PLAYED,            0,      Const.SHOWN_MOVE,    false,   false),
+            new DisplayInstruction("FISH",   Const.TARGET,            0,      Const.SHOWN_MOVE,    false,   false),
         ];
 
         this.verifyInstructionList(displayInstructions, expectedFinalInstructions, "unfinished game final") &&
-        this.verify(!game.isOver(), "unfinished game should be NOT over") &&
-        this.verify(!game.isWinner(), "unfinished game should not be a winner") &&
+        this.verify(game.isOver(), "losing game should be over") &&
+        this.verify(!game.isWinner(), "losing game should not be a winner") &&
         this.hadNoErrors();
     }
 
@@ -2504,20 +2516,20 @@ class Test extends BaseLogger {
         return [
             this.multiGameStatsTest,
             this.multiGameMixedResultsStatsTest,
-            //this.multiIncompleteGameStatsTest,
+            this.multiIncompleteGameStatsTest,
             this.dailyGameNormalFinishStatsTest,
             this.dailyGameUnfinishedRestartNextDayTest,
-            // this.dailyGameTooManyMistakesShareTest,
+            this.dailyGameTooManyMistakesShareTest,
             this.dailyGameEndsOnDeleteShareTest,
-            //this.dailyGameRestartAfterDohTest,
-            //this.dailyGameRestartTest,
+            this.dailyGameRestartTest,
+            this.dailyGameRestartAfterWrongMoveTest,
             this.dailyGameOneMistakeShareTest,
-            //this.dailyGameShowWordStatsTest,
+            this.dailyGameShowWordStatsTest,
             this.dailyGameResultsDivOnWinTest,
             this.dailyGameResultsDivOnExactWinTest,
-            //this.dailyGameResultsDivWithShownTest,
-            //this.dailyGameResultsDivOnLossTest,
-            //this.practiceGameTest,
+            this.dailyGameResultsDivWithShownTest,
+            this.dailyGameResultsDivOnLossTest,
+            this.practiceGameTest,
             //this.practiceGameTestNoConfirm,
             //this.practiceGameLimitTest, // This test craps out
             this.geniusMoveAndShareTest,
@@ -2835,6 +2847,7 @@ class Test extends BaseLogger {
     // multiIncompleteGameStatsTest plays the daily game 3 times:
     // one incomplete, one successful, and one failed - now also incomplete.
     // Checks both the saved stats, and the elements in the StatsContainer.
+    // The streak should be 3
 
     multiIncompleteGameStatsTest() {
         this.testName = "MultiIncompleteGameStats";
@@ -2859,7 +2872,7 @@ class Test extends BaseLogger {
                 this.playLetter(1, "R"); // TOOT -> ROOT error
                 this.playLetter(1, "L"); // ROOT -> LOOT error
                 this.playLetter(1, "R"); // LOOT -> ROOT error
-                this.verify(!this.gameDisplay.game.isLoser(), "expected game not to be loser");
+                this.verify(this.gameDisplay.game.isLoser(), "expected game to be loser after too many mistakes");
             }
 
             if (gameCounter != 2) {
@@ -2874,7 +2887,7 @@ class Test extends BaseLogger {
         }
 
         // create and verify an expected DailyStats blob
-        let expStatsBlob = { gamesStarted : 3, gamesWon : 1, gamesLost : 0, streak : 0 };  
+        let expStatsBlob = { gamesStarted : 3, gamesWon : 1, gamesLost : 1, streak : 3 };  
         let expExtraStepsHistogram = { 0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
         this.verifyStats(expStatsBlob, expExtraStepsHistogram) && this.hadNoErrors();
     }
@@ -2951,7 +2964,7 @@ class Test extends BaseLogger {
         // The newly opened URL should be showing the test daily game by default:
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
-        // we play:  SHORT SHOOT HOOT BOOT(shown) BOOK(wrong) BOOR POOR
+        // we play:  SHORT SHOOT HOOT BOOT BOOR(shown) POOR
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
@@ -2963,13 +2976,19 @@ class Test extends BaseLogger {
         const children = resultsDiv.children;
         if (!this.verify (children.length == 3, "expected 3 children in results div, got: ", children.length))
             return;
+
         const scoreDiv = children[0];
-        const expScoreStr = "Score: 1 extra step";
+        const expScoreStr = "Score: 0 -- perfect!";
         const actScoreStr = scoreDiv.textContent;
 
         const originalSolutionDiv = children[1];
-        this.verify(originalSolutionDiv.children.length == 0, "expected no children in original solution div, found:", originalSolutionDiv.children.length) &&
+        const originalSolutionLabel = originalSolutionDiv.children[0]
+        const expSolutionStr = "You found WordChain's solution!";
+        const actSolutionStr = originalSolutionLabel.textContent
+
+        this.verify(originalSolutionDiv.children.length == 1, "expected one child in original solution div, found:", originalSolutionDiv.children.length) &&
             this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&
+            this.verify(actSolutionStr == expSolutionStr, "expected score string:", expSolutionStr, "got:", actSolutionStr) && 
             this.hadNoErrors();
     }
 
@@ -2985,7 +3004,7 @@ class Test extends BaseLogger {
         // The newly opened URL should be showing the test daily game by default:
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
-        // we play:  SHORT SHOOT HOOT BOOT BOOK-wrong BOOB-wrong BOOT-wrong BOOK-wrong BOOT-wrong
+        // we play:  SHORT SHOOT HOOT BOOT BOOK-wrong BOOB-wrong BOOT-wrong BOOK-wrong BOOT-wrong (BOOR POOR shown)
 
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
@@ -2999,14 +3018,15 @@ class Test extends BaseLogger {
         // game should be over if Const.TOO_MANY_EXTRA_STEPS is 5
         const game = this.gameDisplay.game;
         if (!this.verify(game.isOver(), "after 5 wrong moves, game is not over!"))
-            return
+            return;
 
-        const resultsDiv = this.gameDisplay.resultsDiv
-        const children = resultsDiv.children
+        const resultsDiv = this.gameDisplay.resultsDiv;
+        const children = resultsDiv.children;
 
-        const scoreDiv = children[0]
-        const expScoreStr = "Score: 5 -- too many extra steps!"
-        const actScoreStr = scoreDiv.textContent
+        const scoreDiv = children[0];
+        
+        const expScoreStr = "Score: 5 -- too many extra steps!";
+        const actScoreStr = scoreDiv.textContent;
 
         const originalSolutionDiv = children[1]
         const originalSolutionLabel = originalSolutionDiv.children[0]
@@ -3015,22 +3035,34 @@ class Test extends BaseLogger {
 
         // re-open the app window
         this.resetTheTestAppWindow();
-        // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
         const restartedGame = this.gameDisplay.game;
         const restartedDi = restartedGame.getDisplayInstructions();
         this.verify(actScoreStr == expScoreStr, "expected score string:", expScoreStr, "got:", actScoreStr) &&
         this.verify(actSolutionStr == expSolutionStr, "expected score string:", expSolutionStr, "got:", actSolutionStr) && 
-        this.verify(restartedDi[10].moveRating == Const.WRONG_MOVE, "expected move rating:", Const.WRONG_MOVE, "got:", restartedDi[10].moveRating) &&
-            this.hadNoErrors()
+        this.verify(restartedDi[8].moveRating == Const.WRONG_MOVE, "expected move rating:", Const.WRONG_MOVE, "got:", restartedDi[10].moveRating) &&
+        this.verify(restartedDi[10].moveRating == Const.SHOWN_MOVE, "expected move rating:", Const.SHOWN_MOVE, "got:", restartedDi[10].moveRating) &&
+        this.verify(!restartedGame.isWinner(), "restarted game should not be winner.") &&
+            this.hadNoErrors();
     }
 
+    unfinishedDailyGameStatsTest() {
+        // the stats after an unfinished daily game should show
+        // - streak is up one for trying
+        // - won and lost counts unchanged
+        // - mistake histogram unchanged
+        // First, save some pre-existing stats with a streak and histogram.
+        // Then, play but don't finish the daily game
+        // TODO
+    }
 
     dailyGameShowWordStatsTest() {
         // we verify the following
-        // Play the daily game, with 2 wrong words and then 3 shown words to lose
+        // Play the daily game, with 4 extra words.
+        // Then 1 shown word
+        // Then make another wrong move to end the game
         // Target word should be loss (display instruction PLAYED,WRONG_MOVE)
         // Remaining words after the 3rd shown move are also shown
-        // Streak reset to 0
+        // Streak reset to 1
         // Share is correct
         // Show Word button is disabled
         // DailyStats has 1 played, 1 lost
@@ -3050,11 +3082,12 @@ class Test extends BaseLogger {
         this.deleteLetter(5);      // SHOOT -> SHOO DODO
         this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
         this.deleteLetter(5);      // SHOOT -> SHOO DODO
+        this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
         this.gameDisplay.showWordCallback(mockEvent); // reveals SHOOK
-        this.gameDisplay.showWordCallback(mockEvent); // reveals SPOOK, game should end
+        this.deleteLetter(5);      // SHOOK -> SHOO DODO, game over
 
-        let expStatsBlob = { gamesStarted : 1, gamesWon : 0, gamesLost : 1, streak : 0 };  
-        // the only completed game has 5 wrong moves (3 errors, 2 shown moves)
+        let expStatsBlob = { gamesStarted : 1, gamesWon : 0, gamesLost : 1, streak : 1 };  
+        // the only completed game has 5 wrong moves (6 errors)
         let expExtraStepsHistogram = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
         let statsTestResult = this.verifyStats(expStatsBlob, expExtraStepsHistogram); 
         this.logDebug("statsTestResult: ", statsTestResult, "test");
@@ -3067,7 +3100,7 @@ class Test extends BaseLogger {
             const statsMockEvent = new MockEvent(statsSrcElement);
             const actShareString = statsDisplay.shareCallback(statsMockEvent);
             this.closeTheStatsDisplay();
-            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 😖\nStreak: 0\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n🟥🟥🟥🟥\n`;
+            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 😖\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n🟥🟥🟥🟥\n`;
             this.verify(!gameIsWinner, "game should not be a winner.") &&
             this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with ='${expShareString}', got '${actShareString}'`) &&
             this.hadNoErrors();
@@ -3135,12 +3168,12 @@ class Test extends BaseLogger {
         this.playLetter(4, "T"); // BOOB -> BOOT  D'OH wrong move 3
         this.playLetter(4, "K"); // BOOT -> BOOK  D'OH wrong move 4
 
-        this.verify(!game.isOver(), "after 4 wrong moves, game should not be over!");
+        this.verify(!game.isOver(), "after 4 wrong moves, game should not be over");
 
         this.playLetter(4, "T"); // BOOK -> BOOT  D'OH wrong move 5
 
         // game should be over if Const.TOO_MANY_EXTRA_STEPS is 5.
-        if (!this.verify(game.isOver(), "after 5 wrong moves, game is not over!")) {
+        if (!this.verify(game.isOver(), "after 5 wrong moves, game should be over")) {
             return;
         }
 
@@ -3160,7 +3193,7 @@ class Test extends BaseLogger {
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         const shareToast = appDisplay.getAndClearLastToast();
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 😖\nStreak: 0\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n🟥🟥🟥🟥\n`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 😖\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n🟥🟥🟥🟥\n`;
         this.closeTheStatsDisplay();
 
         this.verify((actShareString.indexOf(expShareString) === 0), `expected share string to start with '${expShareString}', got '${actShareString}'`) &&
@@ -3224,48 +3257,64 @@ class Test extends BaseLogger {
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
 
+        // save the first game (in progress)
+        const game1 = this.gameDisplay.game;
+
         // re-open the app window
         this.resetTheTestAppWindow();
+
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT already played.
-        const game = this.gameDisplay.game;
-        const di = game.getDisplayInstructions();
+        const game2 = this.gameDisplay.game;
+        const afterRestartInstructions = game2.getDisplayInstructions();
 
-        let resultsSoFar =
-            this.verify((di.length == 6), `expected 6 display instructions after restore, got ${di.length}`) &&
-            this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.GOOD_MOVE})`), `instruction[0] is ${di[0].toStr()}`) &&
-            this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.GOOD_MOVE})`), `instruction[1] is ${di[1].toStr()}`) &&
-            this.verify((di[2].toStr() === "(change,word:HOOT,changePosition:1)"), `instruction[2] is ${di[2].toStr()}`) &&
-            this.verify((di[3].toStr() === "(change-next,word:BOOT,changePosition:4)"), `instruction[3] is ${di[3].toStr()}`) &&
-            this.verify((di[4].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[4] is ${di[4].toStr()}`) &&
-            this.verify((di[5].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`);
+        // we should be running the daily game SHORT -> POOR with SHOOT, HOOT, SOOT (D'OH) already played.
+        const expectedAfterRestartInstructions = [
+                                // word       type                     change  rating               isStart  parLine
+            new DisplayInstruction("SHORT",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("SHOOT",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("HOOT",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("?OOT",    Const.WORD_AFTER_CHANGE, 4,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BOOR",    Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("POOR",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            ];
 
-        if (resultsSoFar) {
-            // finish the game. ( ... BOOT BOOR POOR)
-            const playedB = this.playLetter(1, "B"); // HOOT -> BOOT
-            const playedR = this.playLetter(4, "R"); // BOOT -> BOOR
-            const playedP = this.playLetter(1, "P"); // BOOR -> POOR
+        const expectedFinalInstructions = [
+                                // word       type                   change  rating               isStart  parLine
+            new DisplayInstruction("SHORT",   Const.PLAYED,          0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("SHOOT",   Const.PLAYED,          0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("HOOT",    Const.PLAYED,          0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BOOT",    Const.PLAYED,          0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BOOR",    Const.PLAYED,          0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("POOR",    Const.TARGET,          0,      Const.GOOD_MOVE,     false,   true),
+            ];
 
-            resultsSoFar = this.verify((playedB == Const.GOOD_MOVE), `played B, got ${playedB}, not `, Const.GOOD_MOVE) &&
-                this.verify((playedR == Const.GOOD_MOVE), `played R, got ${playedR}, not `, Const.GOOD_MOVE) &&
-                this.verify((playedP == Const.GOOD_MOVE), `played P, got ${playedP}, not `, Const.GOOD_MOVE);
-        }
+        const playedB = this.playLetter(1, "B"); // HOOT -> BOOT
+        const playedR = this.playLetter(4, "R"); // BOOT -> BOOR
+        const playedP = this.playLetter(1, "P"); // BOOR -> POOR
+        const finalInstructions = game2.getDisplayInstructions();
 
         // ... and close and re-open it after it is solved
 
         Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
         this.resetTheTestAppWindow();
-        if (resultsSoFar) {
-            // game should be done; stats should be saved.
-            const game = this.gameDisplay.game;
-            this.logDebug("restored daily game after finishing it; display instructions are: ",
-                    game.getDisplayInstructions(), "test");
-            this.verify (game.isWinner(), "Expected gameisWinner() true, got: ", game.isWinner()) &&
-                this.hadNoErrors();
-        }
+        const game3 = this.gameDisplay.game;
+
+        this.logDebug("restored daily game after finishing it; display instructions are: ",
+                game3.getDisplayInstructions(), "test");
+
+        this.verify((playedB == Const.GOOD_MOVE), `played B, got ${playedB}, not `, Const.GOOD_MOVE) &&
+            this.verify((playedR == Const.GOOD_MOVE), `played R, got ${playedR}, not `, Const.GOOD_MOVE) &&
+            this.verify((playedP == Const.GOOD_MOVE), `played P, got ${playedP}, not `, Const.GOOD_MOVE) &&
+            this.verifyInstructionList(afterRestartInstructions, expectedAfterRestartInstructions, "after restart") &&
+            this.verifyInstructionList(finalInstructions, expectedFinalInstructions, "after finished") &&
+            this.verify (!game1.isWinner(), "unfinished game should not be winner") &&
+            this.verify (game2.isWinner(), "finished game should be winner") &&
+            this.verify (game3.isWinner(), "restored game should be winner") &&
+            this.hadNoErrors();
     }
 
-    dailyGameRestartAfterDohTest() {
-        this.testName = "DailyGameRestartAfterDoh";
+    dailyGameRestartAfterWrongMoveTest() {
+        this.testName = "DailyGameRestartAfterWrongMove";
 
         // when opened with epoch two days ago, the daily game will always
         // be SHORT -> POOR
@@ -3274,43 +3323,54 @@ class Test extends BaseLogger {
         // play two moves, then close and try to restore ...
         this.playLetter(4, "O"); // SHORT -> SHOOT
         this.deleteLetter(1);    // SHOOT -> HOOT
-        this.playLetter(1, "S"); // HOOT -> SOOT D'OH!!!
+        this.playLetter(1, "S"); // HOOT -> SOOT wrong move
 
         // re-open the app window, with the same daily game number
         this.resetTheTestAppWindow();
 
+        // the game is a different object after the reset; get it here after resetting.
+        var game = this.gameDisplay.game;
+
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT, SOOT (D'OH) already played.
-        const game = this.gameDisplay.game;
-        let di = game.getDisplayInstructions();
-        if ( this.verify((di.length == 7), `expected 7 display instructions after restore, got ${di.length}`) &&
-                this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.GOOD_MOVE})`), `instruction[0] is ${di[0].toStr()}`) &&
-                this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.GOOD_MOVE})`), `instruction[1] is ${di[1].toStr()}`) &&
-                this.verify((di[2].toStr() === `(played,word:HOOT,moveRating:${Const.GOOD_MOVE})`), `instruction[2] is ${di[2].toStr()}`) &&
-                this.verify((di[3].toStr() === "(change,word:SOOT,changePosition:1)"), `instruction[3] is ${di[3].toStr()}`) &&
-                this.verify((di[4].toStr() === "(change-next,word:BOOT,changePosition:4)"), `instruction[4] is ${di[4].toStr()}`) &&
-                this.verify((di[5].toStr() === "(future,word:BOOR,changePosition:1)"), `instruction[5] is ${di[5].toStr()}`) &&
-                this.verify((di[6].toStr() === "(target,word:POOR)"), `instruction[5] is ${di[5].toStr()}`) ) {
+        const expectedAfterRestartInstructions = [
+                                // word       type                     change  rating               isStart  parLine
+            new DisplayInstruction("SHORT",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("SHOOT",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("HOOT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("SOOT",    Const.PLAYED_CHANGE,     1,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("?OOT",    Const.WORD_AFTER_CHANGE, 4,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BOOR",    Const.FUTURE,            1,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("POOR",    Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            ];
 
-            // finish the game. ( ... BOOT BOOR POOR)
+        const expectedFinalInstructions = [
+                                // word       type                   change  rating               isStart  parLine
+            new DisplayInstruction("SHORT",   Const.PLAYED,          0,      Const.NO_RATING,     true,    false),
+            new DisplayInstruction("SHOOT",   Const.PLAYED,          0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("HOOT",    Const.PLAYED,          0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("SOOT",    Const.PLAYED,          0,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("BOOT",    Const.PLAYED,          0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BOOR",    Const.PLAYED,          0,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("POOR",    Const.TARGET,          0,      Const.GOOD_MOVE,     false,   false),
+            ];
 
-            const playedB = this.playLetter(1, "B"); // HOOT -> BOOT
-            const playedR = this.playLetter(4, "R"); // BOOT -> BOOR
-            const playedP = this.playLetter(1, "P"); // BOOR -> POOR
-            di = game.getDisplayInstructions();
 
-            this.verify((playedB == Const.GOOD_MOVE), `played B, got ${playedB}, not `, Const.GOOD_MOVE) &&
-                this.verify((playedR == Const.GOOD_MOVE), `played R, got ${playedR}, not `, Const.GOOD_MOVE) &&
-                this.verify((playedP == Const.GOOD_MOVE), `played P, got ${playedP}, not `, Const.GOOD_MOVE) &&
-                this.verify((di.length == 7), `expected 7 display instructions after finishing game, got ${di.length}`) &&
-                this.verify((di[0].toStr() === `(played,word:SHORT,moveRating:${Const.GOOD_MOVE})`), `di[0] is ${di[0].toStr()}`) &&
-                this.verify((di[1].toStr() === `(played,word:SHOOT,moveRating:${Const.GOOD_MOVE})`), `di[1] is ${di[1].toStr()}`) &&
-                this.verify((di[2].toStr() === `(played,word:HOOT,moveRating:${Const.GOOD_MOVE})`), `di[2] is ${di[2].toStr()}`) &&
-                this.verify((di[3].toStr() === `(played,word:SOOT,moveRating:${Const.WRONG_MOVE})`), `di[3] is ${di[3].toStr()}`) &&
-                this.verify((di[4].toStr() === `(played,word:BOOT,moveRating:${Const.GOOD_MOVE})`), `di[4] is ${di[4].toStr()}`) &&
-                this.verify((di[5].toStr() === `(played,word:BOOR,moveRating:${Const.GOOD_MOVE})`), `di[5] is ${di[5].toStr()}`) &&
-                this.verify((di[6].toStr() === `(played,word:POOR,moveRating:${Const.GOOD_MOVE})`), `di[6] is ${di[6].toStr()}`) &&
-                this.hadNoErrors();
-        }
+        const afterRestartInstructions = game.getDisplayInstructions();
+
+        // finish the game. ( ... BOOT BOOR POOR)
+        const playedB = this.playLetter(1, "B"); // SOOT -> BOOT
+        const playedR = this.playLetter(4, "R"); // BOOT -> BOOR
+        const playedP = this.playLetter(1, "P"); // BOOR -> POOR
+        const finalInstructions = game.getDisplayInstructions();
+        var game = this.gameDisplay.game;
+
+        this.verify((playedB == Const.GOOD_MOVE), `played B, got ${playedB}, not `, Const.GOOD_MOVE) &&
+        this.verify((playedR == Const.GOOD_MOVE), `played R, got ${playedR}, not `, Const.GOOD_MOVE) &&
+        this.verify((playedP == Const.GOOD_MOVE), `played P, got ${playedP}, not `, Const.GOOD_MOVE) &&
+        this.verify(game.isWinner(), "game should be winner") &&
+        this.verifyInstructionList(afterRestartInstructions, expectedAfterRestartInstructions, "after restart") &&
+        this.verifyInstructionList(finalInstructions, expectedFinalInstructions, "after winning") &&
+        this.hadNoErrors();
     }
 
     practiceGameTestNoConfirm() {

@@ -469,7 +469,7 @@ class Game extends BaseLogger {
         const CL = "Game.isOver";
         COV(0, CL);
         let res = this.gameState.isOver();
-        Const.GL_DEBUG && this.logDebug("Game.isOver() returns:", res, "gameState: ", this.gameState.toStr(), "game");
+        Const.GL_DEBUG && this.logDebug("Game.isOver() returns:", res, /* "gameState: ", this.gameState.toStr(),*/ "game");
         return res;
     }
 

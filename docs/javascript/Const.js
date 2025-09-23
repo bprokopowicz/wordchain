@@ -1,4 +1,4 @@
-export var GL_DEBUG = false;
+export var GL_DEBUG = true;
 
 // Turn on/off debugging.  We use var instead of const so that we can turn it on/off from
 // code as well as by hard-coding it here, BUT:
