@@ -202,6 +202,8 @@ class GameState extends BaseLogger {
      */
 
     getScore() {
+        const CL = "GameState.getScore";
+        COV(0, CL);
         return this.unplayedWords.length + this.ratedMoves.length - this.initialSolution.length;
     }
 
@@ -209,12 +211,17 @@ class GameState extends BaseLogger {
      * For display & stats, we limit the score from 0 to TOO_MANY_EXTRA_STEPS
      */
     getNormalizedScore() {
+        const CL = "GameState.getNormalizedScore";
+        COV(0, CL);
         const score = this.getScore();
         if (score < 0) {
+            COV(1, CL);
             return 0;
         } else if (score >= Const.TOO_MANY_EXTRA_STEPS) {
+            COV(2, CL);
             return Const.TOO_MANY_EXTRA_STEPS;
         } else {
+            COV(3, CL);
             return score;
         }
     }
@@ -381,13 +388,13 @@ class DailyGameState extends GameState{
                 recoveredDailyGameState.persist();
                 result = recoveredDailyGameState;
             } else {
+                COV(4, CL);
 
                 // Check to see if the recovered daily game is today's game.  If so, use it as is.
                 // Otherwise, set state to today's daily game.
                 // If we recovered yesterday's game the streak is still good.
                 // If the game we recovered is more than 2 days old, the streak is over.
 
-                COV(4, CL);
                 let todaysGameNumber = recoveredDailyGameState.calculateGameNumber(); // computes TODAY's game number
                 if (recoveredDailyGameState.getDailyGameNumber() != todaysGameNumber) {
                     // a new day, a new game.
@@ -543,6 +550,7 @@ class DailyGameState extends GameState{
         const CL = "DailyGameState.setBaseTimestamp";
         COV(0, CL);
         if (this.baseTimestamp != null) {
+            COV(1, CL);
             // already set
             return;
         }
@@ -560,7 +568,7 @@ class DailyGameState extends GameState{
 
         // Are we changing when the Epoch starts (for debugging purposes)?
         if (Persistence.hasTestEpochDaysAgo()) {
-            COV(1, CL);
+            COV(2, CL);
             // Yes, so recalculate the base date, which we use to get the base timestamp below.
             const newEpochMs = Date.now(),
                   daysAgo = Persistence.getTestEpochDaysAgo(),
@@ -573,7 +581,7 @@ class DailyGameState extends GameState{
         this.baseTimestamp = this.baseDate.getTime();
         Const.GL_DEBUG && this.logDebug("epoch timestamp is set to:",
                 new Date(this.baseTimestamp), "daily");
-        COV(2, CL);
+        COV(3, CL);
     }
 
     // Increment the given stat, update the stats cookie, and update the stats display content.
@@ -781,6 +789,7 @@ class DailyGameState extends GameState{
         }   
 
         if (this.getUnplayedWords().length != 0) {
+            COV(1, CL);
             console.error("there should not be any unplayed moves when we call DailyGameState.getMoveSummary()");
             console.log ("unplayed words: ", this.getUnplayedWords());
             console.trace();
@@ -789,6 +798,7 @@ class DailyGameState extends GameState{
         for (let unplayedWord of this.getUnplayedWords()) {
             summary.push([Const.FUTURE, unplayedWord.length]);
         }   
+        COV(2, CL);
         return summary;
     }   
 

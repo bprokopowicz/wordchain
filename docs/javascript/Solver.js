@@ -137,31 +137,42 @@ class Solver {
     }
 
     static isDesired(dictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoices) {
+        const CL = "Solver.isDesired";
+        COV(0, CL);
         if (puzzle.numWords() < minWords) {
+            COV(1, CL);
             return false;
         }
         if (puzzle.numWords() > maxWords) {
+            COV(2, CL);
             return false;
         }
         if ((targetWordLen > 0) && (puzzle.getTarget().length != targetWordLen)) {
+            COV(3, CL);
             return false;
         }
         if (!puzzle.hasWordOfLength(wordLen1)) {
+            COV(4, CL);
             return false;
         }
         if (!puzzle.hasWordOfLength(wordLen2)) {
+            COV(5, CL);
             return false;
         }
         puzzle.calculateDifficulty(dictionary);
         if (puzzle.difficulty < minDifficulty) {
+            COV(6, CL);
             return false;
         }
         if (puzzle.nChoicesEasiestStep < minChoices) {
+            COV(7, CL);
             return false;
         }
         if (puzzle.nChoicesFromTarget < minChoices) {
+            COV(8, CL);
             return false;
         }
+        COV(9, CL);
         return true;
     }
 
@@ -177,7 +188,6 @@ class Solver {
 
     static getTransformationStep(wordA, wordB) {
         const CL = "Solver.getTransformationStep";
-        console.log("wordA", wordA, "wordB", wordB);
         COV(0, CL);
         if (wordA.length === wordB.length) {
             COV(1, CL);
@@ -339,18 +349,6 @@ class Solution extends BaseLogger {
 
     getLastWord() {
         return this.getNthWord(this.solutionWords.length - 1);
-    }
-
-    // use case: removing a step containing a word with a hole before replacing it with
-    // the word without the hole.
-    removeLastStep() {
-        this.solutionWords.pop();
-    }
-
-    // use case: when resolving from played word to target, that solution includes the played word as
-    // its first word.
-    removeFirstStep() {
-        this.solutionWords.shift();
     }
 
     getPenultimateWord() {

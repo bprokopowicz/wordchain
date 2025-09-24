@@ -526,13 +526,14 @@ class GameDisplay extends BaseLogger {
 
             // Only N show-words clicks allowed per game!
             if (!this.game.gameState.canShowMove()) {
+                COV(3, CL);
                 console.log("disabling show word button in GameDisplay.showWordCallback()");
                 ElementUtilities.disableButton(this.showWordButton);
             }
 
         }
 
-        COV(3, CL);
+        COV(4, CL);
         return result;
     }
 
@@ -572,7 +573,7 @@ class GameDisplay extends BaseLogger {
             // TODO letterIndex+1 worked with tests but not in the actual app.  So we don't have a test that 
             // relies on cellCreator's letterIndex parameter.  Tests don't call this code?  check coverage.
 
-            letterCell = cellCreator(letters[letterIndex], letterIndex);
+            letterCell = cellCreator(letters[letterIndex], letterIndex /*400*/);
             ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 
             // Add the next addition cell after the letter cell.  AdditionCell positions go from 0 to wordLength
@@ -700,6 +701,8 @@ class GameDisplay extends BaseLogger {
     }
 
     shouldShowToastForResult(gameResult) {
+        const CL = "GameDisplay.shouldShowToastForResult";
+        COV(0, CL);
         return (gameResult == Const.WRONG_MOVE) ||
                (gameResult == Const.DODO_MOVE) ||
                (gameResult == Const.SCRABBLE_MOVE) ||
@@ -913,12 +916,14 @@ class PracticeGameDisplay extends GameDisplay {
             // we will still use the last game played as the current game, as if New Game were never clicked:
             console.error("PracticeGameDisplay.newGameCallback(): New Game should not be clickable when no games are remaining!");
         } else {
+            COV(1, CL);
             this.game = newGameOrNull;
         }
         this.updateDisplay();
         ElementUtilities.disableButton(this.newGameButton); 
         console.log("enabling show word button in newGameCallback");
         ElementUtilities.enableButton(this.showWordButton);
+        COV(2, CL);
     }
 
     /* ----- Utilities ----- */

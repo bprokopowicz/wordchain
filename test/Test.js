@@ -3059,15 +3059,24 @@ class Test extends BaseLogger {
         // we play:  SHORT SHOOT SHOO(dodo) SHOOT(ok) SHOO(dodo) SHOOT(ok) SHOO (dodo) SHOOK(show) SPOOK(show)
         // at that point, the game ends and the solution is shown ... SPOOR(shown) POOR(target, wrong)
 
-        this.playLetter("O");      // SHORT -> SHOOT now delete
-        this.deleteLetter(4);      // SHOOT -> SHOO DODO
-        this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
-        this.deleteLetter(4);      // SHOOT -> SHOO DODO
-        this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
-        this.deleteLetter(4);      // SHOOT -> SHOO DODO
-        this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
-        this.gameDisplay.showWordCallback(mockEvent); // reveals SHOOK
-        this.deleteLetter(4);      // SHOOK -> SHOO DODO, game over
+        const r1 = this.playLetter("O");      // SHORT -> SHOOT now delete
+        const r2 = this.deleteLetter(4);      // SHOOT -> SHOO DODO
+        const r3 = this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
+        const r4 = this.deleteLetter(4);      // SHOOT -> SHOO DODO
+        const r5 = this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
+        const r6 = this.deleteLetter(4);      // SHOOT -> SHOO DODO, game over 
+
+        if ( !(
+                this.verifyEqual(r1, Const.GOOD_MOVE, "r1") &&
+                this.verifyEqual(r2, Const.DODO_MOVE, "r2") &&
+                this.verifyEqual(r3, Const.GOOD_MOVE, "r3") &&
+                this.verifyEqual(r4, Const.DODO_MOVE, "r4") &&
+                this.verifyEqual(r5, Const.GOOD_MOVE, "r5") &&
+                this.verifyEqual(r6, Const.DODO_MOVE, "r6")
+              )
+           ) {
+            return;
+        }
 
         let expStatsBlob = { gamesStarted : 1, gamesWon : 0, gamesLost : 1, streak : 1 };  
         // the only completed game has 5 wrong moves (6 errors)

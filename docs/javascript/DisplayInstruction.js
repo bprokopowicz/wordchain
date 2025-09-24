@@ -1,4 +1,5 @@
 import * as Const from './Const.js';
+import { COV } from './Coverage.js';
 
 // This class provides the interface between the GameDisplay and Game/GameState classes.
 // When displaying the game grid, GameDisplay requests display instructions from
@@ -130,6 +131,8 @@ class DisplayInstruction {
     //              DisplayInstruction; initially it's the target word instruction.)
     //
     constructor(word, displayType, changePosition, moveRating, isStartWord, showParLine) {
+        const CL = "DisplayInstruction.constructor";
+        COV(0, CL);
         this.word = word;
         this.displayType = displayType;
         this.changePosition = changePosition;
@@ -139,6 +142,8 @@ class DisplayInstruction {
     }
 
     copy() {
+        const CL = "DisplayInstruction.copy";
+        COV(0, CL);
         return new DisplayInstruction(
             this.word,
             this.displayType,

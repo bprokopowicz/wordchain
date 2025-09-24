@@ -8,6 +8,8 @@ class SettingsDisplay extends AuxiliaryDisplay {
 
     constructor(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers, appDisplay) {
         super(buttonContainer, buttonInfo, parentContainer, saveRestoreContainers);
+        const CL = "SettingsDisplay.constructor";
+        COV(0, CL);
 
         // AppDisplay object so callbacks can call its methods to respond
         // to settings changes.
@@ -28,7 +30,7 @@ class SettingsDisplay extends AuxiliaryDisplay {
         const confirmationModeDescription = "Selected plus, minus, and letter must be confirmed; gray indicates confirmation is needed.";
         this.addCheckboxSetting("Confirmation Mode", "confirmation", isConfirmationMode, confirmationModeDescription);
 
-        /*
+        /* TODO remove
         const radioInfo = [{
                 value:   "Normal",
                 desc:    "<b>Normal:</b> Letter-change steps are indicated with a thick outline",
@@ -55,6 +57,8 @@ class SettingsDisplay extends AuxiliaryDisplay {
 
     // Add a setting to content container.
     addSetting(title, settingClass, description="") {
+        const CL = "SettingsDisplay.addSetting";
+        COV(0, CL);
         // Create a div for one setting.
         const settingDiv = ElementUtilities.addElementTo("div", this.contentContainer, {class: settingClass});
 
@@ -68,25 +72,29 @@ class SettingsDisplay extends AuxiliaryDisplay {
     }
 
     getAppDisplay() {
+        const CL = "SettingsDisplay.getAppDisplay";
+        COV(0, CL);
         return this.appDisplay;
     }
 
+/* TODO remove near-duplicate?
     // Add a setting whose input is a checkbox.
     addCheckboxSetting(title, id, value, description="") {
         // setting-simple class styles the contents of the setting (title/description,
         // checkbox input) horizontally.
+        const CL = "SettingsDisplay.addCheckboxSetting";
+        COV(0, CL);
         const interactiveDiv = this.addSetting(title, "setting-simple", description);
         return ElementUtilities.addElementTo("div", settingDiv, {});
     }
-
-    getAppDisplay() {
-        return this.appDisplay;
-    }
+*/
 
     // Add a setting whose input is a checkbox.
     addCheckboxSetting(title, id, value, description="") {
         // setting-simple class styles the contents of the setting (title/description,
         // checkbox input) horizontally.
+        const CL = "SettingsDisplay.addCheckboxSetting";
+        COV(0, CL);
         const interactiveDiv = this.addSetting(title, "setting-simple", description);
 
         const checkbox = ElementUtilities.addElementTo("input", interactiveDiv,
@@ -177,7 +185,7 @@ class SettingsDisplay extends AuxiliaryDisplay {
         COV(4, CL);
     }
 
-    /*
+    /* TODO Remove
     deprecated - no modes as of Oct 2024.
     // Callback for Settings radio button changes.
     radioCallback(event) {

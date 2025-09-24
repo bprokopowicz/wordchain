@@ -193,6 +193,7 @@ class AppDisplay extends BaseLogger {
 
     createAuxiliaryScreens() {
         const CL = "AppDisplay.createAuxiliaryScreens";
+        COV(0, CL);
         // This is the set of divs that need to be hidden when an auxiliary screen is
         // shown, and shown when an auxiliary screen is closed.
         this.primaryDivs = [
@@ -203,7 +204,6 @@ class AppDisplay extends BaseLogger {
 
         // Now create objects for each of the auxiliary screens.
         // We don't need to save these in the object, but we will anyway!
-        COV(0, CL);
         this.helpDisplay = new HelpDisplay(
             this.auxiliaryButtonDiv, {text: "HOW TO PLAY"}, this.auxiliaryDiv, this.primaryDivs);
 

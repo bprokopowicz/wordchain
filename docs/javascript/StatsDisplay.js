@@ -129,7 +129,10 @@ class StatsDisplay extends AuxiliaryDisplay {
             return new Date(ms).toISOString().substr(11, 8);
         }
 
+        // TODO - remove.  
         function selfScroll(statsDisplay) {
+            const CL = "StatsDisplay.selfScroll";
+            COV(0, CL);
             var picker = statsDisplay.appDisplay.currentGameDisplay.letterPicker;
             var scrollingDiv = picker.pickerInnerDiv;
             var scrollPix = 1;
