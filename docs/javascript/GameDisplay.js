@@ -58,7 +58,8 @@ class GameDisplay extends BaseLogger {
             {class: "app-button non-header-button"},
             "Show Word");
         ElementUtilities.setButtonCallback(this.showWordButton, this, this.showWordCallback);
-        // TODO: Need to keep something in state to indicate whether the button should be enabled on restore.
+        // TODO: Need to keep something in state to indicate whether the button should be enabled on restore. (should be in GameState already) 
+        Const.GL_DEBUG && this.logDebug("enabling show word button in GameDisplay.constructor()", "game");
         ElementUtilities.enableButton(this.showWordButton);
 
         // Create an element to contain game results (score, WordChain solution).
@@ -73,7 +74,6 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.createPicker";
         COV(0, CL);
         this.letterPicker = new Picker(this, this.pickerDiv, this.pickerId);
-        this.currentLetter = " ";
     }
 
     disablePicker() {
@@ -90,7 +90,9 @@ class GameDisplay extends BaseLogger {
 
     // This is kind of a callback, but doesn't really follow our callback
     // protocol because of how the picker is implemented as a separate object.
-    letterPicked(letter, letterPosition) {
+    // In normal cases, the letterPosition to change is already known as this.holeLetterPosition.
+    // In testing, we might change letters directly
+    letterPicked(letter, letterPosition=this.holeLetterPosition) {
         const CL = "GameDisplay.letterPicked";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
@@ -100,17 +102,13 @@ class GameDisplay extends BaseLogger {
         if (this.gameIsOver()) {
             console.error("GameDisplay.letterPicked(): game is already over");
             result = Const.UNEXPECTED_ERROR;
-        } else if (letter === this.currentLetter) {
-            COV(1, CL);
-            this.appDisplay.showToast(Const.PICK_NEW_LETTER);
-            result = Const.PICK_NEW_LETTER;
         } else {
-            COV(2, CL);
+            COV(1, CL);
             result = this.game.playLetter(letterPosition, letter);
             this.processGamePlayResult(result);
         }
 
-        COV(3, CL);
+        COV(2, CL);
         return result;
     }
 
@@ -157,8 +155,7 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayPlayed";
         COV(0, CL);
 
-        const me = this,
-              isTargetWord = false;
+        const isTargetWord = false;
 
         function getCell(letter, letterPosition) {
             return new LetterCellWithBackground(letter, letterPosition, displayInstruction.changePosition,
@@ -172,8 +169,7 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayPlayedAdd";
         COV(0, CL);
 
-        const me = this,
-              isTargetWord = false;
+        const isTargetWord = false;
 
         function getCell(letter, letterPosition) {
             return new LetterCellWithBackground(letter, letterPosition, displayInstruction.changePosition,
@@ -186,16 +182,13 @@ class GameDisplay extends BaseLogger {
     displayPlayedChange(displayInstruction) {
         const CL = "GameDisplay.displayPlayedChange";
         COV(0, CL);
-        const me = this,
-              isTargetWord = false;
+        const isTargetWord = false;
 
         function getCell(letter, letterPosition) {
             return new LetterCellWithBackground(letter, letterPosition, displayInstruction.changePosition,
                 displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
         }
 
-        // =========== splain why we save this! TODO - not needed?
-        this.currentLetter = displayInstruction.word[displayInstruction.changePosition /* - 1*/];
         this.displayCommon(displayInstruction, getCell);
     }
 
@@ -203,8 +196,7 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayPlayedDelete";
         COV(0, CL);
 
-        const me = this,
-              changePosition = displayInstruction.changePosition,
+        const changePosition = displayInstruction.changePosition,
               isTargetWord = false;
 
         function getLetterCell(letter, letterPosition) {
@@ -221,6 +213,7 @@ class GameDisplay extends BaseLogger {
         this.rowElement.displayAsActiveRow = true;
 
         // We need to use a copy of 'this' as 'me' in the body of this local function.
+        var me = this;
         function getDeletionCell(letter, letterPosition) {
             return new DeletionCell(letterPosition, me, me.deletionClickCallback);
         }
@@ -247,19 +240,16 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayWordAfterAdd";
         COV(0, CL);
 
-        const changePosition = displayInstruction.changePosition,
-              me = this;
+        const changePosition = displayInstruction.changePosition;
+              
 
-        var holePosition = displayInstruction.word.indexOf(Const.HOLE);
-        if (holePosition < 0) {
+        this.holeLetterPosition = displayInstruction.word.indexOf(Const.HOLE);
+        if (this.holeLetterPosition < 0) {
             console.error("displayWordAfterAdd(): no hole in word:", displayInstruction.word);
-        } /*else {
-            holePosition += 1;
-        }*/
+        } 
 
         function getCell(letter, letterPosition) {
-            return new LetterCellNoBackground(letter, letterPosition,
-                holePosition, changePosition, me.letterPicker);
+            return new LetterCellNoBackground(letter, letterPosition, changePosition);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -269,19 +259,15 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayWordAfterChange";
         COV(0, CL);
 
-        const changePosition = displayInstruction.changePosition,
-              me = this;
+        const changePosition = displayInstruction.changePosition;
 
-        var holePosition = displayInstruction.word.indexOf(Const.HOLE);
-        if (holePosition < 0) {
+        this.holeLetterPosition = displayInstruction.word.indexOf(Const.HOLE);
+        if (this.holeLetterPosition < 0) {
             console.error("displayWordAfterChange(): no hole in word:", displayInstruction.word);
-        } /* else {
-            holePosition += 1;
-        } */
+        } 
 
         function getCell(letter, letterPosition) {
-            return new LetterCellNoBackground(letter, letterPosition,
-                holePosition, changePosition, me.letterPicker);
+            return new LetterCellNoBackground(letter, letterPosition, changePosition);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -306,9 +292,7 @@ class GameDisplay extends BaseLogger {
             pickerEnabled = false,
             rowNum = 0;
 
-        //console.log("======================");
         for (let displayInstruction of displayInstructions) {
-            //console.log(displayInstruction);
 
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
 
@@ -401,6 +385,7 @@ class GameDisplay extends BaseLogger {
 
         // Picker and Show Word should be disabled after the game.
         this.disablePicker();
+        Const.GL_DEBUG && this.logDebug("disabling show word button in GameDisplay.showGameOverGoodies()", "callback");
         ElementUtilities.disableButton(this.showWordButton);
 
         // Delete old results and create new divs to go in the results div.
@@ -477,6 +462,9 @@ class GameDisplay extends BaseLogger {
             let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
             Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): additionPosition: ", additionPosition, "callback");
             result = this.game.playAdd(additionPosition);
+            // TODO - this should not be needed, because after the add-click, the display is refreshed, and 
+            // this.holeLetterPosition should get set there.
+            this.holeLetterPosition = additionPosition;
 
             this.processGamePlayResult(result);
         }
@@ -531,14 +519,17 @@ class GameDisplay extends BaseLogger {
 
             this.showGameAfterMove();
 
-            // Disable if no more moves remaining.
             if (this.gameIsOver()) {
                 COV(2, CL);
                 this.showGameOverToast();
             }
 
-            // Only one Show Move allowed per game!
-            ElementUtilities.disableButton(this.showWordButton);
+            // Only N show-words clicks allowed per game!
+            if (!this.game.gameState.canShowMove()) {
+                console.log("disabling show word button in GameDisplay.showWordCallback()");
+                ElementUtilities.disableButton(this.showWordButton);
+            }
+
         }
 
         COV(3, CL);
@@ -577,7 +568,11 @@ class GameDisplay extends BaseLogger {
         for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
             // Add the letter cell for this current letter.
             tdElement = this.addTd();
-            letterCell = cellCreator(letters[letterIndex], letterIndex + 1);
+
+            // TODO letterIndex+1 worked with tests but not in the actual app.  So we don't have a test that 
+            // relies on cellCreator's letterIndex parameter.  Tests don't call this code?  check coverage.
+
+            letterCell = cellCreator(letters[letterIndex], letterIndex);
             ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 
             // Add the next addition cell after the letter cell.  AdditionCell positions go from 0 to wordLength
@@ -709,6 +704,7 @@ class GameDisplay extends BaseLogger {
                (gameResult == Const.DODO_MOVE) ||
                (gameResult == Const.SCRABBLE_MOVE) ||
                (gameResult == Const.NOT_A_WORD) ||
+               (gameResult == Const.PICK_NEW_LETTER) ||
                (gameResult == Const.GENIUS_MOVE);
     }
 
@@ -920,7 +916,9 @@ class PracticeGameDisplay extends GameDisplay {
             this.game = newGameOrNull;
         }
         this.updateDisplay();
-        ElementUtilities.disableButton(this.newGameButton);
+        ElementUtilities.disableButton(this.newGameButton); 
+        console.log("enabling show word button in newGameCallback");
+        ElementUtilities.enableButton(this.showWordButton);
     }
 
     /* ----- Utilities ----- */

@@ -290,7 +290,7 @@ class Game extends BaseLogger {
     addWordIfExists(word) {
         const CL = "Game.addWordIfExists";
         COV(0, CL);
-        this.gameState.removeWordWithHoleIfNecessary();
+        // this.gameState.removeWordWithHoleIfNecessary();
         let result = Const.NOT_A_WORD;
         if (this.gameState.dictionary.isWord(word) || this.scrabbleDictionary.isWord(word)) {
             COV(1, CL);
@@ -365,17 +365,27 @@ class Game extends BaseLogger {
                 "this.gameState", this.gameState, "game");
         Const.GL_DEBUG && this.logDebug("steps played: ", this.gameState.getPlayedWordsAsString(), "game");
 
-        var oldWord = this.lastPlayedWord();
+        const oldWord = this.lastPlayedWord();
+        var oldWordModified = oldWord;
         if (this.addSpaceInProgress) {
+            COV(1, CL);
             this.addSpaceInProgress = false;
             // put the hole into oldWord at the location of the space added (0 to oldWord.length);
-            oldWord = oldWord.substr(0,this.addPosition) + Const.HOLE + oldWord.substr(this.addPosition);
+            oldWordModified = oldWord.substr(0,this.addPosition) + Const.HOLE + oldWord.substr(this.addPosition);
+            Const.GL_DEBUG && this.logDebug("playLetter() added space to old word giving",  oldWordModified, "game");
         }
 
         // construct the new word with 'letter' at letterPosition.
-        let newWord = oldWord.substring(0,letterPosition) + letter + oldWord.substring(letterPosition+1);
-        Const.GL_DEBUG && this.logDebug("Game.playLetter(): ", oldWord, "becomes", newWord, "game");
-        return this.addWordIfExists(newWord)
+        const newWord = oldWordModified.substring(0,letterPosition) + letter + oldWordModified.substring(letterPosition+1);
+
+        if (oldWord == newWord) {
+            COV(2, CL);
+            return Const.PICK_NEW_LETTER;
+        } else {
+            COV(3, CL);
+            Const.GL_DEBUG && this.logDebug("Game.playLetter(): ", oldWord, "becomes", newWord, "game");
+            return this.addWordIfExists(newWord)
+        }
     }
 
     /////////
@@ -496,6 +506,7 @@ class DailyGame extends Game {
         COV(0, CL);
         let gameState = DailyGameState.factory(dict);
         super(gameState);
+        Const.GL_DEBUG && this.logDebug("DailyGame.constuctor() just called Game.constructor()", "game");
     }
 
     isOld() {
@@ -525,6 +536,7 @@ class PracticeGame extends Game {
         COV(0, CL);
         let gameState = PracticeGameState.factory(dict);
         super(gameState);
+        Const.GL_DEBUG && this.logDebug("PracticeGame.constuctor() just called Game.constructor()", "game");
     }
 
     nextGame() {
@@ -552,6 +564,7 @@ class PracticeGame extends Game {
     //// 
     // Pass-throughs to GameState, called from the Display classes.
 
+    // returns the number of practice games remaining
     gamesRemaining() {
         const CL = "PracticeGame.gamesRemaining";
         COV(0, CL);

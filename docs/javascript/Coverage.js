@@ -37,6 +37,11 @@ export function getCounters() {
 // Code coverage points are identified as class.method.point, where point is an integer.
 export function COV(point, callerStr ) { 
     if (COVERAGE_ON) {
+        // it would be nice to get rid of the need for callerStr and have COV figure out the 
+        // name of its run-time caller.  But the simple COV.caller.name is not available in strict mode.
+        // TODO - could try getting a stack track, maybe by throwing / catching an error, and parsing it.
+        // console.log("COV called from callerStr", callerStr, "COV.caller.name:", COV.caller.name);
+
         // UGLY!
         let leader = (point < 10) ? "0" : "",
             key = `${callerStr}.${leader}${point}`;

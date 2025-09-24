@@ -86,21 +86,6 @@ class GameState extends BaseLogger {
         return this.lastRatedMove().word;
     }
 
-    // This is used when the last played word has a hole, like F?AT, and we play 'L'.  
-    // We need to remove F?AT from the played words and we will add FLAT if it is a word.
-    // But if we play 'M', FMAT is not a word, so we don't add it to played words. 
-
-    removeWordWithHoleIfNecessary() {
-        const CL = "GameState.removeWordWithHoleIfNecessary";
-        COV(0, CL);
-        if (GameState.wordHasHole(this.lastPlayedWord())) {
-            COV(1, CL);
-            // we are playing a word after a HOLE word.  Remove the HOLE word. 
-            Const.GL_DEBUG && this.logDebug("removing played word with hole", "gameState");
-            this.ratedMoves.pop();
-        }
-    }
-
     getWordChainSolutionLength() {
         return this.initialSolution.length;
     }
@@ -143,7 +128,6 @@ class GameState extends BaseLogger {
         const CL = "GameState.addWord";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playing word:", word, "last played word", this.lastPlayedWord(), "gameState");
-        this.removeWordWithHoleIfNecessary(); // TODO - was commented out
         let moveRating = Const.GOOD_MOVE; // We will override this below, based on the new solution after playing 'word'
         if (word == this.unplayedWords[0]) {
             COV(1, CL);
@@ -236,9 +220,18 @@ class GameState extends BaseLogger {
     }
 
     numShownMoves() {
+        const CL = "GameState.numShownMoves";
+        COV(0, CL);
         return this.ratedMoves.filter((ratedMove) => ratedMove.rating == Const.SHOWN_MOVE).length;
     }
 
+    canShowMove() {
+        const CL = "GameState.canShowMove";
+        COV(0, CL);
+        return this.numShownMoves() < Const.MAX_SHOWN_WORDS;
+    }
+
+    // used only in testing via Game.finishGame()
     finishGame() {
         const CL = "GameState.finishGame";
         COV(0, CL);
@@ -251,24 +244,29 @@ class GameState extends BaseLogger {
     showUnplayedMoves() {
         const CL = "GameState.showUnplayedMoves";
         COV(0, CL);
-        // show the remaining moves
+        // force-show the remaining moves
+        const forceShow = true;
         while (this.unplayedWords.length > 0) {
-            this.showNextMove();
+            this.showNextMove(forceShow);
         }
     }
     
-    showNextMove() {
+    showNextMove(forceShow = false) {
         const CL = "GameState.showNextMove";
         COV(0, CL);
+        if (!this.canShowMove() && !forceShow) {
+            COV(1, CL);
+            Const.GL_DEBUG && this.logDebug("too many words shown", this.numShownMoves(), "gameState");
+            return Const.UNEXPECTED_ERROR;
+        }
+        COV(2, CL);
         const alreadyOver = this.isOver();
-        this.removeWordWithHoleIfNecessary();
         let nextWord = this.unplayedWords[0];
-
         this.unplayedWords.shift();
         this.ratedMoves.push(new RatedMove(nextWord, Const.SHOWN_MOVE));
         // we update the state after a game is finished by showing a move.  
         if (!alreadyOver && this.isOver()) {
-            COV(1, CL);
+            COV(3, CL);
             this.showUnplayedMoves();  // game just ended.  We mark all the unplayed moves as 'shown' to display them
             this.updateStateAfterGame();
         }
@@ -653,8 +651,6 @@ class DailyGameState extends GameState{
             // there are too many wrong moves. The moveSummary includes the correct
             // unplayed words leading from the last wrong word to the target, but we
             // don't want to show them.
-            // TODO - this use-case is obsolete.  When there are too many wrong moves,
-            // the future words get summarized as SHOWN_MOVE, not FUTURE.
 
             if ((moveRating == Const.FUTURE) || (moveRating == Const.CHANGE_NEXT)) {
                 break;

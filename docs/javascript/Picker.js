@@ -93,20 +93,12 @@ class Picker extends BaseLogger {
         ElementUtilities.show(this.pickerInnerDiv);
     }
 
-    // ActiveLetterCell saves the letter position in the picker so that when
-    // a letter is selected we can give it back to the game.
-    saveLetterPosition(position) {
-        const CL = "Picker.saveLetterPosition";
-        COV(0, CL);
-        this.letterPosition = position;
-    }
-
     // This method is called when the user clickes a letter button in the picker.
     // Its return value is needed ONLY for the testing infrastructure.
     selectionCallback(event) {
         const CL = "Picker.selectionCallback";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("Picker.selectionCallback() event:", event, "Picker's letterPosition:", this.letterPosition, "picker");
+        Const.GL_DEBUG && this.logDebug("Picker.selectionCallback() event:", event, "picker");
 
         let result = null;
 
@@ -117,7 +109,7 @@ class Picker extends BaseLogger {
             // Tell the game that a letter has been picked.
             COV(2, CL);
             const buttonText = event.srcElement.innerText;
-            result = this.gameDisplay.letterPicked(buttonText, this.letterPosition);
+            result = this.gameDisplay.letterPicked(buttonText);
         }
 
         COV(3, CL);

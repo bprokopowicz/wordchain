@@ -123,6 +123,8 @@ export const INSERT_CHAR    = "+";
 export const MIN_WORD_LENGTH = 3;
 export const MAX_WORD_LENGTH = 6;
 
+export const MAX_SHOWN_WORDS = 1; //  how many times the user can ask to show a word in a game.
+
 // The starting date for the daily game -- needs to change when sending
 // to Beta and Production.
 // The date is defined by year,month,day with time defaulting to 00:00:00 (midnight) LOCAL TIME

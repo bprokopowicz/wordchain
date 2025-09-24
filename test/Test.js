@@ -357,10 +357,16 @@ class Test extends BaseLogger {
 
     verifyEqual(actual, expected, description) {
 
-        var truthValue,
-            message;
+        var message=null;
+        var truthValue = null;
 
-        if (typeof actual === 'object') {
+        if ((actual !== null) && (expected === null)) {
+            message = `<font color="red">${this.testName}: Failed: ${description} -- actual: something; expected: null'</font>`;
+            truthValue = false;
+        } else if ((actual === null) && (expected !== null)) {
+            message = `<font color="red">${this.testName}: Failed: ${description} -- actual: null; expected: something'</font>`;
+            truthValue = false;
+        } else if (typeof actual === 'object') {
             const differences = this.getObjectDifferencesAsObject(actual, expected);
 
             truthValue = Object.keys(differences).length === 0;
@@ -374,12 +380,12 @@ class Test extends BaseLogger {
             }
         }
 
-        if (!truthValue) {
-            this.messages.push(message);
-            this.failureCount += 1;
-        } else {
+        if (truthValue) {
             this.testAssertionCount += 1;
             this.totalAssertionCount += 1;
+        } else {
+            this.messages.push(message);
+            this.failureCount += 1;
         }
 
         return truthValue;
@@ -530,9 +536,18 @@ class Test extends BaseLogger {
     //   Const.UNEXPECTED_ERROR if app is in ConfirmationMode but picker doesn't return NEEDS_CONFIRMATION on first click
     //   some other error if the picker.selectionCallback fails
 
-    playLetter(position, letter, optionalLetter=letter) {
-        this.logDebug("playLetter(", position, letter, optionalLetter, ")", "test");
-        this.gameDisplay.letterPicker.saveLetterPosition(position);
+    // forcePlayWord doesn't use the display to play the next word.  It plays the word directly into the game,
+    // and then refreshes the display explicitly.
+
+    forcePlayWord(word) {
+        const game = this.gameDisplay.game;
+        const result = game.addWordIfExists(word);
+        this.gameDisplay.processGamePlayResult(result);
+        return result;
+    }
+
+    playLetter(letter, optionalLetter=letter) {
+        this.logDebug("playLetter(", letter, optionalLetter, ")", "test");
         var optionalLetterButton = null;
         if (optionalLetter != letter) {
             // we are testing a 'user changed their mind' case, where first optionalLetter is clicked,
@@ -649,11 +664,11 @@ class Test extends BaseLogger {
     }
 
     insertLetter(position, letter, optionalPosition=position) {
-        const changesMind = position != optionalPosition;
+        const userChangesMind = position != optionalPosition;
         this.logDebug(`insertLetter(${position}, ${letter}, ${optionalPosition})`, "test");
 
         var mockOptionalInsertButton = null;
-        if (changesMind) {
+        if (userChangesMind) {
             if (!Persistence.getConfirmationMode()) {
                 this.logDebug("insertLetter() was given an optional position but the game is not in ConfirmationMode.  This is a bad test.", "test");
                 return Const.UNEXPECTED_ERROR;
@@ -688,7 +703,7 @@ class Test extends BaseLogger {
                 this.logDebug("mock insert-button class after first press should have ", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            if (changesMind) {
+            if (userChangesMind) {
                 if (!ElementUtilities.hasClass(mockOptionalInsertButton, Const.UNSELECTED_STYLE)) {
                     this.logDebug("mock optional insert-button class after re-press should have ", Const.UNSELECTED_STYLE, "test");
                     return Const.UNEXPECTED_ERROR;
@@ -709,7 +724,7 @@ class Test extends BaseLogger {
         // If we are in confirmation mode, we have already clicked twice successfully
         // So we can now play the letter.
 
-        let playResult = this.playLetter(position, letter);  
+        let playResult = this.playLetter(letter);  
         this.logDebug("insertLetter(", position, ",", letter, ") returns: ", clickResult, " then ", playResult,  "test");
         return playResult;
     }
@@ -723,21 +738,24 @@ class Test extends BaseLogger {
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
-        this.playLetter(3, "O"); // SHORT -> SHOOT
-        this.deleteLetter(0);    // SHOOT -> HOOT
-        this.playLetter(0, "B"); // HOOT -> BOOT
-        this.playLetter(3, "R"); // BOOT -> BOOR
-        this.playLetter(0, "P"); // BOOR -> POOR
+        this.playLetter("O"); // SHORT -> SHOOT now delete
+        this.deleteLetter(0);    // SHOOT -> HOOT now change 0
+        this.playLetter("B"); // HOOT -> BOOT now change 3
+        this.playLetter("R"); // BOOT -> BOOR now change 0
+        this.playLetter("P"); // BOOR -> POOR
     }
 
+    // A utility to play a move from one word to another, as found by the Solver.
+    // The solver gives you transformations 
     playTransformation(transformation) {
         this.logDebug("Playing transformation", transformation, "test");
-        if (transformation[0] === Const.ADD) {
-            this.insertLetter(transformation[1], transformation[2]);
-        } else if (transformation[0] === Const.DELETE) {
-            this.deleteLetter(transformation[1]);
+        const [action, position, letter] = transformation;
+        if (action === Const.ADD) {
+            this.insertLetter(position, letter );
+        } else if (action === Const.DELETE) {
+            this.deleteLetter(position);
         } else {
-            this.playLetter(transformation[1], transformation[2]);
+            this.playLetter(letter);
         }
     }
 
@@ -749,7 +767,7 @@ class Test extends BaseLogger {
         this.logDebug("finishTheCurrentGame() from ", prevWord, "through", nextWords, "test");
         // play from the last played word to the first remaining word.
         for (let nextWord of nextWords) {
-            this.logDebug("finishTheCurrentGame() step from ", prevWord, "to", nextWord, "test");
+            //this.logDebug("finishTheCurrentGame() step from ", prevWord, "to", nextWord, "test");
             const transformation = Solver.getTransformationStep(prevWord, nextWord);
             if (transformation == null) {
                 console.log("ERROR: no single-step from ", prevWord, "to", nextWord);
@@ -757,7 +775,7 @@ class Test extends BaseLogger {
             }
             this.playTransformation(transformation);
             prevWord = nextWord;
-            this.logDebug("finishTheCurrentGame() after step, prevWord is now", prevWord, "test");
+            //this.logDebug("finishTheCurrentGame() after step, prevWord is now", prevWord, "test");
         }
         return true;
     }
@@ -1710,8 +1728,8 @@ class Test extends BaseLogger {
         this.testName = "GameDifferentWordFromInitialSolution";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAT", "DOG", "SCAD"]);
-        const origSolution = Solver.solve(smallDict, "BAD", "CAT");
-        let [start, target] = ["BAD", "CAT"]; // BAD BAT CAT
+        let [start, target] = ["BAD", "CAT"]; 
+        const origSolution = Solver.solve(smallDict, start, target); // BAD BAT CAT
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(smallDict);
         const origWord1 = game.gameState.getUnplayedWord(0);
@@ -2493,13 +2511,13 @@ class Test extends BaseLogger {
             this.dailyGameResultsDivWithShownTest,
             this.dailyGameResultsDivOnLossTest,
             this.practiceGameTestNoConfirm,
-            //this.practiceGameTest,
-            //this.practiceGameLimitTest, // This test craps out
+            this.practiceGameTest,
+            this.practiceGameLimitTest,
             this.geniusMoveAndShareTest,
             this.cookieRestartTest,
             this.changeMindOnSelectedLettersTest,
             this.displayModesTest,
-            //this.displayBrokenDailyGameToastTest, // This test craps out
+            this.displayBrokenDailyGameToastTest,
             this.sameLetterPickedToastTest,
             this.notAWordToastTest,
             this.toastTestDailyWin,
@@ -2534,11 +2552,11 @@ class Test extends BaseLogger {
         const appTestFunc = this.appTestList.shift();
         if (appTestFunc) {
             const testFuncName = appTestFunc.toString().split(' ')[0];
-            this.logDebug("!! running appTest=", testFuncName, "test");
+            this.logDebug(">>>>>>>>>>>> running appTest=", testFuncName, "test");
             const testStart = Date.now();
             this.runAppTest(appTestFunc);
             const testDone = Date.now();
-            this.logDebug(testFuncName, " took ", testDone - testStart, " ms", "test");
+            this.logDebug(">>>>>>>>>>>>", testFuncName, " took ", testDone - testStart, " ms", "test");
             inTheFuture(100).then( (foo=this) => {foo.runTheNextTest()})
         } else {
             this.logDebug("no more tests to run - showing results", "test");
@@ -2556,11 +2574,11 @@ class Test extends BaseLogger {
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
         // but we play  SHORT SHOOT SHOT HOT POT POO POOR
-        const changeLetterResult1 = this.playLetter(3, "O", "Z"); // SHORT -> SHOZT not confirmed -> SHOOT confirmed
-        const deleteLetterResult1 = this.deleteLetter(2,4);       // SHOOT -> SHOO not confirmed -> SHOT confirmed
-        const deleteLetterResult2 = this.deleteLetter(0);         // SHOT -> HOT  we are deleting even though not really a display option on this step.
-        const changeLetterResult2 = this.playLetter(0, "P");      // HOT -> POT
-        const changeLetterResult3 = this.playLetter(2, "O");      // POT -> POO
+        const changeLetterResult1 = this.playLetter("O", "Z"); // SHORT -> SHOZT not confirmed -> SHOOT confirmed
+        const deleteLetterResult1 = this.deleteLetter(2,4);    // SHOOT -> SHOO not confirmed -> SHOT confirmed
+        const deleteLetterResult2 = this.deleteLetter(0);      // SHOT -> HOT  we are deleting even though not really a display option on this step.
+        const changeLetterResult2 = this.playLetter("P")       // HOT -> POT 
+        const changeLetterResult3 = this.playLetter("O");      // POT -> POO
         const insertLetterResult1 = this.insertLetter(3, "R", 0);  // POO -> xPOO change mind -> POOx -> POOR
         this.verifyEqual(changeLetterResult1, Const.GOOD_MOVE, "after changing mind from Z to O") &&
             this.verifyEqual(deleteLetterResult1, Const.WRONG_MOVE, "after changing mind from HOOT to SHOT") &&
@@ -2690,7 +2708,7 @@ class Test extends BaseLogger {
     }
 
     displayModesTest () {
-        this.testName = "displayModes";
+        this.testName = "DisplayModes";
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const settingsDisplay = appDisplay.settingsDisplay;
 
@@ -2713,11 +2731,11 @@ class Test extends BaseLogger {
         // dark mode on, colorblind off
         srcElement.checked = true;
         settingsDisplay.checkboxCallback(mockEvent);
-        soFarSoGood &&= this.verifyEqual(Persistence.getDarkTheme(), "dark theme (2)");
+        soFarSoGood &&= this.verifyEqual(Persistence.getDarkTheme(), true, "dark theme (2)");
         // dark mode off, colorblind off
         srcElement.checked = false;
         settingsDisplay.checkboxCallback(mockEvent);
-        soFarSoGood &&= this.verifyEqual(Persistence.getDarkTheme(), "dark theme (3)");
+        soFarSoGood &&= this.verifyEqual(Persistence.getDarkTheme(), false, "dark theme (3)");
 
         // dark mode on, colorblind mode on
         srcElement.setAttribute("id", "dark");
@@ -2778,18 +2796,19 @@ class Test extends BaseLogger {
 
         for (let gameCounter = 0; gameCounter <= 2; gameCounter++) {
             // game: SHORT -> POOR
-            this.playLetter(3, "O"); // SHORT -> SHOOT
-            this.deleteLetter(0);    // SHOOT -> HOOT
-            this.playLetter(0, "B"); // HOOT -> BOOT
+            // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+            this.playLetter("O");    // SHORT -> SHOOT
+            this.deleteLetter(0);    // SHOOT -> HOOT now change 0
+            this.playLetter("B");    // HOOT -> BOOT now change 3
                                      // optionally add one or two wrong moves on the last letter
             if (gameCounter >= 1) {
-                this.playLetter(3, "K"); // BOOT -> BOOK mistake
+                this.playLetter("K"); // BOO? -> BOOK mistake
             }
             if (gameCounter >= 2) {
-                this.playLetter(3, "B"); // BOO? -> BOOB another mistake
+                this.playLetter("B"); // BOO? -> BOOB another mistake
             }
-            this.playLetter(3, "R"); // BOO? -> BOOR
-            this.playLetter(0, "P"); // BOO? -> POOR
+            this.playLetter("R");     // BOO? -> BOOR now change 0
+            this.playLetter("P");     // BOO? -> POOR
             // now, play the same game again, if we have another round to go.
             if (gameCounter != 2) {
                 let game = this.gameDisplay.game;
@@ -2818,23 +2837,24 @@ class Test extends BaseLogger {
             this.logDebug(this.testName, "gameCounter: ", gameCounter, "test");
             if (gameCounter == 0) {
                 // play an incomplete game 
-                // SHORT -> POOR
-                this.playLetter(3, "O"); // SHORT -> SHOOT
-                this.deleteLetter(0);    // SHOOT -> HOOT
-                this.playLetter(0, "B"); // HOOT -> BOOT
+                // SHORT -> POOR 
+                // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+                this.playLetter("O"); // SHORT -> SHOOT now delete
+                this.deleteLetter(0);    // SHOOT -> HOOT now change 0
+                this.playLetter("B"); // HOOT -> BOOT
             } else if (gameCounter == 1) {
                 // play a full game
                 this.playTheCannedDailyGameOnce();
             } else if (gameCounter == 2) {
-                // play a longer incomplete game (formerly failed game)
-                this.playLetter(3, "O"); // SHORT -> SHOOT
-                this.deleteLetter(0);    // SHOOT -> HOOT
-                this.playLetter(0, "B"); // HOOT -> BOOT
-                this.playLetter(0, "S"); // BOOT -> SOOT error
-                this.playLetter(0, "T"); // SOOT -> TOOT error
-                this.playLetter(0, "R"); // TOOT -> ROOT error
-                this.playLetter(0, "L"); // ROOT -> LOOT error
-                this.playLetter(0, "R"); // LOOT -> ROOT error
+                // play a failed game)
+                this.playLetter("O"); // SHORT -> SHOOT now delete
+                this.deleteLetter(0); // SHOOT -> HOOT now change 0
+                this.playLetter("B"); // HOOT -> BOOT now change 3
+                this.playLetter("K"); // BOOT -> BOOK error now change 3
+                this.playLetter("T"); // BOOK -> BOOT error now change 3
+                this.playLetter("K"); // BOOT -> BOOK error now change 3
+                this.playLetter("T"); // BOOK -> BOOT error now change 3
+                this.playLetter("K"); // BOOT -> BOOK error
                 this.verify(this.gameDisplay.game.isLoser(), "expected game to be loser after too many mistakes");
             }
 
@@ -2867,13 +2887,13 @@ class Test extends BaseLogger {
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
         // we play:  SHORT SHOOT HOOT BOOT(shown) BOOK(wrong) BOOR POOR
 
-        this.playLetter(3, "O"); // SHORT -> SHOOT
-        this.deleteLetter(0);    // SHOOT -> HOOT
-        this.playLetter(0, "B"); // HOOT  -> BOOT
-        this.gameDisplay.showWordCallback(mockEvent); // reveals BOOR
-        this.playLetter(3, "K"); // BOOR -> BOOK WRONG
-        this.playLetter(3, "R"); // BOOK -> BOOR
-        this.playLetter(0, "P"); // solved; results should be displayed
+        this.playLetter("O"); // SHORT -> SHOOT
+        this.deleteLetter(0); // SHOOT -> HOOT now change 0
+        this.playLetter("B"); // HOOT  -> BOOT now change 3
+        this.gameDisplay.showWordCallback(mockEvent); // reveals BOOR, now change 0
+        this.playLetter("M"); // BOOR -> MOOR WRONG now change 0
+        this.playLetter("B"); // MOOR -> BOOR WRONG now change 0
+        this.playLetter("P"); // solved; results should be displayed
 
         const resultsDiv = this.gameDisplay.resultsDiv;
         const children = resultsDiv.children;
@@ -2929,11 +2949,11 @@ class Test extends BaseLogger {
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
         // we play:  SHORT SHOOT HOOT BOOT BOOR(shown) POOR
 
-        this.playLetter(3, "O"); // SHORT -> SHOOT
-        this.deleteLetter(0);    // SHOOT -> HOOT
-        this.playLetter(0, "B"); // HOOT  -> BOOT
+        this.playLetter("O"); // SHORT -> SHOOT
+        this.deleteLetter(0); // SHOOT -> HOOT
+        this.playLetter("B"); // HOOT  -> BOOT
         this.gameDisplay.showWordCallback(mockEvent); // reveals BOOR
-        this.playLetter(0, "P"); // solved; results should be displayed
+        this.playLetter("P"); // solved; results should be displayed
 
         const resultsDiv = this.gameDisplay.resultsDiv;
         const children = resultsDiv.children;
@@ -2969,14 +2989,14 @@ class Test extends BaseLogger {
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
         // we play:  SHORT SHOOT HOOT BOOT BOOK-wrong BOOB-wrong BOOT-wrong BOOK-wrong BOOT-wrong (BOOR POOR shown)
 
-        this.playLetter(3, "O"); // SHORT -> SHOOT
-        this.deleteLetter(0);    // SHOOT -> HOOT
-        this.playLetter(0, "B"); // HOOT -> BOOT
-        this.playLetter(3, "K"); // BOOT -> BOOK  D'OH wrong move 1
-        this.playLetter(3, "B"); // BOOK -> BOOB  D'OH wrong move 2
-        this.playLetter(3, "T"); // BOOB -> BOOT  D'OH wrong move 3
-        this.playLetter(3, "K"); // BOOT -> BOOK  D'OH wrong move 4
-        this.playLetter(3, "T"); // BOOK -> BOOT  D'OH wrong move 5
+        this.playLetter("O"); // SHORT -> SHOOT
+        this.deleteLetter(0); // SHOOT -> HOOT
+        this.playLetter("B"); // HOOT -> BOOT now change 3
+        this.playLetter("K"); // BOOT -> BOOK  D'OH wrong move 1
+        this.playLetter("B"); // BOOK -> BOOB  D'OH wrong move 2
+        this.playLetter("T"); // BOOB -> BOOT  D'OH wrong move 3
+        this.playLetter("K"); // BOOT -> BOOK  D'OH wrong move 4
+        this.playLetter("T"); // BOOK -> BOOT  D'OH wrong move 5
 
         // game should be over if Const.TOO_MANY_EXTRA_STEPS is 5
         const game = this.gameDisplay.game;
@@ -3039,7 +3059,7 @@ class Test extends BaseLogger {
         // we play:  SHORT SHOOT SHOO(dodo) SHOOT(ok) SHOO(dodo) SHOOT(ok) SHOO (dodo) SHOOK(show) SPOOK(show)
         // at that point, the game ends and the solution is shown ... SPOOR(shown) POOR(target, wrong)
 
-        this.playLetter(3, "O");   // SHORT -> SHOOT
+        this.playLetter("O");      // SHORT -> SHOOT now delete
         this.deleteLetter(4);      // SHOOT -> SHOO DODO
         this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
         this.deleteLetter(4);      // SHOOT -> SHOO DODO
@@ -3077,15 +3097,15 @@ class Test extends BaseLogger {
         // The newly opened URL should be showing the test daily game by default:
         // SHORT -> POOR solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
-        this.playLetter(3, "O"); // SHORT -> SHOOT
-        this.deleteLetter(0);    // SHOOT -> HOOT
-        this.playLetter(0, "B"); // HOOT -> BOOT
+        this.playLetter("O");    // SHORT -> SHOOT now delete
+        this.deleteLetter(0);    // SHOOT -> HOOT now change 0
+        this.playLetter("B");    // HOOT -> BOOT now change 3
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         appDisplay.clearLastToast();
-        this.playLetter(3, "K"); // BOOT -> BOOK  D'OH wrong move
+        this.playLetter("K");    // BOOT -> BOOK  D'OH wrong move now change 3
         const toastAfterWrongMove = appDisplay.getAndClearLastToast();
-        this.playLetter(3, "R"); // BOOK -> BOOR
-        this.playLetter(0, "P"); // BOOR -> POOR
+        this.playLetter("R");    // BOOK -> BOOR
+        this.playLetter("P");    // BOOR -> POOR
 
         // game is done.  Let's see what the saved stats and words played are:
         const dailyShareButton = this.gameDisplay.shareButton,
@@ -3123,17 +3143,17 @@ class Test extends BaseLogger {
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
-        this.playLetter(3, "O"); // SHORT -> SHOOT
-        this.deleteLetter(0);    // SHOOT -> HOOT
-        this.playLetter(0, "B"); // HOOT -> BOOT
-        this.playLetter(3, "K"); // BOOT -> BOOK  D'OH wrong move 1
-        this.playLetter(3, "B"); // BOOK -> BOOB  D'OH wrong move 2
-        this.playLetter(3, "T"); // BOOB -> BOOT  D'OH wrong move 3
-        this.playLetter(3, "K"); // BOOT -> BOOK  D'OH wrong move 4
+        this.playLetter("O"); // SHORT -> SHOOT
+        this.deleteLetter(0); // SHOOT -> HOOT
+        this.playLetter("B"); // HOOT -> BOOT
+        this.playLetter("K"); // BOOT -> BOOK  D'OH wrong move 1
+        this.playLetter("B"); // BOOK -> BOOB  D'OH wrong move 2
+        this.playLetter("T"); // BOOB -> BOOT  D'OH wrong move 3
+        this.playLetter("K"); // BOOT -> BOOK  D'OH wrong move 4
 
         this.verify(!game.isOver(), "after 4 wrong moves, game should not be over");
 
-        this.playLetter(3, "T"); // BOOK -> BOOT  D'OH wrong move 5
+        this.playLetter("T"); // BOOK -> BOOT  D'OH wrong move 5
 
         // game should be over if Const.TOO_MANY_EXTRA_STEPS is 5.
         if (!this.verify(game.isOver(), "after 5 wrong moves, game should be over")) {
@@ -3182,10 +3202,10 @@ class Test extends BaseLogger {
         // START -> END
         // solution: START STAT SEAT SENT SEND END
 
-        this.deleteLetter(3);    // START -> STAT
-        this.playLetter(1, "E"); // STAT -> SEAT
-        this.playLetter(2, "N"); // SEAT -> SENT
-        this.playLetter(3, "D"); // SENT -> SEND
+        this.deleteLetter(3);    // START -> STAT now change 1
+        this.playLetter("E");    // STAT -> SEAT now change 2
+        this.playLetter("N");    // SEAT -> SENT now change 3
+        this.playLetter("D");    // SENT -> SEND now delete
         this.deleteLetter(0);    // SEND -> END
 
         this.logDebug("finishDailyGameEndsOnDeleteShareTest(): game:", game, "test");
@@ -3217,8 +3237,8 @@ class Test extends BaseLogger {
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         // play two moves, then close and try to restore ...
-        this.playLetter(3, "O"); // SHORT -> SHOOT
-        this.deleteLetter(0);    // SHOOT -> HOOT
+        this.playLetter("O"); // SHORT -> SHOOT
+        this.deleteLetter(0); // SHOOT -> HOOT
 
         // save the first game (in progress)
         const game1 = this.gameDisplay.game;
@@ -3251,9 +3271,9 @@ class Test extends BaseLogger {
             new DisplayInstruction("POOR",    Const.TARGET,          -1,     Const.GOOD_MOVE,     false,   true),
             ];
 
-        const playedB = this.playLetter(0, "B"); // HOOT -> BOOT
-        const playedR = this.playLetter(3, "R"); // BOOT -> BOOR
-        const playedP = this.playLetter(0, "P"); // BOOR -> POOR
+        const playedB = this.playLetter("B"); // HOOT -> BOOT
+        const playedR = this.playLetter("R"); // BOOT -> BOOR
+        const playedP = this.playLetter("P"); // BOOR -> POOR
         const finalInstructions = game2.getDisplayInstructions();
 
         // ... and close and re-open it after it is solved
@@ -3284,9 +3304,9 @@ class Test extends BaseLogger {
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
 
         // play two moves, then close and try to restore ...
-        this.playLetter(3, "O"); // SHORT -> SHOOT
-        this.deleteLetter(0);    // SHOOT -> HOOT
-        this.playLetter(0, "S"); // HOOT -> SOOT wrong move
+        this.playLetter("O"); // SHORT -> SHOOT
+        this.deleteLetter(0); // SHOOT -> HOOT
+        this.playLetter("S"); // HOOT -> SOOT wrong move
 
         // re-open the app window, with the same daily game number
         this.resetTheTestAppWindow();
@@ -3300,9 +3320,9 @@ class Test extends BaseLogger {
             new DisplayInstruction("SHORT",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("SHOOT",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
             new DisplayInstruction("HOOT",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SOOT",    Const.PLAYED_CHANGE,     1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("?OOT",    Const.WORD_AFTER_CHANGE, 4,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BOOR",    Const.FUTURE,            1,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("SOOT",    Const.PLAYED_CHANGE,     0,      Const.WRONG_MOVE,    false,   false),
+            new DisplayInstruction("?OOT",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BOOR",    Const.FUTURE,            0,      Const.NO_RATING,     false,   true),
             new DisplayInstruction("POOR",    Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
             ];
 
@@ -3321,9 +3341,9 @@ class Test extends BaseLogger {
         const afterRestartInstructions = game.getDisplayInstructions();
 
         // finish the game. ( ... BOOT BOOR POOR)
-        const playedB = this.playLetter(0, "B"); // SOOT -> BOOT
-        const playedR = this.playLetter(3, "R"); // BOOT -> BOOR
-        const playedP = this.playLetter(0, "P"); // BOOR -> POOR
+        const playedB = this.playLetter("B"); // SOOT -> BOOT
+        const playedR = this.playLetter("R"); // BOOT -> BOOR
+        const playedP = this.playLetter("P"); // BOOR -> POOR
         const finalInstructions = game.getDisplayInstructions();
         var game = this.gameDisplay.game;
 
@@ -3359,21 +3379,21 @@ class Test extends BaseLogger {
         this.setGameDisplay();
 
         // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
-        let resultL0 = this.playLetter(0, "L");          // TEST -> LEST
-        let resultDelete2 = this.deleteLetter(2);        // LEST -> LET
-        let resultI1Wrong = this.playLetter(1, "I");     // LET -> LIT - wrong move!
+        const resultL0 = this.playLetter("L");             // TEST -> LEST now delete
+        const resultDelete2 = this.deleteLetter(2);        // LEST -> LET now change 1
+        const resultI1Wrong = this.playLetter("I");        // LET -> LIT  wrong move! now change 1
         const wrongMoveToast = appDisplay.getAndClearLastToast();
-        let resultO1 = this.playLetter(1, "O");          // LIT -> LOT
-        let resultInsertP0 = this.insertLetter(0, "P" ); // LOT -> PLOT
-        let resultInsertI1 = this.insertLetter(1, "I");  // PLOT -> PxLOT
+        const resultO1 = this.playLetter("O");             // LIT -> LOT now add
+        const resultInsertP0 = this.insertLetter(0, "P" ); // LOT -> PLOT now add
+        const resultInsertI1 = this.insertLetter(1, "I");  // PLOT -> PILOT
 
         // restore default confirmation mode
         Persistence.saveConfirmationMode(false);
 
-        this.verifyEqual(resultL0 === Const.GOOD_MOVE, "playLetter(0, L) returns") &&
+        this.verifyEqual(resultL0, Const.GOOD_MOVE, "playLetter(L) returns") &&
             this.verifyEqual(resultDelete2, Const.GOOD_MOVE, "playDelete(2) returns") &&
-            this.verifyEqual(resultI1Wrong, Const.WRONG_MOVE, "playLetter(1, O) returns") &&
-            this.verifyEqual(resultO1, Const.GOOD_MOVE, "playLetter(1, O) returns") &&
+            this.verifyEqual(resultI1Wrong, Const.WRONG_MOVE, "playLetter(I) returns") &&
+            this.verifyEqual(resultO1, Const.GOOD_MOVE, "playLetter(O) returns") &&
             this.verifyEqual(resultInsertP0, Const.GOOD_MOVE, "insert P@0 returns") &&
             this.verifyEqual(resultInsertI1, Const.GOOD_MOVE, "insert I@1 returns") &&
             this.verifyEqual(wrongMoveToast, Const.WRONG_MOVE, "toast") &&
@@ -3390,7 +3410,7 @@ class Test extends BaseLogger {
 
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         appDisplay.clearLastToast();
-        var result = this.playLetter(3, "X"); // SHORT -> SHOXT
+        var result = this.playLetter("X"); // SHORT -> SHOXT
         const lastToast = appDisplay.getAndClearLastToast();
 
         this.verifyEqual(result, Const.NOT_A_WORD, "result") &&
@@ -3408,7 +3428,7 @@ class Test extends BaseLogger {
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         appDisplay.clearLastToast();
-        var result = this.playLetter(3, "R"); // SHORT -> SHORT
+        var result = this.playLetter("R"); // SHORT -> SHORT
         const lastToast = appDisplay.getAndClearLastToast();
         this.verifyEqual(result, Const.PICK_NEW_LETTER, "result") &&
             this.verifyEqual(lastToast, Const.PICK_NEW_LETTER, "toast") &&
@@ -3442,10 +3462,15 @@ class Test extends BaseLogger {
                 break; // stop testing on the first failure
             }
 
-            // test finishing the current game by either winning or showSolution.
+            // test finishing the current game by playing it out, or making errors.  
             if (gamesStarted % 2 == 0) {
-                this.logDebug("ending game by showing remaining words", "test");
-                this.showRemainingWords();
+                // TEST LEST LET LOT PLOT PILOT
+                this.logDebug("ending game by making errors", "test");
+                this.playLetter("N"); // TEST -> NEST
+                this.playLetter("T"); // NEST -> TEST
+                this.playLetter("N"); // TEST -> NEST
+                this.playLetter("T"); // NEST -> TEST
+                this.playLetter("N"); // TEST -> NEST
             } else {
                 this.logDebug("ending game by finishing it", "test");
                 this.finishTheCurrentGame();
@@ -3466,23 +3491,43 @@ class Test extends BaseLogger {
                   child2IsDisabled = children[1].disabled,
                   child2Text = children[1].textContent;
 
+            // IMPORTANT TODO: game.gamesRemaining() isn't counting down??? is it a new GameState in each iteration?
+            // it is stuck at 2.
+            // in GameState.updateStateAfterGame(), GameState.gamesRemaining is decrememented (from 3 to 2, but not after that?)
+            // In PracticeGame.nextGame(), the new PracticeGameState inherits the old (decremented) game state.  
+
+            this.logDebug("game.gamesRemaining()=", game.gamesRemaining(), "test");
             if (gamesStarted < Const.PRACTICE_GAMES_PER_DAY) {
+            //if (game.gamesRemaining() > 0) {
                 // Not last game
                 if (
-                        this.verifyEqual( child1Text, "Show Word", `child1text ${gamesStarted}`) &&
-                        this.verifyEqual( child1IsDisabled, true, `Show Word button disabled ${gamesStarted}`) &&
-                        this.verifyEqual( child2Text, "New Game", `child2text ${gamesStarted}`) &&
-                        this.verifyEqual( child2IsDisabled, false `New Game button disabled ${gamesStarted}`) &&
+                        // after a game is finished, both showWord and newGame buttons are off
+                        this.verifyEqual( child1Text, "Show Word", `a) child1text ${gamesStarted}`) &&
+                        this.verifyEqual( child1IsDisabled, true, `a) Show Word button disabled ${gamesStarted}`) &&
+                        this.verifyEqual( child2Text, "New Game", `a) child2text ${gamesStarted}`) &&
+                        this.verifyEqual( child2IsDisabled, false, `a) New Game button disabled ${gamesStarted}`) &&
                         this.verifyEqual(this.gameDisplay.anyGamesRemaining(), true, `anyGamesRemaining() ${gamesStarted}`)
                    ) {
-                    // pretend to click the new game button.
+                    // pretend to click the new game button, and check that showWord button is enabled, newGame button is disabled.
                     this.gameDisplay.newGameCallback(mockEvent);
+                    const postGameDiv = this.gameDisplay.postGameDiv,
+                          children = postGameDiv.children;
+                    const child1IsDisabled = children[0].disabled,
+                          child1Text = children[0].textContent,
+                          child2IsDisabled = children[1].disabled,
+                          child2Text = children[1].textContent;
+                    this.verifyEqual( child1Text, "Show Word", `b) child1text ${gamesStarted}`) &&
+                        this.verifyEqual( child1IsDisabled, false, `b) Show Word button disabled ${gamesStarted}`) &&
+                        this.verifyEqual( child2Text, "New Game", `b) child2text ${gamesStarted}`) &&
+                        this.verifyEqual( child2IsDisabled, true, `b) New Game button disabled ${gamesStarted}`) &&
+                        this.verifyEqual(this.gameDisplay.anyGamesRemaining(), true, `anyGamesRemaining() ${gamesStarted}`)
+
                 } else {
                     soFarSoGood = false;
                 }
             } else {
                 // Last game
-                soFarSoGood = this.verifyEqual(child2IsDisabled, true, `New Game button was enabled ${gamesStarted}`) &&
+                soFarSoGood = this.verifyEqual(child2IsDisabled, true, `New Game button disabled ${gamesStarted}`) &&
                               this.verifyEqual(this.gameDisplay.anyGamesRemaining(), false, "anyGamesRemaining() ${gamesStarted}")
             }
         }
@@ -3518,12 +3563,12 @@ class Test extends BaseLogger {
         // regular solution:                SHORT SHOOT HOOT BOOT BOOR POOR
         // solve the puzzle like a genius:  SHORT SHOOT HOOT HOOR POOR
 
-        let resultO3 = this.playLetter(3, "O");       // SHORT -> SHOOT
-        let resultDelete0 = this.deleteLetter(0);     // SHOOT -> HOOT
-        let resultR3Genius = this.playLetter(3, "R"); // HOOT -> HOOR genius move
+        let resultO3 = this.playLetter("O");             // SHORT -> SHOOT
+        let resultDelete0 = this.deleteLetter(0);        // SHOOT -> HOOT now change 0
+        let resultR3Genius = this.forcePlayWord("HOOR"); // HOOT -> HOOR genius move
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const toastAfterGeniusMove = appDisplay.getAndClearLastToast();
-        let resultP0 = this.playLetter(0, "P");       // HOOR -> POOR
+        let resultP0 = this.playLetter("P");             // HOOR -> POOR
 
         // let's look at the share ...
         let statsDisplay = this.openAndGetTheStatsDisplay();
@@ -3537,7 +3582,7 @@ class Test extends BaseLogger {
 
         this.verifyEqual(resultO3, Const.GOOD_MOVE, "playLetter(3, O)") &&
             this.verifyEqual(resultDelete0, Const.GOOD_MOVE, "deleteLetter(0)") &&
-            this.verifyEqual(resultR3Genius, Const.GENIUS_MOVE, "playLetter(3, R)") &&
+            this.verifyEqual(resultR3Genius, Const.GENIUS_MOVE, "forcePlayWord(HOOR)") &&
             this.verifyEqual(resultP0, Const.GOOD_MOVE, "playLetter(0, P)") &&
             this.verifyEqual(actShareString.indexOf(expShareString), 0, "sharestring") &&
             this.verifyEqual(toastAfterGeniusMove, Const.GENIUS_MOVE, "genius move") &&

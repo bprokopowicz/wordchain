@@ -154,19 +154,11 @@ class EmptyLetterCell extends LetterCell {
 // These cells have a letter (possibly '?'), no background color, and the border may indicate change.
 // Used for 'wordAfterAdd' and 'wordAfterChange' display instructions.
 class LetterCellNoBackground extends LetterCell {
-    constructor(letter, letterPosition, holePosition, changePosition, letterPicker ) {
+    constructor(letter, letterPosition,  changePosition) {
         super(letter);
 
         const CL = "LetterCellWithBackground.constructor";
         COV(0, CL);
-
-        // If this is where the hole goes, save the letter position in the letter
-        // picker so that when the user clicks on a letter, we can tell the Game class
-        // what the letter position is for the clicked letter.
-        if (letterPosition === holePosition) {
-            COV(1, CL);
-            letterPicker.saveLetterPosition(letterPosition);
-        }
 
         this.handleLetterChangeIfNeeded(letterPosition, changePosition);
     }
