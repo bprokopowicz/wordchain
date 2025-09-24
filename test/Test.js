@@ -194,6 +194,8 @@ class Test extends BaseLogger {
         const buttonId = event.srcElement.getAttribute("id");
 
         if (buttonId == "coverageOn") {
+            // TODO - can this technique be used to set GL_DEBUG on and off? Maybe don't put it into the namespace 'Const'
+            // but have it be global and exported?  Then, from tests, we can turn in on or off with a button instead of reload.
             setCoverageOn(); // sets the "local" instance of the global COVERAGE_ON flag
             if (this.gameDisplay) {
                 this.logDebug("also setting app coverage on", "test");
