@@ -891,6 +891,8 @@ class Test extends BaseLogger {
         this.testDictReverseChoices();
         this.testScrabbleDict();
         this.testFindOptionsAtWordStep();
+        this.testAddWord();
+        this.testRemoveWord();
         const endTestTime = Date.now();
         this.logDebug(`dictionary tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -1007,6 +1009,32 @@ class Test extends BaseLogger {
         this.verifyEqual(sameSizeOptions.size, 3, "number options for PLANE->PLANT") &&
             this.verifyEqual(addOptions.size, 5, "number options for PLAN->PLANT") &&
             this.verifyEqual(delOptions.size, 3, "number delete letter options for PLANT->PLAN") &&
+            this.hadNoErrors();
+    }
+
+    testAddWord() {
+        this.testName = "AddWord";
+        const tempDict = this.fullDict.copy();
+        const nBeforeAdd = tempDict.getSize();
+        tempDict.addWord("junk");      // already in dictionary
+        const nAfterAddDuplicate = tempDict.getSize();
+        tempDict.addWord("junkyjunk"); // not already in dictionary
+        const nAfterAddNew = tempDict.getSize();
+        this.verifyEqual(nBeforeAdd, nAfterAddDuplicate,"size after trying to add duplicate word") &&
+            this.verifyEqual(nBeforeAdd, nAfterAddNew-1, "size after trying to add new word") &&
+            this.hadNoErrors();
+    }
+ 
+    testRemoveWord() {
+        const tempDict = this.fullDict.copy();
+        this.testName = "RemoveWord";
+        const nBeforeRemove = tempDict.getSize();
+        tempDict.removeWord("junk");      // real word
+        const nAfterRemove  = tempDict.getSize();
+        tempDict.removeWord("junkyjunk"); // not already in dictionary
+        const nAfterRemoveUnknown = tempDict.getSize();
+        this.verifyEqual(nBeforeRemove, nAfterRemove+1,"size after trying to remove word") &&
+            this.verifyEqual(nAfterRemove, nAfterRemoveUnknown, "size after trying to remove unknown word") &&
             this.hadNoErrors();
     }
 
@@ -1680,6 +1708,7 @@ class Test extends BaseLogger {
         prep(); this.testGameLosesOnWrongDelete();
         prep(); this.testGameLosesOnWrongLetterChange();
         prep(); this.testPracticeGamesPerDayLimitReached();
+        prep(); this.testNewRandomPracticeGame();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -2301,6 +2330,16 @@ class Test extends BaseLogger {
             game = game.nextGame();
         }
         this.verifyEqual(game, null, "last practice game") &&
+            this.hadNoErrors();
+    }
+
+    testNewRandomPracticeGame() {
+        this.testName = "NewRandomPracticeGame";
+        Persistence.clearTestPracticeGameWords();
+        var game = new PracticeGame(this.fullDict); 
+        this.verify(game.gameState.start.length >= 3, "start too short") &&
+            this.verify(game.gameState.target.length >= 3, "target too short") &&
+            this.verify(!game.isOver(), "practice game is over") &&
             this.hadNoErrors();
     }
 

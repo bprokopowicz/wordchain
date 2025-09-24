@@ -405,33 +405,6 @@ class Solution extends BaseLogger {
         return false;
     }
 
-    shortestWordLen() {
-        const CL = "Solution.shortedWordLen";
-        COV(0, CL);
-        let shortestLen = 1000;
-        for (let word of this.getSolutionWords()) {
-            if (word.length < shortestLen) {
-                COV(1, CL);
-                shortestLen = word.length;
-            }
-        }
-        COV(2, CL);
-        return shortestLen;
-    }
-
-    longestWordLen() {
-        const CL = "Solution.longestWordLen";
-        COV(0, CL);
-        let longestLen = 0;
-        for (let word of this.getSolutionWords()) {
-            if (word.length > longestLen) {
-                COV(1, CL);
-                longestLen = word.length;
-            }
-        }
-        return longestLen;
-    }
-
     hadNoErrors() {
         const CL = "Solution.hadNoErrors";
         COV(0, CL);

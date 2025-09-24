@@ -332,17 +332,6 @@ class Game extends BaseLogger {
         return result;
     }
 
-
-    // the GUI needs to know if a played word was acceptable
-    // (GOOD_MOVE, GENIUS_MOVE, SCRABBLE_MOVE, DODO_MOVE, WRONG_MOVE, SHOWN_MOVE)
-    // vs invalid (NOT_A_WORD or technical problems like BAD_POSITION)
-    static moveIsValid(moveRating) {
-        const CL = "Game.moveIsValid";
-        COV(0, CL);
-        return (moveRating == Const.GOOD_MOVE) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.SCRABBLE_MOVE) ||
-            (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE) || (moveRating == Const.SHOWN_MOVE);
-    }
-
     /* addPosition is from 0 to last word played's length
      * 
      * We record the position but don't adjust the state of the game.  We will update the game state if/when the user
@@ -437,23 +426,11 @@ class Game extends BaseLogger {
         return this.gameState.getNormalizedScore();
     }
  
-    numShownMoves() {
-        const CL = "Game.numShownMoves";
-        COV(0, CL);
-        return this.gameState.numShownMoves();
-    }
-
     getOriginalSolutionWords() {
         const CL = "Game.getOriginalSolutionWords";
         COV(0, CL);
         const wordList = this.gameState.initialSolution;
         return this.listAsStringWithBreaks(wordList);
-    }
-
-    getOriginalSolutionLength() {
-        const CL = "Game.getOriginalSolutionLength";
-        COV(0, CL);
-        return this.gameState.initialSolution.length;
     }
 
     getUserSolutionWords() {
@@ -486,24 +463,21 @@ class Game extends BaseLogger {
         return res + wordList[wordList.length-1];
     }
 
-
-    // Finishes the game. When getNextDisplayInstruction() is called after this,
-    // the game can be displayed just the same as if a user finished with all
-    // correct moves.
-
-    finishGame() {
-        const CL = "Game.finishGame";
-        COV(0, CL);
-        // play the remaining steps for the user.  
-        this.gameState.finishGame();
-    }
-
     showNextMove() {
         const CL = "Game.showNextMove";
         COV(0, CL);
         // plays the next word in the solution for the player.  The move is rated as
         // SHOWN_MOVE
         return this.gameState.showNextMove();
+    }
+
+    // Finishes the game. Used in testing.
+
+    finishGame() {
+        const CL = "Game.finishGame";
+        COV(0, CL);
+        // play the remaining steps for the user.
+        this.gameState.finishGame();
     }
 
     isOver() {
