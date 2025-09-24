@@ -66,7 +66,10 @@ export function COV(point, callerStr ) {
 
 // print out the coverage data and reset the counters
 export function showCoverage(appCounters, nonAppCounters) {
-    console.log("appCounters:", appCounters, "\nnonAppCounters", nonAppCounters);
+    //console.log("appCounters:", appCounters, "\nnonAppCounters", nonAppCounters);
+    console.log("WARNING: make sure docs/resources/counters is up to date");
+    console.log("rebuild it with: ");
+    console.log('cat docs/javascript/*js | grep "^ *const CL =" | sed "s/.*const CL = .//" | sed "s/.;//" > docs/resources/counters');
     if (COVERAGE_ON) {
         var combinedCounters = new Map([...appCounters]);
 

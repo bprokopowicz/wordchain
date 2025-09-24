@@ -209,7 +209,7 @@ StatsDisplay.selfScroll
 StatsDisplay.stopCountdownClock
 StatsDisplay.updateShareButton
 StatsDisplay.updateStatsContent
-WordChainDict.constructor 
+WordChainDict.constructor
 WordChainDict.shuffleArray
 WordChainDict.copy
 WordChainDict.findAdderWords

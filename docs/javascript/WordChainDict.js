@@ -22,7 +22,7 @@ class WordChainDict extends BaseLogger {
 
     constructor(wordList=[]) {
         super();
-        const CL = "WordChainDict.constructor"; 
+        const CL = "WordChainDict.constructor";
         COV(0, CL);
 
         if (wordList.length == 0) {
