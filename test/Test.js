@@ -9,7 +9,7 @@ import { Metrics } from '../docs/javascript/Metrics.js';
 import { Persistence } from '../docs/javascript/Persistence.js';
 import { DailyGameDisplay, PracticeGameDisplay } from '../docs/javascript/GameDisplay.js'
 import * as Const from '../docs/javascript/Const.js';
-import { showCoverage, clearCoverage, getCounters, setCoverageOff, setCoverageOn, isCoverageOn } from '../docs/javascript/Coverage.js';
+import { showCoverage, clearCoverage, getCounters, setCoverage, isCoverageOn } from '../docs/javascript/Coverage.js';
 
 import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
@@ -171,6 +171,8 @@ class Test extends BaseLogger {
             runGame          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",         class: "testButton" }, "Run Game Tests"),
             runApp           = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",          class: "testButton" }, "Run App Tests"),
             _unused          = ElementUtilities.addElementTo("br", this.outerDiv),
+            debuggingOn      = ElementUtilities.addElementTo("button", this.outerDiv, {id: "debuggingOn",    class: "testButton" }, "Debugging On"),
+            debuggingOff     = ElementUtilities.addElementTo("button", this.outerDiv, {id: "debuggingOff",   class: "testButton" }, "Debugging Off"),
             showCoverage     = ElementUtilities.addElementTo("button", this.outerDiv, {id: "showCoverage",   class: "testButton" }, "Show Coverage"),
             clearCoverage    = ElementUtilities.addElementTo("button", this.outerDiv, {id: "clearCoverage",  class: "testButton" }, "Clear Coverage"),
             coverageOn       = ElementUtilities.addElementTo("button", this.outerDiv, {id: "coverageOn",     class: "testButton" }, "Coverage On"),
@@ -182,7 +184,7 @@ class Test extends BaseLogger {
 
 
         for (let button of [runAll, runDict, runSolver, runGameState, runGame, runApp, runSelectedTest,
-                showCoverage, clearCoverage, coverageOn, coverageOff]) {
+                showCoverage, clearCoverage, coverageOn, coverageOff, debuggingOn, debuggingOff]) {
             ElementUtilities.setButtonCallback(button, this, this.runTestsCallback);
         }
 
@@ -193,25 +195,33 @@ class Test extends BaseLogger {
 
         const buttonId = event.srcElement.getAttribute("id");
 
-        if (buttonId == "coverageOn") {
+        if (buttonId == "debuggingOn") {
+            Const.SET_GL_DEBUG(true);
+            if (this.gameDisplay) {
+                this.logDebug("also setting app debugging on", "test");
+                this.gameDisplay.callSetDebugging(true); // sets the "remote" instance of the coverage flag
+            }
+        } else if (buttonId == "debuggingOff") {
+            Const.SET_GL_DEBUG(false);
+            if (this.gameDisplay) {
+                this.logDebug("also setting app debugging off", "test");
+                this.gameDisplay.callSetDebugging(false); // sets the "remote" instance of the coverage flag
+            }
+        } else if (buttonId == "coverageOn") {
             // TODO - can this technique be used to set GL_DEBUG on and off? Maybe don't put it into the namespace 'Const'
             // but have it be global and exported?  Then, from tests, we can turn in on or off with a button instead of reload.
-            setCoverageOn(); // sets the "local" instance of the global COVERAGE_ON flag
+            setCoverage(true); // sets the "local" instance of the global COVERAGE_ON flag
             if (this.gameDisplay) {
                 this.logDebug("also setting app coverage on", "test");
-                this.gameDisplay.callSetCoverageOn(); // sets the "remote" instance of the global COVERAGE_ON flag
+                this.gameDisplay.callSetCoverage(true); // sets the "remote" instance of the global COVERAGE_ON flag
             }
-            return;
-        }
-        if (buttonId == "coverageOff") {
-            setCoverageOff();
+        } else if (buttonId == "coverageOff") {
+            setCoverage(false);
             if (this.gameDisplay) {
                 this.logDebug("also setting app coverage off", "test");
-                this.gameDisplay.callSetCoverageOff();
+                this.gameDisplay.callSetCoverage(false);
             }
-            return;
-        }
-        if (buttonId == "showCoverage") {
+        } else if (buttonId == "showCoverage") {
             // There are global coverage counters and app-specific counters.
             // First, get the global counters.
             let nonAppCounters = getCounters(),
@@ -225,45 +235,45 @@ class Test extends BaseLogger {
             }
 
             showCoverage(appCounters, nonAppCounters);
-            return;
-        }
-        if (buttonId == "clearCoverage") {
+        } else if (buttonId == "clearCoverage") {
             clearCoverage();
             if (this.gameDisplay) {
                 this.logDebug("also clearing app counters", "test");
                 this.gameDisplay.callClearAppCoverage();
             }
-            return;
-        }
+        } else {
+            // one the testing buttons was clicked
 
-        this.clearResults();
+            this.clearResults();
 
-        if (buttonId == "runAll" || buttonId == "runDict") {
-            this.runDictTests();
-        }
-        if (buttonId == "runAll" || buttonId == "runSolver") {
-            this.runSolverTests();
-        }
-        if (buttonId == "runAll" || buttonId == "runGameState") {
-            this.runGameStateTests();
-        }
-        if (buttonId == "runAll" || buttonId == "runGame") {
-            this.runGameTests();
-        }
-        if (buttonId == "runAll" || buttonId == "runApp") {
-            // runAppTests() will run all the functions in this.appTestList.
-            this.appTestList = this.getAppTests();
-            this.runAppTests(); // this will take care of calling showResults() when it is finished asynchronously
-        }
-        if (buttonId == "runSelectedTest") {
-            this.appTestList = [this.appTestNameToFunction.get(this.appTestSelect.value)];
-            this.runAppTests();
-        }
-        // The App tests (runAll, runApp, runSelectedTest) will show the results themselves when those tests finish.
-        // Otherwise, we show them now.  This will apply to any synchronous tests (dict, solver, game, gameState)
+            // this cascade is not if-then-else because more than one case can be true, or none;
+            if (buttonId == "runAll" || buttonId == "runDict") {
+                this.runDictTests();
+            }
+            if (buttonId == "runAll" || buttonId == "runSolver") {
+                this.runSolverTests();
+            }
+            if (buttonId == "runAll" || buttonId == "runGameState") {
+                this.runGameStateTests();
+            }
+            if (buttonId == "runAll" || buttonId == "runGame") {
+                this.runGameTests();
+            }
+            if (buttonId == "runAll" || buttonId == "runApp") {
+                // runAppTests() will run all the functions in this.appTestList.
+                this.appTestList = this.getAppTests();
+                this.runAppTests(); // this will take care of calling showResults() when it is finished asynchronously
+            }
+            if (buttonId == "runSelectedTest") {
+                this.appTestList = [this.appTestNameToFunction.get(this.appTestSelect.value)];
+                this.runAppTests();
+            }
+            // The App tests (runAll, runApp, runSelectedTest) will show the results themselves when those tests finish.
+            // Otherwise, we show them now.  This will apply to any synchronous tests (dict, solver, game, gameState)
 
-        if ( buttonId == "runDict" || buttonId == "runSolver" || buttonId == "runGame" || buttonId == "runGameState") {
-            this.showResults();
+            if ( buttonId == "runDict" || buttonId == "runSolver" || buttonId == "runGame" || buttonId == "runGameState") {
+                this.showResults();
+            }
         }
     }
 
@@ -479,13 +489,9 @@ class Test extends BaseLogger {
     // this sets this.gameDisplay to the App window's current game display object.
     setGameDisplay() {
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
-        // sync up the gameDisplay's code-coverage setting to ours
-        if (isCoverageOn()) {
-            this.gameDisplay.callSetCoverageOn();
-        } else {
-            this.gameDisplay.callSetCoverageOff();
-        }
-
+        // sync up the gameDisplay's code-coverage and debug settings to ours
+        this.gameDisplay.callSetCoverage(isCoverageOn());
+        this.gameDisplay.callSetDebugging(Const.GL_DEBUG);
     }
 
     resetTheTestAppWindow() {

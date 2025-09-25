@@ -16,13 +16,11 @@ let unreachedFunctions = new Set(); // has all known functions to start.  Remove
 
 let COVERAGE_ON = false; // DO NOT CHANGE THIS VALUE HERE, EVEN TEMPORARILY.  
 
-export function setCoverageOn() {
-    COVERAGE_ON = true;
-    initializeCoveragePointCounters();
-}
-
-export function setCoverageOff() {
-    COVERAGE_ON = false;
+export function setCoverage(b) {
+    COVERAGE_ON = b;
+    if (b) {
+        initializeCoveragePointCounters();
+    }
 }
 
 export function isCoverageOn() {
@@ -69,6 +67,7 @@ export function showCoverage(appCounters, nonAppCounters) {
     //console.log("appCounters:", appCounters, "\nnonAppCounters", nonAppCounters);
     console.log("WARNING: make sure docs/resources/counters is up to date");
     console.log("rebuild it with: ");
+    // the next log line causes problems for vim auto-indent from here on down, FYI.
     console.log('cat docs/javascript/*js | grep "^ *const CL =" | sed "s/.*const CL = .//" | sed "s/.;//" > docs/resources/counters');
     if (COVERAGE_ON) {
         var combinedCounters = new Map([...appCounters]);
@@ -84,7 +83,7 @@ export function showCoverage(appCounters, nonAppCounters) {
         const sortedLabels = Array.from(combinedCounters.keys()).sort();
 
         if (sortedLabels.length === 0) {
-            console.log("No coverage recorded. Make sure COVERAGE_ON is true in Coverage.js, and run some tests!");
+            console.log("No coverage recorded. Press Coverage On button on test page, and run some tests!");
             return;
         }
 
@@ -97,7 +96,7 @@ export function showCoverage(appCounters, nonAppCounters) {
             // labels look like class.func.pointNumber
             let [cl, func, pointStr] = label.split('.');
             let point=parseInt(pointStr);
-            
+
             unreachedFunctions.delete(`${cl}.${func}`);
             if (point === 0) {
                 console.log(`${cl}.${func}()`);
@@ -123,10 +122,11 @@ export function showCoverage(appCounters, nonAppCounters) {
         } else {
             console.log(skippedLabels.join("\n"));
         }
-    }
-    console.log("known unreached functions:");
-    for (const unreachedFunction of Array.from(unreachedFunctions).sort()) {
-        console.log(unreachedFunction);
+        console.log("known unreached functions:");
+        for (const unreachedFunction of Array.from(unreachedFunctions).sort()) {
+            console.log(unreachedFunction);
+        }
+        console.log(`${100.0 * (1.0 - (skippedLabels.length / sortedLabels.length))}% coverage points reached.`);
     }
 }
 

@@ -4,7 +4,7 @@ import { Game, DailyGame, PracticeGame } from './Game.js';
 import { Persistence } from './Persistence.js';
 import { Picker } from './Picker.js';
 import * as Const from './Const.js';
-import { COV, clearCoverage, getCounters, setCoverageOn, setCoverageOff } from './Coverage.js';
+import { COV, clearCoverage, getCounters, setCoverage} from './Coverage.js';
 
 
 import {
@@ -747,8 +747,8 @@ class GameDisplay extends BaseLogger {
     }
 
 
-    // callGetAppCounters()/callClearAppCoverage are a hack for Test.js to access the
-    // coverage data in the execution context of the GameDisplay.
+    // callGetAppCounters()/callClearAppCoverage etc are a hack for Test.js to access the
+    // coverage data and debugging switch in the execution context of the GameDisplay.
 
     callGetAppCounters() {
         return getCounters();
@@ -758,12 +758,12 @@ class GameDisplay extends BaseLogger {
         clearCoverage();
     }
 
-    callSetCoverageOn() {
-        setCoverageOn();
+    callSetCoverage(b) {
+        setCoverage(b);
     }
 
-    callSetCoverageOff() {
-        setCoverageOff();
+    callSetDebugging(b) {
+        Const.SET_GL_DEBUG(b)
     }
 }
 

@@ -8,16 +8,14 @@ export var GL_DEBUG = false;
 // seen by other code using either Const.GL_DEBUG or Const.GET_GL_DEBUG().
 
 
-/*
 export function SET_GL_DEBUG(value) {
-    console.log("OVERRIDING GL_DEBUG TO: ", value);
+    //console.log("OVERRIDING GL_DEBUG TO: ", value);
     GL_DEBUG = value;
 }
 
 export function GET_GL_DEBUG(value) {
     return GL_DEBUG;
 }
-*/
 
 // Constants for URLs.
 export const SHARE_URL         = "https://WordChainFun.com/"; // The real URL
