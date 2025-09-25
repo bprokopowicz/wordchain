@@ -157,7 +157,7 @@ class LetterCellNoBackground extends LetterCell {
     constructor(letter, letterPosition,  changePosition) {
         super(letter);
 
-        const CL = "LetterCellWithBackground.constructor";
+        const CL = "LetterCellNoBackground.constructor";
         COV(0, CL);
 
         this.handleLetterChangeIfNeeded(letterPosition, changePosition);

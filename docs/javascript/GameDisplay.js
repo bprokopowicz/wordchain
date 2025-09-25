@@ -568,8 +568,10 @@ class GameDisplay extends BaseLogger {
 
             // TODO letterIndex+1 worked with tests but not in the actual app.  So we don't have a test that
             // relies on cellCreator's letterIndex parameter.  Tests don't call this code?  check coverage.
+            // The change is in terms of which letter has the change-circle outline, I think...
+            // This would need tests of the appearance of the game grid
 
-            letterCell = cellCreator(letters[letterIndex], letterIndex /*400*/);
+            letterCell = cellCreator(letters[letterIndex], letterIndex); 
             ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 
             // Add the next addition cell after the letter cell.  AdditionCell positions go from 0 to wordLength
