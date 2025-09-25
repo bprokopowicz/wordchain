@@ -523,7 +523,7 @@ class GameDisplay extends BaseLogger {
             // Only N show-words clicks allowed per game!
             if (!this.game.gameState.canShowMove()) {
                 COV(3, CL);
-                console.log("disabling show word button in GameDisplay.showWordCallback()");
+                Const.GL_DEBUG && this.logDebug("disabling show word button in GameDisplay.showWordCallback()", "callback");
                 ElementUtilities.disableButton(this.showWordButton);
             }
 
@@ -916,8 +916,8 @@ class PracticeGameDisplay extends GameDisplay {
             this.game = newGameOrNull;
         }
         this.updateDisplay();
-        ElementUtilities.disableButton(this.newGameButton);
-        console.log("enabling show word button in newGameCallback");
+        ElementUtilities.disableButton(this.newGameButton); 
+        Const.GL_DEBUG && this.logDebug("enabling show word button in GameDisplay.newGameCallback()", "game");
         ElementUtilities.enableButton(this.showWordButton);
         COV(2, CL);
     }

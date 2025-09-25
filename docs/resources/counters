@@ -45,7 +45,6 @@ LetterCellWithBackground.constructor
 LetterCell.addBackgroundClass
 LetterCell.addBackgroundClassBasedOnMoveRating
 DisplayInstruction.constructor
-DisplayInstruction.copy
 ElementUtilities.addClass
 ElementUtilities.hasClass
 ElementUtilities.addElement

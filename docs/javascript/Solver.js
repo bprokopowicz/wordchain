@@ -144,35 +144,36 @@ class Solver {
             return false;
         }
         if (puzzle.numWords() > maxWords) {
-            COV(2, CL);
+            // this should be impossible, because the search stops at maxWords, so we don't include it in coverage.
+            console.error("unexpected error - puzzle found has too many words");
             return false;
         }
         if ((targetWordLen > 0) && (puzzle.getTarget().length != targetWordLen)) {
-            COV(3, CL);
+            COV(2, CL);
             return false;
         }
         if (!puzzle.hasWordOfLength(wordLen1)) {
-            COV(4, CL);
+            COV(3, CL);
             return false;
         }
         if (!puzzle.hasWordOfLength(wordLen2)) {
-            COV(5, CL);
+            COV(4, CL);
             return false;
         }
         puzzle.calculateDifficulty(dictionary);
         if (puzzle.difficulty < minDifficulty) {
-            COV(6, CL);
+            COV(5, CL);
             return false;
         }
         if (puzzle.nChoicesEasiestStep < minChoices) {
-            COV(7, CL);
+            COV(6, CL);
             return false;
         }
         if (puzzle.nChoicesFromTarget < minChoices) {
-            COV(8, CL);
+            COV(7, CL);
             return false;
         }
-        COV(9, CL);
+        COV(8, CL);
         return true;
     }
 

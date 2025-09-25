@@ -18,24 +18,24 @@ import { ElementUtilities } from '../docs/javascript/ElementUtilities.js';
 
 // notes about JS delays
 // setTimeout(func, t) calls func() at t milliseconds in the future.
-// new Promise (executor-func) is a constructor call.  
+// new Promise (executor-func) is a constructor call.
 // executor-func has two args, resolveFunc(x) and rejectFunc(x).  It is called
 // during construction, and sets up the Promise.  resolveFunc (and rejectFunc)
 // are callback-like functions that the Promise is aware of, and if either
 // one is called (from anywhere), the Promise becomes resolved (or rejected) and
 // the follow-on .then(func) expressions that are later attached to the Promise
 // will execute.  They take one parameter, which is the value that any '.then(func)'
-// will receive.  
+// will receive.
 // In our case, the resolveFunc is called by the timer mechanism after a pause.  This
 // causes the Promise to be resolved, and any .then()s chained to it will execute.
 // In our case, we don't pass a value to resolvFunc and the .then() chained to the
 // Promise doesn't get a parameter.  When the Promise constructor calls the
 // executor, which sets up the timeout to call the resolveFunc, it first generates the
-// two functions resolveFunc and rejectFunc, and they know about this Promise, so 
-// when they are called by our code, they update the Promise and possibly run the 
+// two functions resolveFunc and rejectFunc, and they know about this Promise, so
+// when they are called by our code, they update the Promise and possibly run the
 // .then or .catch or .finally attached to the Promise.  resolveFunc and rejectFunc
 // are like handles given to our code, that we will call to move the Promise along.
-// 
+//
 
 function inTheFuture(ms) {
   return new Promise(function(resolveFunc, rejectFunc) {setTimeout(resolveFunc, ms)});
@@ -162,7 +162,7 @@ class Test extends BaseLogger {
 
         this.addTitle("WordChain Test Suite<br>Allow 20+ seconds to complete. Browser popups must be allowed." + debugWarning + bundledStatus);
 
-        // add all the buttons for running tests, showing results, etc.  
+        // add all the buttons for running tests, showing results, etc.
 
         var runAll           = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runAll",          class: "testButton" }, "Run All Tests"),
             runDict          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runDict",         class: "testButton" }, "Run Dict Tests"),
@@ -224,7 +224,7 @@ class Test extends BaseLogger {
                 appCounters = this.gameDisplay.callGetAppCounters();
             }
 
-            showCoverage(appCounters, nonAppCounters); 
+            showCoverage(appCounters, nonAppCounters);
             return;
         }
         if (buttonId == "clearCoverage") {
@@ -418,7 +418,7 @@ class Test extends BaseLogger {
                 }
             }
         }
-  
+
         // Check for properties present in expected but not in actual
         for (const key in expected) {
             if (Object.prototype.hasOwnProperty.call(expected, key)) {
@@ -430,7 +430,7 @@ class Test extends BaseLogger {
                 }
             }
         }
-  
+
         return differences;
     }
 
@@ -476,7 +476,7 @@ class Test extends BaseLogger {
         }
     }
 
-    // this sets this.gameDisplay to the App window's current game display object.  
+    // this sets this.gameDisplay to the App window's current game display object.
     setGameDisplay() {
         this.gameDisplay = this.getNewAppWindow().theAppDisplay.currentGameDisplay;
         // sync up the gameDisplay's code-coverage setting to ours
@@ -726,7 +726,7 @@ class Test extends BaseLogger {
         // If we are in confirmation mode, we have already clicked twice successfully
         // So we can now play the letter.
 
-        let playResult = this.playLetter(letter);  
+        let playResult = this.playLetter(letter);
         this.logDebug("insertLetter(", position, ",", letter, ") returns: ", clickResult, " then ", playResult,  "test");
         return playResult;
     }
@@ -748,7 +748,7 @@ class Test extends BaseLogger {
     }
 
     // A utility to play a move from one word to another, as found by the Solver.
-    // The solver gives you transformations 
+    // The solver gives you transformations
     playTransformation(transformation) {
         this.logDebug("Playing transformation", transformation, "test");
         const [action, position, letter] = transformation;
@@ -858,7 +858,7 @@ class Test extends BaseLogger {
         this.closeTheStatsDisplay();
 
         for (let wrongMoves = 0; wrongMoves <= Const.TOO_MANY_EXTRA_STEPS; wrongMoves++) {
-            // check the extraSteps histogram 
+            // check the extraSteps histogram
             testRes = testRes &&
                 this.verifyEqual(savedExtraStepsHistogram[wrongMoves], expExtraStepsHistogram[wrongMoves], `savedExtraStepsHistogram.${wrongMoves}`);
 
@@ -1026,7 +1026,7 @@ class Test extends BaseLogger {
             this.verifyEqual(nBeforeAdd, nAfterAddNew-1, "size after trying to add new word") &&
             this.hadNoErrors();
     }
- 
+
     testRemoveWord() {
         const tempDict = this.fullDict.copy();
         this.testName = "RemoveWord";
@@ -1238,8 +1238,8 @@ class Test extends BaseLogger {
               minWords = 7,
               maxWords = 9,
               minDifficulty = 15,
-              targetWordLen = 0,
-              expectedNumberOfPuzzles = 8,
+              targetWordLen = 5,
+              expectedNumberOfPuzzles = 7,
               minChoicesPerStep = 2;
 
         const suitablePuzzles = Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2,
@@ -1257,6 +1257,7 @@ class Test extends BaseLogger {
         this.verifyEqual(suitablePuzzles.length, expectedNumberOfPuzzles, "numberOfPuzzles") &&
             this.verify(solution.numWords() >= minWords, `solution too short ${solution.numWords()} not ${minWords}`) &&
             this.verify(solution.numWords() <= maxWords, `solution too long ${solution.numWords()} not ${maxWords}`) &&
+            this.verifyEqual(solution.target.length, targetWordLen, "target word length") &&
             this.verifyEqual(solution.hasWordOfLength(reqWordLen1), true, `solution has word of length ${reqWordLen1}`) &&
             this.verifyEqual(solution.hasWordOfLength(reqWordLen2), true, `solution word of length ${reqWordLen2}`) &&
             this.verify(solution.difficulty >= minDifficulty, `solution to easy: ${difficulty} is not at least ${minDifficulty}`) &&
@@ -1313,9 +1314,9 @@ class Test extends BaseLogger {
     }
 
     /*
-        This test takes a long time and isn't part of normal testing.  It is commented out in 
-        runGameStateTests().  It tests the viability of each game word pair by setting the 
-        test practice game words and then creating a new PracticeGameState.  In creating the 
+        This test takes a long time and isn't part of normal testing.  It is commented out in
+        runGameStateTests().  It tests the viability of each game word pair by setting the
+        test practice game words and then creating a new PracticeGameState.  In creating the
         new PracticeGameState, the factory will determine if the puzzle can be solved and return
         null if it can't.
      */
@@ -1336,7 +1337,7 @@ class Test extends BaseLogger {
     }
 
     compareGameStates(s1, s2) {
-        let res = 
+        let res =
             (s1.start === s2.start) &&
             (s1.target === s2.target) &&
             (s1.ratedMoves.length === s2.ratedMoves.length) &&
@@ -1387,7 +1388,7 @@ class Test extends BaseLogger {
         let pgs1 = PracticeGameState.factory(this.fullDict); // from scratch
         this.logDebug("     first PGS:", pgs1, "test");
         // this second PracticeGameState should be recovered, not built from scratch
-        let pgs2 = PracticeGameState.factory(this.fullDict); 
+        let pgs2 = PracticeGameState.factory(this.fullDict);
         this.logDebug("     second PGS:", pgs2, "test");
 
         this.verify(this.comparePracticeGameStates(pgs1, pgs2), "states don't match") &&
@@ -1415,7 +1416,7 @@ class Test extends BaseLogger {
         let pgs = PracticeGameState.factory(this.fullDict);
 
         // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
-        const res = pgs.addWord('SHOOT'); 
+        const res = pgs.addWord('SHOOT');
         const expUnplayedWords = "HOOT,BOOT,BOOR,POOR";
         this.verifyEqual(res, Const.GOOD_MOVE, "after addWord") &&
             this.verifyEqual(pgs.ratedMoves.length, 2, "played words") &&
@@ -1443,8 +1444,8 @@ class Test extends BaseLogger {
         // new game is not recovered and should be unplayed
         const expUnplayedWords = "SHOOT,HOOT,BOOT,BOOR,POOR";
         this.verifyEqual(dgs.dailyGameNumber, Test.TEST_EPOCH_DAYS_AGO, "game number") &&
-                this.verifyEqual(dgs.start, "SHORT", "start") && 
-                this.verifyEqual(dgs.target, "POOR", "target") && 
+                this.verifyEqual(dgs.start, "SHORT", "start") &&
+                this.verifyEqual(dgs.target, "POOR", "target") &&
                 this.verifyEqual(dgs.ratedMoves.length, 1, "num played words") &&
                 this.verifyEqual(dgs.getUnplayedWordsAsString(), expUnplayedWords, "unplayed words") &&
                 this.hadNoErrors();
@@ -1466,7 +1467,7 @@ class Test extends BaseLogger {
         let dgs = DailyGameState.factory(this.fullDict);
 
         // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
-        const res = dgs.addWord('SHOOT'); 
+        const res = dgs.addWord('SHOOT');
         const expUnplayedWords = "HOOT,BOOT,BOOR,POOR";
         this.verifyEqual(res, Const.GOOD_MOVE, "after addWord") &&
             this.verifyEqual(dgs.ratedMoves.length, 2, "num played words") &&
@@ -1482,7 +1483,7 @@ class Test extends BaseLogger {
         let dgs = DailyGameState.factory(this.fullDict);
 
         // SHORT,SHOOT,HOOT,BOOT,BOOR,POOR
-        const res = dgs.addWord('SHOOT'); 
+        const res = dgs.addWord('SHOOT');
         const expUnplayedWords = "HOOT,BOOT,BOOR,POOR";
         this.verifyEqual(res, Const.GOOD_MOVE, "after addWord") &&
             this.verifyEqual(dgs.ratedMoves.length, 2, "num played words") &&
@@ -1517,7 +1518,7 @@ class Test extends BaseLogger {
         Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO);
         let dgs1 = DailyGameState.factory(this.fullDict);
         dgs1.setStat("streak", 10); // pretend we have 10 in a row.
-        dgs1.finishGame();          // this will make 11 
+        dgs1.finishGame();          // this will make 11
 
         // Move ahead two days ahead.  This tests if we recognize that the streak is over
         // because we didn't play yesterday.
@@ -1543,11 +1544,11 @@ class Test extends BaseLogger {
     testDailyGameStateUsingNewTestVars() {
         this.testName = "DailyGameStateUsingNewTestVars";
 
-        // shortest solution is PLANE,PANE,PANED 
+        // shortest solution is PLANE,PANE,PANED
         Persistence.saveTestDailyGameWords("PLANE", "PANED");
         let dgs1 = DailyGameState.factory(this.fullDict); // from scratch
 
-        // Now, if we recover the DailyGameState with TEST_DAILY_GAME_NUMBER, the new test vars should override 
+        // Now, if we recover the DailyGameState with TEST_DAILY_GAME_NUMBER, the new test vars should override
         Persistence.saveTestDailyGameWords("JUNKY", "JUNK");
         let dgs2 = DailyGameState.factory(this.fullDict); // from recovered object, but test vars have changed
 
@@ -1563,7 +1564,7 @@ class Test extends BaseLogger {
     testDailyGameStateUsingRepeatTestVars() {
         this.testName = "DailyGameStateUsingRepeatTestVars";
 
-        // shortest solution is PLANE,PANE,PANED 
+        // shortest solution is PLANE,PANE,PANED
         Persistence.saveTestDailyGameWords("PLANE", "PANED");
         let dgs1 = DailyGameState.factory(this.fullDict); // will be from scratch
         let dgs2 = DailyGameState.factory(this.fullDict); // will be from recovered object
@@ -1705,6 +1706,7 @@ class Test extends BaseLogger {
         prep(); this.testGameFinish();
         prep(); this.testGameFinishAlternatePath();
         prep(); this.testGameShowTargetMove();
+        prep(); this.testGameTooManyShowMoves();
         prep(); this.testGameShowEveryMove();
         prep(); this.testGameLosesAfterMistakes();
         prep(); this.testGameLosesOnWrongDelete();
@@ -1759,7 +1761,7 @@ class Test extends BaseLogger {
         this.testName = "GameDifferentWordFromInitialSolution";
 
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAT", "DOG", "SCAD"]);
-        let [start, target] = ["BAD", "CAT"]; 
+        let [start, target] = ["BAD", "CAT"];
         const origSolution = Solver.solve(smallDict, start, target); // BAD BAT CAT
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(smallDict);
@@ -1963,7 +1965,7 @@ class Test extends BaseLogger {
         // shortest solution is BAD,BAT,CAT,CAR  alt using scrabble: BAD,MAD,MAR,CAR  MAD is the scrabble word
         let [start, target] = ["BAD", "CAR"];
         Persistence.saveTestPracticeGameWords(start, target);
-     
+
         const expectedInitialInstructions = [
                                 // word      type                     change  rating               isStart  parLine
             new DisplayInstruction("BAD",    Const.PLAYED_CHANGE,     2,       Const.NO_RATING,     true,    false),
@@ -1979,7 +1981,7 @@ class Test extends BaseLogger {
         ];
 
 
-        const game = new PracticeGame(smallDict); 
+        const game = new PracticeGame(smallDict);
         const initialInstructions = game.getDisplayInstructions();
         const badToMadResult = game.playLetter(0,"M");
         const afterMInstructions = game.getDisplayInstructions();
@@ -2028,7 +2030,7 @@ class Test extends BaseLogger {
 
         // play SCAG to SAG which is correct now.
         const scagToSagResult = game.playDelete(1); // SCAG to SAG.
-        const afterSagInstructions = game.getDisplayInstructions(); 
+        const afterSagInstructions = game.getDisplayInstructions();
 
         this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
             this.verifyEqual(scadToScagResult, Const.WRONG_MOVE, "playLetter(3,G)") &&
@@ -2043,9 +2045,9 @@ class Test extends BaseLogger {
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "CAR", "DOG", "SCAD", "SAG", "SAT"]);
 
         // shortest solution is SCAD,CAD,CAT,SAT,SAG, but genius solution is SCAD,SCAG,SAG
-        let [start, target] = ["SCAD", "SAG"]; 
+        let [start, target] = ["SCAD", "SAG"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(smallDict); 
+        const game = new PracticeGame(smallDict);
 
         const expectedInitialInstructions = [
                                 // word      type                     change  rating               isStart  parLine
@@ -2086,7 +2088,7 @@ class Test extends BaseLogger {
         this.testName = "GameUsingDodoMove";
         let [start, target] = ["PLANE", "PANED"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
+        const game = new PracticeGame(this.fullDict);
         // shortest solution is PLANE,PANE,PANED, but dodo move is PLANE,PLAN,PAN,PANE,PANED
 
         const expectedInitialInstructions = [
@@ -2103,7 +2105,7 @@ class Test extends BaseLogger {
             new DisplayInstruction("PANE",    Const.FUTURE,            -1,      Const.NO_RATING,     false,   false),
             new DisplayInstruction("PANED",   Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
         ];
- 
+
         const expectedPlanToPanInstructions = [
             new DisplayInstruction("PLANE",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
             new DisplayInstruction("PLAN",    Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false),
@@ -2184,7 +2186,7 @@ class Test extends BaseLogger {
         this.testName = "GameRequiringWordReplay";
         let [start, target] = ["BLISS", "LEST"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
+        const game = new PracticeGame(this.fullDict);
         // BLISS,BLIPS (D'OH) should now display as BLISS BLIPS BLISS BLESS LESS LEST (6) not
         // BLISS BLIPS LIPS LAPS LASS LAST LEST (7)
 
@@ -2205,7 +2207,7 @@ class Test extends BaseLogger {
         this.testName = "GameRequiringScrabbleWordReplay";
         let [start, target] = ["FREE", "SAMPLE"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
+        const game = new PracticeGame(this.fullDict);
         // FREE, FEE, FIE, FILE, MILE, SMILE, SIMILE, SIMPLE, SAMPLE 9 instructions
         // playing FREE FEE FIE FILE SILE(scrabble-only) SIDLE (wrong) should give display instructions:
         // FREE FEE FIE FILE SILE SIDLE SILE            SMILE SIMILE SIMPLE SAMPLE length 11
@@ -2234,7 +2236,7 @@ class Test extends BaseLogger {
         const smallDict = new WordChainDict(["BAD", "BADE", "BAT", "BATE", "CAD", "CAT", "DOG", "SCAD"]);
         let [start, target] = ["SCAD", "BAT"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(smallDict); 
+        const game = new PracticeGame(smallDict);
 
         const playResult = game.playDelete(0); // SCAD->CAD
         game.finishGame();
@@ -2256,7 +2258,7 @@ class Test extends BaseLogger {
 
         let [start, target] = ["SCAD", "BAT"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
+        const game = new PracticeGame(this.fullDict);
 
         game.gameState.showUnplayedMoves();
 
@@ -2279,9 +2281,9 @@ class Test extends BaseLogger {
 
         let [start, target] = ["SCAD", "BAT"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
-        game.playDelete(0);     // SCAD -> CAD
-        game.playLetter(0,"B"); // CAD -> BAD
+        const game = new PracticeGame(this.fullDict);
+        game.playDelete(0);      // SCAD -> CAD
+        game.playLetter(0, "B"); // CAD  -> BAD
         const showWordResult = game.showNextMove();
 
         const expectedFinalInstructions = [
@@ -2293,8 +2295,24 @@ class Test extends BaseLogger {
         ];
 
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
-        this.verify(game.isOver(), 'expected game to be over, but it is not') &&
+        this.verifyEqual(game.isOver(), true, 'gameIsOver') &&
             this.verifyInstructionList(displayInstructions, expectedFinalInstructions, "after show next move" ) &&
+            this.verifyEqual(showWordResult, Const.SHOWN_MOVE, "showWordResult") &&
+            this.hadNoErrors();
+    }
+
+    testGameTooManyShowMoves() {
+        this.testName = "GameTooManyShowMoves";
+
+        let [start, target] = ["SCAD", "BAT"];
+        Persistence.saveTestPracticeGameWords(start, target);
+        const game = new PracticeGame(this.fullDict);
+        game.playDelete(0);     // SCAD -> CAD
+        const showWordResult1 = game.showNextMove();
+        const showWordResult2 = game.showNextMove();
+        this.verifyEqual(game.isOver(), false, 'gameIsOver') &&
+            this.verifyEqual(showWordResult1, Const.SHOWN_MOVE, "showWordResult1") &&
+            this.verifyEqual(showWordResult2, Const.UNEXPECTED_ERROR, "showWordResult2") &&
             this.hadNoErrors();
     }
 
@@ -2303,7 +2321,7 @@ class Test extends BaseLogger {
 
         let [start, target] = ["LEAKY", "SPOON"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
+        const game = new PracticeGame(this.fullDict);
         var result;
         result = game.playDelete(4);     // LEAKY->LEAK
         result = game.playLetter(3,"N"); // LEAK->LEAN
@@ -2326,7 +2344,7 @@ class Test extends BaseLogger {
 
     testPracticeGamesPerDayLimitReached() {
         this.testName = "PracticeGamesPerDayLimitReached";
-        var game = new PracticeGame(this.fullDict); 
+        var game = new PracticeGame(this.fullDict);
         for (var i = 0; i < Const.PRACTICE_GAMES_PER_DAY; i++) {
             game.finishGame();
             game = game.nextGame();
@@ -2338,7 +2356,7 @@ class Test extends BaseLogger {
     testNewRandomPracticeGame() {
         this.testName = "NewRandomPracticeGame";
         Persistence.clearTestPracticeGameWords();
-        var game = new PracticeGame(this.fullDict); 
+        var game = new PracticeGame(this.fullDict);
         this.verify(game.gameState.start.length >= 3, "start too short") &&
             this.verify(game.gameState.target.length >= 3, "target too short") &&
             this.verify(!game.isOver(), "practice game is over") &&
@@ -2349,7 +2367,7 @@ class Test extends BaseLogger {
         this.testName = "GameLosesOnWrongLetterChange";
         let [start, target] = ["SALTED", "FISH"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
+        const game = new PracticeGame(this.fullDict);
         let r1 = game.playDelete(2);      // -> SATED
         let r2 = game.playLetter(0, "F"); // -> FATED
         let r3 = game.playDelete(4);      // -> FATE
@@ -2419,7 +2437,7 @@ class Test extends BaseLogger {
         this.testName = "GameLosesAfterMistakes";
         let [start, target] = ["FISH", "SALTED"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
+        const game = new PracticeGame(this.fullDict);
         let r1 = game.playLetter(3, "T"); // -> FIST
         let r2 = game.playLetter(1, "E"); // -> FEST wrong
         let r3 = game.playLetter(1, "A"); // -> FAST
@@ -2467,7 +2485,7 @@ class Test extends BaseLogger {
         this.testName = "GameLosesOnWrongDelete";
         let [start, target] = ["SALTED", "FISH"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
+        const game = new PracticeGame(this.fullDict);
         game.playDelete(2);      // -> SATED
         game.playLetter(0, "D"); // -> DATED
         game.playDelete(4);      // -> DATE
@@ -2507,7 +2525,7 @@ class Test extends BaseLogger {
         this.testName = "GameStuckOnWrongSpaceAdded";
         let [start, target] = ["FISH", "SALTED"];
         Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict); 
+        const game = new PracticeGame(this.fullDict);
         let r1 = game.playLetter(3, "T"); // -> FIST
         let r3 = game.playLetter(1, "A"); // -> FAST
         let r4 = game.playDelete(2);      // -> FAT
@@ -2547,10 +2565,12 @@ class Test extends BaseLogger {
             this.dailyGameRestartAfterWrongMoveTest,
             this.dailyGameOneMistakeShareTest,
             this.dailyGameShowWordStatsTest,
+            this.dailyGameShowWordToWinTest,
             this.dailyGameResultsDivOnWinTest,
             this.dailyGameResultsDivOnExactWinTest,
             this.dailyGameResultsDivWithShownTest,
             this.dailyGameResultsDivOnLossTest,
+            this.updateDailyGameDataTest,
             this.practiceGameTestNoConfirm,
             this.practiceGameTest,
             this.practiceGameLimitTest,
@@ -2618,7 +2638,7 @@ class Test extends BaseLogger {
         const changeLetterResult1 = this.playLetter("O", "Z"); // SHORT -> SHOZT not confirmed -> SHOOT confirmed
         const deleteLetterResult1 = this.deleteLetter(2,4);    // SHOOT -> SHOO not confirmed -> SHOT confirmed
         const deleteLetterResult2 = this.deleteLetter(0);      // SHOT -> HOT  we are deleting even though not really a display option on this step.
-        const changeLetterResult2 = this.playLetter("P")       // HOT -> POT 
+        const changeLetterResult2 = this.playLetter("P")       // HOT -> POT
         const changeLetterResult3 = this.playLetter("O");      // POT -> POO
         const insertLetterResult1 = this.insertLetter(3, "R", 0);  // POO -> xPOO change mind -> POOx -> POOR
         this.verifyEqual(changeLetterResult1, Const.GOOD_MOVE, "after changing mind from Z to O") &&
@@ -2666,8 +2686,8 @@ class Test extends BaseLogger {
         const toastMsg = appDisplay.toastDiv.innerHTML;
         const expToastClass = "pop-up show";
         const expToastMsg = Const.GAME_WON;
-        this.verifyEqual(toastClass, expToastClass, "toast class") && 
-            this.verifyEqual(toastMsg, expToastMsg, "toast message") && 
+        this.verifyEqual(toastClass, expToastClass, "toast class") &&
+            this.verifyEqual(toastMsg, expToastMsg, "toast message") &&
             this.verifyEqual(toastAfterGame, Const.GAME_WON, "toast after game") &&
             this.hadNoErrors();
     }
@@ -2683,7 +2703,7 @@ class Test extends BaseLogger {
         const toastClass = appDisplay.toastDiv.getAttribute("class");
         const toastMsg = appDisplay.toastDiv.innerHTML;
         const expToastClass = "pop-up hide";
-        this.verifyEqual(toastClass, expToastClass, "toast class") && 
+        this.verifyEqual(toastClass, expToastClass, "toast class") &&
             this.hadNoErrors();
    }
 
@@ -2697,7 +2717,7 @@ class Test extends BaseLogger {
         const statsDisplay = this.openAndGetTheStatsDisplay();
 
         // create and verify an expected DailyStats blob
-        let expStatsBlob = { gamesStarted : 1, gamesWon : 1, gamesLost : 0, streak : 1 };  
+        let expStatsBlob = { gamesStarted : 1, gamesWon : 1, gamesLost : 0, streak : 1 };
         let expExtraStepsHistogram = { 0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         let testResults = this.verifyStats(expStatsBlob, expExtraStepsHistogram);
 
@@ -2743,7 +2763,7 @@ class Test extends BaseLogger {
         }
 
         // create an expected DailyStats blob
-        let expStatsBlob = { gamesStarted : 3, gamesWon : 3, gamesLost : 0, streak : 3 };  
+        let expStatsBlob = { gamesStarted : 3, gamesWon : 3, gamesLost : 0, streak : 3 };
         let expExtraStepsHistogram = { 0: 3, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         this.verifyStats(expStatsBlob, expExtraStepsHistogram) && this.hadNoErrors();
     }
@@ -2754,7 +2774,7 @@ class Test extends BaseLogger {
         const settingsDisplay = appDisplay.settingsDisplay;
 
         let srcElement = new MockEventSrcElement();
-        var mockEvent = new MockEvent(srcElement); 
+        var mockEvent = new MockEvent(srcElement);
         var soFarSoGood = this.verifyEqual(Persistence.getColorblindMode(), false, "colorblind mode (1)") &&
             this.verifyEqual(Persistence.getDarkTheme(), false, "dark theme (1)");
 
@@ -2804,7 +2824,7 @@ class Test extends BaseLogger {
     displayBrokenDailyGameToastTest() {
         this.testName = "DisplayBrokenDailyGameToast";
         Persistence.saveTestEpochDaysAgo(1000000); // so long ago, there is no daily game for today
-     
+
         // re-open the app window
         this.resetTheTestAppWindow();
 
@@ -2854,7 +2874,7 @@ class Test extends BaseLogger {
             if (gameCounter != 2) {
                 let game = this.gameDisplay.game;
                 let gameState = game.gameState;
-                gameState.dailyGameNumber -= 1; // make it look like we last played yesterday's game.  
+                gameState.dailyGameNumber -= 1; // make it look like we last played yesterday's game.
                 Persistence.saveDailyGameState2(gameState);
                 this.logDebug("Saving daily game state with game number rolled back:", gameState, "test");
                 this.resetTheTestAppWindow();
@@ -2862,7 +2882,7 @@ class Test extends BaseLogger {
         }
 
         // create the expected daily stats blob
-        let expStatsBlob = { gamesStarted : 3, gamesWon : 3, gamesLost : 0, streak : 3 };  
+        let expStatsBlob = { gamesStarted : 3, gamesWon : 3, gamesLost : 0, streak : 3 };
         let expExtraStepsHistogram = { 0: 1, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0 };
         this.verifyStats(expStatsBlob, expExtraStepsHistogram) && this.hadNoErrors();
     }
@@ -2877,8 +2897,8 @@ class Test extends BaseLogger {
         for (let gameCounter = 0; gameCounter <= 2; gameCounter++) {
             this.logDebug(this.testName, "gameCounter: ", gameCounter, "test");
             if (gameCounter == 0) {
-                // play an incomplete game 
-                // SHORT -> POOR 
+                // play an incomplete game
+                // SHORT -> POOR
                 // solution: SHORT SHOOT HOOT BOOT BOOR POOR
                 this.playLetter("O"); // SHORT -> SHOOT now delete
                 this.deleteLetter(0);    // SHOOT -> HOOT now change 0
@@ -2904,14 +2924,14 @@ class Test extends BaseLogger {
                 // we will play today's game and adjust
                 let game = this.gameDisplay.game;
                 let gameState = game.gameState;
-                gameState.dailyGameNumber -= 1; // make it look like we last played yesterday's game.  
+                gameState.dailyGameNumber -= 1; // make it look like we last played yesterday's game.
                 Persistence.saveDailyGameState2(gameState);
                 this.resetTheTestAppWindow();
             }
         }
 
         // create and verify an expected DailyStats blob
-        let expStatsBlob = { gamesStarted : 3, gamesWon : 1, gamesLost : 1, streak : 3 };  
+        let expStatsBlob = { gamesStarted : 3, gamesWon : 1, gamesLost : 1, streak : 3 };
         let expExtraStepsHistogram = { 0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
         this.verifyStats(expStatsBlob, expExtraStepsHistogram) && this.hadNoErrors();
     }
@@ -2950,6 +2970,28 @@ class Test extends BaseLogger {
         const actSolutionStr = originalSolutionLabel.textContent;
         this.verifyEqual(actScoreStr, expScoreStr, "score string") &&
             this.verifyEqual(actSolutionStr, expSolutionStr, "solution string") &&
+            this.hadNoErrors();
+    }
+
+    dailyGameShowWordToWinTest() {
+        this.testName = "DailyGameShowWordToWin";
+
+        const mockEvent = null; // not used by callback
+
+        // The newly opened URL should be showing the test daily game by default:
+        // SHORT -> POOR
+        // solution: SHORT SHOOT HOOT BOOT BOOR POOR
+        // we play:  SHORT SHOOT HOOT BOOT BOOR POOR(shown)
+
+        this.playLetter("O"); // SHORT -> SHOOT
+        this.deleteLetter(0); // SHOOT -> HOOT now change 0
+        this.playLetter("B"); // HOOT  -> BOOT now change 3
+        this.playLetter("R"); // BOOT  -> BOOR now change 0
+        const showToWinResult = this.gameDisplay.showWordCallback(mockEvent); // reveals POOR, game over
+        const showAfterWinResult = this.gameDisplay.showWordCallback(mockEvent); // should fail after game is over
+
+        this.verifyEqual(showToWinResult, Const.SHOWN_MOVE, "showToWinResult") &&
+            this.verifyEqual(showAfterWinResult, Const.UNEXPECTED_ERROR, "showAfterWinResult") &&
             this.hadNoErrors();
     }
 
@@ -2995,6 +3037,7 @@ class Test extends BaseLogger {
         this.playLetter("B"); // HOOT  -> BOOT
         this.gameDisplay.showWordCallback(mockEvent); // reveals BOOR
         this.playLetter("P"); // solved; results should be displayed
+        const showAfterDoneResult = this.gameDisplay.showWordCallback(mockEvent);
 
         const resultsDiv = this.gameDisplay.resultsDiv;
         const children = resultsDiv.children;
@@ -3012,7 +3055,8 @@ class Test extends BaseLogger {
 
         this.verifyEqual(originalSolutionDiv.children.length, 1, "number children in original solution div") &&
             this.verifyEqual(actScoreStr, expScoreStr, "score string") &&
-            this.verifyEqual(actSolutionStr, expSolutionStr, "solution string") && 
+            this.verifyEqual(actSolutionStr, expSolutionStr, "solution string") &&
+            this.verifyEqual(showAfterDoneResult, Const.UNEXPECTED_ERROR, "showWordCallback returns") &&
             this.hadNoErrors();
     }
 
@@ -3020,7 +3064,7 @@ class Test extends BaseLogger {
         this.testName = "DailyGameResultsDivOnLoss";
         // play and finish the daily game with 5 errors, non shown
         // verify the score is 1, and that word chains original solution is shown
-        // AND, verify that after restarting, the display instructions show the 
+        // AND, verify that after restarting, the display instructions show the
         // game as lost
 
         const mockEvent = null; // not used by callback
@@ -3048,7 +3092,7 @@ class Test extends BaseLogger {
         const children = resultsDiv.children;
 
         const scoreDiv = children[0];
-        
+
         const expScoreStr = "Score: 5 -- too many extra steps!";
         const actScoreStr = scoreDiv.textContent;
 
@@ -3062,7 +3106,7 @@ class Test extends BaseLogger {
         const restartedGame = this.gameDisplay.game;
         const restartedDi = restartedGame.getDisplayInstructions();
         this.verifyEqual(actScoreStr, expScoreStr, "score string") &&
-        this.verifyEqual(actSolutionStr, expSolutionStr, "solution string") && 
+        this.verifyEqual(actSolutionStr, expSolutionStr, "solution string") &&
         this.verifyEqual(restartedDi[8].moveRating, Const.WRONG_MOVE, "move rating 8") &&
         this.verifyEqual(restartedDi[10].moveRating, Const.SHOWN_MOVE, "move rating 10") &&
         this.verify(!restartedGame.isWinner(), "restarted game should not be winner.") &&
@@ -3079,8 +3123,23 @@ class Test extends BaseLogger {
         // TODO
     }
 
+    updateDailyGameDataTest() {
+        // calls the timer call-back in AppDisplay to update the daily game.
+        this.testName = "UpdateDailyGameData";
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const result1 = appDisplay.checkForNewDailyGame();
+        // Now, change the existing game number to something else, so that the game IS old
+        const game = this.gameDisplay.game;
+        game.gameState.dailyGameNumber = 1; // this game is always old.
+        const result2 = appDisplay.checkForNewDailyGame();
+
+        this.verifyEqual(result1, false, 'result1') &&
+        this.verifyEqual(result2, true, 'result2') &&
+            this.hadNoErrors();
+    }
+
     dailyGameShowWordStatsTest() {
-        // we verify the following
+        // We verify the following:
         // Play the daily game, with 4 extra words.
         // Then 1 shown word
         // Then make another wrong move to end the game
@@ -3105,7 +3164,7 @@ class Test extends BaseLogger {
         const r3 = this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
         const r4 = this.deleteLetter(4);      // SHOOT -> SHOO DODO
         const r5 = this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
-        const r6 = this.deleteLetter(4);      // SHOOT -> SHOO DODO, game over 
+        const r6 = this.deleteLetter(4);      // SHOOT -> SHOO DODO, game over
 
         if ( !(
                 this.verifyEqual(r1, Const.GOOD_MOVE, "r1") &&
@@ -3119,14 +3178,14 @@ class Test extends BaseLogger {
             return;
         }
 
-        let expStatsBlob = { gamesStarted : 1, gamesWon : 0, gamesLost : 1, streak : 1 };  
+        const expStatsBlob = { gamesStarted : 1, gamesWon : 0, gamesLost : 1, streak : 1 };
         // the only completed game has 5 wrong moves (6 errors)
-        let expExtraStepsHistogram = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
-        let statsTestResult = this.verifyStats(expStatsBlob, expExtraStepsHistogram); 
+        const expExtraStepsHistogram = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
+        const statsTestResult = this.verifyStats(expStatsBlob, expExtraStepsHistogram);
         this.logDebug("statsTestResult: ", statsTestResult, "test");
 
         if (statsTestResult) {
-            let game = this.gameDisplay.game;
+            const game = this.gameDisplay.game;
             const gameIsWinner = game.isWinner();
             const statsDisplay = this.openAndGetTheStatsDisplay();
             const statsSrcElement = new MockEventSrcElement();
@@ -3417,9 +3476,13 @@ class Test extends BaseLogger {
             this.testName = "PracticeGameNoConfirm";
         }
 
-        this.logDebug("theAppDisplay: ", this.getNewAppWindow().theAppDisplay, "test");
-        this.logDebug("Switching to practice game", "test");
         const appDisplay = this.getNewAppWindow().theAppDisplay;
+        this.logDebug("theAppDisplay: ", appDisplay, "test");
+        this.logDebug("Switching to practice game", "test");
+        appDisplay.switchToPracticeGameCallback();
+        this.logDebug("Switching back to daily game", "test");
+        appDisplay.switchToDailyGameCallback();
+        this.logDebug("Switching to practice game", "test");
         appDisplay.switchToPracticeGameCallback();
         Persistence.saveConfirmationMode(confirm);
 
@@ -3512,7 +3575,7 @@ class Test extends BaseLogger {
                 break; // stop testing on the first failure
             }
 
-            // test finishing the current game by playing it out, or making errors.  
+            // test finishing the current game by playing it out, or making errors.
             if (gamesStarted % 2 == 0) {
                 // TEST LEST LET LOT PLOT PILOT
                 this.logDebug("ending game by making errors", "test");
@@ -3544,7 +3607,7 @@ class Test extends BaseLogger {
             // IMPORTANT TODO: game.gamesRemaining() isn't counting down??? is it a new GameState in each iteration?
             // it is stuck at 2.
             // in GameState.updateStateAfterGame(), GameState.gamesRemaining is decrememented (from 3 to 2, but not after that?)
-            // In PracticeGame.nextGame(), the new PracticeGameState inherits the old (decremented) game state.  
+            // In PracticeGame.nextGame(), the new PracticeGameState inherits the old (decremented) game state.
 
             this.logDebug("game.gamesRemaining()=", game.gamesRemaining(), "test");
             if (gamesStarted < Const.PRACTICE_GAMES_PER_DAY) {
@@ -3583,7 +3646,7 @@ class Test extends BaseLogger {
         }
 
         if (soFarSoGood) {
-            // now, restart the app on the same day, to see if we get new practice games on restarting the same day.  
+            // now, restart the app on the same day, to see if we get new practice games on restarting the same day.
             this.resetTheTestAppWindow();
             this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
             this.setGameDisplay();
@@ -3594,7 +3657,7 @@ class Test extends BaseLogger {
         if (soFarSoGood) {
             // now, restart the app as if it were the next day.  This should reset the games available.
             // But, how does practice game recovery get notified by DailyGame recovery?
-            // Answer: the new window 
+            // Answer: the new window
             Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO + 1);
             this.resetTheTestAppWindow();
             this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
@@ -3786,8 +3849,8 @@ class Test extends BaseLogger {
             var inputBox = ElementUtilities.addElementTo("textarea", td,
                     {id: varName, rows: nRows, cols: nCols});
             inputBox.defaultValue = value;
-            inputBox.addEventListener("change", this.textareaChangeCallback); 
-            // inputBox.addEventListener("input", this.textareaInputCallback); 
+            inputBox.addEventListener("change", this.textareaChangeCallback);
+            // inputBox.addEventListener("input", this.textareaInputCallback);
         }
     }
 

@@ -250,6 +250,7 @@ class Game extends BaseLogger {
                 displayedFirstUnplayedWord = WordChainDict.insertHoleBeforePosition(lastPlayedWord, this.addPosition);
             } else if (firstUnplayedWordIsTarget) {
                 // target following Const.PLAYED is only for the game being finished.  
+                // TODO - I think this is impossible.  
                 COV(6, CL);
                 displayType = Const.TARGET;
             } else {

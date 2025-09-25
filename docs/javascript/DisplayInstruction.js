@@ -141,17 +141,6 @@ class DisplayInstruction {
         this.showParLine = showParLine;
     }
 
-    copy() {
-        const CL = "DisplayInstruction.copy";
-        COV(0, CL);
-        return new DisplayInstruction(
-            this.word,
-            this.displayType,
-            this.changePosition,
-            this.moveRating
-        );
-    }
-
     // Used for debugging only.
     toStr() {
         var returnStr = `(${this.displayType}`;

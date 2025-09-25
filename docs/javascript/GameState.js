@@ -727,7 +727,7 @@ class DailyGameState extends GameState{
             Const.GL_DEBUG && this.logDebug("DailyGameState.setStat() setting and saving", whichStat, "to", statValue, "daily");
             this.persist();
         } else {
-            console.log("not saving stats because obecause of broken daily game.");
+            Const.GL_DEBUG && this.logDebug("not saving stats because of broken daily game.", "daily");
         }
         COV(2, CL);
     }
@@ -741,11 +741,13 @@ class DailyGameState extends GameState{
     gameIsOld() {
         const CL = "DailyGameState.gameIsOld";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("DailyGameState.gameIsOld() dailyGameNumber:", this.getDailyGameNumber() , "daily");
-        return
+        const result =
             (this.getDailyGameNumber() != Const.TEST_DAILY_GAME_NUMBER) &&
             (!this.dailyGameIsBroken()) && 
             (this.calculateGameNumber() > this.getDailyGameNumber());
+        Const.GL_DEBUG && this.logDebug("DailyGameState.gameIsOld() for dailyGameNumber", this.getDailyGameNumber(), 
+                "returns", result, "daily");
+        return result;
     }
 
     calculateGameNumber() {
@@ -789,7 +791,6 @@ class DailyGameState extends GameState{
         }   
 
         if (this.getUnplayedWords().length != 0) {
-            COV(1, CL);
             console.error("there should not be any unplayed moves when we call DailyGameState.getMoveSummary()");
             console.log ("unplayed words: ", this.getUnplayedWords());
             console.trace();
@@ -798,7 +799,7 @@ class DailyGameState extends GameState{
         for (let unplayedWord of this.getUnplayedWords()) {
             summary.push([Const.FUTURE, unplayedWord.length]);
         }   
-        COV(2, CL);
+        COV(1, CL);
         return summary;
     }   
 

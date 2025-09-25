@@ -342,7 +342,9 @@ class AppDisplay extends BaseLogger {
             this.statsDisplay.refresh();
             this.statsDisplay.updateShareButton();
             this.resetPracticeGameCounter();
+            return true; // for testing only
         }
+        return false;    // for testing only
         COV(2, CL);
     }
 
