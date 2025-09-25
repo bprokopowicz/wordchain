@@ -17,9 +17,9 @@ import {
 
 
 /*
- * Notes on letter and tile positions:  
- * letterPosition   [0, wordLength-1] - index into the current word being displayed.  Saved in GameDisplay
- * changePosition   [0, wordLength-1] - the index of the letter to be changed in 
+ * Notes on letter and tile positions:
+ * letterPosition   [0, wordLength-1] - index into the current word being displayed; saved in GameDisplay
+ * changePosition   [0, wordLength-1] - the index of a letter to be changed in a word
  * holePosition     [0, wordLength-1] - the index of the hole ('?') in the word after adding a space
  * additionPosition [0, wordLength]   - the index of a space to be added, in front of the letter at additionPosition.
  *                                      When additionPosition == wordLength, the space is to be added after the last letter
@@ -58,7 +58,7 @@ class GameDisplay extends BaseLogger {
             {class: "app-button non-header-button"},
             "Show Word");
         ElementUtilities.setButtonCallback(this.showWordButton, this, this.showWordCallback);
-        // TODO: Need to keep something in state to indicate whether the button should be enabled on restore. (should be in GameState already) 
+        // TODO: Need to keep something in state to indicate whether the button should be enabled on restore. (should be in GameState already)
         Const.GL_DEBUG && this.logDebug("enabling show word button in GameDisplay.constructor()", "game");
         ElementUtilities.enableButton(this.showWordButton);
 
@@ -90,9 +90,7 @@ class GameDisplay extends BaseLogger {
 
     // This is kind of a callback, but doesn't really follow our callback
     // protocol because of how the picker is implemented as a separate object.
-    // In normal cases, the letterPosition to change is already known as this.holeLetterPosition.
-    // In testing, we might change letters directly
-    letterPicked(letter, letterPosition=this.holeLetterPosition) {
+    letterPicked(letter) {
         const CL = "GameDisplay.letterPicked";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
@@ -104,7 +102,7 @@ class GameDisplay extends BaseLogger {
             result = Const.UNEXPECTED_ERROR;
         } else {
             COV(1, CL);
-            result = this.game.playLetter(letterPosition, letter);
+            result = this.game.playLetter(this.holeLetterPosition, letter);
             this.processGamePlayResult(result);
         }
 
@@ -241,12 +239,11 @@ class GameDisplay extends BaseLogger {
         COV(0, CL);
 
         const changePosition = displayInstruction.changePosition;
-              
 
         this.holeLetterPosition = displayInstruction.word.indexOf(Const.HOLE);
         if (this.holeLetterPosition < 0) {
             console.error("displayWordAfterAdd(): no hole in word:", displayInstruction.word);
-        } 
+        }
 
         function getCell(letter, letterPosition) {
             return new LetterCellNoBackground(letter, letterPosition, changePosition);
@@ -264,7 +261,7 @@ class GameDisplay extends BaseLogger {
         this.holeLetterPosition = displayInstruction.word.indexOf(Const.HOLE);
         if (this.holeLetterPosition < 0) {
             console.error("displayWordAfterChange(): no hole in word:", displayInstruction.word);
-        } 
+        }
 
         function getCell(letter, letterPosition) {
             return new LetterCellNoBackground(letter, letterPosition, changePosition);
@@ -462,7 +459,7 @@ class GameDisplay extends BaseLogger {
             let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
             Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): additionPosition: ", additionPosition, "callback");
             result = this.game.playAdd(additionPosition);
-            // TODO - this should not be needed, because after the add-click, the display is refreshed, and 
+            // TODO - this should not be needed, because after the add-click, the display is refreshed, and
             // this.holeLetterPosition should get set there.
             this.holeLetterPosition = additionPosition;
 
@@ -500,7 +497,6 @@ class GameDisplay extends BaseLogger {
     }
 
     showWordCallback(event) {
-
         const CL = "GameDisplay.showWordCallback";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("GameDisplay.showWordCallback(): event: ", event, "callback");
@@ -570,7 +566,7 @@ class GameDisplay extends BaseLogger {
             // Add the letter cell for this current letter.
             tdElement = this.addTd();
 
-            // TODO letterIndex+1 worked with tests but not in the actual app.  So we don't have a test that 
+            // TODO letterIndex+1 worked with tests but not in the actual app.  So we don't have a test that
             // relies on cellCreator's letterIndex parameter.  Tests don't call this code?  check coverage.
 
             letterCell = cellCreator(letters[letterIndex], letterIndex /*400*/);
@@ -617,7 +613,7 @@ class GameDisplay extends BaseLogger {
         return element;
     }
 
-    // some pass-through functions to access game and gameState
+    // Some pass-through functions to access game and gameState.
 
     getMsUntilNextGame() {
         const CL = "GameDisplay.getMsUntilNextGame";
@@ -920,7 +916,7 @@ class PracticeGameDisplay extends GameDisplay {
             this.game = newGameOrNull;
         }
         this.updateDisplay();
-        ElementUtilities.disableButton(this.newGameButton); 
+        ElementUtilities.disableButton(this.newGameButton);
         console.log("enabling show word button in newGameCallback");
         ElementUtilities.enableButton(this.showWordButton);
         COV(2, CL);
