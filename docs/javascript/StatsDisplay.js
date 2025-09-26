@@ -216,9 +216,6 @@ class StatsDisplay extends AuxiliaryDisplay {
         addStat(gameState.getStat('gamesLost'), "Lost", this.statsContainer);
         addStat(gameState.getStat('streak'), "Streak", this.statsContainer);
 
-        // Save the streak in case the user shares.
-        this.dailyStreak = gameState.getStat('streak');
-
         // Next we'll display a bar graph showing how many games there were at each "wrong moves value",
         // i.e. 0 .. <Const.TOO_MANY_EXTRA_STEPS> *and* "games that ended because of too many
         // wrong moves". First, determine the maximum value among all the "wrong moves values"

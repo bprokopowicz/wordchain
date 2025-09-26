@@ -8,12 +8,23 @@ Known Bugs
 Near Term Changes
 =================
 
-Do in suggested order?
-
-- Review this TODO file - some of it is done or not relevant
-- Add a one-time pop-up/notice: swipe the letter tiles left and right, then tap a letter to select it.
-- Make picker slider always visible (we failed on this, righ?)
-- Analytics
+- Picker
+  - Add a one-time pop-up/notice: swipe the letter tiles left and right, then tap a letter to select it.
+  - Make picker slider always visible (we failed on this, right?)
+- Finish up "less negative user experience" work:
+  - Styling
+    - Update colors
+    - Make buttons rounder (like NYT games)
+    - Add to bottom of header:
+      "Add, change, delete one letter at a time to reach target word"
+  - Change games won/lost stat to games completed (won+lost)
+  - Eliminate Confounded emoji in share and graph
+  - Add treats to share
+  - Add par line to share?
+  - Migration of stats in cookie -- any changes needed?
+  - Update help, faq, video
+- Test coverage
+- Resolve TODOs
 
 Analytics
 =========

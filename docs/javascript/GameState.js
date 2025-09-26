@@ -413,9 +413,15 @@ class DailyGameState extends GameState{
                         recoveredDailyGameState.setStat("streak", 0);
                     }
                     // now, update game state to today's game, playing from the start.
+                    // If setToTodaysGame() sets the game to the broken one, we will
+                    // have updated the streak above, which is what we want -- the whole
+                    // idea of the streak is how many days in a row the user started a game.
                     recoveredDailyGameState.setToTodaysGame();
                 }
 
+                // TODO: Is this going to undo an increment that happened above?
+                //       Is it going to undo an increment of gamesStarted that happened
+                //       in setToTodaysGame()?
                 recoveredDailyGameState.updateFromDeprecatedStatsBlob();
                 recoveredDailyGameState.persist();
                 result = recoveredDailyGameState;
