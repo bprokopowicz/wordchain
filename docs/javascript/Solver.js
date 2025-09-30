@@ -92,7 +92,7 @@ class Solver {
         return startingSolution;
     }
 
-    static findPuzzles(dict, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty, minChoicesPerStep) {
+    static findPuzzles(dict, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty, minChoicesPerStep, minChoicesFromTarget) {
         const CL = "Solver.findPuzzles";
         COV(0, CL);
         startWord = startWord.toUpperCase();
@@ -113,7 +113,7 @@ class Solver {
             Const.GL_DEBUG && Solver.logger.logDebug("looking at puzzle ", puzzle, "solver-details");
             puzzle.target=puzzle.getLastWord();
             // must use dict, not local copy, since we are deleting words as we search the tree of solutions
-            if (Solver.isDesired(dict, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoicesPerStep)) {
+            if (Solver.isDesired(dict, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoicesPerStep, minChoicesFromTarget)) {
                 COV(1, CL);
                 Const.GL_DEBUG && Solver.logger.logDebug("found suitable puzzle ", puzzle, "solver");
                 desiredPuzzles.push(puzzle);
@@ -136,7 +136,7 @@ class Solver {
         return desiredPuzzles;
     }
 
-    static isDesired(dictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoices) {
+    static isDesired(dictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoices, minChoicesFromTarget) {
         const CL = "Solver.isDesired";
         COV(0, CL);
         if (puzzle.numWords() < minWords) {
@@ -169,7 +169,7 @@ class Solver {
             COV(6, CL);
             return false;
         }
-        if (puzzle.nChoicesFromTarget < minChoices) {
+        if (puzzle.nChoicesFromTarget < minChoicesFromTarget) {
             COV(7, CL);
             return false;
         }
@@ -425,7 +425,8 @@ class Solution extends BaseLogger {
             // display the words and the choice stats
             return this.solutionWords.join(", ")
                 + " -- difficulty: " +  this.difficulty
-                + "; choices at each step: " + this.nChoicesOnStep.join(",");
+                + "; choices at each step: " + this.nChoicesOnStep.join(",")
+                + "; choices at last step reversed: " +  this.nChoicesFromTarget;
         } else {
             // just the words
             const separator = " ";

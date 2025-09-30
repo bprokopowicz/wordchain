@@ -26,11 +26,13 @@ Near Term Changes
 - Test coverage
 - Resolve TODOs
 
+Dictionary
+==========
+remove unreachable words (easy)
+remove unreachable cliques of less than N words (hard)
+
 Analytics
 =========
-There is a class called Metrics.java that records event+data by fetching a URL with event+data in the 
-query string.  Data includes a word-chain player ID (WCID) which is persistent per player-platform.  The
-file fetched is wcm.html.  This file has Google analytics in it.  
 Our Google tag ID is G-ESCKD20EKK.  This is a Google Analytics 4 (GA4) tag.  
 It seems like GA4 supports counting events by type but not by individual user.  So we can track things like:
 - game #abc started at timestamp

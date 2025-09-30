@@ -785,7 +785,6 @@ class DailyGameState extends GameState{
     // Unplayed words get a move rating of Const.FUTURE
     // Use case: this is only used for creating a share string, which means the daily
     // game is over.  There can be no unnplayed words.
-    // TODO - don't return unplayed words in a share string?
 
     getMoveSummary() {
         const CL = "DailyGameState.getMoveSummary";

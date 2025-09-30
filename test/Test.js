@@ -982,7 +982,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15415;
+        const expectedMinDictSize = 15410;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -1246,10 +1246,12 @@ class Test extends BaseLogger {
               minDifficulty = 15,
               targetWordLen = 5,
               expectedNumberOfPuzzles = 7,
-              minChoicesPerStep = 2;
+              minChoicesPerStep = 2,
+              minChoicesFromTarget = 2;
+
 
         const suitablePuzzles = Solver.findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2,
-                minWords, maxWords, minDifficulty, minChoicesPerStep)
+                minWords, maxWords, minDifficulty, minChoicesPerStep, minChoicesFromTarget)
             .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
         suitablePuzzles.sort();
         // short-circuit the test if no puzzles found.
@@ -2731,12 +2733,14 @@ class Test extends BaseLogger {
 
         let statsSrcElement = new MockEventSrcElement();
         let statsMockEvent = new MockEvent(statsSrcElement);
-        let actShareString = statsDisplay.shareCallback(statsMockEvent);
+        let actShareString1 = statsDisplay.shareCallback(statsMockEvent);
+        let actShareString2 = this.gameDisplay.shareCallback(statsMockEvent);
         let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} ⭐\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n`;
         this.closeTheStatsDisplay();
         testResults &&
-            this.verifyEqual(actShareString.indexOf(expShareString), 0, "share string begins with") &&
-            this.verify((actShareString.indexOf(Const.SHARE_URL) > 0), `expected to see url root ${Const.SHARE_URL} in share string, got '${actShareString}'`) &&
+            this.verifyEqual(actShareString1.indexOf(expShareString), 0, "share string 1 begins with") &&
+            this.verifyEqual(actShareString2.indexOf(expShareString), 0, "share string 2 begins with") &&
+            this.verify((actShareString1.indexOf(Const.SHARE_URL) > 0), `expected to see url root ${Const.SHARE_URL} in share string, got '${actShareString1}'`) &&
             this.hadNoErrors();
     }
 
@@ -3891,14 +3895,15 @@ class Test extends BaseLogger {
             tr, td;
 
         const inputList = [
-            {label: "start word",                  id: "puzleFinderStartWord",           value: ""},
-            {label: "required word len 1",         id: "puzleFinderReqWordLen1",         value: Const.PRACTICE_REQ_WORD_LEN_1},
-            {label: "required word len 2",         id: "puzleFinderReqWordLen2",         value: Const.PRACTICE_REQ_WORD_LEN_2},
-            {label: "final word len (0 for any)",  id: "puzleFinderFinalWordLen",        value: Const.PRACTICE_TARGET_WORD_LEN},
-            {label: "min words",                   id: "puzleFinderMinWords",            value: Const.PRACTICE_STEPS_MINIMUM},
-            {label: "max words",                   id: "puzleFinderMaxWords",            value: Const.PRACTICE_STEPS_MAXIMUM},
-            {label: "min difficulty",              id: "puzleFinderMinDifficulty",       value: Const.PRACTICE_DIFFICULTY_MINIMUM},
-            {label: "min choices per step (>=1)",  id: "puzzleFinderMinChoicesPerStep",  value: Const.PRACTICE_MIN_CHOICES_PER_STEP},
+            {label: "start word",                     id: "puzzleFinderStartWord",          value: ""},
+            {label: "required word len 1",            id: "puzzleFinderReqWordLen1",        value: Const.PRACTICE_REQ_WORD_LEN_1},
+            {label: "required word len 2",            id: "puzzleFinderReqWordLen2",        value: Const.PRACTICE_REQ_WORD_LEN_2},
+            {label: "final word len (0 for any)",     id: "puzzleFinderFinalWordLen",       value: Const.PRACTICE_TARGET_WORD_LEN},
+            {label: "min words",                      id: "puzzleFinderMinWords",           value: Const.PRACTICE_STEPS_MINIMUM},
+            {label: "max words",                      id: "puzzleFinderMaxWords",           value: Const.PRACTICE_STEPS_MAXIMUM},
+            {label: "min difficulty",                 id: "puzzleFinderMinDifficulty",      value: Const.PRACTICE_DIFFICULTY_MINIMUM},
+            {label: "min choices per step (>=1)",     id: "puzzleFinderMinChoicesPerStep",  value: Const.PRACTICE_MIN_CHOICES_PER_STEP},
+            {label: "min choices from target (>=1)",  id: "puzzleFinderMinChoicesFromTarget",  value: Const.PRACTICE_MIN_CHOICES_PER_STEP},
         ];
 
         for (let input of inputList) {
@@ -3933,10 +3938,11 @@ class Test extends BaseLogger {
               maxSteps = parseInt(ElementUtilities.getElementValue("puzzleFinderMaxWords")),
               minDifficulty = parseInt(ElementUtilities.getElementValue("puzzleFinderMinDifficulty")),
               targetWordLen = parseInt(ElementUtilities.getElementValue("puzzleFinderFinalWordLen")),
-              minChoicesPerStep = parseInt(ElementUtilities.getElementValue("puzzleFinderMinChoicesPerStep"));
+              minChoicesPerStep = parseInt(ElementUtilities.getElementValue("puzzleFinderMinChoicesPerStep")),
+              minChoicesFromTarget = parseInt(ElementUtilities.getElementValue("puzzleFinderMinChoicesFromTarget"));
 
         const goodTargetsWithDifficulty = Solver
-            .findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty, minChoicesPerStep)
+            .findPuzzles(this.fullDict, startWord, targetWordLen, reqWordLen1, reqWordLen2, minSteps, maxSteps, minDifficulty, minChoicesPerStep, minChoicesFromTarget)
             .map(puzzle => `${puzzle.getTarget()}:${puzzle.difficulty}`);
         goodTargetsWithDifficulty.sort();
 

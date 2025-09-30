@@ -248,21 +248,12 @@ class Game extends BaseLogger {
                 // Add the hole where the user added space to this first unplayed word here;
                 // Note: addPosition is 0..word.length, which is what insertHoleBeforePosition() expects.
                 displayedFirstUnplayedWord = WordChainDict.insertHoleBeforePosition(lastPlayedWord, this.addPosition);
-            } else if (firstUnplayedWordIsTarget) {
-                // target following Const.PLAYED is only for the game being finished.  
-                // TODO - I think this is impossible.  
-                COV(6, CL);
-                displayType = Const.TARGET;
-            } else {
-                COV(7, CL);
-                displayType = Const.FUTURE;
-            }
-
+            } 
         } else {
             console.error("unknown previous display type", previousDisplayType);
             return;
         }
-        COV(8, CL);
+        COV(6, CL);
         let displayInstruction = new DisplayInstruction(displayedFirstUnplayedWord, displayType, changePosition, moveRating,
                 firstUnplayedWordIsStart, this.needsParLine());
         Const.GL_DEBUG && this.logDebug("addInstructionForFirstUnplayedWord(): display instruction for",
@@ -323,12 +314,12 @@ class Game extends BaseLogger {
     addWordIfExists(word) {
         const CL = "Game.addWordIfExists";
         COV(0, CL);
-        // this.gameState.removeWordWithHoleIfNecessary();
+        Const.GL_DEBUG && this.logDebug("Game.addWordIfExists trying to add", word, "game");
         let result = Const.NOT_A_WORD;
         if (this.gameState.dictionary.isWord(word) || this.scrabbleDictionary.isWord(word)) {
             COV(1, CL);
             result = this.gameState.addWord(word);
-        }
+        } 
         COV(2, CL);
         return result;
     }
@@ -336,7 +327,7 @@ class Game extends BaseLogger {
     /* addPosition is from 0 to last word played's length
      * 
      * We record the position but don't adjust the state of the game.  We will update the game state if/when the user
-     * playsA letter at the space's location.
+     * plays a letter. 
      * - Returns true if no error
      * - Returns null on error (e.g. unexpected position)
      */
@@ -377,6 +368,8 @@ class Game extends BaseLogger {
 
     /* playLetter
      * letterPosition given is 1 to word.length
+     * If we are in the process of inserting a letter, this.addSpaceInProgress will be true,
+     * and this.addPosition will be set to the index of the letter we are inserting in front of.
      * Returns true if resulting word is in dictionary; false otherwise
      */
     playLetter(letterPosition, letter) {
@@ -395,6 +388,7 @@ class Game extends BaseLogger {
             // put the hole into oldWord at the location of the space added (0 to oldWord.length);
             oldWordModified = oldWord.substr(0,this.addPosition) + Const.HOLE + oldWord.substr(this.addPosition);
             Const.GL_DEBUG && this.logDebug("playLetter() added space to old word giving",  oldWordModified, "game");
+            letterPosition = this.addPosition; //TODO not sure why these could ever be different, but in dailyGameShowWordStats test they are.
         }
 
         // construct the new word with 'letter' at letterPosition.

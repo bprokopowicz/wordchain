@@ -52,15 +52,12 @@ class GameDisplay extends BaseLogger {
         // elements for the game.
         this.postGameDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break post-game-div"});
 
-        // Add Show Word button to postGameDiv and enable it.
+        // Add Show Word button to postGameDiv.  It will be enabled if necessary via updateDisplay()->showGameAfterMove()
         this.showWordButton = ElementUtilities.addElementTo(
             "button", this.postGameDiv,
             {class: "app-button non-header-button"},
             "Show Word");
         ElementUtilities.setButtonCallback(this.showWordButton, this, this.showWordCallback);
-        // TODO: Need to keep something in state to indicate whether the button should be enabled on restore. (should be in GameState already)
-        Const.GL_DEBUG && this.logDebug("enabling show word button in GameDisplay.constructor()", "game");
-        ElementUtilities.enableButton(this.showWordButton);
 
         // Create an element to contain game results (score, WordChain solution).
         this.resultsDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break results-div"});
@@ -93,7 +90,7 @@ class GameDisplay extends BaseLogger {
     letterPicked(letter) {
         const CL = "GameDisplay.letterPicked";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
+        Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, /*", letterPosition:", letterPosition,*/ "picker");
 
         let result = null;
 
@@ -368,6 +365,12 @@ class GameDisplay extends BaseLogger {
             this.disablePicker();
         }
 
+        if (!this.game.gameState.canShowMove()) {
+            COV(3, CL);
+            Const.GL_DEBUG && this.logDebug("disabling show word button in GameDisplay.showGameAfterMove()", "callback");
+            ElementUtilities.disableButton(this.showWordButton);
+        }
+
         if (this.gameIsOver()) {
             COV(14, CL);
             this.showGameOverGoodies();
@@ -459,10 +462,6 @@ class GameDisplay extends BaseLogger {
             let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
             Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): additionPosition: ", additionPosition, "callback");
             result = this.game.playAdd(additionPosition);
-            // TODO - this should not be needed, because after the add-click, the display is refreshed, and
-            // this.holeLetterPosition should get set there.
-            this.holeLetterPosition = additionPosition;
-
             this.processGamePlayResult(result);
         }
 
@@ -512,21 +511,12 @@ class GameDisplay extends BaseLogger {
         } else {
             COV(1, CL);
             result = this.game.showNextMove();
-
-            this.showGameAfterMove();
+            this.showGameAfterMove(); // this will disable the showNextMove button if there are no more allowed.
 
             if (this.gameIsOver()) {
                 COV(2, CL);
                 this.showGameOverToast();
             }
-
-            // Only N show-words clicks allowed per game!
-            if (!this.game.gameState.canShowMove()) {
-                COV(3, CL);
-                Const.GL_DEBUG && this.logDebug("disabling show word button in GameDisplay.showWordCallback()", "callback");
-                ElementUtilities.disableButton(this.showWordButton);
-            }
-
         }
 
         COV(4, CL);
