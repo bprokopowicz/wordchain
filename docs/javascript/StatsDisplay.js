@@ -211,9 +211,12 @@ class StatsDisplay extends AuxiliaryDisplay {
             ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-label"}, label);
         }
 
+        // We used to show games won and lost as separate values. We kept those
+        // in the stats, but to avoid negativity, we now show games completed,
+        // which is the sum of the two stats.
+        const gamesCompleted = gameState.getStat('gamesWon') + gameState.getStat('gamesLost');
         addStat(gameState.getStat('gamesStarted'), "Started", this.statsContainer);
-        addStat(gameState.getStat('gamesWon'), "Won", this.statsContainer);
-        addStat(gameState.getStat('gamesLost'), "Lost", this.statsContainer);
+        addStat(gamesCompleted, "Completed", this.statsContainer);
         addStat(gameState.getStat('streak'), "Streak", this.statsContainer);
 
         // Next we'll display a bar graph showing how many games there were at each "wrong moves value",

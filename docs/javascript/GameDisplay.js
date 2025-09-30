@@ -495,7 +495,7 @@ class GameDisplay extends BaseLogger {
         return result;
     }
 
-    showWordCallback(event) {
+    showWordCallback(event, forced) {
         const CL = "GameDisplay.showWordCallback";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("GameDisplay.showWordCallback(): event: ", event, "callback");
@@ -503,10 +503,14 @@ class GameDisplay extends BaseLogger {
         let result = null;
 
         if (this.showWordButton.disabled) {
-            console.error("GameDisplay.showWordCallback(): button is disabled!");
+            if (! forced) {
+                console.error("GameDisplay.showWordCallback(): button is disabled!");
+            }
             result = Const.UNEXPECTED_ERROR;
         } else if (this.gameIsOver()) {
-            console.error("GameDisplay.showWordCallback(): last move already shown");
+            if (! forced) {
+                console.error("GameDisplay.showWordCallback(): last move already shown");
+            }
             result = Const.UNEXPECTED_ERROR;
         } else {
             COV(1, CL);
@@ -617,6 +621,10 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.getGameState";
         COV(0, CL);
         return this.game.gameState;
+    }
+
+    getTargetWord() {
+        return this.game.gameState.getTargetWord();
     }
 
     // Determines whether the button that the user clicked (a letter or a plus/minus
@@ -813,7 +821,9 @@ class DailyGameDisplay extends GameDisplay {
     shareCallback(__event) {
         const CL = "DailyGameDisplay.shareCallback";
         COV(0, CL);
-        return this.appDisplay.getShare(); // The return value is used in testing only.  getShare() has side-effect to copy the share to clipboard.
+        // The return value is used in testing only.
+        // Note: getShare() has side-effect to copy the share to clipboard.
+        return this.appDisplay.getShare();
     }
 
     /* ----- Utilities ----- */

@@ -68,7 +68,11 @@ class GameState extends BaseLogger {
         }
     }
 
-    // ----- utilities for accessing the played and unplayed words -----
+    // ----- utilities for accessing the played, unplayed, and target words -----
+
+    getTargetWord() {
+        return this.target;
+    }
 
     getRatedMove(i) {
         return this.ratedMoves[i];
@@ -139,45 +143,48 @@ class GameState extends BaseLogger {
             // The player played a different word than WordChain at this step.
             // We need to re-solve from 'word' to 'target'.
             COV(2, CL);
+            const isScrabbleWord = ! this.dictionary.isWord(word);
             let stepsRemaining = this.unplayedWords.length;
             let solution = Solver.solve(this.dictionary, word, this.target);
             Const.GL_DEBUG && this.logDebug(word, "was not expected. recomputed solution:", solution, "gameState");
             let newStepsRemaining = solution.numWords();
             if (newStepsRemaining == stepsRemaining) {
-                COV(3, CL);
+                COV(4, CL);
                 // different word, same length as WordChain used
                 // let them know if it was a scrabble word, although not genius.
-                if ( !this.dictionary.isWord(word) ) {
+                if (isScrabbleWord) {
                     moveRating = Const.SCRABBLE_MOVE;
                     // add 'word' to the standard dictionary, because it might be needed again by Solver
                     this.dictionary.addWord(word);
                 };
             } else if (newStepsRemaining == stepsRemaining+1) {
-                COV(4, CL);
+                COV(5, CL);
                 // different word, one step longer than WordChain used
                 moveRating = Const.WRONG_MOVE;
             } else if (newStepsRemaining == stepsRemaining+2) {
-                COV(5, CL);
+                COV(6, CL);
                 // different word, two steps longer than WordChain used
                 moveRating = Const.DODO_MOVE;
             } else if (newStepsRemaining < stepsRemaining) {
-                COV(6, CL);
-                // different word, shorter than WordChain used
+                COV(7, CL);
+                // Different word, shorter than WordChain used.
+                // Note: not adding to dictionary because the Solver should never
+                // need to play this word again ... it's pretty subtle.
                 moveRating = Const.GENIUS_MOVE;
             }
             this.unplayedWords = solution.getSolutionWords().slice(); // get a copy (slice)
             this.unplayedWords.shift();                               // and remove the start word
-            COV(7, CL);
+            COV(8, CL);
         }
         this.ratedMoves.push(new RatedMove(word, moveRating));
         if (this.isOver()) {
-            COV(8, CL);
+            COV(9, CL);
             Const.GL_DEBUG && this.logDebug ("GameState.addWord() game is now over", "gameState");
             this.showUnplayedMoves();
             this.updateStateAfterGame(); // dispatches to sub-class for Daily vs Practice
         }
         this.persist();
-        COV(9, CL);
+        COV(10, CL);
         return moveRating;
     }
 
@@ -619,18 +626,39 @@ class DailyGameState extends GameState{
         let shareString = `WordChain #${this.getDailyGameNumber() + 1} `,
             gameWon;
 
-        // Determine what emoji to use to show the user's score.
-        if (this.getScore() >= Const.TOO_MANY_EXTRA_STEPS) {
+        var score = this.getScore();
+        if (score >= Const.TOO_MANY_EXTRA_STEPS) {
             COV(1, CL);
-            // Too many wrong moves.
-            shareString += Const.CONFOUNDED;
             gameWon = false;
         } else {
             COV(2, CL);
-            // Show the emoji in NUMBERS corresponding to the score.
-            // A bit of a misnomer, but the value for 0 is a star.
-            shareString += Const.NUMBERS[this.getNormalizedScore()];
             gameWon = true;
+        }
+
+        // Show the emoji in NUMBERS corresponding to the score.
+        // A bit of a misnomer, but the value for 0 is a star.
+        shareString += Const.NUMBERS[this.getNormalizedScore()];
+
+        // Now add some treats ...
+
+        // Better than WordChain score.
+        if (score === -1) {
+            shareString += Const.BIRDIE;
+        } else if (score === -2) {
+            shareString += Const.EAGLE;
+        } else if (score === -3) {
+            shareString += Const.EAGLE + Const.EAGLE;
+        }
+
+        // Same solution as WordChain. Sadly, you can't compare arrays directly
+        // in JavaScript, so we'll compare as strings. 
+        if (this.initialSolution.toString() === this.getPlayedWordList().toString()) {
+            shareString += Const.COOKIE;
+        }
+
+        // Used one or more advanced words.
+        if (this.userPlayedAdvancedWord()) {
+            shareString += Const.ICE_CREAM;
         }
 
         COV(3, CL);
@@ -638,7 +666,7 @@ class DailyGameState extends GameState{
         // Add a line for the streak.
         shareString += `\nStreak: ${this.getStat('streak')}`;
 
-        // Add a line the start/target.
+        // Add a line for start/target.
         shareString += `\n${this.start} --> ${this.target}\n`;
 
         // Now, construct the graphic showing the lengths of the user's
@@ -652,13 +680,18 @@ class DailyGameState extends GameState{
         let [startRatingUnused, startLength] = moveSummary[0];
         let [targetRatingUnused, targetLength] = moveSummary.slice(-1)[0];
 
-        // start with the start word shown in purple
+        // Start with the start word shown in purple
         let emoji = Const.PURPLE_SQUARE;
         shareString += emoji.repeat(startLength) + "\n";
 
-        // Show all the words played.
-        let colorblindMode = Persistence.getColorblindMode();
+        // Show graphic of all the words played.
+        let colorblindMode = Persistence.getColorblindMode(),
+            wordChainSolutionLength = this.initialSolution.length,
+            // Start rowNum at 2 because we've already shown the start word.
+            rowNum = 2;
+
         Persistence.saveDailyGameState2(this);
+
         for (let [moveRating, wordLength] of wordsBetweenStartAndTarget) {
 
             // We don't include unplayed words in the share string. This happens when
@@ -676,25 +709,35 @@ class DailyGameState extends GameState{
                 COV(4, CL);
                 emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
             } else if (moveRating === Const.WRONG_MOVE) {
-                // Word increased the count; pick color indicating "bad".
+                // Word increased the count; pick a different color
                 COV(5, CL);
-                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+                emoji = colorblindMode ? Const.BROWN_SQUARE : Const.BROWN_SQUARE;
             } else if (moveRating === Const.GENIUS_MOVE) {
+                // Word decreased the count; pick a very special color color
                 COV(6, CL);
                 emoji = colorblindMode ? Const.GOLD_SQUARE : Const.GOLD_SQUARE;
             } else if (moveRating === Const.DODO_MOVE) {
-                // These used to be brown squares, but they were off-putting.
+                // Word increased the count; pick a different color
                 COV(7, CL);
-                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+                emoji = colorblindMode ? Const.BROWN_SQUARE : Const.BROWN_SQUARE;
             } else if (moveRating === Const.SHOWN_MOVE) {
                 COV(8, CL);
                 emoji = colorblindMode ? Const.GRAY_SQUARE : Const.GRAY_SQUARE;
+            } else {
+                console.error("Unexpected moveRating:", moveRating, ", wordLength:", wordLength);
+                emoji = Const.BLACK_SQUARE;
             }
 
             // Now repeat that emoji for the length of the word and add a newline,
             // creating a row that looks like the row of tiles in the game.
             COV(9, CL);
             shareString += emoji.repeat(wordLength) + "\n";
+
+            if (rowNum === wordChainSolutionLength) {
+                shareString += "-".repeat(20) + "\n";
+            }
+
+            rowNum += 1;
         }
 
         // Now, add the target
@@ -712,7 +755,7 @@ class DailyGameState extends GameState{
         // Add the URL to the game and send the trimmed result.
         // Note that in shareCallback() we are ONLY copying to the
         // clipboard; if we ever go back to doing a "direct share"
-        // we will want to append Const.SHARE_URL_FOR_FB, a "faux" URL.
+        // we will want to append a "faux" URL.
         shareString += Const.SHARE_URL;
         return shareString.trim();
     }
@@ -785,7 +828,9 @@ class DailyGameState extends GameState{
     // Unplayed words get a move rating of Const.FUTURE
     // Use case: this is only used for creating a share string, which means the daily
     // game is over.  There can be no unnplayed words.
-
+    // Returns an array of two-element arrays containing:
+    // - move rating
+    // - word length
     getMoveSummary() {
         const CL = "DailyGameState.getMoveSummary";
         COV(0, CL);
@@ -797,7 +842,6 @@ class DailyGameState extends GameState{
 
         if (this.getUnplayedWords().length != 0) {
             console.error("there should not be any unplayed moves when we call DailyGameState.getMoveSummary()");
-            console.log ("unplayed words: ", this.getUnplayedWords());
             console.trace();
         }
             
@@ -833,6 +877,16 @@ class DailyGameState extends GameState{
         }
         this.extraStepsHistogram[extraStepsCount] += 1;
         COV(4, CL);
+    }
+
+    userPlayedAdvancedWord() {
+        for (let ratedMove of this.ratedMoves) {
+            if (ratedMove.rating === Const.SCRABBLE_MOVE || ratedMove.rating === Const.GENIUS_MOVE) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

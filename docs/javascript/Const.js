@@ -19,7 +19,6 @@ export function GET_GL_DEBUG(value) {
 
 // Constants for URLs.
 export const SHARE_URL         = "https://WordChainFun.com/"; // The real URL
-export const SHARE_URL_FOR_FB  = "WordChainFun dot com"; // Facebook won't share both a graphic and a URL!
 export const DICT_URL          = "https:/docs/resources/WordChainDict";
 export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
 export const EMAIL_URL         = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
@@ -28,7 +27,10 @@ export const HELP_VIDEO_URL    = "https://www.youtube.com/watch?v=FhxMQZoRsKI";
 export const ANALYTICS_URL     = "TBD";
 
 // Our very own copyright!
-export const COPYRIGHT = "Copyright \u{00A9} 2025 WordChainFun"
+export const COPYRIGHT = "Copyright \u{00A9} 2025 WordChainFun";
+
+// Shown in the header
+export const GAME_TAGLINE = "Add, change, delete one letter at a time to reach";
 
 // Constants for practice game word selection screen
 export const PRACTICE_GAMES_PER_DAY        = 3;
@@ -44,7 +46,8 @@ export const PRACTICE_START_WORDS          = [
     "SNOW", "WRITE", "SONG", "FISH", "WASH", "SINK", "STOPS", "SHOPS",
     "THINK", "PASTES", "BOWLS", "ASP", "CAT", "GAME", "SAND", "POKE",
     "PLANET", "ROPED", "SHINE", "TOAST", "PIG", "DREAMS", "STAIN", "HARK",
-    "FLAME", "RAKE", "RICE", "LAKE", "MALT", "TEASE", "LANCE", "HANG"];
+    "FLAME", "RAKE", "RICE", "LAKE", "MALT", "TEASE", "LANCE", "HANG",
+    ];
 
 // Toast Notification Constants
 
@@ -147,27 +150,37 @@ export const DAILY_GAME_CHANGE_CHECK_INTERVAL = 5 * 1000;
 // How to break up a list of solution words with <br> tags every Nth word
 export const DISPLAY_SOLUTION_WORDS_PER_LINE = 4
 
-// Constants for sharing graphic and stats screen
-// Emoji code strings for share string
-export const RED_SQUARE     = "\u{1F7E5}";     // Wrong moves in graphic
-export const GREEN_SQUARE   = "\u{1F7E9}";     // Correct moves in graphic
-export const PURPLE_SQUARE  = "\u{1F7EA}";     // Unchosen moves in graphic (start and target);
-export const ORANGE_SQUARE  = "\u{1F7E7}";     // Wrong moves in graphic -- colorblind
-export const GOLD_SQUARE    = "\u{1F7E8}";     // Genius moves in graphic
-export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves in graphic -- colorblind
-export const BROWN_SQUARE   = "\u{1F7EB}";     // Unused; formerly for Dodo moves in graphic
-export const GRAY_SQUARE    = "\u{2B1C}";      // Shown moves in graphic (called white square online, but looks gray)
+// Constants for share content and stats screen
+
+// Share graphic
+export const RED_SQUARE     = "\u{1F7E5}";     // Unused; was wrong moves
+export const GREEN_SQUARE   = "\u{1F7E9}";     // Correct moves
+export const PURPLE_SQUARE  = "\u{1F7EA}";     // Unchosen moves (start and target);
+export const ORANGE_SQUARE  = "\u{1F7E7}";     // Unused; was wrong moves -- colorblind
+export const GOLD_SQUARE    = "\u{1F7E8}";     // Genius moves
+export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves -- colorblind
+export const BROWN_SQUARE   = "\u{1F7EB}";     // Shown moves; was dodo moves
+export const GRAY_SQUARE    = "\u{2B1C}";      // Moves that add steps (called white square online, but looks gray); was shown moves
+export const BLACXK_SQUARE  = "\u{2B1B}";      // Unused
+
+// Share treats
+export const BIRDIE         = "\u{1F426}";     // User's solution was one fewer step than WordChain's solution
+export const COOKIE         = "\u{1F36A}";      // User's solution matches WordChain's solution
+export const EAGLE          = "\u{1F985}";     // User's solution was two (or three!) fewer steps than WordChain's solution
+export const ICE_CREAM      = "\u{1F366}";     // User played an advanced word
+
+// Unused
+export const CONFOUNDED     = "\u{1F616}";     // Was too many wrong moves in first share line and stats graph
+export const FIRE           = "\u{1F525}";     // Was hard mode in first share line
+export const ROCKET         = "\u{1F680}";
+export const FIREWORKS      = "\u{1F386}";
+export const TROPHY         = "\u{1F3C6}";
+export const LINK           = "\u{1F517}";
+export const CHAINS         = "\u{26D3}";
+
+// Share score
 export const STAR           = "\u{2B50}";      // No wrong moves in first share line
-export const CONFOUNDED     = "\u{1F616}";     // Too many wrong moves in first share line and stats graph
-export const FIRE           = "\u{1F525}";     // Unused: was hard mode in first share line
-export const ROCKET         = "\u{1F680}";     // Unused
-export const FIREWORKS      = "\u{1F386}";     // Unused
-export const TROPHY         = "\u{1F3C6}";     // Unused
-export const LINK           = "\u{1F517}";     // Unused
-export const CHAINS         = "\u{26D3}";      // Unused
-// Not technically a const, but we are going to overwrite it at
-// <TOO_MANY_EXTRA_STEPS> to change the symbol to CONFOUNDED.
-export var NUMBERS        = [                // Used in first share line
+export const NUMBERS        = [                // Used in first share line
     STAR,                           // 0
     "\u{0031}\u{FE0F}\u{20E3}",     // 1
     "\u{0032}\u{FE0F}\u{20E3}",
@@ -180,6 +193,9 @@ export var NUMBERS        = [                // Used in first share line
     "\u{0031}\u{FE0F}\u{20E3}",
     "\u{0039}\u{FE0F}\u{20E3}",     // 9
 ];
+// Shouldn't be > 9; relates to NUMBERS array above
+export const TOO_MANY_EXTRA_STEPS = 5;
+
 export const SCORE_TEXT   = [
     "0 -- perfect!",
     "1 extra step",
@@ -192,10 +208,6 @@ export const SCORE_TEXT   = [
 // CSS class values
 export const UNSELECTED_STYLE = 'button-unselected';
 export const UNCONFIRMED_STYLE = 'button-unconfirmed';
-// Instead of a number, if the user has had too many wrong moves
-// use the CONFOUNDED emoji.
-export const TOO_MANY_EXTRA_STEPS = 5;  // Shouldn't be > 9; relates to NUMBERS array above
-NUMBERS[TOO_MANY_EXTRA_STEPS] = CONFOUNDED
 
 // SVG (Scalable Vector Graphics) paths for icons.
 export const CLOSE_PATH = "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";

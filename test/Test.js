@@ -144,6 +144,7 @@ class Test extends BaseLogger {
         let appTestSelect = ElementUtilities.addElementTo("select", this.outerDiv, {name: "appTests", id: "testSelector"});
         this.appTestSelect = appTestSelect;
 
+        appTestNames.sort();
         appTestNames.forEach(function(item) {
             ElementUtilities.addElementTo("option", appTestSelect, {value: item}, item);
         })
@@ -384,6 +385,22 @@ class Test extends BaseLogger {
             truthValue = Object.keys(differences).length === 0;
             if (! truthValue) {
                 message = `<font color="red">${this.testName}: Failed: ${description} -- differences: ${JSON.stringify(differences)}</font>`;
+            }
+        } else if (typeof actual === 'string') {
+            const maxLen = Math.max(actual.length, expected.length);
+
+            truthValue = actual == expected;
+
+            if (maxLen <= 25) {
+                message = `<font color="red">${this.testName}: Failed: ${description} -- actual: '${actual}'; expected: '${expected}'</font>`;
+            } else {
+                actual   = actual.replace(/\n/g, '\\n');
+                expected = expected.replace(/\n/g, '\\n');
+                message  = `<font color="red">${this.testName}:`
+                message += '<table style="border-spacing: 0px; padding-left: 20px;">'
+                message += `<tr style="padding: 0px;"><td>actual:</td><td>${actual}</td></tr>`
+                message += `<tr style="padding: 0px;"><td>expected:</td><td>${expected}</td><tr>`
+                message += '</table></font>'
             }
         } else {
             truthValue = actual == expected;
@@ -794,7 +811,8 @@ class Test extends BaseLogger {
               numMoves = game.getUnplayedWords().length;
 
         for (let i = 0; i < numMoves; i++) {
-            this.gameDisplay.showWordCallback(mockEvent);
+            const forced = true;
+            this.gameDisplay.showWordCallback(mockEvent, forced);
         }
     }
 
@@ -830,24 +848,22 @@ class Test extends BaseLogger {
         this.logDebug("verifyStats() global statsContainer:", this.statsContainer, "test");
         this.logDebug("verifyStats() statsDistribution:", statsDistribution, "test");
 
-        let expContainerLen = 4;
+        let expContainerLen = 3;
         let actContainerLen = statsContainer.children.length;
 
         let expDistributionLen = Const.TOO_MANY_EXTRA_STEPS + 1;
         let actDistributionLen = statsDistribution.children.length;
 
-        // four calculated text values we expect to find on the stats screen.  They are labels and values for Played, Won, Lost, and Streak
+        // three calculated text values we expect to find on the stats screen.  They are labels and values for Started, Completed, and Streak
         let expStartedText = `${expStatsBlob.gamesStarted}Started`;
         let actStartedText = statsContainer.children[0].children[0].innerText.trim() + statsContainer.children[0].children[1].innerText.trim();
 
-        let expWonText = `${expStatsBlob.gamesWon}Won`;
-        let actWonText = statsContainer.children[1].children[0].innerText.trim() + statsContainer.children[1].children[1].innerText.trim();
-
-        let expLostText = `${expStatsBlob.gamesLost}Lost`;
-        let actLostText = statsContainer.children[2].children[0].innerText.trim() + statsContainer.children[2].children[1].innerText.trim();
+        const completed = expStatsBlob.gamesWon + expStatsBlob.gamesLost;
+        let expCompletedText = `${completed}Completed`;
+        let actCompletedText = statsContainer.children[1].children[0].innerText.trim() + statsContainer.children[1].children[1].innerText.trim();
 
         let expStreakText = `${expStatsBlob.streak}Streak`;
-        let actStreakText = statsContainer.children[3].children[0].innerText.trim() + statsContainer.children[3].children[1].innerText.trim();
+        let actStreakText = statsContainer.children[2].children[0].innerText.trim() + statsContainer.children[2].children[1].innerText.trim();
 
         testRes =
             this.verifyEqual(actContainerLen, expContainerLen, "statsContainer.children.length THIS IS A TESTING ANOMOLY - unexpected DOM contents") &&
@@ -857,9 +873,8 @@ class Test extends BaseLogger {
             this.verifyEqual(savedStatsBlob.gamesLost, expStatsBlob.gamesLost, "savedStatsBlob.gamesLost") &&
             this.verifyEqual(savedStatsBlob.streak, expStatsBlob.streak, "savedStatsBlob.streak") &&
             this.verifyEqual(actStartedText, expStartedText, "statsContainer.children[0]") &&
-            this.verifyEqual(actWonText, expWonText, "statsContainer.children[1]") &&
-            this.verifyEqual(actLostText, expLostText, "statsContainer.children[2]") &&
-            this.verifyEqual(actStreakText, expStreakText, "statsContainer.children[3]") &&
+            this.verifyEqual(actCompletedText, expCompletedText, "statsContainer.children[1]") &&
+            this.verifyEqual(actStreakText, expStreakText, "statsContainer.children[2]") &&
             this.verify(savedStatsBlob.gamesStarted >= savedStatsBlob.gamesWon + savedStatsBlob.gamesLost, `assertion failed: #started not >= #won+#lost`);
         this.closeTheStatsDisplay();
 
@@ -2591,6 +2606,7 @@ class Test extends BaseLogger {
             this.notAWordToastTest,
             this.toastTestDailyWin,
             this.toastTestRecoverDailyWin,
+            //TODO: Need an eagle (and double eagle) test -- maybe the one Brian's brother did?
         ];
     }
 
@@ -2735,12 +2751,11 @@ class Test extends BaseLogger {
         let statsMockEvent = new MockEvent(statsSrcElement);
         let actShareString1 = statsDisplay.shareCallback(statsMockEvent);
         let actShareString2 = this.gameDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} ⭐\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} ⭐🍪\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n${Const.SHARE_URL}`;
         this.closeTheStatsDisplay();
         testResults &&
-            this.verifyEqual(actShareString1.indexOf(expShareString), 0, "share string 1 begins with") &&
-            this.verifyEqual(actShareString2.indexOf(expShareString), 0, "share string 2 begins with") &&
-            this.verify((actShareString1.indexOf(Const.SHARE_URL) > 0), `expected to see url root ${Const.SHARE_URL} in share string, got '${actShareString1}'`) &&
+            this.verifyEqual(actShareString1, expShareString, "share string 1") &&
+            this.verifyEqual(actShareString2, expShareString, "share string 2") &&
             this.hadNoErrors();
     }
 
@@ -2998,7 +3013,8 @@ class Test extends BaseLogger {
         this.playLetter("B"); // HOOT  -> BOOT now change 3
         this.playLetter("R"); // BOOT  -> BOOR now change 0
         const showToWinResult = this.gameDisplay.showWordCallback(mockEvent); // reveals POOR, game over
-        const showAfterWinResult = this.gameDisplay.showWordCallback(mockEvent); // should fail after game is over
+        const forced = true,
+              showAfterWinResult = this.gameDisplay.showWordCallback(mockEvent, forced); // should fail after game is over
 
         this.verifyEqual(showToWinResult, Const.SHOWN_MOVE, "showToWinResult") &&
             this.verifyEqual(showAfterWinResult, Const.UNEXPECTED_ERROR, "showAfterWinResult") &&
@@ -3047,7 +3063,8 @@ class Test extends BaseLogger {
         this.playLetter("B"); // HOOT  -> BOOT
         this.gameDisplay.showWordCallback(mockEvent); // reveals BOOR
         this.playLetter("P"); // solved; results should be displayed
-        const showAfterDoneResult = this.gameDisplay.showWordCallback(mockEvent);
+        const forced = true,
+              showAfterDoneResult = this.gameDisplay.showWordCallback(mockEvent, forced);
 
         const resultsDiv = this.gameDisplay.resultsDiv;
         const children = resultsDiv.children;
@@ -3202,9 +3219,9 @@ class Test extends BaseLogger {
             const statsMockEvent = new MockEvent(statsSrcElement);
             const actShareString = statsDisplay.shareCallback(statsMockEvent);
             this.closeTheStatsDisplay();
-            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 😖\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩🟩\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n🟥🟥🟥🟥\n`;
+            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 5️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟩🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟩🟩🟩🟩🟩\n--------------------\n🟫🟫🟫🟫\n⬜⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n🟥🟥🟥🟥\n${Const.SHARE_URL}`;
             this.verify(!gameIsWinner, "game should not be a winner.") &&
-            this.verifyEqual(actShareString.indexOf(expShareString), 0, "share string starts with") &&
+            this.verifyEqual(actShareString, expShareString, "share string") &&
             this.hadNoErrors();
         }
         this.closeTheStatsDisplay();
@@ -3240,15 +3257,14 @@ class Test extends BaseLogger {
         const statsSrcElement = new MockEventSrcElement();
         const statsMockEvent = new MockEvent(statsSrcElement);
         const actShareString = statsDisplay.shareCallback(statsMockEvent);
-        const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 1️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n`
+        const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 1️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟩🟩🟩🟩\n--------------------\n🟩🟩🟩🟩\n${Const.SHARE_URL}`
         this.closeTheStatsDisplay();
 
-        this.verifyEqual(actShareString.indexOf(expShareString), 0, "share string starts with") &&
+        this.verifyEqual(actShareString, expShareString, "share string") &&
             this.verifyEqual(dailyShareButton.hasAttribute('disabled'), false, "daily game screen share button 'disabled' attribute.") &&
             this.verifyEqual(statsShareButton.hasAttribute('disabled'), false, "stats screen share button 'disabled' attribute.") &&
             this.verifyEqual(toastAfterWrongMove, Const.WRONG_MOVE, "toast") &&
             this.hadNoErrors();
-
     }
 
     // this test verifies that after failing a game, the game is over, the share shows the mad face and wrong moves, and the streak is at zero.
@@ -3295,10 +3311,10 @@ class Test extends BaseLogger {
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         const shareToast = appDisplay.getAndClearLastToast();
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 😖\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n🟥🟥🟥🟥\n⬜⬜⬜⬜\n🟥🟥🟥🟥\n`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 5️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟫🟫🟫🟫\n--------------------\n🟫🟫🟫🟫\n🟫🟫🟫🟫\n🟫🟫🟫🟫\n⬜⬜⬜⬜\n🟥🟥🟥🟥\n${Const.SHARE_URL}`;
         this.closeTheStatsDisplay();
 
-        this.verifyEqual(actShareString.indexOf(expShareString), 0, "share string starts with") &&
+        this.verifyEqual(actShareString, expShareString, "share string") &&
             this.verifyEqual(dailyShareButton.hasAttribute('disabled'), false, "daily game screen share button 'disabled' attribute.") &&
             this.verifyEqual(statsShareButton.hasAttribute('disabled'), false, "stats screen share button 'disabled' attribute.") &&
             this.verifyEqual(gameLostToast, Const.GAME_LOST, "game lost toast") &&
@@ -3341,10 +3357,10 @@ class Test extends BaseLogger {
 
         //  get the share string.  use-case: the last play is a Delete
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Const.TEST_DAILY_GAME_NUMBER + 1} ⭐\nStreak: 1\nSTART --> END\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩\n`;
+        let expShareString = `WordChain #${Const.TEST_DAILY_GAME_NUMBER + 1} ⭐🍪\nStreak: 1\nSTART --> END\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩\n${Const.SHARE_URL}`;
 
         this.closeTheStatsDisplay();
-        this.verifyEqual(actShareString.indexOf(expShareString), 0, "share string starts with") &&
+        this.verifyEqual(actShareString, expShareString, "share string") &&
             this.hadNoErrors();
     }
 
@@ -3700,14 +3716,14 @@ class Test extends BaseLogger {
         let statsSrcElement = new MockEventSrcElement();
         let statsMockEvent = new MockEvent(statsSrcElement);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} ⭐\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟩🟩🟩🟩\n`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} ⭐🐦🍦\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟩🟩🟩🟩\n${Const.SHARE_URL}`;
         this.closeTheStatsDisplay();
 
         this.verifyEqual(resultO3, Const.GOOD_MOVE, "playLetter(3, O)") &&
             this.verifyEqual(resultDelete0, Const.GOOD_MOVE, "deleteLetter(0)") &&
             this.verifyEqual(resultR3Genius, Const.GENIUS_MOVE, "forcePlayWord(HOOR)") &&
             this.verifyEqual(resultP0, Const.GOOD_MOVE, "playLetter(0, P)") &&
-            this.verifyEqual(actShareString.indexOf(expShareString), 0, "sharestring") &&
+            this.verifyEqual(actShareString, expShareString, "share string") &&
             this.verifyEqual(toastAfterGeniusMove, Const.GENIUS_MOVE, "genius move") &&
             this.hadNoErrors();
     }

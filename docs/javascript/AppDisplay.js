@@ -186,7 +186,7 @@ class AppDisplay extends BaseLogger {
         }
 
         COV(2, CL);
-        this.currentGameDisplay = this.dailyGameDisplay;
+        this.setCurrentGameDisplay(this.dailyGameDisplay);
     }
 
     /* ----- Header ----- */
@@ -245,15 +245,24 @@ class AppDisplay extends BaseLogger {
         this.headerDiv = ElementUtilities.addElementTo("div", this.upperDiv, {id: "header-div"});
         this.headerDiv.style.display = "flex";
 
+        // Top row of header has the title and all the buttons.
+        this.headerDivTop = ElementUtilities.addElementTo("div", this.headerDiv, {id: "header-div-top"});
+
         // game-button-div holds buttons related to game play.
-        this.gameButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "game-button-div"});
+        this.gameButtonDiv = ElementUtilities.addElementTo("div", this.headerDivTop, {id: "game-button-div"});
         this.createGameButtons();
 
-        const titleDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "title-div"});
+        const titleDiv = ElementUtilities.addElementTo("div", this.headerDivTop, {id: "title-div"});
         ElementUtilities.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
 
         // auxiliary-button-div holds the buttons for getting to the auxiliary screens.
-        this.auxiliaryButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "auxiliary-button-div"});
+        this.auxiliaryButtonDiv = ElementUtilities.addElementTo("div", this.headerDivTop, {id: "auxiliary-button-div"});
+
+        ElementUtilities.addElementTo("div", this.headerDiv, {class: "break", id: "header-break"});
+
+        // Bottom row of header just has the tagline.
+        this.headerDivBottom = ElementUtilities.addElementTo("div", this.headerDiv, {id: "header-div-bottom"});
+        this.tagline = ElementUtilities.addElementTo("label", this.headerDivBottom, {class: "tagline"}, Const.GAME_TAGLINE);
     }
 
     /* ----- Game ----- */
@@ -303,7 +312,7 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.switchToPracticeGameButton);
         ElementUtilities.hide(this.switchToDailyGameButton);
 
-        this.currentGameDisplay = this.dailyGameDisplay;
+        this.setCurrentGameDisplay(this.dailyGameDisplay);
     }
 
     // We used to create the practice game here, but moved it to the constructor,
@@ -323,7 +332,7 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.switchToDailyGameButton);
         ElementUtilities.hide(this.switchToPracticeGameButton);
 
-        this.currentGameDisplay = this.practiceGameDisplay;
+        this.setCurrentGameDisplay(this.practiceGameDisplay);
     }
 
     /* ----- Utilities ----- */
@@ -522,8 +531,6 @@ class AppDisplay extends BaseLogger {
         // Pass true to indicate that toast display should be skipped.
         COV(9, CL);
         const skipToast = true;
-        // ========== Faux
-        //this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove(skipToast);
     }
 
     // Set the given CSS property to the specified value.
@@ -531,6 +538,15 @@ class AppDisplay extends BaseLogger {
         const CL = "AppDisplay.setCssProperty";
         COV(0, CL);
         document.documentElement.style.setProperty(`--${property}`, value);
+    }
+
+    // Set the current game display and update the header tagline.
+    setCurrentGameDisplay(gameDisplay) {
+        this.currentGameDisplay = gameDisplay;
+
+        // Now update the header tagline to include the target word.
+        const targetWord = gameDisplay.getTargetWord();
+        ElementUtilities.setElementText(this.tagline, `${Const.GAME_TAGLINE} '${targetWord}'`)
     }
 
     // Show a "no daily game" toast if we haven't already.

@@ -20,6 +20,15 @@
 ** See AppDisplay.setColors().
 */
 :root {
+    /* IMPORTANT: Although the colors for "extra step moves" (brown),
+    ** genius moves (gold), and shown moves (gray) are all the same
+    ** for light/dark and colorblind/non-colorblined, sadly, we CANNOT
+    ** define variables for them and use them in the assignments below.
+    **
+    ** This is because we set variables in AppDisplay using these properties,
+    ** and apparently there is no way to get at these properties if their
+    ** values are defined with var(--property).
+    */
 
     /*
     ** Light Mode Colors
@@ -27,14 +36,14 @@
 
     /* ===== Cells ===== */
     --colorblind-good-bg-light:         #5f99e4;    /* blue */
-    --colorblind-bad-bg-light:          #ff9200;    /* orange */
+    --colorblind-bad-bg-light:          #825e5e;    /* brown; was orange (#ff9200) */
     --colorblind-genius-bg-light:       #f0ce15;    /* gold */
-    --colorblind-dodo-bg-light:         #ff9200;    /* orange; was brownish */
+    --colorblind-dodo-bg-light:         #825e5e;    /* brown; was orange */
     --colorblind-shown-bg-light:        #9c9ea0;    /* gray */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
-    --non-colorblind-bad-bg-light:      #f87474;    /* red */
+    --non-colorblind-bad-bg-light:      #825e5e;    /* brown; was red */
     --non-colorblind-genius-bg-light:   #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-light:     #f87474;    /* red; was brownish */
+    --non-colorblind-dodo-bg-light:     #825e5e;    /* brown; was red */
     --non-colorblind-shown-bg-light:    #9c9ea0;    /* gray */
 
     /*
@@ -43,14 +52,14 @@
 
     /* ===== Cells ===== */
     --colorblind-good-bg-dark:          #2d7be1;    /* blue */
-    --colorblind-bad-bg-dark:           #d58b04;    /* orange */
+    --colorblind-bad-bg-dark:           #825e5e;    /* brown; was orange (#d58b04) */
     --colorblind-genius-bg-dark:        #f0ce15;    /* gold */
-    --colorblind-dodo-bg-dark :         #d58b04;    /* orange; was brownish */
+    --colorblind-dodo-bg-dark :         #825e5e;    /* brown; was orange */
     --colorblind-shown-bg-dark:         #9c9ea0;    /* gray */
     --non-colorblind-good-bg-dark:      #28c128;    /* green */
-    --non-colorblind-bad-bg-dark:       #d33433;    /* red */
+    --non-colorblind-bad-bg-dark:       #825e5e;    /* brown; was red */
     --non-colorblind-genius-bg-dark:    #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-dark :     #d33433;    /* red; was brownish */
+    --non-colorblind-dodo-bg-dark :     #825e5e;    /* brown; was red */
     --non-colorblind-shown-bg-dark:     #9c9ea0;    /* gray */
 }
 
@@ -259,14 +268,21 @@ hr {
 */
 
 #header-div {
+    display: flex;
+    flex-wrap: wrap;
+    background: var(--header-bg);
+    justify-content: space-evenly;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#header-div-top, #header-div-bottom {
+    display: flex;
     flex-wrap: wrap;
     flex-shrink: 0;
-    align-items: center;
-    height: 50px;
-    display: flex;
+    justify-content: center;
+    flex-basis: 100%;
     background: var(--header-bg);
-    padding-top: 10px;
-    padding-bottom: 10px;
 }
 
 #game-button-div {
@@ -296,6 +312,12 @@ hr {
     align-items: center;
 }
 
+.tagline {
+    font-size: .8rem;
+    font-style: italic;
+    color: var(--primary-fg);
+}
+
 /*
 ** ----------------------
 ** General Button Styling
@@ -305,9 +327,9 @@ hr {
 .app-button {
     font-size: .70rem;
     padding: .3rem;
-    margin: .2rem;
+    margin: .1rem;
     border-width: 0;
-    border-radius: .5rem;
+    border-radius: 1.2rem;
     color: var(--primary-fg);
     color: var(--primary-fg);
 }
