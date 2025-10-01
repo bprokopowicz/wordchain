@@ -1145,7 +1145,7 @@ class Test extends BaseLogger {
         prep(); this.testDailyGameStateStartedMetric();
         prep(); this.testDailyGameStateFinishedMetric();
         // initialize every Daily game defined -- takes a long time!
-        // prep(); this.testGameStateSolveAllDailyGames();
+        prep(); this.testGameStateSolveAllDailyGames();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
