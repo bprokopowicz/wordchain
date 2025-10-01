@@ -33,14 +33,23 @@
         </ul>
         </p>
 
+        <h2>How does WordChain's scoring work?</h2>
+        <p>
+        The score is how many <b>more</b> words ther were in your solution than in
+        WordChain's calculated <b>best solution</b>.
+        A score of 0 means you your solution was no longer than WordChain's;
+        it's akin to a par score in golf.
+        You score can be a maximum of 5, because after that, the game is ended
+        and remaining words are shown (in gray).
+        The line that you see in the WordChain grid indicates your score
+        as you play: the number of words after the line is your current score.
+        </p>
+
         <h2>How do I interpret the share graphic?</h2>
         <p>
-        The WordChain score is how many <b>more</b> steps than
-        WordChain's calculated <b>best solution</b> you used,
-        plus the number times you clicked 'Show Next Move'.
-        If there were no extra/shown steps, that is depicted with a star.
-        If there were 5 extra/shown steps (a lost game), that is depicted with a confounded emoji.
-        Otherwise, there is a number emoji indicating how many extra/shown steps you made.
+        The first line shows the daily game number and your score.
+        If there were no extra words (a score of 0), that is depicted with a star emoji.
+        Otherwise, there is a number emoji indicating how many extra words you had.
         The squares show the progression of the game:
         </p>
             <ul>
@@ -52,20 +61,19 @@
             good, that is, on the shortest path to the target word.
             </li>
             <li>
-            The red squares (orange in Colorblind Mode) indicate that the word played at that step was not
+            The brown squares indicate that the word played at that step was not
             an optimal choice, causing your solution to take more steps than the best solution.
             </li>
             <li>
-            The gray squares indicate a word shown with the 'Show Next Move' button
-            or words at the end of a lost game.
+            The gray squares indicate a word shown with the 'Show Word' button
+            or words at the end of a game that WordChain filled in when the game got too long.
             </li>
             <li>
             The gold squares indicate a GENIUS MOVE!
             </li>
             </ul>
         <p>
-        Note that only the Daily game can be shared and sharing is only available if
-        you don't use the Solution button to see the answer.
+        Note that <b>only the daily game</b> can be shared.
         </p>
 
         <h2>What's this about a Genius Move?</h2>
@@ -85,6 +93,28 @@
         <b>and</b> it leads to solving the game in fewer steps than WordChain's solution
         using only the <i>common</i> dictionary.
         </p>
+        <p>
+        A Genius Move will reduce your current score -- if it is not zero;
+        the WordChain score cannot be negative.
+        </p>
+
+        <h2>Sometimes I see other symbols in my share graphic; what do they mean?</h2>
+        <p>
+        These are special treats!
+        <ul>
+        <li>&#x1F36A means you found the same solution that WordChain did.</li>
+        <li>&#x1F366 means you used one or more words from the advanced dictionary.</li>
+        <li>&#x1F426 means your solution was one word <b>less</b> than WordChain's solution (like a birdie in golf).</li>
+        <li>&#x1F985 means your solution was <b>two words</b> less than WordChain's solution (like an eagle in golf -- and if you see two of them, that's a rare double-eagle).</li>
+        </ul>
+        </p>
+
+        <h2>If I show a word, does that increase my score?</h2>
+        <p>
+        No. A shown word is displayed differently on screen and in the share graphic,
+        but it doesn't change your score.
+        Note that you are allowed only one shown word per game (daily or practice).
+        </p>
 
         <h2>Why can't I share directly to an app like Facebook, text, email?</h2>
         <p>
@@ -96,6 +126,14 @@
         and from there you must paste it in an email, text message,
         or the app where you want to share it.
         </p>
+
+        <h2>Why do some of the blank letter cells have thick outlines?</h2>
+        <p>
+        WordChain shows blank letter cells for the shortest solution from the current point in the game,
+        which provides a hint as to how best to solve it.
+        In words where the the move is to change a letter,
+        the outline of the letter that should be changed is thicker;
+        this provides a further solving hint.
 
         <h2>What time does the daily game change?</h2>
         <p>
@@ -131,9 +169,8 @@
 
         <h2>What constitutes a streak?</h2>
         <p>
-        A streak is the number of consecutive daily games you have played and won.
-        If you skip a day and then win a game, you streak will restart at 1.
-        If you lose a game, your streak will be reset to 0.
+        A streak is the number of consecutive daily games you have started.
+        If you skip a day, you streak will restart at 1.
         Note that like other stats, your streak is not shared across
         your devices and browser apps.
         If the streak important to you, you should always play WordChain
@@ -204,14 +241,6 @@
         across device types so that the playing experience is similar wherever you play.
         That said, we recognize that the letter picker works more naturally on a device with a touch screen.
         <p>
-
-        <h2>Why do some of the blank letter cells have thick outlines?</h2>
-        <p>
-        WordChain shows blank letter cells for the shortest solution from the current point in the game,
-        which provide a hint as to how best to solve it.
-        In words where the the move is to change a letter,
-        the outline of the letter that should be changed is thicker;
-        this provides a further solving hint.
 
         <!--
         <h2>Why does the Share button use the clipboard?</h2>
