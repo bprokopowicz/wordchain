@@ -818,7 +818,7 @@ class Test extends BaseLogger {
 
     // compares the persisted stats AND stats screen content with expected and calculated values.
 
-    static statsContainer = null;
+    // TODO remove static statsContainer = null;
 
     verifyStats(expStatsBlob, expExtraStepsHistogram) {
 
@@ -1318,6 +1318,7 @@ class Test extends BaseLogger {
         prep(); this.testDailyGameStateWrongMove();
         prep(); this.testDailyGameStateDodoMove();
         prep(); this.testDailyGameStateGeniusMove();
+        prep(); this.testDailyGameStateDoubleEagle();
         prep(); this.testDailyGameStateUsingScrabbleWord();
         prep(); this.testDailyGameStateStartedMetric();
         prep(); this.testDailyGameStateFinishedMetric();
@@ -1343,6 +1344,7 @@ class Test extends BaseLogger {
         new PracticeGameState, the factory will determine if the puzzle can be solved and return
         null if it can't.
      */
+
     testGameStateSolveAllDailyGames() {
         this.logDebug("in testGameStateSolveAllDailyGames()", "test");
         this.testName = "GameStateSolveAllDailyGames";
@@ -1648,6 +1650,26 @@ class Test extends BaseLogger {
         this.logDebug("new daily game state after SAG:", dgs.toStr(), "test");
         this.verifyEqual(dgs.ratedMoves[1].rating, Const.GENIUS_MOVE, "ratedMoves[1].rating") &&
         this.verifyEqual(dgs.ratedMoves[2].rating, Const.GOOD_MOVE, "ratedMoves[2].rating") &&
+            this.hadNoErrors();
+    }
+
+    testDailyGameStateDoubleEagle() {
+        this.testName = "DailyGameStateDoubleEagle";
+        // regular solution: COOKIE BOOKIE BOOGIE BOGIE BOGIES BODIES BODES  BODE   RODE  ROSE  ROUSE ROUGE ROUGH DOUGH
+        // double eagle:     COOKIE BOOKIE BOOGIE BOGIE BOGIED BOGGED BOUGED ROUGED ROUGE ROUGH DOUGH
+        Persistence.saveTestDailyGameWords("COOKIE", "DOUGH");
+        const dgs = DailyGameState.factory(this.fullDict);
+        dgs.addWord("BOOKIE");
+        dgs.addWord("BOOGIE");
+        dgs.addWord("BOGIE");
+        dgs.addWord("BOGIED");
+        dgs.addWord("BOGGED");
+        dgs.addWord("BOUGED");
+        dgs.addWord("ROUGED");
+        dgs.addWord("ROUGE");
+        dgs.addWord("ROUGH");
+        dgs.addWord("DOUGH");
+        this.verify(dgs.isWinner(), "isWinner") &&
             this.hadNoErrors();
     }
 
@@ -2597,7 +2619,9 @@ class Test extends BaseLogger {
             this.practiceGameTestNoConfirm,
             this.practiceGameTest,
             this.practiceGameLimitTest,
-            this.geniusMoveAndShareTest,
+            this.birdieShareTest,
+            this.eagleShareTest,
+            this.doubleEagleShareTest,
             this.cookieRestartTest,
             this.changeMindOnSelectedLettersTest,
             this.displayModesTest,
@@ -3696,8 +3720,8 @@ class Test extends BaseLogger {
     }
 
     // verifies a game ending that includes a genius move.  Checks the share, including the streak.  Checks the genius toast
-    geniusMoveAndShareTest() {
-        this.testName = "GeniusMoveAndShare";
+    birdieShareTest() {
+        this.testName = "BirdieShareTest";
 
         // regular solution:                SHORT SHOOT HOOT BOOT BOOR POOR
         // solve the puzzle like a genius:  SHORT SHOOT HOOT HOOR POOR
@@ -3719,14 +3743,97 @@ class Test extends BaseLogger {
         let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} ⭐🐦🍦\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟨🟨🟨🟨\n🟩🟩🟩🟩\n${Const.SHARE_URL}`;
         this.closeTheStatsDisplay();
 
-        this.verifyEqual(resultO3, Const.GOOD_MOVE, "playLetter(3, O)") &&
+        this.verifyEqual(resultO3, Const.GOOD_MOVE, "playLetter(O)") &&
             this.verifyEqual(resultDelete0, Const.GOOD_MOVE, "deleteLetter(0)") &&
             this.verifyEqual(resultR3Genius, Const.GENIUS_MOVE, "forcePlayWord(HOOR)") &&
-            this.verifyEqual(resultP0, Const.GOOD_MOVE, "playLetter(0, P)") &&
+            this.verifyEqual(resultP0, Const.GOOD_MOVE, "playLetter(P)") &&
             this.verifyEqual(actShareString, expShareString, "share string") &&
             this.verifyEqual(toastAfterGeniusMove, Const.GENIUS_MOVE, "genius move") &&
             this.hadNoErrors();
     }
+
+    // verifies a game ending that shortens the solution by 2.  It is based on the double-eagle share test, which shortens
+    // the game by 3, but adds a wrong move so it is shortened by two.
+    eagleShareTest() {
+        this.testName = "EagleShare";
+
+        // regular: COOKIE BOOKIE BOOGIE BOGIE BOGIES BODIES BODES  BODE   RODE   ROSE ROUSE ROUGE ROUGH DOUGH
+        // eagle:   COOKIE BOOKIE BOOGIE BOGIE BOGIED BOGGED BOUGED ROUGED ROUGES            ROUGE ROUGH DOUGH
+
+        Persistence.saveTestDailyGameWords("COOKIE", "DOUGH");
+        this.resetTheTestAppWindow();
+        this.setGameDisplay();
+        let game = this.gameDisplay.game;
+
+        this.playLetter("B")  // COOKIE -> BOOKIE
+        this.playLetter("G")  // BOOKIE -> BOOGIE
+        this.deleteLetter(1); // BOOGIE -> BOGIE
+        const resultGenius1 = this.insertLetter(5, "D"); // BOGIE -> BOGIED
+        this.playLetter("G")  // BOGIED -> BOGGED
+        const resultGenius2 = this.playLetter("U")  // BOGGED -> BOUGED 
+        this.playLetter("R")  // BOUGED -> ROUGED
+        const resultWrong = this.forcePlayWord("ROUGES"); // ROUGED -> ROUGES extra step
+        this.deleteLetter(5); // ROUGES -> ROUGE
+        this.playLetter("H")  // ROUGE -> ROUGH
+        this.playLetter("D")  // ROUGH -> DOUGH
+
+        // let's look at the share ...
+        let statsDisplay = this.openAndGetTheStatsDisplay();
+        this.logDebug("statsDisplay", statsDisplay, "test");
+
+        let statsSrcElement = new MockEventSrcElement();
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        let actShareString = statsDisplay.shareCallback(statsMockEvent);
+        let expShareString = `WordChain #0 ⭐🦅🍦\nStreak: 1\nCOOKIE --> DOUGH\n🟪🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n🟨🟨🟨🟨🟨🟨\n🟩🟩🟩🟩🟩🟩\n🟨🟨🟨🟨🟨🟨\n🟩🟩🟩🟩🟩🟩\n🟫🟫🟫🟫🟫🟫\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n${Const.SHARE_URL}`;
+        this.closeTheStatsDisplay();
+
+        this.verifyEqual(resultGenius1, Const.GENIUS_MOVE, "BOGIE->BOGIED is genius") &&
+            this.verifyEqual(resultGenius2, Const.GENIUS_MOVE, "BOGGED->BOUGED is genius") &&
+            this.verifyEqual(resultWrong, Const.WRONG_MOVE, "ROUGED->ROUGES is wrong") &&
+            this.verifyEqual(actShareString, expShareString, "share string") &&
+            this.hadNoErrors();
+    }
+
+
+    // verifies a game ending that shortens the solution by 3!  Thanks to Jim Morris.
+    doubleEagleShareTest() {
+        this.testName = "DoubleEagleShare";
+
+        // regular solution: COOKIE BOOKIE BOOGIE BOGIE BOGIES BODIES BODES BODE RODE ROSE ROUSE ROUGE ROUGH DOUGH
+        // double eagle:     COOKIE BOOKIE BOOGIE BOGIE BOGIED BOGGED BOUGED ROUGED ROUGE ROUGH DOUGH
+
+        Persistence.saveTestDailyGameWords("COOKIE", "DOUGH");
+        this.resetTheTestAppWindow();
+        this.setGameDisplay();
+        let game = this.gameDisplay.game;
+
+        this.playLetter("B")  // COOKIE -> BOOKIE
+        this.playLetter("G")  // BOOKIE -> BOOGIE
+        this.deleteLetter(1); // BOOGIE -> BOGIE
+        const resultGenius1 = this.insertLetter(5, "D"); // BOGIE -> BOGIED
+        this.playLetter("G")  // BOGIED -> BOGGED
+        const resultGenius2 = this.playLetter("U")  // BOGGED -> BOUGED 
+        this.playLetter("R")  // BOUGED -> ROUGED
+        this.deleteLetter(5); // ROUGED -> ROUGE
+        this.playLetter("H")  // ROUGE -> ROUGH
+        this.playLetter("D")  // ROUGH -> DOUGH
+
+        // let's look at the share ...
+        let statsDisplay = this.openAndGetTheStatsDisplay();
+        this.logDebug("statsDisplay", statsDisplay, "test");
+
+        let statsSrcElement = new MockEventSrcElement();
+        let statsMockEvent = new MockEvent(statsSrcElement);
+        let actShareString = statsDisplay.shareCallback(statsMockEvent);
+        let expShareString = `WordChain #0 ⭐🦅🦅🍦\nStreak: 1\nCOOKIE --> DOUGH\n🟪🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n🟨🟨🟨🟨🟨🟨\n🟩🟩🟩🟩🟩🟩\n🟨🟨🟨🟨🟨🟨\n🟩🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n${Const.SHARE_URL}`;
+        this.closeTheStatsDisplay();
+
+        this.verifyEqual(resultGenius1, Const.GENIUS_MOVE, "BOGIE->BOGIED is genius") &&
+            this.verifyEqual(resultGenius2, Const.GENIUS_MOVE, "BOGGED->BOUGED is genius") &&
+            this.verifyEqual(actShareString, expShareString, "share string") &&
+            this.hadNoErrors();
+    }
+
 
     cookieRestartTest() {
         this.testName = "CookieRestart";

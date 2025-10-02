@@ -644,11 +644,13 @@ class DailyGameState extends GameState{
         // Better than WordChain score.
         if (score === -1) {
             shareString += Const.BIRDIE;
-        } else if (score === -2) {
-            shareString += Const.EAGLE;
-        } else if (score === -3) {
-            shareString += Const.EAGLE + Const.EAGLE;
-        }
+        } else if (score <= -2) {
+            // add one eagle for every point under -1
+            const numEagles = -1 - score;  // score: -3 -> eagles:2, score: -4 -> eagles:3, etc
+            for (let i = 1; i<= numEagles; i++) {
+                shareString += Const.EAGLE;
+            }
+        } 
 
         // Same solution as WordChain. Sadly, you can't compare arrays directly
         // in JavaScript, so we'll compare as strings. 
