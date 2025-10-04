@@ -102,7 +102,7 @@ class Test extends BaseLogger {
         this.fullDict = new WordChainDict(globalWordList);
         this.scrabbleDict = new WordChainDict(scrabbleWordList);
         this.messages = [];
-        this.logDebug("The Test singleton: ", this, "test");
+        this.logDebug("The Test singleton:", this, "test");
         Metrics.testing = true; //  this adjusts the Google Analytics event names so that they don't look real.
     }
 
@@ -499,7 +499,7 @@ class Test extends BaseLogger {
             // This will result in this error in the console:
             //     Cannot set properties of null (setting 'console')
             this.newWindow.console = console;
-            this.logDebug("opened the one and only pop-up window: ", this.newWindow, ", at url: ", url, "test");
+            this.logDebug("opened the one and only pop-up window:", this.newWindow, ", at url:", url, "test");
         }
     }
 
@@ -574,22 +574,24 @@ class Test extends BaseLogger {
     playLetter(letter, optionalLetter=letter) {
         this.logDebug("playLetter(", letter, optionalLetter, ")", "test");
         var optionalLetterButton = null;
-        if (optionalLetter != letter) {
+        const changesMind = optionalLetter != letter;
+
+        if (changesMind) {
             // we are testing a 'user changed their mind' case, where first optionalLetter is clicked,
             // then letter, then letter is confirmed.
             if (!Persistence.getConfirmationMode()) {
-                this.logDebug("playLetter() was given an optional letter but the game is not in ConfirmationMode.  This is a bad test.", "test");
+                this.logDebug("UNEXPECTED ERROR: playLetter() was given an optional letter but the game is not in ConfirmationMode.  This is a bad test.", "test");
                 return Const.UNEXPECTED_ERROR;
             }
             optionalLetterButton = this.gameDisplay.letterPicker.getButtonForLetter(optionalLetter);
-            const mockEvent = new MockEvent(optionalLetterButton);
-            const optionalClickRes = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
+            const optionalMockEvent = new MockEvent(optionalLetterButton);
+            const optionalClickRes = this.gameDisplay.letterPicker.selectionCallback(optionalMockEvent);
             if (optionalClickRes != Const.NEEDS_CONFIRMATION) {
-                this.logDebug("optional click got ", optionalClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                this.logDebug("UNEXPECTED ERROR: playLetter() optional click got", optionalClickRes, "instead of", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
             if (!ElementUtilities.hasClass(optionalLetterButton, Const.UNCONFIRMED_STYLE)) {
-                this.logDebug("optional letter-button 'class' after first selecting should have ", Const.UNCONFIRMED_STYLE, "test");
+                this.logDebug("UNEXPECTED ERROR: playLetter() optional letter-button 'class' after first selecting should have", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
         }
@@ -599,21 +601,22 @@ class Test extends BaseLogger {
 
         const realButton = this.gameDisplay.letterPicker.getButtonForLetter(letter);
         const mockEvent = new MockEvent(realButton);
+
         if (Persistence.getConfirmationMode()) {
             const firstClickRes = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
             if (firstClickRes != Const.NEEDS_CONFIRMATION) {
-                this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                this.logDebug("UNEXPECTED ERROR: playLetter() got", firstClickRes, "instead of", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
             // validate that realButton is unconfirmed
             if (!ElementUtilities.hasClass(realButton, Const.UNCONFIRMED_STYLE)) {
-                this.logDebug("realButton class after first selecting should have ", Const.UNCONFIRMED_STYLE, "test");
+                this.logDebug("UNEXPECTED ERROR: playLetter() realButton class after first selecting should have", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
 
             if (optionalLetterButton != null) {
                 if (!ElementUtilities.hasClass(optionalLetterButton, Const.UNSELECTED_STYLE)) {
-                    this.logDebug("optional-button class after first selecting should have ", Const.UNSELECTED_STYLE, "test");
+                    this.logDebug("UNEXPECTED ERROR: playLetter() optional-button class after first selecting should have", Const.UNSELECTED_STYLE, "test");
                     return Const.UNEXPECTED_ERROR;
                 }
             }
@@ -621,137 +624,204 @@ class Test extends BaseLogger {
 
         const rc = this.gameDisplay.letterPicker.selectionCallback(mockEvent);
         if (!ElementUtilities.hasClass(realButton, Const.UNSELECTED_STYLE)) {
-            this.logDebug("realButton class after first selecting should have ", Const.UNSELECTED_STYLE, "test");
+            this.logDebug("UNEXPECTED ERROR: playLetter() realButton class after first selecting should have", Const.UNSELECTED_STYLE, "test");
             return Const.UNEXPECTED_ERROR;
         }
-        this.logDebug("final click returns: ", rc, "test");
+        this.logDebug("playLetter() final click returns:", rc, "test");
         return rc;
     }
 
     deleteLetter(position, optionalPosition=position) {
         this.logDebug(`deleteLetter(${position}, ${optionalPosition})`, "test");
 
+        // Minus buttons appear on the row AFTER all played words.
+        const currentRow = this.gameDisplay.game.getPlayedWords().length;
+
+        var optionalMinusButton;
+        var optionalMockEvent;
+
         const changesMind = (position != optionalPosition);
-        var mockOptionalDeleteButton = null;
         if (changesMind) {
+            optionalMinusButton = this.getDeletionButton(currentRow, optionalPosition);
+            optionalMockEvent = new MockEvent(optionalMinusButton);
+
             //pre-click the optional position deletion button
             if (!Persistence.getConfirmationMode()) {
-                this.logDebug("deleteLetter() was given an optional position but the game is not in ConfirmationMode.  This is a bad test.", "test");
+                this.logDebug("UNEXPECTED ERROR: deleteLetter() was given an optional position but the game is not in ConfirmationMode.  This is a bad test.", "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            mockOptionalDeleteButton = new MockEventSrcElement();
-            ElementUtilities.addClass(mockOptionalDeleteButton, Const.UNSELECTED_STYLE);
-            mockOptionalDeleteButton.setAttribute("deletionPosition", optionalPosition.toString());
-            const mockEvent = new MockEvent(mockOptionalDeleteButton);
-            const optionalClickRes  = this.gameDisplay.deletionClickCallback(mockEvent);
+
+            const optionalClickRes  = this.gameDisplay.deletionClickCallback(optionalMockEvent);
             if (optionalClickRes != Const.NEEDS_CONFIRMATION) {
-                this.logDebug("got ", optionalClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                this.logDebug("UNEXPECTED ERROR: deleteLetter() got", optionalClickRes, "instead of", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            if (!ElementUtilities.hasClass(mockOptionalDeleteButton, Const.UNCONFIRMED_STYLE)) {
-                this.logDebug("mock optional delete-button  class after selecting should have ", Const.UNCONFIRMED_STYLE, "test");
+            if (!ElementUtilities.hasClass(optionalMinusButton.parentElement, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("UNEXPECTED ERROR: deleteLetter() optional delete-button class after selecting should have", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
         }
-        // the srcElement here is a 'deletion' button.
-        const mockDeleteButton = new MockEventSrcElement();
-        ElementUtilities.addClass(mockDeleteButton, Const.UNSELECTED_STYLE);
-        mockDeleteButton.setAttribute("deletionPosition", position.toString());
 
-        const mockEvent = new MockEvent(mockDeleteButton);
+        const minusButton = this.getDeletionButton(currentRow, position);
+        const mockEvent = new MockEvent(minusButton);
 
         if (Persistence.getConfirmationMode()) {
             const firstClickRes  = this.gameDisplay.deletionClickCallback(mockEvent);
             if (firstClickRes != Const.NEEDS_CONFIRMATION) {
-                this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                this.logDebug("UNEXPECTED ERROR: deleteLetter() got", firstClickRes, "instead of", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
+
             if (changesMind) {
                 // check that the optional delete button has been reset to unselected
-                if (!ElementUtilities.hasClass(mockOptionalDeleteButton, Const.UNSELECTED_STYLE)) {
-                    this.logDebug("mock optional delete-button class after changing mind should have ", Const.UNSELECTED_STYLE, "test");
+                if (!ElementUtilities.hasClass(optionalMinusButton.parentElement, Const.UNSELECTED_STYLE)) {
+                    this.logDebug("UNEXPECTED ERROR: deleteLetter() optional delete-button class after changing mind should have", Const.UNSELECTED_STYLE, "test");
                     return Const.UNEXPECTED_ERROR;
                 }
             }
-            if (!ElementUtilities.hasClass(mockDeleteButton, Const.UNCONFIRMED_STYLE)) {
-                this.logDebug("mock delete-button class after first press should have ", Const.UNCONFIRMED_STYLE, "test");
+
+            const whichPress = changesMind ? "re-press" : "first press";
+            if (!ElementUtilities.hasClass(minusButton.parentElement, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("UNEXPECTED ERROR: deleteLetter() delete-button class after", whichPress, "should have", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
         }
 
-        const rc = this.gameDisplay.deletionClickCallback(mockEvent);
-        if (!ElementUtilities.hasClass(mockDeleteButton, Const.UNSELECTED_STYLE)) {
-            this.logDebug("mock delete-button class after final press should have ", Const.UNSELECTED_STYLE, "test");
+        const clickResult = this.gameDisplay.deletionClickCallback(mockEvent);
+        if (!ElementUtilities.hasClass(minusButton.parentElement, Const.UNSELECTED_STYLE)) {
+            this.logDebug("UNEXPECTED ERROR: deleteLetter() mock delete-button class after final press should have", Const.UNSELECTED_STYLE, "test");
             return Const.UNEXPECTED_ERROR;
         }
-        this.logDebug("final click returns: ", rc, "test");
-        return rc;
+        this.logDebug("deleteLetter() final click returns:", clickResult, "test");
+        return clickResult;
     }
 
     insertLetter(position, letter, optionalPosition=position) {
-        const userChangesMind = position != optionalPosition;
+        // Plus buttons appear in the row of the last played word.
+        const currentRow = this.gameDisplay.game.getPlayedWords().length - 1;
+
+        var optionalPlusButton;
+        var optionalMockEvent;
+
+        const changesMind = position != optionalPosition;
         this.logDebug(`insertLetter(${position}, ${letter}, ${optionalPosition})`, "test");
 
-        var mockOptionalInsertButton = null;
-        if (userChangesMind) {
+        if (changesMind) {
             if (!Persistence.getConfirmationMode()) {
-                this.logDebug("insertLetter() was given an optional position but the game is not in ConfirmationMode.  This is a bad test.", "test");
+                this.logDebug("UNEXPECTED ERROR: insertLetter() was given an optional position but the game is not in ConfirmationMode.  This is a bad test.", "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            mockOptionalInsertButton = new MockEventSrcElement();
-            mockOptionalInsertButton.setAttribute("additionPosition", optionalPosition.toString());
-            ElementUtilities.addClass(mockOptionalInsertButton, Const.UNSELECTED_STYLE);
-            const mockEvent = new MockEvent(mockOptionalInsertButton);
-            const optionalClickRes = this.gameDisplay.additionClickCallback(mockEvent);
+
+            optionalPlusButton = this.getAdditionButton(currentRow, optionalPosition);
+            optionalMockEvent = new MockEvent(optionalPlusButton);
+
+            const optionalClickRes = this.gameDisplay.additionClickCallback(optionalMockEvent);
             if (optionalClickRes != Const.NEEDS_CONFIRMATION) {
-                this.logDebug("got ", optionalClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                this.logDebug("UNEXPECTED ERROR: insertLetter() changes mind first click: got", optionalClickRes, "instead of", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            if (!ElementUtilities.hasClass(mockOptionalInsertButton, Const.UNCONFIRMED_STYLE)) {
-                this.logDebug("mock optional insert-button class after first press should have ", Const.UNCONFIRMED_STYLE, "test");
+            if (!ElementUtilities.hasClass(optionalPlusButton.parentElement, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("UNEXPECTED ERROR: insertLetter() optional insert-button class after first press should have", Const.UNCONFIRMED_STYLE, "test");
                 return Const.UNEXPECTED_ERROR;
             }
         }
 
-        const mockInsertButton = new MockEventSrcElement();
-        mockInsertButton.setAttribute("additionPosition", position.toString());
-        ElementUtilities.addClass(mockInsertButton, Const.UNSELECTED_STYLE);
-        const mockEvent = new MockEvent(mockInsertButton);
+        const plusButton = this.getAdditionButton(currentRow, position);
+        const mockEvent = new MockEvent(plusButton);
 
         if (Persistence.getConfirmationMode()) {
             const firstClickRes = this.gameDisplay.additionClickCallback(mockEvent);
             if (firstClickRes != Const.NEEDS_CONFIRMATION) {
-                this.logDebug("got ", firstClickRes, " instead of ", Const.NEEDS_CONFIRMATION, "test");
+                this.logDebug("UNEXPECTED ERROR: insertLetter() got", firstClickRes, "instead of", Const.NEEDS_CONFIRMATION, "test");
                 return Const.UNEXPECTED_ERROR;
             }
-            if (!ElementUtilities.hasClass(mockInsertButton, Const.UNCONFIRMED_STYLE)) {
-                this.logDebug("mock insert-button class after first press should have ", Const.UNCONFIRMED_STYLE, "test");
-                return Const.UNEXPECTED_ERROR;
-            }
-            if (userChangesMind) {
-                if (!ElementUtilities.hasClass(mockOptionalInsertButton, Const.UNSELECTED_STYLE)) {
-                    this.logDebug("mock optional insert-button class after re-press should have ", Const.UNSELECTED_STYLE, "test");
+
+            if (changesMind) {
+                // check that the optional plus button has been reset to unselected
+                if (!ElementUtilities.hasClass(optionalPlusButton.parentElement, Const.UNSELECTED_STYLE)) {
+                    this.logDebug("UNEXPECTED ERROR: insertLetter() optional addition-button class after changing mind should have", Const.UNSELECTED_STYLE, "test");
                     return Const.UNEXPECTED_ERROR;
                 }
+            }
+
+            const whichPress = changesMind ? "re-press" : "first press";
+            if (!ElementUtilities.hasClass(plusButton.parentElement, Const.UNCONFIRMED_STYLE)) {
+                this.logDebug("UNEXPECTED ERROR: insertLetter() insert-button class after", whichPress, "should have", Const.UNCONFIRMED_STYLE, "test");
+                return Const.UNEXPECTED_ERROR;
             }
         }
 
         const clickResult = this.gameDisplay.additionClickCallback(mockEvent);
         if (clickResult != Const.GOOD_MOVE) {
-            this.logDebug("got ", clickResult, " instead of ", Const.GOOD_MOVE, "test");
+            this.logDebug("insertLetter() final click on plus button got", clickResult, "instead of", Const.GOOD_MOVE, "test");
             return clickResult;
         }
-        if (!ElementUtilities.hasClass(mockInsertButton, Const.UNSELECTED_STYLE)) {
-            this.logDebug("mock insert-button class after last press should have ", Const.UNSELECTED_STYLE, "test");
+        if (!ElementUtilities.hasClass(plusButton.parentElement, Const.UNSELECTED_STYLE)) {
+            this.logDebug("UNEXPECTED ERROR: insertLetter() insert-button class after last press should have", Const.UNSELECTED_STYLE, "test");
             return Const.UNEXPECTED_ERROR;
         }
+
         // At this point, if we are not in confirmation mode, we have clicked once to add the new position.
         // If we are in confirmation mode, we have already clicked twice successfully
         // So we can now play the letter.
 
         let playResult = this.playLetter(letter);
-        this.logDebug("insertLetter(", position, ",", letter, ") returns: ", clickResult, " then ", playResult,  "test");
+        this.logDebug("insertLetter(", position, ",", letter, ",", optionalPosition, ") returns:", clickResult, "then", playResult,  "test");
         return playResult;
+    }
+
+    // Get an addition <button> of the current game display (practice or daily).
+    //
+    // row is the 0-based row number of interest
+    // column is the 0-based plus position (i.e. the Nth plus)
+    getAdditionButton(row, column) {
+        // Account for the letter cells.
+        column *= 2;
+        const tr = this.gameDisplay.gameGridDiv.getElementsByTagName("tr")[row];
+        const td = tr.getElementsByTagName("td")[column];
+
+        // An addition cell <td> has 2 nested elements: div-button
+        return td.children[0].children[0];
+    }
+
+    // Get a deletion <button> of the current game display (practice or daily).
+    //
+    // row is the 0-based row number of interest, i.e. the deletion row number.
+    // column is the 0-based minus position (i.e. the Nth minus)
+    getDeletionButton(row, column) {
+        // Accunt for '+' cells before each letter (and at the end, but that's irrelevant here).
+        // The minus cells are in the same position as letters.
+        column = column * 2 + 1;
+        const tr = this.gameDisplay.gameGridDiv.getElementsByTagName("tr")[row];
+        const td = tr.getElementsByTagName("td")[column];
+
+        // A deletion cell <td> has 3 nested elements: div-div-button
+        return td.children[0].children[0].children[0];
+    }
+
+    // Get a letter cell <td> of the current game display (practice or daily).
+    //
+    // row is the 0-based row number of interest -- NOTE that if there is a
+    // deletion row (i.e. we're validating something beyond the deletion row),
+    // the row passed in must account for that!
+    //
+    // column is the 0-based letter number, which is automatically adjusted
+    // to account for '+' cells before each letter.
+    getLetterCell(row, column) {
+        // Accunt for '+' cells before each letter (and at the end, but that's irrelevant here).
+        column = column * 2 + 1;
+        const tr = this.gameDisplay.gameGridDiv.getElementsByTagName("tr")[row];
+        return tr.getElementsByTagName("td")[column];
+    }
+
+    getLetterFromCell(letterCell) {
+        const letterDiv = letterCell.getElementsByClassName("letter")[0];
+        return letterDiv.innerHTML;
+    }
+
+    letterCellMarkedForChange(letterCell) {
+        const outerDivWithChange = letterCell.getElementsByClassName("letter-cell-change");
+        return outerDivWithChange.length !== 0;
     }
 
     // This plays the known daily game for day 2.  No status of whether or not it worked.  It is useful for
@@ -789,13 +859,13 @@ class Test extends BaseLogger {
         let prevWord = game.gameState.lastPlayedWord();
         // get a copy of the unplayed words, as the unplayed words get modified during the loop
         const nextWords = [...game.getUnplayedWords()];
-        this.logDebug("finishTheCurrentGame() from ", prevWord, "through", nextWords, "test");
+        this.logDebug("finishTheCurrentGame() from", prevWord, "through", nextWords, "test");
         // play from the last played word to the first remaining word.
         for (let nextWord of nextWords) {
-            //this.logDebug("finishTheCurrentGame() step from ", prevWord, "to", nextWord, "test");
+            //this.logDebug("finishTheCurrentGame() step from", prevWord, "to", nextWord, "test");
             const transformation = Solver.getTransformationStep(prevWord, nextWord);
             if (transformation == null) {
-                console.log("ERROR: no single-step from ", prevWord, "to", nextWord);
+                console.error("ERROR: no single-step from", prevWord, "to", nextWord);
                 return false;
             }
             this.playTransformation(transformation);
@@ -1307,7 +1377,6 @@ class Test extends BaseLogger {
         prep(); this.testPracticeGamesPerDayVar();
         prep(); this.testNewDailyGameState();
         prep(); this.testBrokenDailyGameState();
-        prep(); this.testStatsBlobMigrationGameState();
         prep(); this.testRecoverUnplayedDailyGameState();
         prep(); this.testDailyGameStateOneWordPlayed();
         prep(); this.testDailyGameStateRecoverOneWordPlayed();
@@ -1373,24 +1442,6 @@ class Test extends BaseLogger {
             this.logDebug("game states don't match:", s1, s2, "test");
         }
         return res;
-    }
-
-    testStatsBlobMigrationGameState() {
-        this.testName = "StatsBlobMigrationGameState";
-        const oldBlobStr = '{"0":1,"1":2,"2":3,"3":4,"4":5,"5":6,"gamesStarted":9,"gamesWon":2,"gamesLost":3,"streak":4}'
-        Cookie.save(Cookie.DEP_DAILY_STATS, oldBlobStr);
-        let dgs = DailyGameState.factory(this.fullDict); // should be from scratch, but old stats inserted.
-        this.verifyEqual(dgs.statsBlob.gamesStarted, 9, "expected gamesStarted=9, got", dgs.statsBlob.gamesStarted) &&
-            this.verifyEqual(dgs.statsBlob.gamesWon, 2, "expected gamesWon=2, got", dgs.statsBlob.gamesWon) &&
-            this.verifyEqual(dgs.statsBlob.gamesLost, 3, "expected gamesLost=3, got", dgs.statsBlob.gamesLost) &&
-            this.verifyEqual(dgs.statsBlob.streak, 4, "expected streak=4, got", dgs.statsBlob.streak) &&
-            this.verifyEqual(dgs.extraStepsHistogram[0], 1, "extraStepsHistogram[0]") &&
-            this.verifyEqual(dgs.extraStepsHistogram[1], 2, "extraStepsHistogram[1]") &&
-            this.verifyEqual(dgs.extraStepsHistogram[2], 3, "extraStepsHistogram[2]") &&
-            this.verifyEqual(dgs.extraStepsHistogram[3], 4, "extraStepsHistogram[3]") &&
-            this.verifyEqual(dgs.extraStepsHistogram[4], 5, "extraStepsHistogram[4]") &&
-            this.verifyEqual(dgs.extraStepsHistogram[5], 6, "extraStepsHistogram[5]") &&
-            this.hadNoErrors();
     }
 
     testNewPracticeGameState() {
@@ -2241,7 +2292,7 @@ class Test extends BaseLogger {
         game.finishGame();
         const score = game.getNormalizedScore();
         const expScore = 2; // dodo move adds two steps
-        this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
+        this.logDebug(this.testName, "displayInstructions:", displayInstructions, "test");
         this.verifyEqual(blissToBlipsResult, Const.DODO_MOVE, "playLetter(3,P)") &&
         this.verifyEqual(score, expScore, "score") &&
         this.verifyEqual(displayInstructions.length, expectedDisplayLength, "expected display instructions length") &&
@@ -2269,7 +2320,7 @@ class Test extends BaseLogger {
         result = game.playLetter(2, "D"); // -> SIDLE  wrong move
         // Solution should now be FREE FEE FIE FILE SILE SIDLE SILE SMILE SIMILE SIMPLE SAMPLE
         const displayInstructions = game.getDisplayInstructions();
-        this.logDebug(this.testName, "displayInstructions: ", displayInstructions, "test");
+        this.logDebug(this.testName, "displayInstructions:", displayInstructions, "test");
         this.verifyEqual(result, Const.DODO_MOVE, "playing add 'D' at 2") &&
         this.verifyEqual(displayInstructions.length, expectedDisplayLength, "display instructions length") &&
         this.hadNoErrors();
@@ -2590,11 +2641,11 @@ class Test extends BaseLogger {
                 this.verifyEqual(DIsAsStrings, expectedDIsAsStrings, "display instructions as strings") &&
                 this.hadNoErrors();
     }
+
     /*
     ** App Tests
     ** App tests need to be run one after the other, pausing to wait for the app window to display, etc.
     ** These tests use the utilities in the App Testing Framework section, above.
-    **
     */
 
     getAppTests() {
@@ -2665,7 +2716,7 @@ class Test extends BaseLogger {
             const testStart = Date.now();
             this.runAppTest(appTestFunc);
             const testDone = Date.now();
-            this.logDebug(">>>>>>>>>>>>", testFuncName, " took ", testDone - testStart, " ms", "test");
+            this.logDebug(">>>>>>>>>>>>", testFuncName, "took", testDone - testStart, " ms", "test");
             inTheFuture(100).then( (foo=this) => {foo.runTheNextTest()})
         } else {
             this.logDebug("no more tests to run - showing results", "test");
@@ -2685,7 +2736,7 @@ class Test extends BaseLogger {
         // but we play  SHORT SHOOT SHOT HOT POT POO POOR
         const changeLetterResult1 = this.playLetter("O", "Z"); // SHORT -> SHOZT not confirmed -> SHOOT confirmed
         const deleteLetterResult1 = this.deleteLetter(2,4);    // SHOOT -> SHOO not confirmed -> SHOT confirmed
-        const deleteLetterResult2 = this.deleteLetter(0);      // SHOT -> HOT  we are deleting even though not really a display option on this step.
+        const deleteLetterResult2 = this.deleteLetter(0);      // SHOT -> HOT
         const changeLetterResult2 = this.playLetter("P")       // HOT -> POT
         const changeLetterResult3 = this.playLetter("O");      // POT -> POO
         const insertLetterResult1 = this.insertLetter(3, "R", 0);  // POO -> xPOO change mind -> POOx -> POOR
@@ -2944,7 +2995,7 @@ class Test extends BaseLogger {
     multiIncompleteGameStatsTest() {
         this.testName = "MultiIncompleteGameStats";
         for (let gameCounter = 0; gameCounter <= 2; gameCounter++) {
-            this.logDebug(this.testName, "gameCounter: ", gameCounter, "test");
+            this.logDebug(this.testName, "gameCounter:", gameCounter, "test");
             if (gameCounter == 0) {
                 // play an incomplete game
                 // SHORT -> POOR
@@ -3233,7 +3284,7 @@ class Test extends BaseLogger {
         // the only completed game has 5 wrong moves (6 errors)
         const expExtraStepsHistogram = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 };
         const statsTestResult = this.verifyStats(expStatsBlob, expExtraStepsHistogram);
-        this.logDebug("statsTestResult: ", statsTestResult, "test");
+        this.logDebug("statsTestResult:", statsTestResult, "test");
 
         if (statsTestResult) {
             const game = this.gameDisplay.game;
@@ -3441,7 +3492,7 @@ class Test extends BaseLogger {
         this.resetTheTestAppWindow();
         const game3 = this.gameDisplay.game;
 
-        this.logDebug("restored daily game after finishing it; display instructions are: ",
+        this.logDebug("restored daily game after finishing it; display instructions are:",
                 game3.getDisplayInstructions(), "test");
 
         this.verifyEqual(playedB, Const.GOOD_MOVE, "played B") &&
@@ -3527,7 +3578,7 @@ class Test extends BaseLogger {
         }
 
         const appDisplay = this.getNewAppWindow().theAppDisplay;
-        this.logDebug("theAppDisplay: ", appDisplay, "test");
+        this.logDebug("theAppDisplay:", appDisplay, "test");
         this.logDebug("Switching to practice game", "test");
         appDisplay.switchToPracticeGameCallback();
         this.logDebug("Switching back to daily game", "test");
@@ -3541,6 +3592,21 @@ class Test extends BaseLogger {
         // the active gameDisplay in this test needs to be refreshed after switching to the practice game
         this.setGameDisplay();
 
+        // Before starting the game, record a bunch of properties of the starting
+        // grid so they can be verified.
+
+        // Last played word has the correct letter to be changed and another
+        // cell in that word is not marked for change.
+        const cellResult0 = this.letterCellMarkedForChange(this.getLetterCell(0, 0));
+        const cellResult1 = this.letterCellMarkedForChange(this.getLetterCell(0, 3));
+
+        // First unplayed word has a question mark and is not marked to be changed.
+        const cellResult2 = this.getLetterFromCell(this.getLetterCell(1, 0));
+        const cellResult3 = this.letterCellMarkedForChange(this.getLetterCell(1, 0));
+
+        // Future word has a letter to be changed.
+        const cellResult4 = this.letterCellMarkedForChange(this.getLetterCell(2, 1));
+
         // solve the puzzle directly: TEST LEST LET LOT PLOT PILOT
         const resultL0 = this.playLetter("L");             // TEST -> LEST now delete
         const resultDelete2 = this.deleteLetter(2);        // LEST -> LET now change 1
@@ -3553,7 +3619,12 @@ class Test extends BaseLogger {
         // restore default confirmation mode
         Persistence.saveConfirmationMode(false);
 
-        this.verifyEqual(resultL0, Const.GOOD_MOVE, "playLetter(L) returns") &&
+        this.verify(cellResult0, "last played word has correct letter marked for change") &&
+            this.verify(! cellResult1, "last played word a letter correctly NOT marked for change") &&
+            this.verifyEqual(cellResult2, '?', "first unplayed word has correct letter with '?'") &&
+            this.verify(! cellResult3, "first unplayed word '?' not marked for change") &&
+            this.verify(cellResult4, "future word has correct letter marked for change") &&
+            this.verifyEqual(resultL0, Const.GOOD_MOVE, "playLetter(L) returns") &&
             this.verifyEqual(resultDelete2, Const.GOOD_MOVE, "playDelete(2) returns") &&
             this.verifyEqual(resultI1Wrong, Const.WRONG_MOVE, "playLetter(I) returns") &&
             this.verifyEqual(resultO1, Const.GOOD_MOVE, "playLetter(O) returns") &&
@@ -3580,7 +3651,6 @@ class Test extends BaseLogger {
             this.verifyEqual(lastToast, Const.NOT_A_WORD, "toast") &&
             this.hadNoErrors();
     }
-
 
     sameLetterPickedToastTest() {
         this.testName = "SameLetterPickedToast";
@@ -3770,7 +3840,7 @@ class Test extends BaseLogger {
         this.deleteLetter(1); // BOOGIE -> BOGIE
         const resultGenius1 = this.insertLetter(5, "D"); // BOGIE -> BOGIED
         this.playLetter("G")  // BOGIED -> BOGGED
-        const resultGenius2 = this.playLetter("U")  // BOGGED -> BOUGED 
+        const resultGenius2 = this.playLetter("U")  // BOGGED -> BOUGED
         this.playLetter("R")  // BOUGED -> ROUGED
         const resultWrong = this.forcePlayWord("ROUGES"); // ROUGED -> ROUGES extra step
         this.deleteLetter(5); // ROUGES -> ROUGE
@@ -3812,7 +3882,7 @@ class Test extends BaseLogger {
         this.deleteLetter(1); // BOOGIE -> BOGIE
         const resultGenius1 = this.insertLetter(5, "D"); // BOGIE -> BOGIED
         this.playLetter("G")  // BOGIED -> BOGGED
-        const resultGenius2 = this.playLetter("U")  // BOGGED -> BOUGED 
+        const resultGenius2 = this.playLetter("U")  // BOGGED -> BOUGED
         this.playLetter("R")  // BOUGED -> ROUGED
         this.deleteLetter(5); // ROUGED -> ROUGE
         this.playLetter("H")  // ROUGE -> ROUGH
@@ -3987,16 +4057,8 @@ class Test extends BaseLogger {
         }
     }
 
-/* not used now ==========
-    textareaInputCallback(event) {
-        // called when user changes a textarea's value by any keystroke
-        console.log("textareaInputCallback()", event);
-    }
-    =========== */
-
     textareaChangeCallback(event) {
         // called when user leaving the focus and the value has changed.
-        console.log("textareaChangeCallback()", event);
         const element = event.target;
         const varName = element.id;
         const newValue = element.value;

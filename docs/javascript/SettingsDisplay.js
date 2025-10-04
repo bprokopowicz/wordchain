@@ -30,7 +30,10 @@ class SettingsDisplay extends AuxiliaryDisplay {
         const confirmationModeDescription = "Selected plus, minus, and letter must be confirmed; gray indicates confirmation is needed.";
         this.addCheckboxSetting("Confirmation Mode", "confirmation", isConfirmationMode, confirmationModeDescription);
 
-        /* TODO remove
+        /*
+         NOTE: Leaving this commented out; it's a good example of how to do a radio setting,
+         in case we need that someday.
+
         const radioInfo = [{
                 value:   "Normal",
                 desc:    "<b>Normal:</b> Letter-change steps are indicated with a thick outline",
@@ -76,18 +79,6 @@ class SettingsDisplay extends AuxiliaryDisplay {
         COV(0, CL);
         return this.appDisplay;
     }
-
-/* TODO remove near-duplicate?
-    // Add a setting whose input is a checkbox.
-    addCheckboxSetting(title, id, value, description="") {
-        // setting-simple class styles the contents of the setting (title/description,
-        // checkbox input) horizontally.
-        const CL = "SettingsDisplay.addCheckboxSetting";
-        COV(0, CL);
-        const interactiveDiv = this.addSetting(title, "setting-simple", description);
-        return ElementUtilities.addElementTo("div", settingDiv, {});
-    }
-*/
 
     // Add a setting whose input is a checkbox.
     addCheckboxSetting(title, id, value, description="") {
@@ -185,7 +176,7 @@ class SettingsDisplay extends AuxiliaryDisplay {
         COV(4, CL);
     }
 
-    /* TODO Remove
+    /*
     deprecated - no modes as of Oct 2024.
     // Callback for Settings radio button changes.
     radioCallback(event) {

@@ -178,7 +178,6 @@ class AppDisplay extends BaseLogger {
 
         this.dailyGameDisplay = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
         this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
-        /* TODO  - not managing the practice counter here...  */
         if (this.dailyGameDisplay.isNewDailyGame()) {
             COV(1, CL);
             Const.GL_DEBUG && this.logDebug("AppDisplay.createScreens() calling resetPracticeGameCounter()", "display");
@@ -381,7 +380,7 @@ class AppDisplay extends BaseLogger {
                 copiedToClipboard = true;
                 this.showToast(Const.SHARE_TO_PASTE);
             } else {
-                // TODO This is never reached from the testscurrently.  IF we add it,
+                // NOTE: This is never reached from the testscurrently. IF we add it,
                 // we need to update the COV points from here out in this function.
                 // COV(3, CL);
                 this.showToast(Const.SHARE_INSECURE);
@@ -422,7 +421,6 @@ class AppDisplay extends BaseLogger {
     }
 
     resetPracticeGameCounter() {
-        //TODO - don't manage this here
         const CL = "AppDisplay.resetPracticeGameCounter";
         COV(0, CL);
         this.practiceGameDisplay.resetPracticeGameCounter();

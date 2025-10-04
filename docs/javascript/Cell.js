@@ -70,14 +70,14 @@ class AdditionCell extends ActionCell {
         const CL = "ActionCell.constructor";
         COV(0, CL);
 
+        // Add position to the button element so we can get it when the click-event comes.
+        this.cellContents.setAttribute("addition-position", additionPosition);
 
         if (hidden) {
             COV(1, CL);
             this.outerCellContainer.style.visibility = "hidden";
         } else {
-            // Add to the button element so we can get it when the event comes.
             COV(2, CL);
-            this.cellContents.setAttribute("additionPosition", additionPosition);
             this.addClass("action-cell-addition", this.outerCellContainer);
         }
         COV(3, CL);
@@ -91,7 +91,7 @@ class DeletionCell extends ActionCell {
         COV(0, CL);
 
         // Add to the button element so we can get it when the event comes.
-        this.cellContents.setAttribute("deletionPosition", deletionPosition);
+        this.cellContents.setAttribute("deletion-position", deletionPosition);
         this.addClass("action-cell-deletion", this.outerCellContainer);
     }
 }
@@ -189,7 +189,7 @@ class LetterCellWithBackground extends LetterCell {
             } else {
                 COV(3, CL);
                 // TODO: Maybe this should just pass Const.GOOD_MOVE so always green if game
-                // is finished, even if last word was shown. Target word can't have
+                // is finished, even if last word was shown. Target word should not have
                 // moveRating SCRABBLE_MOVE, GENIUS_MOVE, DODO_MOVE, or WRONG_MOVE.
                 this.addBackgroundClassBasedOnMoveRating(moveRating);
             }

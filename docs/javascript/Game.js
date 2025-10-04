@@ -24,8 +24,8 @@ class Game extends BaseLogger {
         const CL = "Game.getDisplayInstructions";
         COV(0, CL);
         this.instructions = [];
-        const nPlayedWords = this.gameState.ratedMoves.length,
-              nUnplayedWords = this.gameState.unplayedWords.length;
+        const nPlayedWords = this.getPlayedWords().length,
+              nUnplayedWords = this.getUnplayedWords().length;
 
         for (let i = 0; i < nPlayedWords-1; i++) {
             this.addInstructionForPlayedWord(i);
@@ -110,7 +110,7 @@ class Game extends BaseLogger {
         COV(0, CL);
         const lastRatedMove = this.gameState.lastRatedMove();
         const lastPlayedWord = lastRatedMove.word;
-        const nPlayedWords = this.gameState.ratedMoves.length;
+        const nPlayedWords = this.getPlayedWords().length;
         const lastPlayedWordIsTarget = this.gameState.getUnplayedWords().length === 0;
         const lastPlayedWordIsStart = nPlayedWords === 1;
         const moveRating = (this.instructions.length == 0) ? Const.NO_RATING : lastRatedMove.rating;
@@ -127,7 +127,7 @@ class Game extends BaseLogger {
 
         if (lastPlayedWordIsTarget) {
             COV(1, CL);
-            displayType = Const.TARGET; //TODO this might be wrong.  Need tests with coverage
+            displayType = Const.TARGET;
         } else {
             // check to see if we are in the process of adding a space to the last played word
             if (this.addSpaceInProgress) {
@@ -439,6 +439,12 @@ class Game extends BaseLogger {
         const CL = "Game.getUnplayedWords";
         COV(0, CL);
         return this.gameState.unplayedWords;
+    }
+
+    getPlayedWords() {
+        const CL = "Game.getPlayedWords";
+        COV(0, CL);
+        return this.gameState.ratedMoves;
     }
 
     listAsStringWithBreaks(wordList) {

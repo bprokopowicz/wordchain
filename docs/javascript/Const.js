@@ -9,7 +9,6 @@ export var GL_DEBUG = false;
 
 
 export function SET_GL_DEBUG(value) {
-    //console.log("OVERRIDING GL_DEBUG TO: ", value);
     GL_DEBUG = value;
 }
 

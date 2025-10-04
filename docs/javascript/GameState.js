@@ -332,26 +332,6 @@ class DailyGameState extends GameState{
         Persistence.saveDailyGameState2(this);
     }
 
-    updateFromDeprecatedStatsBlob() {
-        const CL = "DailyGameState.updateFromDeprecatedStatsBlob";
-        COV(0, CL);
-        let depStatsBlob = Persistence.getDeprecatedStatsBlob();
-        if (depStatsBlob != null) {
-            COV(1, CL);
-            this.statsBlob = {
-              gamesStarted: depStatsBlob.gamesStarted,
-              gamesWon: depStatsBlob.gamesWon,
-              gamesLost: depStatsBlob.gamesLost,
-              streak: depStatsBlob.streak,
-            };
-            for (let i=0; i <= Const.TOO_MANY_EXTRA_STEPS; i++) {
-                this.extraStepsHistogram[i] = depStatsBlob[i];
-            }
-        }
-        COV(2, CL);
-    }
-
-
     // Factory method to create a new DailyGameState object, either from recovery
     // or from scratch if there is nothing to recover or it is old.
 
@@ -376,7 +356,6 @@ class DailyGameState extends GameState{
             Const.GL_DEBUG && logger.logDebug("no recovered daily game, so streak starts at 1.", "daily");
             let gameState = DailyGameState.__fromScratch(dictionary);
             gameState.isConstructedAsNew = true;
-            gameState.updateFromDeprecatedStatsBlob();
             gameState.persist();
             result = gameState;
         } else {
@@ -426,10 +405,6 @@ class DailyGameState extends GameState{
                     recoveredDailyGameState.setToTodaysGame();
                 }
 
-                // TODO: Is this going to undo an increment that happened above?
-                //       Is it going to undo an increment of gamesStarted that happened
-                //       in setToTodaysGame()?
-                recoveredDailyGameState.updateFromDeprecatedStatsBlob();
                 recoveredDailyGameState.persist();
                 result = recoveredDailyGameState;
             }
@@ -1030,8 +1005,7 @@ class PracticeGameState extends GameState{
         this.gamesRemaining -= 1;
     }
 
-    // called when the daily game is rolled over, originally from AppDisplay.
-    // TODO = should be called from static clock manager outside of the display.
+    // Called when the daily game is rolled over, originally from AppDisplay.
     resetPracticeGameCounter() {
         const CL = "PracticeGameState.resetPracticeGameCounter";
         COV(0, CL);

@@ -459,7 +459,7 @@ class GameDisplay extends BaseLogger {
             result = Const.NEEDS_CONFIRMATION;
         } else {
             COV(2, CL);
-            let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
+            let additionPosition = parseInt(event.srcElement.getAttribute('addition-position'));
             Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): additionPosition: ", additionPosition, "callback");
             result = this.game.playAdd(additionPosition);
             this.processGamePlayResult(result);
@@ -485,7 +485,7 @@ class GameDisplay extends BaseLogger {
             result = Const.NEEDS_CONFIRMATION;
         } else {
             COV(2, CL);
-            let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
+            let deletionPosition = parseInt(event.srcElement.getAttribute('deletion-position'));
 
             result = this.game.playDelete(deletionPosition);
             this.processGamePlayResult(result);
@@ -560,11 +560,6 @@ class GameDisplay extends BaseLogger {
             // Add the letter cell for this current letter.
             tdElement = this.addTd();
 
-            // TODO letterIndex+1 worked with tests but not in the actual app.  So we don't have a test that
-            // relies on cellCreator's letterIndex parameter.  Tests don't call this code?  check coverage.
-            // The change is in terms of which letter has the change-circle outline, I think...
-            // This would need tests of the appearance of the game grid
-
             letterCell = cellCreator(letters[letterIndex], letterIndex); 
             ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 
@@ -582,7 +577,7 @@ class GameDisplay extends BaseLogger {
     }
 
     // This function is used for confirmation mode to find the element whose class needs to
-    // be changed to indicate whether confirmation is needed. In the case of picker letters,
+    // be changed to indicate that confirmation is needed. In the case of picker letters,
     // it will be the button itself, but for action cells it will be an ancestor, and we use
     // the builtin element.closest() function to find the selected element whose class
     // contains the class of interest.
@@ -590,23 +585,27 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.findSelectedWithClass";
         COV(0, CL);
         // Assume the element is the selected button.
-        var element = this.selectedButton;
+        var button = this.selectedButton;
 
-        // Does the element's class contain the class passed in?
-        if (element.getAttribute('class').indexOf(classOfInterest) < 0)
+        // Does the button's class contain the class passed in?
+        var  returnElement = null;
+        if (button.getAttribute('class').indexOf(classOfInterest) >= 0)
         {
+            // We've found a letter picker button.
             COV(1, CL);
-            // TODO - this is never reached in the test suite.  Is it still live?
-
-            // No -- use closest() to find the right one. The argument to closest()
+            returnElement = button;
+        } else {
+            // We've found an action cell plus/minus button.
+            // Use closest() to find the right one. The argument to closest()
             // is a selector; here we're saying "find a <div> element whose 'class'
             // attribute contains the class passed in. (The *= means contains;
             // we would use ^= for starts-with and $= for ends-with.)
-            element = this.selectedButton.closest(`div[class*="${classOfInterest}"]`)
+            COV(2, CL);
+            returnElement = button.closest(`div[class*="${classOfInterest}"]`)
         }
 
-        COV(2, CL);
-        return element;
+        COV(3, CL);
+        return returnElement;
     }
 
     // Some pass-through functions to access game and gameState.

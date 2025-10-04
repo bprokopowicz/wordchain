@@ -65,6 +65,10 @@ Not Affecting Game Play
         (can happen when switching to Practice game or starting new Practice game)
      [Violation] 'setInterval' handler took XXXms
         (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
+- Create a clock manager clas; would affects
+  - GameState.resetPracticeGameCounter()
+  - AppDisplay.resetPracticeGameCounter()
+  - AppDisplay.createScreens() where AppDisplay.resetPracticeGameCounter() is called
 
 Testing Issues
 ==============
