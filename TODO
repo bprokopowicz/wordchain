@@ -13,9 +13,10 @@ Near Term Changes
   - Make picker slider always visible (we failed on this, right?)
 - Finish up "less negative user experience" work:
   - Migration of stats in cookie -- any changes needed?
-  - Update help, faq, video
+  - Update video
 - Test coverage
 - Resolve TODOs
+- Update manual tests and run them
 
 Dictionary
 ==========
@@ -69,6 +70,11 @@ Not Affecting Game Play
   - GameState.resetPracticeGameCounter()
   - AppDisplay.resetPracticeGameCounter()
   - AppDisplay.createScreens() where AppDisplay.resetPracticeGameCounter() is called
+- Daily game maintenance
+  - Move game definitions into a separate data file, which is retrieved by daily game factory on demand
+  - Replace BROKEN GAME with a randomly selected earlier game, where all players get the same random game
+    - Remove all special treatment of BROKEN GAME, i.e. those games count
+    - How will we know when this is happening? Analytics?
 
 Testing Issues
 ==============
