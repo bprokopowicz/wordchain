@@ -373,16 +373,12 @@ class AppDisplay extends BaseLogger {
             // a clickable URL (sans our icon!) -- no share graphic!
             // This approach requires users to paste their share to the app of
             // their choice -- and both the graphic and a clickable URL will appear.
-            let copiedToClipboard = false;
             if (typeof navigator.clipboard === "object") {
                 COV(2, CL);
                 navigator.clipboard.writeText(`${shareString}`);
-                copiedToClipboard = true;
                 this.showToast(Const.SHARE_TO_PASTE);
             } else {
-                // NOTE: This is never reached from the testscurrently. IF we add it,
-                // we need to update the COV points from here out in this function.
-                // COV(3, CL);
+                // NOTE: This is never reached from the tests currently. 
                 this.showToast(Const.SHARE_INSECURE);
             }
 

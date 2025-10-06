@@ -35,11 +35,11 @@ export function getCounters() {
 }
 
 async function initializeCoveragePointCounters() {
-    const URL = "https:/docs/resources/counters";
+    const URL = "https:/docs/resources/functions";
        const counterNames = await fetch(URL)
            .then(resp  => resp.text())
            .then(text  => text.split("\n"))
-           .then(lines => lines.map((functionName) => unreachedFunctions.add(functionName)));
+           .then(lines => lines.map((functionName) => {if (functionName.length > 0) unreachedFunctions.add(functionName)}));
 }
 
 // Code coverage points are identified as class.method.point, where point is an integer.
@@ -64,11 +64,6 @@ export function COV(point, callerStr ) {
 
 // print out the coverage data and reset the counters
 export function showCoverage(appCounters, nonAppCounters) {
-    //console.log("appCounters:", appCounters, "\nnonAppCounters", nonAppCounters);
-    console.log("WARNING: make sure docs/resources/counters is up to date");
-    console.log("rebuild it with: ");
-    // the next log line causes problems for vim auto-indent from here on down, FYI.
-    console.log('cat docs/javascript/*js | grep "^ *const CL =" | sed "s/.*const CL = .//" | sed "s/.;//" > docs/resources/counters');
     if (COVERAGE_ON) {
         var combinedCounters = new Map([...appCounters]);
 
@@ -92,6 +87,10 @@ export function showCoverage(appCounters, nonAppCounters) {
             lastPoint = -1,
             skippedLabels = [];
 
+        // we don't dump all the label counts to the console.  We make an array of them and dump the array, which
+        // the tester can open in the console if they want to look at the counts.
+        const counterStringsObj = new Object();
+        counterStringsObj.counterStrings = [];
         for (let label of sortedLabels) {
             // labels look like class.func.pointNumber
             let [cl, func, pointStr] = label.split('.');
@@ -99,9 +98,9 @@ export function showCoverage(appCounters, nonAppCounters) {
 
             unreachedFunctions.delete(`${cl}.${func}`);
             if (point === 0) {
-                console.log(`${cl}.${func}()`);
+                counterStringsObj.counterStrings.push(`${cl}.${func}()`);
             } 
-            console.log(`  @ ${point}:  ${combinedCounters.get(label)}`);
+            counterStringsObj.counterStrings.push(`  @ ${point}:  ${combinedCounters.get(label)}`);
             if ((cl == curClass) && (func == curFunc)) {
                 // we should see continuity in the points reached.
                 // Print out any p st lastPoint < p < point
@@ -115,7 +114,7 @@ export function showCoverage(appCounters, nonAppCounters) {
                 lastPoint = point;
             }
         }
-
+        console.log("coverage point counts:", counterStringsObj);
         console.log("Skipped coverage points:");
         if (skippedLabels.length === 0) {
             console.log("None!");
@@ -124,9 +123,12 @@ export function showCoverage(appCounters, nonAppCounters) {
         }
         console.log("known unreached functions:");
         for (const unreachedFunction of Array.from(unreachedFunctions).sort()) {
-            console.log(unreachedFunction);
+            console.log(`'${unreachedFunction}'`);
         }
         console.log(`${100.0 * (1.0 - (skippedLabels.length / sortedLabels.length))}% coverage points reached.`);
+        console.log("WARNING: make sure the repo's function catalog docs/resources/functions is up to date");
+        console.log("rebuild it with this command: ");
+        console.log('cat docs/javascript/*js | grep "^ *const CL =" | sed "s/.*const CL = .//" | sed "s/.;//" > docs/resources/functions');
     }
 }
 

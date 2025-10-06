@@ -40,7 +40,7 @@ DeletionCell.constructor
 LetterCell.constructor
 LetterCell.handleLetterCellChangeIfNeeded
 EmptyLetterCell.constructor
-LetterCellWithBackground.constructor
+LetterCellNoBackground.constructor
 LetterCellWithBackground.constructor
 LetterCell.addBackgroundClass
 LetterCell.addBackgroundClassBasedOnMoveRating
@@ -73,6 +73,7 @@ Game.getNormalizedScore
 Game.getOriginalSolutionWords
 Game.getUserSolutionWords
 Game.getUnplayedWords
+Game.getPlayedWords
 Game.listAsStringWithBreaks
 Game.showNextMove
 Game.finishGame
@@ -148,7 +149,6 @@ GameState.isLoser
 GameState.isWinner
 DailyGameState.constructor
 DailyGameState.persist
-DailyGameState.updateFromDeprecatedStatsBlob
 DailyGameState.factory
 DailyGameState.isNewDailyGame
 DailyGameState.setToTodaysGame
@@ -184,7 +184,6 @@ SettingsDisplay.constructor
 SettingsDisplay.addSetting
 SettingsDisplay.getAppDisplay
 SettingsDisplay.addCheckboxSetting
-SettingsDisplay.addCheckboxSetting
 SettingsDisplay.addLinkSetting
 SettingsDisplay.addRadioSetting
 SettingsDisplay.checkboxCallback
@@ -204,7 +203,6 @@ StatsDisplay.additionalOpenActions
 StatsDisplay.shareCallback
 StatsDisplay.refresh
 StatsDisplay.startCountdownClock
-StatsDisplay.selfScroll
 StatsDisplay.stopCountdownClock
 StatsDisplay.updateShareButton
 StatsDisplay.updateStatsContent

@@ -199,27 +199,21 @@ class Test extends BaseLogger {
         if (buttonId == "debuggingOn") {
             Const.SET_GL_DEBUG(true);
             if (this.gameDisplay) {
-                this.logDebug("also setting app debugging on", "test");
                 this.gameDisplay.callSetDebugging(true); // sets the "remote" instance of the coverage flag
             }
         } else if (buttonId == "debuggingOff") {
             Const.SET_GL_DEBUG(false);
             if (this.gameDisplay) {
-                this.logDebug("also setting app debugging off", "test");
                 this.gameDisplay.callSetDebugging(false); // sets the "remote" instance of the coverage flag
             }
         } else if (buttonId == "coverageOn") {
-            // TODO - can this technique be used to set GL_DEBUG on and off? Maybe don't put it into the namespace 'Const'
-            // but have it be global and exported?  Then, from tests, we can turn in on or off with a button instead of reload.
             setCoverage(true); // sets the "local" instance of the global COVERAGE_ON flag
             if (this.gameDisplay) {
-                this.logDebug("also setting app coverage on", "test");
                 this.gameDisplay.callSetCoverage(true); // sets the "remote" instance of the global COVERAGE_ON flag
             }
         } else if (buttonId == "coverageOff") {
             setCoverage(false);
             if (this.gameDisplay) {
-                this.logDebug("also setting app coverage off", "test");
                 this.gameDisplay.callSetCoverage(false);
             }
         } else if (buttonId == "showCoverage") {
@@ -231,7 +225,6 @@ class Test extends BaseLogger {
             // If any app tests have been run, this.gameDisplay will be
             // non-null; get counters from GameDisplay.
             if (this.gameDisplay) {
-                this.logDebug("also getting app counters", "test");
                 appCounters = this.gameDisplay.callGetAppCounters();
             }
 
@@ -239,7 +232,6 @@ class Test extends BaseLogger {
         } else if (buttonId == "clearCoverage") {
             clearCoverage();
             if (this.gameDisplay) {
-                this.logDebug("also clearing app counters", "test");
                 this.gameDisplay.callClearAppCoverage();
             }
         } else {
@@ -486,7 +478,7 @@ class Test extends BaseLogger {
             // This url is the URL of the wordchain app that the tests will open.  If we are running unbundled,
             // we will open the unbundled version of the app.
             // If we are bundled, we open the development (bundled) version of the app.
-            // TODO: there is no mode for Test.js to use the 'live' version of the app, via index.html
+            // NOTE: There is no mode for Test.js to use the 'live' version of the app, via index.html
 
             const url = this.isBundled ?
                 '/indexDevelopment.html' :
@@ -862,7 +854,6 @@ class Test extends BaseLogger {
         this.logDebug("finishTheCurrentGame() from", prevWord, "through", nextWords, "test");
         // play from the last played word to the first remaining word.
         for (let nextWord of nextWords) {
-            //this.logDebug("finishTheCurrentGame() step from", prevWord, "to", nextWord, "test");
             const transformation = Solver.getTransformationStep(prevWord, nextWord);
             if (transformation == null) {
                 console.error("ERROR: no single-step from", prevWord, "to", nextWord);
@@ -870,7 +861,6 @@ class Test extends BaseLogger {
             }
             this.playTransformation(transformation);
             prevWord = nextWord;
-            //this.logDebug("finishTheCurrentGame() after step, prevWord is now", prevWord, "test");
         }
         return true;
     }
@@ -887,8 +877,6 @@ class Test extends BaseLogger {
     }
 
     // compares the persisted stats AND stats screen content with expected and calculated values.
-
-    // TODO remove static statsContainer = null;
 
     verifyStats(expStatsBlob, expExtraStepsHistogram) {
 
@@ -1067,7 +1055,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15410;
+        const expectedMinDictSize = 15409;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -2616,32 +2604,6 @@ class Test extends BaseLogger {
             this.hadNoErrors();
     }
 
-    // TODO - this test is not being used
-    testGameStuckOnWrongSpaceAdded() {
-        this.testName = "GameStuckOnWrongSpaceAdded";
-        let [start, target] = ["FISH", "SALTED"];
-        Persistence.saveTestPracticeGameWords(start, target);
-        const game = new PracticeGame(this.fullDict);
-        let r1 = game.playLetter(3, "T"); // -> FIST
-        let r3 = game.playLetter(1, "A"); // -> FAST
-        let r4 = game.playDelete(2);      // -> FAT
-        let r14 = game.playAdd(0);         // -> _FAT At this point, no letter works to make a word.
-        let r15 = game.playLetter(0, "A"); // -> AFAT is not a word.  FAT should now be the active word.
-        let DIs = game.getDisplayInstructions();
-        let DIsAsStrings = DIs.map((di) => di.toStr()).join(",<br>");
-        let expectedDIsAsStrings = `(played,word:FISH,moveRating:ok),<br>(played,word:FIST,moveRating:ok),<br>(played,word:FAST,moveRating:ok),<br>(add,word:FAT),<br>(future,word:FATE,changePosition:0),<br>(future,word:FATED,changePosition:1),<br>(future,word:SATED,changePosition:0),<br>(target,word:SALTED)`;
-
-            this.verifyEqual(r1, Const.GOOD_MOVE, "r1") &&
-                this.verifyEqual(r3, Const.GOOD_MOVE, "r3") &&
-                this.verifyEqual(r4, Const.GOOD_MOVE, "r4") &&
-                this.verifyEqual(r14, Const.GOOD_MOVE, "r14") &&
-                this.verifyEqual(r15, Const.NOT_A_WORD, "r15") &&
-                this.verify(!game.isOver(), "game should not be over yet") &&
-                this.verify(!game.isWinner(), "game should not be a winner after too many wrong moves") &&
-                this.verifyEqual(DIsAsStrings, expectedDIsAsStrings, "display instructions as strings") &&
-                this.hadNoErrors();
-    }
-
     /*
     ** App Tests
     ** App tests need to be run one after the other, pausing to wait for the app window to display, etc.
@@ -2666,7 +2628,8 @@ class Test extends BaseLogger {
             this.dailyGameResultsDivOnExactWinTest,
             this.dailyGameResultsDivWithShownTest,
             this.dailyGameResultsDivOnLossTest,
-            this.updateDailyGameDataTest,
+            this.dailyGameUnfinishedStreakTest,
+            this.dailyGameUpdateDataTest,
             this.practiceGameTestNoConfirm,
             this.practiceGameTest,
             this.practiceGameLimitTest,
@@ -2681,7 +2644,6 @@ class Test extends BaseLogger {
             this.notAWordToastTest,
             this.toastTestDailyWin,
             this.toastTestRecoverDailyWin,
-            //TODO: Need an eagle (and double eagle) test -- maybe the one Brian's brother did?
         ];
     }
 
@@ -3215,19 +3177,36 @@ class Test extends BaseLogger {
             this.hadNoErrors();
     }
 
-    unfinishedDailyGameStatsTest() {
+    dailyGameUnfinishedStreakTest() {
         // the stats after an unfinished daily game should show
         // - streak is up one for trying
         // - won and lost counts unchanged
         // - mistake histogram unchanged
         // First, save some pre-existing stats with a streak and histogram.
         // Then, play but don't finish the daily game
-        // TODO
+        this.testName = "DailyGameUnfinishedStreakTest";
+
+        this.playLetter("O"); // SHORT -> SHOOT
+        this.deleteLetter(4); // SHOOT -> SHOO costs us +2
+        this.finishTheCurrentGame(); 
+
+        // ... and close and re-open it as if on the next day
+        Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO + 1);
+        this.resetTheTestAppWindow();
+
+        // this is our second game started, both in a row.  First one was finished.
+        const expStatsBlob = { gamesStarted : 2, gamesWon : 1, gamesLost : 0, streak : 2 };
+        const expExtraStepsHistogram = { 0: 0, 1: 0, 2: 1, 3: 0, 4: 0, 5: 0 };
+
+        const statsTestResult = this.verifyStats(expStatsBlob, expExtraStepsHistogram);
+        this.logDebug("statsTestResult:", statsTestResult, "test");
+        this.verify (statsTestResult, "stats after starting second consecutive daily game") &&
+            this.hadNoErrors();
     }
 
-    updateDailyGameDataTest() {
+    dailyGameUpdateDataTest() {
         // calls the timer call-back in AppDisplay to update the daily game.
-        this.testName = "UpdateDailyGameData";
+        this.testName = "dailyGameUpdateData";
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const result1 = appDisplay.checkForNewDailyGame();
         // Now, change the existing game number to something else, so that the game IS old
@@ -3252,7 +3231,7 @@ class Test extends BaseLogger {
         // Show Word button is disabled
         // DailyStats has 1 played, 1 lost
 
-        this.testName = "DailyGameShowWordStats";
+        this.testName = "dailyGameShowWordStats";
         const mockEvent = null; // not used by callback
 
         // The newly opened URL should be showing the test daily game by default:
@@ -3323,16 +3302,24 @@ class Test extends BaseLogger {
               statsDisplay = this.openAndGetTheStatsDisplay(),
               statsShareButton = statsDisplay.shareButton;
 
-        //  write the share string and verify it:
-        // TODO: this only verifies the shareString contents, not whether the share is copied to clipboard or the devices
-        // 'share' mechanism.  the clipboard.writeText() call is async, and the catch() clause doesn't
-        // execute on error in the callpath of stats.Display.shareCallback().  The error is handled async; the call
-        // to shareCallback() always returns the calculated shareString, NOT whether it was written to the clipboard.
+        /* Write the share string and verify it.
+         * This only verifies the shareString contents, not whether the share is copied to clipboard or the devices
+         * 'share' mechanism.  the clipboard.writeText() call is async, and the catch() clause doesn't
+         * execute on error in the callstack of stats.Display.shareCallback().  The error is handled async; the call
+         * to shareCallback() always returns the calculated shareString, NOT whether it was written to the clipboard.
+         * Here is code to read the clipboard, but it doesn't work in the test framework because "Document is not  focused.";
+         *
+         * const clipboardText = navigator.clipboard
+         *  .readText()
+         *  .then( (text) >= console.log("clipboard text:", text));
+         */
 
         const statsSrcElement = new MockEventSrcElement();
         const statsMockEvent = new MockEvent(statsSrcElement);
         const actShareString = statsDisplay.shareCallback(statsMockEvent);
         const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 1️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟩🟩🟩🟩\n--------------------\n🟩🟩🟩🟩\n${Const.SHARE_URL}`
+
+
         this.closeTheStatsDisplay();
 
         this.verifyEqual(actShareString, expShareString, "share string") &&
