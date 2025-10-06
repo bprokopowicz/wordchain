@@ -74,12 +74,6 @@ class SettingsDisplay extends AuxiliaryDisplay {
         return ElementUtilities.addElementTo("div", settingDiv, {});
     }
 
-    getAppDisplay() {
-        const CL = "SettingsDisplay.getAppDisplay";
-        COV(0, CL);
-        return this.appDisplay;
-    }
-
     // Add a setting whose input is a checkbox.
     addCheckboxSetting(title, id, value, description="") {
         // setting-simple class styles the contents of the setting (title/description,
@@ -111,7 +105,7 @@ class SettingsDisplay extends AuxiliaryDisplay {
         // setting-complex class styles the contents of the setting (title/description, radio inputs
         // and their labels) vertically, i.e. title/description on one line, then each input on
         // a subsequent line.
-        const CL = "SettingsDisplay.addRadioSetting";
+        const CLunused = "SettingsDisplay.addRadioSetting";
         COV(0, CL);
         const interactiveDiv = this.addSetting(title, "setting-complex", description);
 
