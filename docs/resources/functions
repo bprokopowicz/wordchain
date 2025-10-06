@@ -182,10 +182,8 @@ Picker.ensable
 Picker.selectionCallback
 SettingsDisplay.constructor
 SettingsDisplay.addSetting
-SettingsDisplay.getAppDisplay
 SettingsDisplay.addCheckboxSetting
 SettingsDisplay.addLinkSetting
-SettingsDisplay.addRadioSetting
 SettingsDisplay.checkboxCallback
 Solver.solve
 Solver.finish
