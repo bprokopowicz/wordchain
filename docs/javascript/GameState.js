@@ -1003,6 +1003,8 @@ class PracticeGameState extends GameState{
         const CL = "PracticeGameState.updateStateAfterGame";
         COV(0, CL);
         this.gamesRemaining -= 1;
+        this.persist();
+        Const.GL_DEBUG && this.logDebug("      PracticeGameState.updateStateAfterGame() gamesRemaining is now:", this.gamesRemaining, "gameState");
     }
 
     // Called when the daily game is rolled over, originally from AppDisplay.

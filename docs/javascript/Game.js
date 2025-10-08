@@ -552,6 +552,7 @@ class PracticeGame extends Game {
         const CL = "PracticeGame.nextGame";
         COV(0, CL);
         let result = null;
+        Const.GL_DEBUG && this.logDebug("PracticeGame.nextGame() gameState was", this.gameState,  "game");
         if (! this.gamesRemaining()) {
             COV(1, CL);
             Const.GL_DEBUG && this.logDebug("PracticeGame.nextGame() no games remaining",  "game");
@@ -560,10 +561,11 @@ class PracticeGame extends Game {
             let nGamesRemaining = this.gamesRemaining();
             // get a fresh game and update its gamesRemaining
             Persistence.clearPracticeGameState2(); 
-            let practiceGame = new PracticeGame(); // will be from scratch after clearing game state.
-            practiceGame.gameState.gamesRemaining = nGamesRemaining;
-            practiceGame.gameState.persist();
-            result = practiceGame;
+            let newPracticeGame = new PracticeGame(); // will be from scratch after clearing game state.
+            newPracticeGame.gameState.gamesRemaining = nGamesRemaining;
+            newPracticeGame.gameState.persist();
+            Const.GL_DEBUG && this.logDebug("PracticeGame.nextGame() new gameState is", newPracticeGame.gameState,  "game");
+            result = newPracticeGame;
         }
 
         COV(3, CL);

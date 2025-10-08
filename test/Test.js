@@ -3711,14 +3711,8 @@ class Test extends BaseLogger {
                   child2IsDisabled = children[1].disabled,
                   child2Text = children[1].textContent;
 
-            // IMPORTANT TODO: game.gamesRemaining() isn't counting down??? is it a new GameState in each iteration?
-            // it is stuck at 2.
-            // in GameState.updateStateAfterGame(), GameState.gamesRemaining is decrememented (from 3 to 2, but not after that?)
-            // In PracticeGame.nextGame(), the new PracticeGameState inherits the old (decremented) game state.
 
-            this.logDebug("game.gamesRemaining()=", game.gamesRemaining(), "test");
-            if (gamesStarted < Const.PRACTICE_GAMES_PER_DAY) {
-            //if (game.gamesRemaining() > 0) {
+            if (game.gamesRemaining() > 0) {
                 // Not last game
                 if (
                         // after a game is finished, both showWord and newGame buttons are off
@@ -3730,6 +3724,7 @@ class Test extends BaseLogger {
                    ) {
                     // pretend to click the new game button, and check that showWord button is enabled, newGame button is disabled.
                     this.gameDisplay.newGameCallback(mockEvent);
+                    game = this.gameDisplay.game; // we have a new game in the display now
                     const postGameDiv = this.gameDisplay.postGameDiv,
                           children = postGameDiv.children;
                     const child1IsDisabled = children[0].disabled,
