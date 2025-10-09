@@ -12,6 +12,8 @@ Near Term Changes
   - Add a one-time pop-up/notice: swipe the letter tiles left and right, then tap a letter to select it.
   - Make picker slider always visible (we failed on this, right?)
 - Finish up "less negative user experience" work:
+  - Make target row purple even if WORD_AFTER_ADD/CHANGE
+    - Will probably need to add an isTargetWord to DisplayInstruction
   - Migration of stats in cookie -- any changes needed?
   - Update video
 - Test coverage
@@ -75,6 +77,7 @@ Not Affecting Game Play
   - Replace BROKEN GAME with a randomly selected earlier game, where all players get the same random game
     - Remove all special treatment of BROKEN GAME, i.e. those games count
     - How will we know when this is happening? Analytics?
+- Obfuscate cookies
 
 Testing Issues
 ==============
