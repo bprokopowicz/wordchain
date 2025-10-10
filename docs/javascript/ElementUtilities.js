@@ -237,14 +237,14 @@ class ElementUtilities {
             const isSafari = navigator.vendor.toLowerCase().includes("apple");
             var clickEvent;
             if (isSafari) {
-                COV(1, CL);
+                COV(2, CL);
                 if (navigator.appVersion.toLowerCase().includes("mac os")) {
                     // Safari on MacOS sends MouseEvent, not PointerEvent -- and doesn't define TouchEvent!
                     // so "theEvent instanceof TouchEvent" results in a syntax error "can't find variable
                     // TouchEvent". Sigh!
                     clickEvent = MouseEvent;
                 } else {
-                    COV(2, CL); 
+                    COV(3, CL); 
                     // However, Safari on iOS sends TouchEvent when a button is tapped.
                     clickEvent = TouchEvent;
                 }
@@ -255,7 +255,7 @@ class ElementUtilities {
             if ((isSafari && theEvent instanceof clickEvent) ||
                 ((theEvent instanceof PointerEvent) &&
                  (theEvent.pointerType.length !== 0))) {
-                COV(3, CL); 
+                COV(4, CL); 
                 boundCallbackFunc(theEvent);
             }
         }
@@ -268,7 +268,7 @@ class ElementUtilities {
         buttonElement.addEventListener("click", localCallback, {passive: true});
         buttonElement.addEventListener("keyup", localCallback, {passive: true});
         buttonElement.addEventListener("keydown", localCallback, {passive: true});
-        COV(4, CL); 
+        COV(5, CL); 
     }
 
     // Used only in Test.js.

@@ -180,6 +180,7 @@ class StatsDisplay extends AuxiliaryDisplay {
 
         // Local function to add a stat.
         function addStat(value, label, parentDiv) {
+            COV(1, CL);
             oneStat = ElementUtilities.addElementTo("div", parentDiv, {class: "one-stat"});
             ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-value"}, value);
             ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-label"}, label);
@@ -201,12 +202,14 @@ class StatsDisplay extends AuxiliaryDisplay {
         let extraStepsHistogram = gameState.extraStepsHistogram;
         for (let numExtraSteps = 0; numExtraSteps <= Const.TOO_MANY_EXTRA_STEPS; numExtraSteps++) {
             if (extraStepsHistogram[numExtraSteps] > maxWrongWordsValue) {
+                COV(2, CL);
                 maxWrongWordsValue = extraStepsHistogram[numExtraSteps];
             }
         }
 
         // Local function to add a bar.
         function addBar(barValue, barLabel, parentDiv) {
+            COV(3, CL);
 
             // Calculate the width of the bar as a percentage of the maximum value determined above.
             // Set width to a minimum of 10% so there's a bar to contain the value.
@@ -229,6 +232,7 @@ class StatsDisplay extends AuxiliaryDisplay {
             const barValue = extraStepsHistogram[numExtraSteps];
             addBar(barValue, Const.NUMBERS[numExtraSteps], this.statsDistribution);
         }
+        COV(4, CL);
     }
 }
 

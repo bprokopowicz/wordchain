@@ -146,21 +146,25 @@ class EmptyLetterCell extends LetterCell {
         COV(0, CL);
 
         this.addClass("letter-cell-future", this.cellContainer);
-
         this.handleLetterChangeIfNeeded(letterPosition, changePosition);
     }
 }
 
-// These cells have a letter (possibly '?'), no background color, and the border may indicate change.
-// Used for 'wordAfterAdd' and 'wordAfterChange' display instructions.
+// These cells have a letter (possibly '?'), USUALLY no background color, and the border may indicate change.
+// Used for 'wordAfterAdd' and 'wordAfterChange' display instructions. Has a background color if isTargetWord is true.
 class LetterCellNoBackground extends LetterCell {
-    constructor(letter, letterPosition,  changePosition) {
+    constructor(letter, letterPosition,  changePosition, isTargetWord) {
         super(letter);
 
         const CL = "LetterCellNoBackground.constructor";
         COV(0, CL);
 
         this.handleLetterChangeIfNeeded(letterPosition, changePosition);
+
+        if (isTargetWord) {
+            COV(1, CL);
+            this.addClass("letter-cell-target", this.cellContainer);
+        }
     }
 }
 
@@ -188,9 +192,6 @@ class LetterCellWithBackground extends LetterCell {
                 this.addClass("letter-cell-target", this.cellContainer);
             } else {
                 COV(3, CL);
-                // TODO: Maybe this should just pass Const.GOOD_MOVE so always green if game
-                // is finished, even if last word was shown. Target word should not have
-                // moveRating SCRABBLE_MOVE, GENIUS_MOVE, DODO_MOVE, or WRONG_MOVE.
                 this.addBackgroundClassBasedOnMoveRating(moveRating);
             }
         }

@@ -126,11 +126,13 @@ class DisplayInstruction {
     //
     // isStartWord: true for the first word in list of display instructions; false otherwise
     //
+    // isTargetWord: true for the last word in list of display instructions; false otherwise
+    //
     // showParLine: true if "par line" should be shown at the bottom of this word; false otherwise
     //              (NOTE: this should be true for exactly one instruction per list of
     //              DisplayInstruction; initially it's the target word instruction.)
     //
-    constructor(word, displayType, changePosition, moveRating, isStartWord, showParLine) {
+    constructor(word, displayType, changePosition, moveRating, isStartWord, isTargetWord, showParLine) {
         const CL = "DisplayInstruction.constructor";
         COV(0, CL);
         this.word = word;
@@ -138,6 +140,7 @@ class DisplayInstruction {
         this.changePosition = changePosition;
         this.moveRating = moveRating;
         this.isStartWord = isStartWord;
+        this.isTargetWord = isTargetWord;
         this.showParLine = showParLine;
     }
 
@@ -149,6 +152,7 @@ class DisplayInstruction {
         returnStr += `,changePosition:${this.changePosition}`;
         returnStr += `,moveRating:${this.moveRating}`;
         returnStr += `,isStartWord:${this.isStartWord}`;
+        returnStr += `,isTargetWord:${this.isTargetWord}`;
         returnStr += `,showParLine:${this.showParLine}`;
 
         returnStr += ")";
@@ -183,39 +187,39 @@ class DisplayInstruction {
     // Covers cases: 1, 5, 14
     static FAUX_1 = [
         [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("ACORN",   Const.FUTURE,            2,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ADORN",   Const.FUTURE,            5,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+                                 // word      displayType              change  moveRating           isStart  isTarget  parLine
+            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("ACORN",   Const.FUTURE,            2,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ADORN",   Const.FUTURE,            5,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks first '+'
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    2,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ADORN",   Const.FUTURE,            5,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    2,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ADORN",   Const.FUTURE,            5,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'A'
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("ACORN",   Const.PLAYED_CHANGE,     2,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("A?ORN",   Const.WORD_AFTER_CHANGE, 5,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("ACORN",   Const.PLAYED_CHANGE,     2,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("A?ORN",   Const.WORD_AFTER_CHANGE, 5,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'D'
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("ACORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ADORN",   Const.PLAYED_CHANGE,     5,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ADOR?",   Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("ACORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ADORN",   Const.PLAYED_CHANGE,     5,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ADOR?",   Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'E'
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("ACORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ADORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("ACORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ADORN",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ADORE",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true,     true),
         ],
     ];
 
@@ -223,28 +227,28 @@ class DisplayInstruction {
     // Covers cases: 2, 7, 13
     static FAUX_2 = [
         [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+                                 // word      displayType              change  moveRating           isStart  isTarget  parLine
+            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'C'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks first '+'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'A'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true,     true),
         ],
     ];
 
@@ -252,36 +256,36 @@ class DisplayInstruction {
     // Covers cases: 2, 7, 14
     static FAUX_3 = [
         [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+                                 // word      displayType              change  moveRating           isStart  isTarget  parLine
+            new DisplayInstruction("BORN",    Const.PLAYED_CHANGE,     1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("?ORN",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'C'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks first '+'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'S'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SCORN",   Const.PLAYED_CHANGE,     1,      Const.WRONG_MOVE,    false,   true),
-            new DisplayInstruction("?CORN",   Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("SCORN",   Const.PLAYED_CHANGE,     1,      Const.WRONG_MOVE,    false,   false,    true),
+            new DisplayInstruction("?CORN",   Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true,     false),
         ],
         [
             // User plays 'A'
-            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SCORN",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   true),
-            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BORN",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CORN",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("SCORN",   Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false,    true),
+            new DisplayInstruction("ACORN",   Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true,     false),
         ],
     ];
 
@@ -289,22 +293,22 @@ class DisplayInstruction {
     // Covers cases: 3, 12, 15
     static FAUX_4 = [
         [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("PLACE",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("LACE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+                                 // word      displayType              change  moveRating           isStart  isTarget  parLine
+            new DisplayInstruction("PLACE",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("LACE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks first '-'
-            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("LACE",    Const.PLAYED_DELETE,     0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED_DELETE,     0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks first '-'
-            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true,     true),
         ],
     ];
 
@@ -312,22 +316,22 @@ class DisplayInstruction {
     // Covers cases: 3, 11, 14
     static FAUX_5 = [
         [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("PLACE",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("LACE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("RACE",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+                                 // word      displayType              change  moveRating           isStart  isTarget  parLine
+            new DisplayInstruction("PLACE",   Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("LACE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("RACE",    Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks first '-'
-            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("LACE",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?ACE",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?ACE",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'R'
-            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("RACE",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("PLACE",   Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("LACE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("RACE",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true,     true),
         ],
     ];
 
@@ -335,60 +339,60 @@ class DisplayInstruction {
     // Covers cases: 2, 4, 8, 13
     static FAUX_6 = [
         [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("BANG",    Const.PLAYED_CHANGE,     4,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BAN?",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BASE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ABASE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+                                 // word      displayType              change  moveRating           isStart  isTarget  parLine
+            new DisplayInstruction("BANG",    Const.PLAYED_CHANGE,     4,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BAN?",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BASE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ABASE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'E'
-            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BANE",    Const.PLAYED_CHANGE,     3,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BA?E",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ABASE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BANE",    Const.PLAYED_CHANGE,     3,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BA?E",    Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ABASE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'S'
-            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BASE",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ABASE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BASE",    Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ABASE",   Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks first '+'
-            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BASE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?BASE",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BASE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?BASE",   Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'A'
-            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BASE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ABASE",   Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BASE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ABASE",   Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks last '+'
-            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BASE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ABASE",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ABASE?",  Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BASE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ABASE",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ABASE?",  Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'D'
-            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BASE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ABASE",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("BANG",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BASE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ABASE",   Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ABASED",  Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true,     true),
         ],
     ];
 
@@ -396,39 +400,39 @@ class DisplayInstruction {
     // Covers cases: 1, 6, 14
     static FAUX_7 = [
         [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("ACT",     Const.PLAYED_ADD,        0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("FACT",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FAT",     Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SAT",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+                                 // word      displayType              change  moveRating           isStart  isTarget  parLine
+            new DisplayInstruction("ACT",     Const.PLAYED_ADD,        0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("FACT",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("FAT",     Const.FUTURE,            1,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("SAT",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks first '+'
-            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("?ACT",    Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FAT",     Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SAT",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("?ACT",    Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("FAT",     Const.FUTURE,            1,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("SAT",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'F'
-            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("FACT",    Const.PLAYED_DELETE,     0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FAT",     Const.FUTURE,            1,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SAT",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("FACT",    Const.PLAYED_DELETE,     0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FAT",     Const.FUTURE,            1,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("SAT",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks third '-'
-            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FAT",     Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?AT",     Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FAT",     Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?AT",     Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'S'
-            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FAT",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SAT",     Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FAT",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("SAT",     Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true,     true),
         ],
     ];
 
@@ -436,28 +440,28 @@ class DisplayInstruction {
     // Tests cases 3, 10, 13
     static FAUX_8 = [
         [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("FACT",    Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("ACT",     Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACTS",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+                                 // word      displayType              change  moveRating           isStart  isTarget  parLine
+            new DisplayInstruction("FACT",    Const.PLAYED_DELETE,     0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("ACT",     Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACTS",    Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks first '-'
-            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("ACT",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACTS",    Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("ACT",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ACTS",    Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks last '+'
-            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACT?",    Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ACT?",    Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'S'
-            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ACTS",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("FACT",    Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("ACT",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ACTS",    Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true,     true),
         ],
     ];
 
@@ -473,86 +477,86 @@ class DisplayInstruction {
     // Covers cases: 9 (among others)
     static FAUX_9 = [
         [
-                                 // word      displayType              change  moveRating           isStart  parLine
-            new DisplayInstruction("BIN",     Const.PLAYED_CHANGE,     2,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("B?N",     Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BANE",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BALE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ALE",     Const.FUTURE,            2,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+                                 // word      displayType              change  moveRating           isStart  isTarget  parLine
+            new DisplayInstruction("BIN",     Const.PLAYED_CHANGE,     2,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("B?N",     Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BANE",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BALE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ALE",     Const.FUTURE,            2,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'A'
-            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BAN",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BANE",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BALE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ALE",     Const.FUTURE,            2,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BAN",     Const.PLAYED_ADD,        0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BANE",    Const.FUTURE,            3,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BALE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ALE",     Const.FUTURE,            2,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User clicks last '+'
-            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAN?",    Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BALE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ALE",     Const.FUTURE,            2,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAN?",    Const.WORD_AFTER_ADD,    0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BALE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ALE",     Const.FUTURE,            2,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     true),
         ],
         [
             // User plays 'D' (oops ... adds a word!)
             // From BAND to ACE, Solver Tester finds: BAND, AND, ANT, ACT, ACE
-            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAND",    Const.PLAYED_DELETE,     0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("AND",     Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ANT",     Const.FUTURE,            2,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACT",     Const.FUTURE,            3,      Const.NO_RATING,     false,   true),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAND",    Const.PLAYED_DELETE,     0,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("AND",     Const.FUTURE,            3,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ANT",     Const.FUTURE,            2,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACT",     Const.FUTURE,            3,      Const.NO_RATING,     false,   false,    true),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     false),
         ],
         [
             // User clicks 'My Way' and enters WAND (adds another word)
             // From WAND to ACE, Solver tester finds: WAND, AND, ANT, ACT, ACE
-            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("WAND",    Const.PLAYED_DELETE,     0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("AND",     Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ANT",     Const.FUTURE,            2,      Const.NO_RATING,     false,   true),
-            new DisplayInstruction("ACT",     Const.FUTURE,            3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("WAND",    Const.PLAYED_DELETE,     0,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("AND",     Const.FUTURE,            3,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ANT",     Const.FUTURE,            2,      Const.NO_RATING,     false,   false,    true),
+            new DisplayInstruction("ACT",     Const.FUTURE,            3,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     false),
         ],
         [
             // User clicks 'My Way' and enters WANE (no change to path length)
             // From WANE to ACE, Solver tester finds: WANE, LANE, LACE, ACE
-            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("WAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("WANE",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?ANE",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   true),
-            new DisplayInstruction("LACE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("WAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("WANE",    Const.PLAYED_CHANGE,     1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?ANE",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false,    true),
+            new DisplayInstruction("LACE",    Const.FUTURE,            0,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.NO_RATING,     false,   true,     false),
         ],
         [
             // User clicks 'My Way' and enters ANE (in scrabble dictionary ... shortens the path!)
-            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("WAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("WANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ANE",     Const.PLAYED_CHANGE,     2,      Const.GENIUS_MOVE,   false,   true),
-            new DisplayInstruction("A?E",     Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("WAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("WANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ANE",     Const.PLAYED_CHANGE,     2,      Const.GENIUS_MOVE,   false,   false,    true),
+            new DisplayInstruction("A?E",     Const.WORD_AFTER_CHANGE, 0,      Const.NO_RATING,     false,   true,     false),
         ],
         [
             // User plays 'C'
-            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("WAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("WANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("ANE",     Const.PLAYED,            0,      Const.GENIUS_MOVE,   false,   true),
-            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("BIN",     Const.PLAYED,            0,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BAN",     Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("WAND",    Const.PLAYED,            0,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("WANE",    Const.PLAYED,            0,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("ANE",     Const.PLAYED,            0,      Const.GENIUS_MOVE,   false,   false,    true),
+            new DisplayInstruction("ACE",     Const.TARGET,            0,      Const.GOOD_MOVE,     false,   true,     false),
         ],
     ];
 

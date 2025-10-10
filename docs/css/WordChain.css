@@ -721,6 +721,11 @@ button.action-button {
     ** for the scroll bar to look OK.
     */
     height: 55px;
+
+    display:flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
 }
 
 .picker-inner-div {
@@ -730,6 +735,8 @@ button.action-button {
 }
 
 .picker-table {
+    /* This eliminates space around the one and only table row. */
+    border-collapse: collapse;
 }
 
 .picker-tr {
@@ -756,6 +763,31 @@ button.action-button {
     ** to 'none' interferes with the ability to scroll the picker.
     */
     touch-action: pan-x;
+}
+
+/*
+** These triangles are used to give users a visual cue that they need
+** to slide/swipe right/left to move the letters.
+**
+** Helpful article explains clip-path polygon() for triangles:
+** https://verpex.com/blog/website-tips/css-shapes-the-triangle
+*/
+.triangle-left {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  aspect-ratio: 1;
+  background: black;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+.triangle-right {
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  aspect-ratio: 1;
+  background: black;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
 /*
@@ -1116,6 +1148,11 @@ input.setting-radio {
         ** obstruct the picker.
         */
         height: 110px;
+
+        display:flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
     }
 }
 

@@ -47,6 +47,7 @@ class Solver {
         let loopCount = 0;
         let startTime = Date.now();
         while (workingSolutions.length > 0) {
+            COV(2, CL);
             // Get the next partial solution from the heap; we'll add working solutions based on this
             let solution = workingSolutions.shift();
 
@@ -61,6 +62,7 @@ class Solver {
                 let newWorkingSolution = solution.copy().addWord(word, isPlayed, moveRating);
                 Const.GL_DEBUG && Solver.logger.logDebug("   checking ", newWorkingSolution, "solver-details");
                 if (newWorkingSolution.isSolved()) {
+                    COV(3, CL);
                     return newWorkingSolution;
                 }
                 Const.GL_DEBUG && Solver.logger.logDebug("   adding ", newWorkingSolution, "solver-details");
@@ -87,7 +89,7 @@ class Solver {
             }
 
         }
-        COV(2, CL);
+        COV(4, CL);
         startingSolution.addError("No solution");
         return startingSolution;
     }
@@ -101,7 +103,7 @@ class Solver {
         let localDictionary = dict.copy();
         let desiredPuzzles = [];
         if (!localDictionary.isWord(startWord)) {
-            Const.GL_DEBUG && Solver.logger.logDebug(startWord + " is not a word.", "solver");
+            console.error("Solver.findPuzzles():", startWord, "is not a word.", "solver");
             return desiredPuzzles;
         }
         // search forever until all suitable puzzles are found
@@ -279,6 +281,8 @@ class Solution extends BaseLogger {
     }
 
     addWord(newWord) {
+        const CL = "Solution.addWord";
+        COV(0, CL);
         this.solutionWords.push(newWord);
         return this;
     }

@@ -235,7 +235,8 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayWordAfterAdd";
         COV(0, CL);
 
-        const changePosition = displayInstruction.changePosition;
+        const changePosition = displayInstruction.changePosition,
+              isTargetWord = displayInstruction.isTargetWord;
 
         this.holeLetterPosition = displayInstruction.word.indexOf(Const.HOLE);
         if (this.holeLetterPosition < 0) {
@@ -243,7 +244,7 @@ class GameDisplay extends BaseLogger {
         }
 
         function getCell(letter, letterPosition) {
-            return new LetterCellNoBackground(letter, letterPosition, changePosition);
+            return new LetterCellNoBackground(letter, letterPosition, changePosition, isTargetWord);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -253,7 +254,8 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.displayWordAfterChange";
         COV(0, CL);
 
-        const changePosition = displayInstruction.changePosition;
+        const changePosition = displayInstruction.changePosition,
+              isTargetWord = displayInstruction.isTargetWord;
 
         this.holeLetterPosition = displayInstruction.word.indexOf(Const.HOLE);
         if (this.holeLetterPosition < 0) {
@@ -261,7 +263,7 @@ class GameDisplay extends BaseLogger {
         }
 
         function getCell(letter, letterPosition) {
-            return new LetterCellNoBackground(letter, letterPosition, changePosition);
+            return new LetterCellNoBackground(letter, letterPosition, changePosition, isTargetWord);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -366,17 +368,17 @@ class GameDisplay extends BaseLogger {
         }
 
         if (!this.game.gameState.canShowMove()) {
-            COV(3, CL);
+            COV(14, CL);
             Const.GL_DEBUG && this.logDebug("disabling show word button in GameDisplay.showGameAfterMove()", "callback");
             ElementUtilities.disableButton(this.showWordButton);
         }
 
         if (this.gameIsOver()) {
-            COV(14, CL);
+            COV(15, CL);
             this.showGameOverGoodies();
         }
 
-        COV(15, CL);
+        COV(16, CL);
     }
 
     showGameOverGoodies() {
@@ -523,7 +525,7 @@ class GameDisplay extends BaseLogger {
             }
         }
 
-        COV(4, CL);
+        COV(3, CL);
         return result;
     }
 
@@ -611,8 +613,7 @@ class GameDisplay extends BaseLogger {
     // Some pass-through functions to access game and gameState.
 
     getMsUntilNextGame() {
-        const CL = "GameDisplay.getMsUntilNextGame";
-        COV(0, CL);
+        // Not putting coverage here intentionally; we can't test this in our suite.
         return this.game.gameState.getMsUntilNextGame();
     }
 
@@ -623,6 +624,8 @@ class GameDisplay extends BaseLogger {
     }
 
     getTargetWord() {
+        const CL = "GameDisplay.getTargetWord";
+        COV(0, CL);
         return this.game.gameState.getTargetWord();
     }
 
@@ -684,15 +687,18 @@ class GameDisplay extends BaseLogger {
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("GameDisplay.processGamePlayResult() gameResult: ", gameResult, "callback");
         if (this.shouldShowToastForResult(gameResult)) {
+            COV(1, CL);
             this.appDisplay.showToast(gameResult);
         }
 
         this.showGameAfterMove();
 
         if (this.game.isOver()) {
-            COV(1, CL);
+            COV(2, CL);
             this.showGameOverToast();
         }
+
+        COV(3, CL);
     }
 
     shouldShowToastForResult(gameResult) {
@@ -716,6 +722,7 @@ class GameDisplay extends BaseLogger {
             COV(2, CL);
             this.appDisplay.showToast(Const.GAME_LOST);
         }
+        COV(3, CL);
     }
 
     // Changes the class on the appropriate element relative to the selected button

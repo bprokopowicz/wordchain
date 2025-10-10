@@ -1837,7 +1837,7 @@ class Test extends BaseLogger {
         const game = new PracticeGame(smallDict);
 
         const playResult = game.playDelete(6);
-        this.verifyEqual(playResult, Const.BAD_POSITION, "Delete attempted at bad position") &&
+        this.verifyEqual(playResult, Const.BAD_LETTER_POSITION, "Delete attempted at bad position") &&
             this.hadNoErrors();
     }
 
@@ -1900,35 +1900,35 @@ class Test extends BaseLogger {
         const afterPlayLetterTInstructions = game.getDisplayInstructions();
 
         const expectedInitialInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         // after delete S
         const expectedPlayDeleteInstructions = [
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     0,       Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     0,       Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         // after play B
         const expectedPlayLetterBInstructions = [
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAD",    Const.PLAYED_CHANGE,      2,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BA?",    Const.WORD_AFTER_CHANGE, -1,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAD",    Const.PLAYED_CHANGE,      2,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BA?",    Const.WORD_AFTER_CHANGE, -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         // after play T
         const expectedPlayLetterTInstructions = [
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.GOOD_MOVE,     false,   true),
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.GOOD_MOVE,     false,   true,     true),
         ];
 
         this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
@@ -1954,28 +1954,28 @@ class Test extends BaseLogger {
         // the interface would not allow us to play.
 
         const expectedInitialInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         // after delete "S"
         const expectedAfterDeleteInstructions = [
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     0,       Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     0,       Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         // after play R
         const expectedCadToCarInstructions = [
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("CAR",    Const.PLAYED_CHANGE,     2,       Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("CA?",    Const.WORD_AFTER_CHANGE, 0,       Const.NO_RATING,     false,   true),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("CAR",    Const.PLAYED_CHANGE,     2,       Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("CA?",    Const.WORD_AFTER_CHANGE, 0,       Const.NO_RATING,     false,   false,    true),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     false),
         ];
 
         const initialInstructions = game.getDisplayInstructions();
@@ -2005,27 +2005,27 @@ class Test extends BaseLogger {
         const game = new PracticeGame(smallDict); // shortest solution is SCAD,CAD,BAD,BAT but SCAD,CAD,CAT,BAT also works
 
         const expectedInitialInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         // after delete "S"
         const expectedAfterDeleteInstructions = [
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     0,       Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED_CHANGE,     0,       Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?AD",    Const.WORD_AFTER_CHANGE, 2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         // after playing CAD->CAT instead of CAD->BAD
         const expectedCadToCatInstructions = [
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("CAT",    Const.PLAYED_CHANGE,     0,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?AT",    Const.WORD_AFTER_CHANGE, -1,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("CAT",    Const.PLAYED_CHANGE,     0,       Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?AT",    Const.WORD_AFTER_CHANGE, -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         const initialInstructions = game.getDisplayInstructions();
@@ -2051,17 +2051,17 @@ class Test extends BaseLogger {
         Persistence.saveTestPracticeGameWords(start, target);
 
         const expectedInitialInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("BAD",    Const.PLAYED_CHANGE,     2,       Const.NO_RATING,     true,    false),
-            new DisplayInstruction("BA?",    Const.WORD_AFTER_CHANGE, 0,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("CAT",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("CAR",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("BAD",    Const.PLAYED_CHANGE,     2,       Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("BA?",    Const.WORD_AFTER_CHANGE, 0,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("CAT",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("CAR",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
         const expectedAfterMInstructions = [
-            new DisplayInstruction("BAD",    Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("MAD",    Const.PLAYED_CHANGE,     2,       Const.SCRABBLE_MOVE, false,   false),
-            new DisplayInstruction("MA?",    Const.WORD_AFTER_CHANGE, 0,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("CAR",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+            new DisplayInstruction("BAD",    Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("MAD",    Const.PLAYED_CHANGE,     2,       Const.SCRABBLE_MOVE, false,   false,    false),
+            new DisplayInstruction("MA?",    Const.WORD_AFTER_CHANGE, 0,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("CAR",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
 
@@ -2083,25 +2083,25 @@ class Test extends BaseLogger {
         Persistence.saveTestPracticeGameWords(start, target);
 
         const expectedInitialInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
         const expectedAfterScagInstructions = [
-            new DisplayInstruction("SCAD",    Const.PLAYED,           -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SCAG",    Const.PLAYED_DELETE,    -1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("SAG",     Const.FUTURE,           2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SAT",     Const.FUTURE,           0,       Const.NO_RATING,     false,   true),
-            new DisplayInstruction("BAT",     Const.TARGET,           -1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SCAD",    Const.PLAYED,           -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SCAG",    Const.PLAYED_DELETE,    -1,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("SAG",     Const.FUTURE,           2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("SAT",     Const.FUTURE,           0,       Const.NO_RATING,     false,   false,    true),
+            new DisplayInstruction("BAT",     Const.TARGET,           -1,      Const.NO_RATING,     false,   true,     false),
         ];
         const expectedAfterSagInstructions = [
-            new DisplayInstruction("SCAD",    Const.PLAYED,           -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SCAG",    Const.PLAYED,           -1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("SAG",     Const.PLAYED_CHANGE,    2,       Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SA?",     Const.WORD_AFTER_CHANGE,0,       Const.NO_RATING,     false,   true),
-            new DisplayInstruction("BAT",     Const.TARGET,           -1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SCAD",    Const.PLAYED,           -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SCAG",    Const.PLAYED,           -1,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("SAG",     Const.PLAYED_CHANGE,    2,       Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("SA?",     Const.WORD_AFTER_CHANGE,0,       Const.NO_RATING,     false,   false,    true),
+            new DisplayInstruction("BAT",     Const.TARGET,           -1,      Const.NO_RATING,     false,   true,     false),
         ];
 
         // starting
@@ -2134,24 +2134,24 @@ class Test extends BaseLogger {
         const game = new PracticeGame(smallDict);
 
         const expectedInitialInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("CAT",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SAT",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("SAG",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("CAT",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("SAT",    Const.FUTURE,            2,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("SAG",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         const expectedAfterScagInstructions = [
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SCAG",   Const.PLAYED_DELETE,     -1,      Const.GENIUS_MOVE,   false,   false),
-            new DisplayInstruction("SAG",    Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SCAG",   Const.PLAYED_DELETE,     -1,      Const.GENIUS_MOVE,   false,   false,    false),
+            new DisplayInstruction("SAG",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     false),
         ];
 
         const expectedAfterSagInstructions = [
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SCAG",   Const.PLAYED,            -1,      Const.GENIUS_MOVE,   false,   false),
-            new DisplayInstruction("SAG",    Const.TARGET,            -1,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SCAG",   Const.PLAYED,            -1,      Const.GENIUS_MOVE,   false,   false,    false),
+            new DisplayInstruction("SAG",    Const.TARGET,            -1,      Const.GOOD_MOVE,     false,   true,     false),
         ];
 
         const initialInstructions = game.getDisplayInstructions();
@@ -2176,58 +2176,58 @@ class Test extends BaseLogger {
         // shortest solution is PLANE,PANE,PANED, but dodo move is PLANE,PLAN,PAN,PANE,PANED
 
         const expectedInitialInstructions = [
-                                // word       type                     change  rating               isStart  parLine
-            new DisplayInstruction("PLANE",   Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("PANE",    Const.FUTURE,            -1,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("PANED",   Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("PLANE",  Const.PLAYED_DELETE,     -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("PANE",   Const.FUTURE,            -1,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("PANED",  Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
         ];
 
         const expectedPlaneToPlanInstructions = [
-            new DisplayInstruction("PLANE",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("PLAN",    Const.PLAYED_DELETE,     -1,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.FUTURE,            -1,      Const.NO_RATING,     false,   true),
-            new DisplayInstruction("PANE",    Const.FUTURE,            -1,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("PANED",   Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PLANE",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("PLAN",   Const.PLAYED_DELETE,     -1,      Const.DODO_MOVE,     false,   false,    false),
+            new DisplayInstruction("PAN",    Const.FUTURE,            -1,      Const.NO_RATING,     false,   false,    true),
+            new DisplayInstruction("PANE",   Const.FUTURE,            -1,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("PANED",  Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     false),
         ];
 
         const expectedPlanToPanInstructions = [
-            new DisplayInstruction("PLANE",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("PLAN",    Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED_ADD,        -1,      Const.GOOD_MOVE,     false,   true),
-            new DisplayInstruction("PANE",    Const.FUTURE,            -1,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("PANED",   Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PLANE",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("PLAN",   Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false,    false),
+            new DisplayInstruction("PAN",    Const.PLAYED_ADD,        -1,      Const.GOOD_MOVE,     false,   false,    true),
+            new DisplayInstruction("PANE",   Const.FUTURE,            -1,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("PANED",  Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     false),
         ];
 
         const expectedPanToPanXInstructions = [
-            new DisplayInstruction("PLANE",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("PLAN",    Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   true),
-            new DisplayInstruction("PAN?",    Const.WORD_AFTER_ADD,    -1,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("PANED",   Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PLANE",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("PLAN",   Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false,    false),
+            new DisplayInstruction("PAN",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    true),
+            new DisplayInstruction("PAN?",   Const.WORD_AFTER_ADD,    -1,      Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("PANED",  Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     false),
         ];
 
         const expectedPanXToPaneInstructions = [
-            new DisplayInstruction("PLANE",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("PLAN",    Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   true),
-            new DisplayInstruction("PANE",    Const.PLAYED_ADD,        -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("PANED",   Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PLANE",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("PLAN",   Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false,    false),
+            new DisplayInstruction("PAN",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    true),
+            new DisplayInstruction("PANE",   Const.PLAYED_ADD,        -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("PANED",  Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     false),
         ];
 
         const expectedPaneToPaneXInstructions = [
-            new DisplayInstruction("PLANE",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("PLAN",    Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   true),
-            new DisplayInstruction("PANE",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("PANE?",   Const.WORD_AFTER_ADD,    -1,      Const.NO_RATING,     false,   false),
+            new DisplayInstruction("PLANE",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("PLAN",   Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false,    false),
+            new DisplayInstruction("PAN",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    true),
+            new DisplayInstruction("PANE",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("PANE?",  Const.WORD_AFTER_ADD,    -1,      Const.NO_RATING,     false,   true,     false),
         ];
 
         const expectedPaneXToPanedInstructions = [
-            new DisplayInstruction("PLANE",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("PLAN",    Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("PAN",     Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   true),
-            new DisplayInstruction("PANE",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("PANED",   Const.TARGET,            -1,      Const.GOOD_MOVE,     false,   false),
+            new DisplayInstruction("PLANE",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("PLAN",   Const.PLAYED,            -1,      Const.DODO_MOVE,     false,   false,    false),
+            new DisplayInstruction("PAN",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    true),
+            new DisplayInstruction("PANE",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("PANED",  Const.TARGET,            -1,      Const.GOOD_MOVE,     false,   true,     false),
         ];
 
         const initialInstructions = game.getDisplayInstructions();
@@ -2347,11 +2347,11 @@ class Test extends BaseLogger {
         game.gameState.showUnplayedMoves();
 
         const expectedFinalInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("BAD",    Const.PLAYED,            -1,      Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.SHOWN_MOVE,    false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.SHOWN_MOVE,    false,   false,    false),
+            new DisplayInstruction("BAD",    Const.PLAYED,            -1,      Const.SHOWN_MOVE,    false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.SHOWN_MOVE,    false,   true,     true),
         ];
 
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
@@ -2371,11 +2371,11 @@ class Test extends BaseLogger {
         const showWordResult = game.showNextMove();
 
         const expectedFinalInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.SHOWN_MOVE,    false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SCAD",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("CAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAD",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BAT",    Const.TARGET,            -1,      Const.GOOD_MOVE,    false,   true,     true),
         ];
 
         const displayInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, CAD, CAT, BAT
@@ -2467,37 +2467,37 @@ class Test extends BaseLogger {
         const finalDisplayInstructions = game.getDisplayInstructions();
 
         const expectedBeforeLossInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SALTED", Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SATED",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FATED",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FATE",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FAT",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FLAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FRAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FEAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   true),
-            new DisplayInstruction("FELT",   Const.PLAYED_CHANGE,     2,       Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FE?T",   Const.WORD_AFTER_CHANGE, 1,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FIST",   Const.FUTURE,            3,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("FISH",   Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SALTED", Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SATED",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FATED",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FATE",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FAT",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FLAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("FRAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("FEAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false,    true),
+            new DisplayInstruction("FELT",   Const.PLAYED_CHANGE,     2,       Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("FE?T",   Const.WORD_AFTER_CHANGE, 1,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("FIST",   Const.FUTURE,            3,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("FISH",   Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     false),
         ];
 
 
         const expectedFinalInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SALTED", Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SATED",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FATED",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FATE",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FAT",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FLAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FRAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FEAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   true),
-            new DisplayInstruction("FELT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FEET",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FEST",   Const.PLAYED,            -1,      Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("FIST",   Const.PLAYED,            -1,      Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("FISH",   Const.TARGET,            -1,      Const.SHOWN_MOVE,    false,   false),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SALTED", Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SATED",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FATED",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FATE",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FAT",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("FLAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("FRAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("FEAT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false,    true),
+            new DisplayInstruction("FELT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("FEET",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("FEST",   Const.PLAYED,            -1,      Const.SHOWN_MOVE,    false,   false,    false),
+            new DisplayInstruction("FIST",   Const.PLAYED,            -1,      Const.SHOWN_MOVE,    false,   false,    false),
+            new DisplayInstruction("FISH",   Const.TARGET,            -1,      Const.SHOWN_MOVE,    false,   true,     false),
         ];
 
         this.verifyEqual(r1, Const.GOOD_MOVE, "r1") &&
@@ -2534,20 +2534,20 @@ class Test extends BaseLogger {
 
         const displayInstructions = game.getDisplayInstructions();
         const expectedFinalInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("FISH",   Const.PLAYED,            -1,     Const.NO_RATING,     true,    false),
-            new DisplayInstruction("FIST",   Const.PLAYED,            -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FEST",   Const.PLAYED,            -1,     Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FAST",   Const.PLAYED,            -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FAT",    Const.PLAYED,            -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FRAT",   Const.PLAYED,            -1,     Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("FAT",    Const.PLAYED,            -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("FEAT",   Const.PLAYED,            -1,     Const.DODO_MOVE,     false,   true),
-            new DisplayInstruction("EAT",    Const.PLAYED,            -1,     Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("SAT",    Const.PLAYED,            -1,     Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("SATE",   Const.PLAYED,            -1,     Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("SATED",  Const.PLAYED,            -1,     Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("SALTED", Const.TARGET,            -1,     Const.SHOWN_MOVE,    false,   false),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("FISH",   Const.PLAYED,            -1,     Const.NO_RATING,      true,    false,    false),
+            new DisplayInstruction("FIST",   Const.PLAYED,            -1,     Const.GOOD_MOVE,      false,   false,    false),
+            new DisplayInstruction("FEST",   Const.PLAYED,            -1,     Const.WRONG_MOVE,     false,   false,    false),
+            new DisplayInstruction("FAST",   Const.PLAYED,            -1,     Const.GOOD_MOVE,      false,   false,    false),
+            new DisplayInstruction("FAT",    Const.PLAYED,            -1,     Const.GOOD_MOVE,      false,   false,    false),
+            new DisplayInstruction("FRAT",   Const.PLAYED,            -1,     Const.DODO_MOVE,      false,   false,    false),
+            new DisplayInstruction("FAT",    Const.PLAYED,            -1,     Const.GOOD_MOVE,      false,   false,    false),
+            new DisplayInstruction("FEAT",   Const.PLAYED,            -1,     Const.DODO_MOVE,      false,   false,    true),
+            new DisplayInstruction("EAT",    Const.PLAYED,            -1,     Const.SHOWN_MOVE,     false,   false,    false),
+            new DisplayInstruction("SAT",    Const.PLAYED,            -1,     Const.SHOWN_MOVE,     false,   false,    false),
+            new DisplayInstruction("SATE",   Const.PLAYED,            -1,     Const.SHOWN_MOVE,     false,   false,    false),
+            new DisplayInstruction("SATED",  Const.PLAYED,            -1,     Const.SHOWN_MOVE,     false,   false,    false),
+            new DisplayInstruction("SALTED", Const.TARGET,            -1,     Const.SHOWN_MOVE,     false,   true,     false),
         ];
 
         this.verifyEqual(r1, Const.GOOD_MOVE, "r1") &&
@@ -2581,21 +2581,21 @@ class Test extends BaseLogger {
 
         const displayInstructions = game.getDisplayInstructions();
         const expectedFinalInstructions = [
-                                // word      type                     change  rating               isStart  parLine
-            new DisplayInstruction("SALTED", Const.PLAYED,            -1,     Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SATED",  Const.PLAYED,            -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("DATED",  Const.PLAYED,            -1,     Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("DATE",   Const.PLAYED,            -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("MATE",   Const.PLAYED,            -1,     Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("RATE",   Const.PLAYED,            -1,     Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("LATE",   Const.PLAYED,            -1,     Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("FATE",   Const.PLAYED,            -1,     Const.GOOD_MOVE,     false,   true),
-            new DisplayInstruction("ATE",    Const.PLAYED,            -1,     Const.DODO_MOVE,     false,   false),
-            new DisplayInstruction("FATE",   Const.PLAYED,            -1,     Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("FAT",    Const.PLAYED,            -1,     Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("FAST",   Const.PLAYED,            -1,     Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("FIST",   Const.PLAYED,            -1,     Const.SHOWN_MOVE,    false,   false),
-            new DisplayInstruction("FISH",   Const.TARGET,            -1,     Const.SHOWN_MOVE,    false,   false),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SALTED", Const.PLAYED,            -1,     Const.NO_RATING,      true,    false,    false),
+            new DisplayInstruction("SATED",  Const.PLAYED,            -1,     Const.GOOD_MOVE,      false,   false,    false),
+            new DisplayInstruction("DATED",  Const.PLAYED,            -1,     Const.WRONG_MOVE,     false,   false,    false),
+            new DisplayInstruction("DATE",   Const.PLAYED,            -1,     Const.GOOD_MOVE,      false,   false,    false),
+            new DisplayInstruction("MATE",   Const.PLAYED,            -1,     Const.WRONG_MOVE,     false,   false,    false),
+            new DisplayInstruction("RATE",   Const.PLAYED,            -1,     Const.WRONG_MOVE,     false,   false,    false),
+            new DisplayInstruction("LATE",   Const.PLAYED,            -1,     Const.WRONG_MOVE,     false,   false,    false),
+            new DisplayInstruction("FATE",   Const.PLAYED,            -1,     Const.GOOD_MOVE,      false,   false,    true),
+            new DisplayInstruction("ATE",    Const.PLAYED,            -1,     Const.DODO_MOVE,      false,   false,    false),
+            new DisplayInstruction("FATE",   Const.PLAYED,            -1,     Const.SHOWN_MOVE,     false,   false,    false),
+            new DisplayInstruction("FAT",    Const.PLAYED,            -1,     Const.SHOWN_MOVE,     false,   false,    false),
+            new DisplayInstruction("FAST",   Const.PLAYED,            -1,     Const.SHOWN_MOVE,     false,   false,    false),
+            new DisplayInstruction("FIST",   Const.PLAYED,            -1,     Const.SHOWN_MOVE,     false,   false,    false),
+            new DisplayInstruction("FISH",   Const.TARGET,            -1,     Const.SHOWN_MOVE,     false,   true,     false),
         ];
 
         this.verifyInstructionList(displayInstructions, expectedFinalInstructions, "unfinished game final") &&
@@ -3449,23 +3449,23 @@ class Test extends BaseLogger {
 
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT, SOOT (D'OH) already played.
         const expectedAfterRestartInstructions = [
-                                // word       type                     change   rating               isStart  parLine
-            new DisplayInstruction("SHORT",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SHOOT",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("HOOT",    Const.PLAYED_CHANGE,     0,       Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("?OOT",    Const.WORD_AFTER_CHANGE, 3,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BOOR",    Const.FUTURE,            0,       Const.NO_RATING,     false,   false),
-            new DisplayInstruction("POOR",    Const.TARGET,            -1,      Const.NO_RATING,     false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SHORT",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SHOOT",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("HOOT",   Const.PLAYED_CHANGE,     0,       Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("?OOT",   Const.WORD_AFTER_CHANGE, 3,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BOOR",   Const.FUTURE,            0,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("POOR",   Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     true),
             ];
 
         const expectedFinalInstructions = [
-                                // word       type                   change  rating               isStart  parLine
-            new DisplayInstruction("SHORT",   Const.PLAYED,          -1,     Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SHOOT",   Const.PLAYED,          -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("HOOT",    Const.PLAYED,          -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BOOT",    Const.PLAYED,          -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BOOR",    Const.PLAYED,          -1,     Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("POOR",    Const.TARGET,          -1,     Const.GOOD_MOVE,     false,   true),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SHORT",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SHOOT",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("HOOT",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BOOT",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BOOR",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("POOR",   Const.TARGET,            -1,      Const.GOOD_MOVE,     false,   true,     true),
             ];
 
         const playedB = this.playLetter("B"); // HOOT -> BOOT
@@ -3513,25 +3513,25 @@ class Test extends BaseLogger {
 
         // we should be running the daily game SHORT -> POOR with SHOOT, HOOT, SOOT (D'OH) already played.
         const expectedAfterRestartInstructions = [
-                                // word       type                     change  rating               isStart  parLine
-            new DisplayInstruction("SHORT",   Const.PLAYED,            -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SHOOT",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("HOOT",    Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SOOT",    Const.PLAYED_CHANGE,     0,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("?OOT",    Const.WORD_AFTER_CHANGE, 3,      Const.NO_RATING,     false,   false),
-            new DisplayInstruction("BOOR",    Const.FUTURE,            0,      Const.NO_RATING,     false,   true),
-            new DisplayInstruction("POOR",    Const.TARGET,            -1,      Const.NO_RATING,     false,   false),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SHORT",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SHOOT",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("HOOT",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("SOOT",   Const.PLAYED_CHANGE,     0,       Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("?OOT",   Const.WORD_AFTER_CHANGE, 3,       Const.NO_RATING,     false,   false,    false),
+            new DisplayInstruction("BOOR",   Const.FUTURE,            0,       Const.NO_RATING,     false,   false,    true),
+            new DisplayInstruction("POOR",   Const.TARGET,            -1,      Const.NO_RATING,     false,   true,     false),
             ];
 
         const expectedFinalInstructions = [
-                                // word       type                   change  rating               isStart  parLine
-            new DisplayInstruction("SHORT",   Const.PLAYED,          -1,      Const.NO_RATING,     true,    false),
-            new DisplayInstruction("SHOOT",   Const.PLAYED,          -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("HOOT",    Const.PLAYED,          -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("SOOT",    Const.PLAYED,          -1,      Const.WRONG_MOVE,    false,   false),
-            new DisplayInstruction("BOOT",    Const.PLAYED,          -1,      Const.GOOD_MOVE,     false,   false),
-            new DisplayInstruction("BOOR",    Const.PLAYED,          -1,      Const.GOOD_MOVE,     false,   true),
-            new DisplayInstruction("POOR",    Const.TARGET,          -1,      Const.GOOD_MOVE,     false,   false),
+                                // word      type                     change   rating               isStart  isTarget, parLine
+            new DisplayInstruction("SHORT",  Const.PLAYED,            -1,      Const.NO_RATING,     true,    false,    false),
+            new DisplayInstruction("SHOOT",  Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("HOOT",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("SOOT",   Const.PLAYED,            -1,      Const.WRONG_MOVE,    false,   false,    false),
+            new DisplayInstruction("BOOT",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    false),
+            new DisplayInstruction("BOOR",   Const.PLAYED,            -1,      Const.GOOD_MOVE,     false,   false,    true),
+            new DisplayInstruction("POOR",   Const.TARGET,            -1,      Const.GOOD_MOVE,     false,   true,     false),
             ];
 
 

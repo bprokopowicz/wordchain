@@ -113,10 +113,8 @@ class AppDisplay extends BaseLogger {
     // Create the one and only object of this class if it hasn't yet been created.
     // Return the new or existing object.
     static singleton() {
-        const CL = "AppDisplay.singleton";
-        COV(0, CL);
+        // Not putting coverage here intentionally; our suite runs after this is called.
         if (AppDisplay.singletonObject === null) {
-            COV(1, CL);
             AppDisplay.singletonObject = new AppDisplay();
         }
         return AppDisplay.singletonObject;
@@ -448,8 +446,7 @@ class AppDisplay extends BaseLogger {
     }
 
     getMsUntilNextGame() {
-        const CL = "AppDisplay.getMsUntilNextGame";
-        COV(0, CL);
+        // Not putting coverage here intentionally; we can't test this in our suite.
         return this.dailyGameDisplay.getMsUntilNextGame();
     }
 
@@ -536,6 +533,8 @@ class AppDisplay extends BaseLogger {
 
     // Set the current game display and update the header tagline.
     setCurrentGameDisplay(gameDisplay) {
+        const CL = "AppDisplay.setCurrentGameDisplay";
+        COV(0, CL);
         this.currentGameDisplay = gameDisplay;
 
         // Now update the header tagline to include the target word.
@@ -571,12 +570,17 @@ class AppDisplay extends BaseLogger {
     }
 
     getAndClearLastToast() {
+        const CL = "AppDisplay.addAndClearLastToast";
+        COV(0, CL);
+
         const result = this.lastToast;
         this.clearLastToast();
         return result;
     }
 
     clearLastToast() {
+        const CL = "AppDisplay.clearLastToast";
+        COV(0, CL);
         this.lastToast = null;
     }
 

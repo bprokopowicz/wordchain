@@ -61,8 +61,7 @@ export const SCRABBLE_MOVE       = "Advanced word!";
 export const SHOWN_MOVE          = "Best next move";
 export const WRONG_MOVE          = "D'oh! You added a step";
 
-// --- Returned from game play that are not used as move ratings.
-export const BAD_POSITION        = "Bad letter position";
+// --- Returned from game play, but not used as move ratings.
 export const NOT_A_WORD          = "Not in word list";
 
 // --- Displayed from one of the *Display classes.
