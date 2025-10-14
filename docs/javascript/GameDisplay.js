@@ -18,11 +18,12 @@ import {
 
 /*
  * Notes on letter and tile positions:
- * letterPosition   [0, wordLength-1] - index into the current word being displayed; saved in GameDisplay
- * changePosition   [0, wordLength-1] - the index of a letter to be changed in a word
- * holePosition     [0, wordLength-1] - the index of the hole ('?') in the word after adding a space
- * additionPosition [0, wordLength]   - the index of a space to be added, in front of the letter at additionPosition.
- *                                      When additionPosition == wordLength, the space is to be added after the last letter
+ * letterPosition          [0, wordLength-1] - index into the current word being displayed; saved in GameDisplay
+ * changePosition          [0, wordLength-1] - the index of a letter to be changed in a word
+ * additionPosition        [0, wordLength]   - the index of a space to be added, in front of the letter at additionPosition.
+ *                                             When additionPosition == wordLength, the space is to be added after the last letter
+ * this.holeLetterPosition [0, wordLength-1] - the index of the hole ('?') in the word after adding a space or needing a change.
+ *                                             Managed when laying out DisplayInstructions
  */
 class GameDisplay extends BaseLogger {
 
@@ -90,7 +91,7 @@ class GameDisplay extends BaseLogger {
     letterPicked(letter) {
         const CL = "GameDisplay.letterPicked";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, /*", letterPosition:", letterPosition,*/ "picker");
+        Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, "holeLetterPosition:", this.holeLetterPosition, "picker");
 
         let result = null;
 

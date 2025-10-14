@@ -528,7 +528,6 @@ class Test extends BaseLogger {
 
     runAppTest(testFunc) {
         // clear cookies and reset the window with a known daily puzzle and a hard-coded practice puzzle.
-        // TODO - need to test a practice puzzle without test words
         Persistence.clearAllNonDebug();
         Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO); // daily game is SHOOT ... POOR by default
         Persistence.saveTestPracticeGameWords("TEST", "PILOT");     // practice game is TEST ... PILOT by default
@@ -757,6 +756,7 @@ class Test extends BaseLogger {
         // If we are in confirmation mode, we have already clicked twice successfully
         // So we can now play the letter.
 
+        console.log("Test.insertLetter() after adding space, before playing letter.  GameDisplay.holeLetterPosition:", this.gameDisplay.holeLetterPosition);
         let playResult = this.playLetter(letter);
         this.logDebug("insertLetter(", position, ",", letter, ",", optionalPosition, ") returns:", clickResult, "then", playResult,  "test");
         return playResult;
@@ -2443,7 +2443,10 @@ class Test extends BaseLogger {
         var game = new PracticeGame(this.fullDict);
         this.verify(game.gameState.start.length >= 3, "start too short") &&
             this.verify(game.gameState.target.length >= 3, "target too short") &&
-            this.verify(!game.isOver(), "practice game is over") &&
+            this.verify(!game.isOver(), "new practice game should not be over");
+        game.finishGame();
+        this.verify(game.isOver(), "practice game should be over") &&
+            this.verify(game.isWinner(), "practice game should be winner") &&
             this.hadNoErrors();
     }
 
@@ -2633,6 +2636,7 @@ class Test extends BaseLogger {
             this.practiceGameTestNoConfirm,
             this.practiceGameTest,
             this.practiceGameLimitTest,
+            this.randomPracticeGameTest,
             this.birdieShareTest,
             this.eagleShareTest,
             this.doubleEagleShareTest,
@@ -3237,23 +3241,25 @@ class Test extends BaseLogger {
         // The newly opened URL should be showing the test daily game by default:
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
-        // we play:  SHORT SHOOT SHOO(dodo) SHOOT(ok) SHOO(dodo) SHOOT(ok) SHOO (dodo) SHOOK(show) SPOOK(show)
-        // at that point, the game ends and the solution is shown ... SPOOR(shown) POOR(target, wrong)
+        // we play:  SHORT SHOOT SHOO(dodo) SHOT(ok) HOT(ok) ROT(wrong) COT (wrong) COD(wrong) 
+        // at that point, the game ends and the solution is shown ... 
 
         const r1 = this.playLetter("O");      // SHORT -> SHOOT now delete
-        const r2 = this.deleteLetter(4);      // SHOOT -> SHOO DODO
-        const r3 = this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
-        const r4 = this.deleteLetter(4);      // SHOOT -> SHOO DODO
-        const r5 = this.insertLetter(4, "T"); // SHOO-> SHOOT GOOD_MOVE
-        const r6 = this.deleteLetter(4);      // SHOOT -> SHOO DODO, game over
+        const r2 = this.deleteLetter(4);      // SHOOT -> SHOO DODO now change 3
+        const r3 = this.playLetter("T");      // SHOO-> SHOT GOOD_MOVE now delete
+        const r4 = this.deleteLetter(0);      // SHOT -> HOT  GOOD_MOVE now change 0
+        const r5 = this.playLetter("R");      // HOT -> ROT WRONG now change 0
+        const r6 = this.playLetter("C");      // ROT -> COT WRONG now change 2
+        const r7 = this.playLetter("D");      // COT -> COD WRONG now change 2
 
         if ( !(
                 this.verifyEqual(r1, Const.GOOD_MOVE, "r1") &&
                 this.verifyEqual(r2, Const.DODO_MOVE, "r2") &&
                 this.verifyEqual(r3, Const.GOOD_MOVE, "r3") &&
-                this.verifyEqual(r4, Const.DODO_MOVE, "r4") &&
-                this.verifyEqual(r5, Const.GOOD_MOVE, "r5") &&
-                this.verifyEqual(r6, Const.DODO_MOVE, "r6")
+                this.verifyEqual(r4, Const.GOOD_MOVE, "r4") &&
+                this.verifyEqual(r5, Const.WRONG_MOVE, "r5") &&
+                this.verifyEqual(r6, Const.WRONG_MOVE, "r6") &&
+                this.verifyEqual(r7, Const.WRONG_MOVE, "r7")
               )
            ) {
             return;
@@ -3273,7 +3279,7 @@ class Test extends BaseLogger {
             const statsMockEvent = new MockEvent(statsSrcElement);
             const actShareString = statsDisplay.shareCallback(statsMockEvent);
             this.closeTheStatsDisplay();
-            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 5️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟩🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟩🟩🟩🟩🟩\n--------------------\n🟫🟫🟫🟫\n⬜⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜\n🟥🟥🟥🟥\n${Const.SHARE_URL}`;
+            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 5️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟩🟩🟩🟩\n🟩🟩🟩\n🟫🟫🟫\n--------------------\n🟫🟫🟫\n🟫🟫🟫\n⬜⬜⬜\n⬜⬜⬜\n🟥🟥🟥🟥\n${Const.SHARE_URL}`;
             this.verify(!gameIsWinner, "game should not be a winner.") &&
             this.verifyEqual(actShareString, expShareString, "share string") &&
             this.hadNoErrors();
@@ -3621,6 +3627,19 @@ class Test extends BaseLogger {
             this.hadNoErrors();
     }
 
+    randomPracticeGameTest() {
+        this.testName = "randomPracticeGameTest";
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        this.logDebug("theAppDisplay:", appDisplay, "test");
+        this.logDebug("Switching to practice game", "test");
+        appDisplay.switchToPracticeGameCallback();
+        this.setGameDisplay(); // the active gameDisplay needs to be updated
+        const game = this.gameDisplay.game;
+        this.finishTheCurrentGame(); 
+        this.verify(game.isWinner(), "game should be winner") &&
+            this.hadNoErrors();
+    }
+
     notAWordToastTest() {
         this.testName = "notAWordToast";
         // The newly opened URL should be showing the test daily game by default:
@@ -3859,9 +3878,9 @@ class Test extends BaseLogger {
         this.setGameDisplay();
         let game = this.gameDisplay.game;
 
-        this.playLetter("B")  // COOKIE -> BOOKIE
-        this.playLetter("G")  // BOOKIE -> BOOGIE
-        this.deleteLetter(1); // BOOGIE -> BOGIE
+        this.playLetter("B")  // COOKIE -> BOOKIE now change 3
+        this.playLetter("G")  // BOOKIE -> BOOGIE now delete 
+        this.deleteLetter(1); // BOOGIE -> BOGIE now add
         const resultGenius1 = this.insertLetter(5, "D"); // BOGIE -> BOGIED
         this.playLetter("G")  // BOGIED -> BOGGED
         const resultGenius2 = this.playLetter("U")  // BOGGED -> BOUGED

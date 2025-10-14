@@ -214,7 +214,7 @@ class Game extends BaseLogger {
                     console.error("this.addSpaceInProgress is false when adding display type WORD_AFTER_ADD");
                 }
 
-                // Note that we add a WORD_AFTER_CHANGE even if the word is the target.
+                // Note that we use WORD_AFTER_ADD even if the word is the target.
                 displayType = Const.WORD_AFTER_ADD;
 
                 // Add the hole where the user added space to this first unplayed word here.
@@ -293,7 +293,7 @@ class Game extends BaseLogger {
     /* addPosition is from 0 to last word played's length
      * 
      * We record the position but don't adjust the state of the game.  We will update the game state if/when the user
-     * plays a letter. 
+     * plays a valid letter. 
      * - Returns true if no error
      * - Returns null on error (e.g. unexpected position)
      */
@@ -333,7 +333,7 @@ class Game extends BaseLogger {
             return Const.BAD_LETTER_POSITION;
         }
 
-        let newWord = oldWord.substring(0,deletePosition) + oldWord.substring(deletePosition+1);
+        let newWord = WordChainDict.deleteLetter(oldWord, deletePosition);
         Const.GL_DEBUG && this.logDebug("Game.playDelete(): ", oldWord, "becomes", newWord, "game");
         COV(2, CL);
         return this.addWordIfExists(newWord);
@@ -341,10 +341,12 @@ class Game extends BaseLogger {
 
     /* playLetter
      * letterPosition given is 1 to word.length
-     * If we are in the process of inserting a letter, this.addSpaceInProgress will be true,
-     * and this.addPosition will be set to the index of the letter we are inserting in front of.
+     * If we are in the process of inserting a letter, this.addSpaceInProgress will be true.
+     * We need that only so that the resulting word here grows by one before changing the letter.
+     *
      * Returns true if resulting word is in dictionary; false otherwise
      */
+
     playLetter(letterPosition, letter) {
         const CL = "Game.playLetter";
         COV(0, CL);
@@ -356,16 +358,15 @@ class Game extends BaseLogger {
         const oldWord = this.lastPlayedWord();
         var oldWordModified = oldWord;
         if (this.addSpaceInProgress) {
+            // create the next word with a hole in oldWord at the location of the space added (0 to oldWord.length);
             COV(1, CL);
             this.addSpaceInProgress = false;
-            // put the hole into oldWord at the location of the space added (0 to oldWord.length);
-            oldWordModified = oldWord.substr(0,this.addPosition) + Const.HOLE + oldWord.substr(this.addPosition);
-            Const.GL_DEBUG && this.logDebug("playLetter() added space to old word giving",  oldWordModified, "game");
-            letterPosition = this.addPosition; //TODO not sure why these could ever be different, but in dailyGameShowWordStats test they are.
+            oldWordModified = WordChainDict.insertHoleBeforePosition(oldWord, letterPosition);
+            Const.GL_DEBUG && this.logDebug("playLetter() added space to old word ", oldWord, "giving",  oldWordModified, "game");
         }
 
-        // construct the new word with 'letter' at letterPosition.
-        const newWord = oldWordModified.substring(0,letterPosition) + letter + oldWordModified.substring(letterPosition+1);
+        // construct the new word, replacing the letter at letterPosition with 'letter'.  It was a letter for CHANGE, and '?' for ADD.
+        const newWord = WordChainDict.replaceCharacterAtPosition(oldWordModified, letter, letterPosition);
 
         if (oldWord == newWord) {
             COV(2, CL);

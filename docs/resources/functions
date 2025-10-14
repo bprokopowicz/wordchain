@@ -216,6 +216,7 @@ WordChainDict.findReplacementWords
 WordChainDict.1findReplacementWords
 WordChainDict.findChangedLetterLocation
 WordChainDict.insertHoleBeforePosition
+WordChainDict.replaceCharacterAtPosition
 WordChainDict.replaceCharacterAtPositionWithHole
 WordChainDict.findOptionsAtWordStep
 WordChainDict.getSize
