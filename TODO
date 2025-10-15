@@ -8,6 +8,7 @@ Known Bugs
 Near Term Changes
 =================
 
+- WIP: rewriting game tests to use the expected next move type as enforced by the game.  Then, remove position param from Game.playLetter.
 - Finish up "less negative user experience" work:
   - Migration of stats in cookie -- any changes needed?
   - Update video

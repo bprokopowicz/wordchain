@@ -18,11 +18,16 @@ class Game extends BaseLogger {
         this.scrabbleDictionary = new WordChainDict(scrabbleWordList);
         this.addSpaceInProgress = false;
         this.addPosition = -1;
+        this.holePosition = -1;
+        this.instructions = [];
+        this.getDisplayInstructions(); //  sets up next expected move and position
     }
 
     getDisplayInstructions() {
         const CL = "Game.getDisplayInstructions";
         COV(0, CL);
+        this.holePosition = -1;  // will be set if we have a WORD_AFTER_CHANGE or WORD_AFTER_ADD instruction.
+        this.nextRequiredMove = null; // will be set to ADD, DELETE, or CHANGE
         this.instructions = [];
         const nPlayedWords = this.getPlayedWords().length,
               nUnplayedWords = this.getUnplayedWords().length;
@@ -36,7 +41,7 @@ class Game extends BaseLogger {
         this.addInstructionForLastPlayedWord();
 
         if (nUnplayedWords > 0) {
-            COV(1, CL);
+            COV(2, CL);
             this.addInstructionForFirstUnplayedWord();
 
             for (let i = 1; i < nUnplayedWords; i++) {
@@ -44,6 +49,7 @@ class Game extends BaseLogger {
             }
         }
 
+        COV(3, CL);
         return this.instructions;
     }
 
@@ -130,13 +136,16 @@ class Game extends BaseLogger {
                 if (toLen > fromLen) {
                     COV(5, CL);
                     displayType = Const.PLAYED_ADD;
+                    this.nextRequiredMove = Const.ADD;
                 } else if (toLen === fromLen) {
                     COV(6, CL);
                     displayType = Const.PLAYED_CHANGE;
+                    this.nextRequiredMove = Const.CHANGE;
                     changePosition = WordChainDict.findChangedLetterLocation(lastRatedMove.word, unplayedWord);
                 } else {
                     COV(7, CL);
                     displayType = Const.PLAYED_DELETE;
+                    this.nextRequiredMove = Const.DELETE;
                 }
             }
         }
@@ -185,15 +194,16 @@ class Game extends BaseLogger {
 
         // Indicate which letter will need to change in this unplayed word
         // if the word after it is the same length.
-        const changePosition = ! nextWordsAreSameLen ? -1 :
-            WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny);
+        const changePosition = nextWordsAreSameLen ? 
+            WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) :
+            -1;
 
         if (previousDisplayType === Const.PLAYED_ADD) {
             COV(1, CL);
-            // nothing more to do
+            // nothing more to do.  This word is shown as a future word following the add-instruction
         } else if (previousDisplayType === Const.PLAYED_DELETE) {
             COV(2, CL);
-            // nothing more to do
+            // nothing more to do.  This word is shown as a future word following the delete-instruction
         } else if (previousDisplayType=== Const.PLAYED_CHANGE) {
             COV(3, CL);
 
@@ -204,7 +214,7 @@ class Game extends BaseLogger {
             // Note: changePosition is 0..word.length - 1, which is what replaceCharacterAtPositionWithHole() expects.
             const holePosition = previousDisplayInstruction.changePosition; 
             displayedFirstUnplayedWord = WordChainDict.replaceCharacterAtPositionWithHole(firstUnplayedWord, holePosition);
-
+            this.holePosition = holePosition; // TODO clean up
         } else if (previousDisplayType === Const.PLAYED) {
             COV(4, CL);
             if (firstUnplayedWord.length > lastPlayedWord.length) {
@@ -220,6 +230,8 @@ class Game extends BaseLogger {
                 // Add the hole where the user added space to this first unplayed word here.
                 // Note: addPosition is 0..word.length, which is what insertHoleBeforePosition() expects.
                 displayedFirstUnplayedWord = WordChainDict.insertHoleBeforePosition(lastPlayedWord, this.addPosition);
+                this.holePosition = this.addPosition; // TODO clean up
+                this.nextRequiredMove = Const.CHANGE;
             } 
         } else {
             console.error("unknown previous display type", previousDisplayType);
@@ -300,6 +312,9 @@ class Game extends BaseLogger {
 
     playAdd(addPosition) {
         const CL = "Game.addPosition";
+        if (this.nextRequiredMove != Const.ADD) {
+            console.error("playing ADD but expected:", this.nextRequiredMove);
+        }
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playAdd(): addPosition:", addPosition, "this.gameState",
                 this.gameState.toStr(), "game");
@@ -311,6 +326,7 @@ class Game extends BaseLogger {
         }
         this.addPosition = addPosition;
         this.addSpaceInProgress = true;
+        this.getDisplayInstructions(); // updates state of game with next expected change location
         return Const.GOOD_MOVE; 
     }
 
@@ -320,6 +336,9 @@ class Game extends BaseLogger {
      */
     playDelete(deletePosition) {
         const CL = "Game.playDelete";
+        if (this.nextRequiredMove != Const.DELETE) {
+            console.error("playing DELETE but expected:", this.nextRequiredMove);
+        }
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playDelete() position", deletePosition, "this.gameState:",
                 this.gameState.toStr(), "game");
@@ -336,7 +355,9 @@ class Game extends BaseLogger {
         let newWord = WordChainDict.deleteLetter(oldWord, deletePosition);
         Const.GL_DEBUG && this.logDebug("Game.playDelete(): ", oldWord, "becomes", newWord, "game");
         COV(2, CL);
-        return this.addWordIfExists(newWord);
+        const result = this.addWordIfExists(newWord);
+        this.getDisplayInstructions(); // updates state of game!
+        return result;
     }
 
     /* playLetter
@@ -350,6 +371,13 @@ class Game extends BaseLogger {
     playLetter(letterPosition, letter) {
         const CL = "Game.playLetter";
         COV(0, CL);
+        if (this.nextRequiredMove != Const.CHANGE) {
+            console.error("playing CHANGE but expected:", this.nextRequiredMove);
+        }
+        if (letterPosition != this.holePosition) {
+            console.error("***** playLetter() letter:", letter, "letterPosition:", letterPosition, "this.holePosition:", this.holePosition, "this.addPosition:", this.addPosition);
+        }
+
         Const.GL_DEBUG && this.logDebug("Game.playLetter(): letterPosition:", letterPosition, ", letter:", letter,
                 "addSpaceInProgress?", this.addSpaceInProgress, "at position:", this.addPosition,
                 "this.gameState", this.gameState, "game");
@@ -368,14 +396,17 @@ class Game extends BaseLogger {
         // construct the new word, replacing the letter at letterPosition with 'letter'.  It was a letter for CHANGE, and '?' for ADD.
         const newWord = WordChainDict.replaceCharacterAtPosition(oldWordModified, letter, letterPosition);
 
+        var result;
         if (oldWord == newWord) {
             COV(2, CL);
-            return Const.PICK_NEW_LETTER;
+            result = Const.PICK_NEW_LETTER;
         } else {
             COV(3, CL);
             Const.GL_DEBUG && this.logDebug("Game.playLetter(): ", oldWord, "becomes", newWord, "game");
-            return this.addWordIfExists(newWord)
+            result = this.addWordIfExists(newWord)
         }
+        this.getDisplayInstructions();
+        return result;
 
         COV(4, CL);
     }
@@ -490,6 +521,7 @@ class DailyGame extends Game {
         COV(0, CL);
         let gameState = DailyGameState.factory(dict);
         super(gameState);
+        this.getDisplayInstructions(); // now required for proper game state 
         Const.GL_DEBUG && this.logDebug("DailyGame.constuctor() just called Game.constructor()", "game");
     }
 
