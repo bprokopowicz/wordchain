@@ -22,7 +22,7 @@ export const DICT_URL          = "https:/docs/resources/WordChainDict";
 export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
 export const EMAIL_URL         = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
 export const FAQ_URL           = "/FAQ.html";
-export const HELP_VIDEO_URL    = "https://www.youtube.com/watch?v=FhxMQZoRsKI";
+export const HELP_VIDEO_URL    = "https://youtu.be/Tu5V7CyclfQ?si=vDWfMszYZEV6bsLP";
 export const ANALYTICS_URL     = "TBD";
 
 // Our very own copyright!
@@ -53,7 +53,7 @@ export const PRACTICE_START_WORDS          = [
 export const SHOW_TOAST_DURATION = 3000; // milliseconds
 
 // --- Returned from game play and are used as Move Ratings in DisplayInstructions and GameState
-export const DODO_MOVE           = "Ugh! You added two steps!";
+export const DODO_MOVE           = "Ugh! You added two steps";
 export const GENIUS_MOVE         = "Genius play!";
 export const NO_RATING           = "No move rating";             // not shown to user
 export const GOOD_MOVE           = "Good move";                  // not shown to user
@@ -66,7 +66,7 @@ export const NOT_A_WORD          = "Not in word list";
 
 // --- Displayed from one of the *Display classes.
 export const GAME_LOST           = "Too many wrong/shown moves";
-export const GAME_WON            = "Solved! You win!";
+export const GAME_WON            = "Solved! Target reached!";
 export const NEEDS_CONFIRMATION  = "Input needs confirmation";   // not shown to user
 export const NEW_DAILY_GAME      = "Time for a new Daily game";
 export const NO_DAILY            = "Unable to create daily game;<br>here is a fun back-up";

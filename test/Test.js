@@ -887,11 +887,11 @@ class Test extends BaseLogger {
             return false;
         }
         let savedStatsBlob = savedDailyState.statsBlob;
-        let savedExtraStepsHistogram = savedDailyState.extraStepsHistogram;
+        let savedExtraStepsHistogram = savedDailyState.penaltyHistogram;;
 
         let testRes = true;
 
-        this.logDebug("verifyStats() savedStatsBlob", savedStatsBlob, "extraStepsHistogram", savedExtraStepsHistogram, "test");
+        this.logDebug("verifyStats() savedStatsBlob", savedStatsBlob, "savedExtraStepsHistogram", savedExtraStepsHistogram, "test");
 
         // open the stats window.  This should compute the shareString and start the countdown clock
         const statsDisplay = this.openAndGetTheStatsDisplay();

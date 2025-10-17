@@ -342,7 +342,7 @@ class GameState extends BaseLogger {
 }
 
 class DailyGameState extends GameState{
-    // adds gameNumber, statsBlob, extraStepsHistogram, isConstructedAsNew
+    // adds gameNumber, statsBlob, penaltyHistogram, isConstructedAsNew
 
     constructor(dictionary) {
         const CL = "DailyGameState.constructor";
@@ -509,9 +509,9 @@ class DailyGameState extends GameState{
         // Now create a histogram for each number of wrong moves, and initialize
         // their values to 0. The stat properties for these is 0..TOO_MANY_EXTRA_STEPS.
 
-        dailyGameState.extraStepsHistogram = [];
+        dailyGameState.penaltyHistogram = [];
         for (let nExtraSteps = 0; nExtraSteps <= Const.TOO_MANY_EXTRA_STEPS; nExtraSteps++) {
-            dailyGameState.extraStepsHistogram[nExtraSteps] = 0;
+            dailyGameState.penaltyHistogram[nExtraSteps] = 0;
         }
 
         // Will return null if something goes bad; e.g. puzzle cannot be solved.
@@ -876,7 +876,7 @@ class DailyGameState extends GameState{
             // but we don't want to count that in the stat.
             extraStepsCount = Const.TOO_MANY_EXTRA_STEPS;
         }
-        this.extraStepsHistogram[extraStepsCount] += 1;
+        this.penaltyHistogram[extraStepsCount] += 1;
         COV(4, CL);
     }
 

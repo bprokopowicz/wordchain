@@ -199,7 +199,7 @@ class StatsDisplay extends AuxiliaryDisplay {
         // wrong moves". First, determine the maximum value among all the "wrong moves values"
         // to use to in calculating the length of the bars.
         let maxWrongWordsValue = 0;
-        let extraStepsHistogram = gameState.extraStepsHistogram;
+        let extraStepsHistogram = gameState.penaltyHistogram;
         for (let numExtraSteps = 0; numExtraSteps <= Const.TOO_MANY_EXTRA_STEPS; numExtraSteps++) {
             if (extraStepsHistogram[numExtraSteps] > maxWrongWordsValue) {
                 COV(2, CL);
