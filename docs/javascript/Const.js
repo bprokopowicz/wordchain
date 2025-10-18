@@ -18,10 +18,10 @@ export function GET_GL_DEBUG(value) {
 
 // Constants for URLs.
 export const SHARE_URL         = "https://WordChainFun.com/"; // The real URL
-export const DICT_URL          = "https:/docs/resources/WordChainDict";
-export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
+export const DICT_URL          = "https:/wordchain/docs/resources/WordChainDict";
+export const SCRABBLE_DICT_URL = "https:/wordchain/docs/resources/Scrabble3-6";
 export const EMAIL_URL         = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
-export const FAQ_URL           = "/FAQ.html";
+export const FAQ_URL           = "/wordchain/FAQ.html";
 export const HELP_VIDEO_URL    = "https://youtu.be/Tu5V7CyclfQ?si=vDWfMszYZEV6bsLP";
 export const ANALYTICS_URL     = "TBD";
 
