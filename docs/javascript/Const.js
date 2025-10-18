@@ -20,6 +20,7 @@ export function GET_GL_DEBUG(value) {
 export const SHARE_URL         = "https://WordChainFun.com/"; // The real URL
 export const DICT_URL          = "https:/docs/resources/WordChainDict";
 export const SCRABBLE_DICT_URL = "https:/docs/resources/Scrabble3-6";
+export const IMAGE_URL         = "https:/docs/images";
 export const EMAIL_URL         = "mailto:wordchainfun@gmail.com?subject=WordChain%20Feedback";
 export const FAQ_URL           = "/FAQ.html";
 export const HELP_VIDEO_URL    = "https://youtu.be/Tu5V7CyclfQ?si=vDWfMszYZEV6bsLP";

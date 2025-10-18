@@ -437,7 +437,7 @@ class GameDisplay extends BaseLogger {
                 " user solution words: ", userSolutionWords,  "game");
 
         // Finally, toot our horn.
-        ElementUtilities.addElementTo("img", iconDiv, {src: "/docs/images/favicon.png", class: "word-chain-icon"});
+        ElementUtilities.addElementTo("img", iconDiv, {src: `${Const.IMAGE_URL}/favicon.png`, class: "word-chain-icon"});
         ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
 
         COV(4, CL);
