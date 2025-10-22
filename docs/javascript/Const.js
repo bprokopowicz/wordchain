@@ -436,5 +436,24 @@ export const DAILY_GAMES = [
       ['day', 'anger'],
       ['inner', 'light'],
       ['burn', 'ashes'],   // 220
+      ['Nose', 'hair'],
+      ['Cheese', 'cake'],
+      ['Bunny', 'hop'],
+      ['Back', 'beater'],
+      ['Dress', 'binges'],
+      ['Hard', 'fumble'],
+      ['Soft', 'brains'],
+      ['Cats', 'neuter'],
+      ['Flack', 'jester'],
+
+      ['Goat', 'handed'], // 230
+      ['Beard', 'saving'],
+      ['Hair', 'bangle'],
+      ['Tilt', 'recent'],
+      ['Hears', 'banter'],
+      ['Melt', 'satin'],
+      ['Pitch', 'tosses'],
+      ['Blip', 'earth'],
+      ['think', 'darker'],
 
 ];
