@@ -1055,7 +1055,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15413;
+        const expectedMinDictSize = 15406;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -1853,11 +1853,13 @@ class Test extends BaseLogger {
         if ( !this.verifyEqual(origWord1, "BAT", "original solution first word") )
             return;
 
-        const playBARResult = game.playLetter(2, "R");
-        if (!this.verifyEqual(playBARResult, Const.WRONG_MOVE, "playLetter(2,R)")) return;
+        var di = game.getDisplayInstructions();
+        const playBARResult = game.playLetter("R");
+        if (!this.verifyEqual(playBARResult, Const.WRONG_MOVE, "playLetter(R)")) return;
 
-        const playBATResult = game.playLetter(2, "T");  // BAD BAR BAT 
-        if (!this.verifyEqual(playBATResult, Const.GOOD_MOVE, "playLetter(2, T)")) return;
+        di = game.getDisplayInstructions();
+        const playBATResult = game.playLetter("T");  // BAD BAR BAT 
+        if (!this.verifyEqual(playBATResult, Const.GOOD_MOVE, "playLetter(T)")) return;
         const newPlayedWord = game.gameState.getPlayedWord(2);
         if (!this.verifyEqual(newPlayedWord, "BAT", "Played word 2"))  return;
         const newSolutionWord0 = game.gameState.getUnplayedWord(0);
@@ -1884,16 +1886,13 @@ class Test extends BaseLogger {
 
         const initialInstructions = game.getDisplayInstructions();
 
-        this.logDebug("test", this.testName, "delete 0 SCAD->CAD", "test");
         const playDeleteResult = game.playDelete(0); // SCAD to CAD
         const afterDeleteInstructions = game.getDisplayInstructions();
 
-        this.logDebug("test", this.testName, "change 0 CAD->BAD", "test");
-        const playLetterBResult = game.playLetter(0, "B"); // CAD to BAD
+        const playLetterBResult = game.playLetter("B"); // CAD to BAD
         const afterPlayLetterBInstructions = game.getDisplayInstructions();
 
-        this.logDebug("test", this.testName, "change 2 BAD->BAT done", "test");
-        const playLetterTResult = game.playLetter(2, "T"); // BAD to BAT
+        const playLetterTResult = game.playLetter("T"); // BAD to BAT
         const afterPlayLetterTInstructions = game.getDisplayInstructions();
 
         const expectedInitialInstructions = [
@@ -1983,13 +1982,13 @@ class Test extends BaseLogger {
         game.playDelete(0); // SCAD to CAD
         const afterDeleteInstructions = game.getDisplayInstructions();
 
-        const cadToMadResult = game.playLetter(0, "M"); // CAD to MAD
+        const cadToMadResult = game.playLetter("M"); // CAD to MAD
         const cadToMadInstructions = game.getDisplayInstructions(); // SCAD,CAD,MAD,BAD,BAT
 
         this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
             this.verifyEqual(playDeleteNotAWord, Const.NOT_A_WORD, "playDelete(3)") &&
             this.verifyInstructionList(afterDeleteInstructions, expectedAfterDeleteInstructions, "after delete") &&
-            this.verifyEqual(cadToMadResult, Const.WRONG_MOVE, "playLetter(0,M)") &&
+            this.verifyEqual(cadToMadResult, Const.WRONG_MOVE, "playLetter(M)") &&
             this.verifyInstructionList(cadToMadInstructions, expectedCadToMadInstructions, "after playing M") &&
             this.hadNoErrors();
     }
@@ -2017,7 +2016,7 @@ class Test extends BaseLogger {
 
         const game = new PracticeGame(smallDict);
         const initialInstructions = game.getDisplayInstructions();
-        const badToBarResult = game.playLetter(2,"R");
+        const badToBarResult = game.playLetter("R");
         const afterBarInstructions = game.getDisplayInstructions();
 
         this.verifyEqual (badToBarResult, Const.GENIUS_MOVE, "BAD->BAR") &&
@@ -2060,7 +2059,7 @@ class Test extends BaseLogger {
         const afterSadInstructions = game.getDisplayInstructions(); // Solution should now be SCAD, SAD, BAD, BAT
 
         // play SAD to CAD which is correct now.
-        const sadToCadResult = game.playLetter(0, "C"); 
+        const sadToCadResult = game.playLetter("C"); 
         const afterCadInstructions = game.getDisplayInstructions();
 
         this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
@@ -2104,7 +2103,7 @@ class Test extends BaseLogger {
         const initialInstructions = game.getDisplayInstructions();
         const scadToSadResult = game.playDelete(1); // SCAD to SAD is genius.
         const afterSadInstructions = game.getDisplayInstructions();
-        const sadToSagResult = game.playLetter(2, "G"); // SAD to SAG wins.
+        const sadToSagResult = game.playLetter("G"); // SAD to SAG wins.
         const afterSagInstructions = game.getDisplayInstructions();
 
         this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
@@ -2188,13 +2187,13 @@ class Test extends BaseLogger {
         const panToPanXAddResult = game.playAdd(3); // PAN to PAN?; correct (really should be unrated?)
         const panToPanXInstructions = game.getDisplayInstructions();
 
-        const panXToPaneChangeResult = game.playLetter(3, "E"); // PAN? to PANE; correct
+        const panXToPaneChangeResult = game.playLetter("E"); // PAN? to PANE; correct
         const panXToPaneInstructions = game.getDisplayInstructions();
 
         const paneToPaneXAddResult = game.playAdd(4); // PANE to PANE?; correct
         const paneToPaneXInstructions = game.getDisplayInstructions();
 
-        const paneXToPanedChangeResult = game.playLetter(4, "D"); // PANE? to PANED; correct
+        const paneXToPanedChangeResult = game.playLetter("D"); // PANE? to PANED; correct
         const paneXToPanedInstructions = game.getDisplayInstructions();
 
         this.verifyInstructionList(initialInstructions, expectedInitialInstructions, "initial") &&
@@ -2215,23 +2214,23 @@ class Test extends BaseLogger {
 
     testGameRequiringWordReplay() {
         this.testName = "GameRequiringWordReplay";
-        let [start, target] = ["BLISS", "LEST"];
+        const smallDict = new WordChainDict(["SPAT", "CAT", "SAT", "PAT", "SPA", "CAT"]);
+        let [start, target] = ["SPAT", "CAT"];
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict);
-        // BLISS,BLIPS (D'OH) should now display as BLISS BLIPS BLISS BLESS LESS LEST (6) not
-        // BLISS BLIPS LIPS LAPS LASS LAST LEST (7)
+        // SPAT -> PAT -> CAT but we play SPAT->SPA->SPAT->PAT->CAT
 
-        const expectedDisplayLength = 6;
-        const blissToBlipsResult = game.playLetter(3,"P");
-        const displayInstructions = game.getDisplayInstructions(); // Solution should now be BLISS, BLIPS, BLISS, BLESS, LESS, LEST
+        const expectedDisplayLength = 5;
+        const spatToSpaResult = game.playDelete(3);
+        const displayInstructions = game.getDisplayInstructions(); // Solution should now be SPAT, SPA, SPAT, PAT, CAT
         game.finishGame();
         const score = game.getNormalizedScore();
         const expScore = 2; // dodo move adds two steps
-        this.logDebug(this.testName, "displayInstructions:", displayInstructions, "test");
-        this.verifyEqual(blissToBlipsResult, Const.DODO_MOVE, "playLetter(3,P)") &&
-        this.verifyEqual(score, expScore, "score") &&
-        this.verifyEqual(displayInstructions.length, expectedDisplayLength, "expected display instructions length") &&
-        this.hadNoErrors();
+        //this.logDebug(this.testName, "displayInstructions:", displayInstructions, "test");
+        this.verifyEqual(spatToSpaResult, Const.DODO_MOVE, "deleteLetter(3)") &&
+            this.verifyEqual(score, expScore, "score") &&
+            this.verifyEqual(displayInstructions.length, expectedDisplayLength, "expected display instructions length") &&
+            this.hadNoErrors();
     }
 
     testGameRequiringScrabbleWordReplay() {
@@ -2247,12 +2246,12 @@ class Test extends BaseLogger {
 
         const expectedDisplayLength = 11;
         let result  = game.playDelete(1); // -> FEE
-        result = game.playLetter(1, "I"); // -> FIE
+        result = game.playLetter("I"); // -> FIE
         result = game.playAdd(2);         // -> FIxE
-        result = game.playLetter(2, "L"); // -> FILE
-        result = game.playLetter(0, "S"); // -> SILE
+        result = game.playLetter("L"); // -> FILE
+        result = game.playLetter("S"); // -> SILE
         result = game.playAdd(2);         // -> SIxLE
-        result = game.playLetter(2, "D"); // -> SIDLE  wrong move
+        result = game.playLetter("D"); // -> SIDLE  wrong move
         // Solution should now be FREE FEE FIE FILE SILE SIDLE SILE SMILE SIMILE SIMPLE SAMPLE
         const displayInstructions = game.getDisplayInstructions();
         this.logDebug(this.testName, "displayInstructions:", displayInstructions, "test");
@@ -2314,7 +2313,7 @@ class Test extends BaseLogger {
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict);
         game.playDelete(0);      // SCAD -> CAD
-        game.playLetter(0, "B"); // CAD  -> BAD
+        game.playLetter("B"); // CAD  -> BAD
         const showWordResult = game.showNextMove();
 
         const expectedFinalInstructions = [
@@ -2353,20 +2352,19 @@ class Test extends BaseLogger {
         let [start, target] = ["LEAKY", "SPOON"];
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict);
+        var di = game.getDisplayInstructions();
         var result;
-        result = game.playDelete(4);     // LEAKY->LEAK
-        result = game.playLetter(3,"N"); // LEAK->LEAN
-        result = game.playLetter(1,"O"); // LEAN->LOAN
-        result = game.playLetter(2,"O"); // LOAN->LOON
-        // next 3 give .. POON->SPOON
-        result = game.playLetter(0,"P"); // LOON->POON
-        result = game.playAdd(0);        // POON->?POON
-        result = game.playLetter(0,"S"); // ?POON->SPOON
-        // next 3 give .. SOON->SPOON
+        result = game.playDelete(4);         // LEAKY->LEAK
+        result = game.playLetter("N"); // LEAK->LEAN
+        result = game.playLetter("O"); // LEAN->LOAN
+        result = game.playLetter("O"); // LOAN->LOON
+        result = game.playLetter("P"); // LOON->POON
+        result = game.playAdd(0);            // POON->?POON
+        result = game.playLetter("S"); // ?POON->SPOON
         const originalSolutionAsString = game.getOriginalSolutionWords();
         const playedSolutionAsString = game.getUserSolutionWords();
         const expOriginalSolutionAsString = "LEAKY⇒LEAK⇒LEAN⇒LOAN⇒<br>LOON⇒SOON⇒SPOON";
-        const expPlayedSolutionAsString = "LEAKY⇒LEAK⇒LEAN⇒LOAN⇒<br>LOON⇒POON⇒SPOON";
+        const expPlayedSolutionAsString   = "LEAKY⇒LEAK⇒LEAN⇒LOAN⇒<br>LOON⇒POON⇒SPOON";
         this.verifyEqual(originalSolutionAsString, expOriginalSolutionAsString, "OriginalSolutionAsString") &&
             this.verifyEqual(playedSolutionAsString, expPlayedSolutionAsString, "PlayedSolutionAsString") &&
             this.verify(game.isOver()) &&
@@ -2403,16 +2401,16 @@ class Test extends BaseLogger {
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict);
         let r1 = game.playDelete(2);      // -> SATED
-        let r2 = game.playLetter(0, "F"); // -> FATED
+        let r2 = game.playLetter("F"); // -> FATED
         let r3 = game.playDelete(4);      // -> FATE
         let r4 = game.playDelete(3);      // -> FAT
         let r5 = game.playAdd(1);         // -> F_AT
-        let r6 = game.playLetter(1, "L"); // -> FLAT wrong
-        let r7 = game.playLetter(1, "R"); // -> FRAT wrong
-        let r8 = game.playLetter(1, "E"); // -> FEAT wrong
-        let r9 = game.playLetter(2, "L"); // -> FELT wrong
+        let r6 = game.playLetter("L"); // -> FLAT wrong
+        let r7 = game.playLetter("R"); // -> FRAT wrong
+        let r8 = game.playLetter("E"); // -> FEAT wrong
+        let r9 = game.playLetter("L"); // -> FELT wrong
         const beforeLossDisplayInstructions = game.getDisplayInstructions();
-        let r10 = game.playLetter(2, "E"); // -> FEET wrong
+        let r10 = game.playLetter("E"); // -> FEET wrong
 
         const finalDisplayInstructions = game.getDisplayInstructions();
 
@@ -2472,15 +2470,15 @@ class Test extends BaseLogger {
         let [start, target] = ["FISH", "SALTED"];
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict);
-        let r1 = game.playLetter(3, "T"); // -> FIST
-        let r2 = game.playLetter(1, "E"); // -> FEST wrong
-        let r3 = game.playLetter(1, "A"); // -> FAST
+        let r1 = game.playLetter("T"); // -> FIST
+        let r2 = game.playLetter("E"); // -> FEST wrong
+        let r3 = game.playLetter("A"); // -> FAST
         let r4 = game.playDelete(2);      // -> FAT
         let r5 = game.playAdd(1);         // -> F_AT
-        let r6 = game.playLetter(1, "R"); // -> FRAT dodo - requires undoing back to FAT
+        let r6 = game.playLetter("R"); // -> FRAT dodo - requires undoing back to FAT
         let r7 = game.playDelete(1);      // -> FAT
         let r8 = game.playAdd(1);         // -> F_AT
-        let r9 = game.playLetter(1, "E"); // -> FEAT dodo -- score is now 5+
+        let r9 = game.playLetter("E"); // -> FEAT dodo -- score is now 5+
 
         const displayInstructions = game.getDisplayInstructions();
         const expectedFinalInstructions = [
@@ -2521,12 +2519,12 @@ class Test extends BaseLogger {
         Persistence.saveTestPracticeGameWords(start, target);
         const game = new PracticeGame(this.fullDict);
         game.playDelete(2);      // -> SATED
-        game.playLetter(0, "D"); // -> DATED
+        game.playLetter("D"); // -> DATED
         game.playDelete(4);      // -> DATE
-        game.playLetter(0, "M"); // -> MATE
-        game.playLetter(0, "R"); // -> RATE
-        game.playLetter(0, "L"); // -> LATE
-        game.playLetter(0, "F"); // -> FATE
+        game.playLetter("M"); // -> MATE
+        game.playLetter("R"); // -> RATE
+        game.playLetter("L"); // -> LATE
+        game.playLetter("F"); // -> FATE
         game.playDelete(0);      // -> ATE  too many wrong moves
 
         const displayInstructions = game.getDisplayInstructions();
@@ -2668,7 +2666,7 @@ class Test extends BaseLogger {
         // SHORT -> POOR
         // solution: SHORT SHOOT HOOT BOOT BOOR POOR
         // play two moves, then close and try to restore ...
-        this.playLetter(3, "O"); // SHORT -> SHOOT
+        this.playLetter("O"); // SHORT -> SHOOT
         this.deleteLetter(0);    // SHOOT -> HOOT
 
         // re-open the app window, as if it were one day later

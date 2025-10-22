@@ -361,24 +361,22 @@ class Game extends BaseLogger {
     }
 
     /* playLetter
-     * letterPosition given is 1 to word.length
+     * this.holePosition indicates where the user sees the '?' in the current display. This requires
+     * calling Game.getDisplayInstructions before playing a letter, which is how the display works.
      * If we are in the process of inserting a letter, this.addSpaceInProgress will be true.
      * We need that only so that the resulting word here grows by one before changing the letter.
      *
      * Returns true if resulting word is in dictionary; false otherwise
      */
 
-    playLetter(letterPosition, letter) {
+    playLetter(letter) {
         const CL = "Game.playLetter";
         COV(0, CL);
         if (this.nextRequiredMove != Const.CHANGE) {
             console.error("playing CHANGE but expected:", this.nextRequiredMove);
         }
-        if (letterPosition != this.holePosition) {
-            console.error("***** playLetter() letter:", letter, "letterPosition:", letterPosition, "this.holePosition:", this.holePosition, "this.addPosition:", this.addPosition);
-        }
 
-        Const.GL_DEBUG && this.logDebug("Game.playLetter(): letterPosition:", letterPosition, ", letter:", letter,
+        Const.GL_DEBUG && this.logDebug("Game.playLetter(): this.holePosition:", this.holePosition, ", letter:", letter,
                 "addSpaceInProgress?", this.addSpaceInProgress, "at position:", this.addPosition,
                 "this.gameState", this.gameState, "game");
         Const.GL_DEBUG && this.logDebug("steps played: ", this.gameState.getPlayedWordsAsString(), "game");
@@ -389,12 +387,12 @@ class Game extends BaseLogger {
             // create the next word with a hole in oldWord at the location of the space added (0 to oldWord.length);
             COV(1, CL);
             this.addSpaceInProgress = false;
-            oldWordModified = WordChainDict.insertHoleBeforePosition(oldWord, letterPosition);
+            oldWordModified = WordChainDict.insertHoleBeforePosition(oldWord, this.holePosition);
             Const.GL_DEBUG && this.logDebug("playLetter() added space to old word ", oldWord, "giving",  oldWordModified, "game");
         }
 
-        // construct the new word, replacing the letter at letterPosition with 'letter'.  It was a letter for CHANGE, and '?' for ADD.
-        const newWord = WordChainDict.replaceCharacterAtPosition(oldWordModified, letter, letterPosition);
+        // construct the new word, replacing the letter at this.holePosition with 'letter'.  It was a letter for CHANGE, and '?' for ADD.
+        const newWord = WordChainDict.replaceCharacterAtPosition(oldWordModified, letter, this.holePosition);
 
         var result;
         if (oldWord == newWord) {
