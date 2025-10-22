@@ -22,8 +22,6 @@ import {
  * changePosition          [0, wordLength-1] - the index of a letter to be changed in a word
  * additionPosition        [0, wordLength]   - the index of a space to be added, in front of the letter at additionPosition.
  *                                             When additionPosition == wordLength, the space is to be added after the last letter
- * this.holeLetterPosition [0, wordLength-1] - the index of the hole ('?') in the word after adding a space or needing a change.
- *                                             Managed when laying out DisplayInstructions
  */
 class GameDisplay extends BaseLogger {
 
@@ -91,7 +89,7 @@ class GameDisplay extends BaseLogger {
     letterPicked(letter) {
         const CL = "GameDisplay.letterPicked";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, "holeLetterPosition:", this.holeLetterPosition, "picker");
+        Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, "picker");
 
         let result = null;
 
@@ -100,7 +98,7 @@ class GameDisplay extends BaseLogger {
             result = Const.UNEXPECTED_ERROR;
         } else {
             COV(1, CL);
-            result = this.game.playLetter(this.holeLetterPosition, letter);
+            result = this.game.playLetter(letter);
             this.processGamePlayResult(result);
         }
 
@@ -239,11 +237,6 @@ class GameDisplay extends BaseLogger {
         const changePosition = displayInstruction.changePosition,
               isTargetWord = displayInstruction.isTargetWord;
 
-        this.holeLetterPosition = displayInstruction.word.indexOf(Const.HOLE);
-        if (this.holeLetterPosition < 0) {
-            console.error("displayWordAfterAdd(): no hole in word:", displayInstruction.word);
-        }
-
         function getCell(letter, letterPosition) {
             return new LetterCellNoBackground(letter, letterPosition, changePosition, isTargetWord);
         }
@@ -257,11 +250,6 @@ class GameDisplay extends BaseLogger {
 
         const changePosition = displayInstruction.changePosition,
               isTargetWord = displayInstruction.isTargetWord;
-
-        this.holeLetterPosition = displayInstruction.word.indexOf(Const.HOLE);
-        if (this.holeLetterPosition < 0) {
-            console.error("displayWordAfterChange(): no hole in word:", displayInstruction.word);
-        }
 
         function getCell(letter, letterPosition) {
             return new LetterCellNoBackground(letter, letterPosition, changePosition, isTargetWord);
