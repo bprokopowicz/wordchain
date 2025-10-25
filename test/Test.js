@@ -3224,7 +3224,7 @@ class Test extends BaseLogger {
             const statsMockEvent = new MockEvent(statsSrcElement);
             const actShareString = statsDisplay.shareCallback(statsMockEvent);
             this.closeTheStatsDisplay();
-            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 5️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟩🟩🟩🟩\n🟩🟩🟩\n🟫🟫🟫\n--------------------\n🟫🟫🟫\n🟫🟫🟫\n⬜⬜⬜\n⬜⬜⬜\n🟥🟥🟥🟥\n${Const.SHARE_URL}`;
+            const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 5️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟩🟩🟩🟩\n🟩🟩🟩\n🟫🟫🟫\n--------------------\n🟫🟫🟫\n🟫🟫🟫\n⬜⬜⬜\n⬜⬜⬜\n⬜⬜⬜⬜\n${Const.SHARE_URL}`;
             this.verify(!gameIsWinner, "game should not be a winner.") &&
             this.verifyEqual(actShareString, expShareString, "share string") &&
             this.hadNoErrors();
@@ -3324,7 +3324,7 @@ class Test extends BaseLogger {
         statsDisplay.openAuxiliaryCallback(statsMockEvent);
         let actShareString = statsDisplay.shareCallback(statsMockEvent);
         const shareToast = appDisplay.getAndClearLastToast();
-        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 5️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟫🟫🟫🟫\n--------------------\n🟫🟫🟫🟫\n🟫🟫🟫🟫\n🟫🟫🟫🟫\n⬜⬜⬜⬜\n🟥🟥🟥🟥\n${Const.SHARE_URL}`;
+        let expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 5️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟫🟫🟫🟫\n🟫🟫🟫🟫\n--------------------\n🟫🟫🟫🟫\n🟫🟫🟫🟫\n🟫🟫🟫🟫\n⬜⬜⬜⬜\n⬜⬜⬜⬜\n${Const.SHARE_URL}`;
         this.closeTheStatsDisplay();
 
         this.verifyEqual(actShareString, expShareString, "share string") &&

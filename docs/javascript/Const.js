@@ -66,7 +66,7 @@ export const WRONG_MOVE          = "D'oh! You added a step";
 export const NOT_A_WORD          = "Not in word list";
 
 // --- Displayed from one of the *Display classes.
-export const GAME_LOST           = "Too many wrong/shown moves";
+export const GAME_LOST           = "Too many extra steps";
 export const GAME_WON            = "Solved! Target reached!";
 export const NEEDS_CONFIRMATION  = "Input needs confirmation";   // not shown to user
 export const NEW_DAILY_GAME      = "Time for a new Daily game";
@@ -152,15 +152,15 @@ export const DISPLAY_SOLUTION_WORDS_PER_LINE = 4
 // Constants for share content and stats screen
 
 // Share graphic
-export const RED_SQUARE     = "\u{1F7E5}";     // Unused; was wrong moves
+//export const RED_SQUARE     = "\u{1F7E5}";     // Unused; was wrong moves
 export const GREEN_SQUARE   = "\u{1F7E9}";     // Correct moves
 export const PURPLE_SQUARE  = "\u{1F7EA}";     // Unchosen moves (start and target);
-export const ORANGE_SQUARE  = "\u{1F7E7}";     // Unused; was wrong moves -- colorblind
+//export const ORANGE_SQUARE  = "\u{1F7E7}";     // Unused; was wrong moves -- colorblind
 export const GOLD_SQUARE    = "\u{1F7E8}";     // Genius moves
 export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves -- colorblind
 export const BROWN_SQUARE   = "\u{1F7EB}";     // Shown moves; was dodo moves
 export const GRAY_SQUARE    = "\u{2B1C}";      // Moves that add steps (called white square online, but looks gray); was shown moves
-export const BLACXK_SQUARE  = "\u{2B1B}";      // Unused
+//export const BLACK_SQUARE   = "\u{2B1B}";      // Unused
 
 // Share treats
 export const BIRDIE         = "\u{1F426}";     // User's solution was one fewer step than WordChain's solution

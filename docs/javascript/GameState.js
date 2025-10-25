@@ -747,7 +747,7 @@ class DailyGameState extends GameState{
             emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
         } else {
             COV(16, CL);
-            emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+            emoji = colorblindMode ? Const.GRAY_SQUARE : Const.GRAY_SQUARE;
         }
 
         COV(17, CL);
