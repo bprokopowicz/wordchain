@@ -5,6 +5,10 @@ import * as Const from './Const.js';
 
 class Picker extends BaseLogger {
 
+    /* ----- Class Constants ----- */
+
+    static SCROLL_DISTANCE = 250;
+
     /* ----- Construction ----- */
 
     // Arguments:
@@ -48,6 +52,9 @@ class Picker extends BaseLogger {
         this.leftTriangle   = ElementUtilities.addElementTo("div", this.pickerOuterDiv, {class: "triangle-left"});
         this.pickerInnerDiv = ElementUtilities.addElementTo("div", this.pickerOuterDiv, {class: "picker-inner-div"});
         this.rightTriangle  = ElementUtilities.addElementTo("div", this.pickerOuterDiv, {class: "triangle-right"});
+
+        ElementUtilities.setCallback(this.leftTriangle, this, this.scrollLeftCallback);
+        ElementUtilities.setCallback(this.rightTriangle, this, this.scrollRightCallback);
 
         var table = ElementUtilities.addElementTo("table", this.pickerInnerDiv, {class: "picker-table"}),
             row = ElementUtilities.addElementTo("tr", table, {class: "picker-tr"}),
@@ -99,6 +106,16 @@ class Picker extends BaseLogger {
         ElementUtilities.show(this.rightTriangle);
         ElementUtilities.show(this.pickerInnerDiv);
         ElementUtilities.show(this.leftTriangle);
+    }
+
+    scrollLeftCallback(__event) {
+        console.log("SCROLL_DISTANCE:", Picker.SCROLL_DISTANCE);
+        this.pickerInnerDiv.scrollLeft -= Picker.SCROLL_DISTANCE;
+    }
+
+    scrollRightCallback(__event) {
+        console.log("SCROLL_DISTANCE:", Picker.SCROLL_DISTANCE);
+        this.pickerInnerDiv.scrollLeft += Picker.SCROLL_DISTANCE;
     }
 
     // This method is called when the user clickes a letter button in the picker.

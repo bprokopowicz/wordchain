@@ -146,6 +146,8 @@
     --action-cell-size: 15px;
     --cell-margin: 3px;
     --picker-font-size: 2rem;
+    --picker-triangle-size: 25px;
+    --picker-triangle-margin: 15px;
 }
 
 /*
@@ -714,7 +716,7 @@ button.action-button {
     /*
     ** Width should result in a bit of space around the picker.
     */
-    width: 325px;
+    width: 350px;
     /*
     ** It is essential to have a height here, or else the picker space
     ** will go away when picker-inner-div is hidden! Leave just enough
@@ -773,18 +775,18 @@ button.action-button {
 ** https://verpex.com/blog/website-tips/css-shapes-the-triangle
 */
 .triangle-left {
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
+  width: var(--picker-triangle-size);
+  height: var(--picker-triangle-size);
+  margin-right: var(--picker-triangle-margin);
   aspect-ratio: 1;
   background: black;
   clip-path: polygon(100% 0, 0 50%, 100% 100%);
 }
 
 .triangle-right {
-  width: 20px;
-  height: 20px;
-  margin-left: 10px;
+  width: var(--picker-triangle-size);
+  height: var(--picker-triangle-size);
+  margin-left: var(--picker-triangle-margin);
   aspect-ratio: 1;
   background: black;
   clip-path: polygon(0 0, 100% 50%, 0 100%);

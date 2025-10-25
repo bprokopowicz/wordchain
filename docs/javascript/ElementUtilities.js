@@ -271,6 +271,12 @@ class ElementUtilities {
         COV(5, CL); 
     }
 
+    static setCallback(element, callbackObj, callbackFunc) {
+        const CL = "ElementUtilities.setCallback";
+        COV(0, CL);
+        ElementUtilities.setButtonCallback(element, callbackObj, callbackFunc);
+    }
+
     // Used only in Test.js.
     static setElementHTML(elementId, elementHTML) {
         const element = ElementUtilities.getElement(elementId);
