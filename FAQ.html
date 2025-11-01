@@ -8,6 +8,79 @@
     </head>
     <body>
     <h1 align=center>WordChain FAQ</h1>
+        <h2>What changed in the November 2025 version of WordChain?</h2>
+        <ul>
+        <li>
+        There is text in the header that explains the objective of the game.
+        </li>
+        <li>
+        The biggest change is in how the <a href="#scoring">scoring</a> works.
+        You still aim for zero, the lowest score, but the way we score the game has changed:
+            <ul>
+            <li>
+            <b>Old version:</b> The score is the <b>number of <u>moves</u></b> that lengthen the chain plus the number of shown words.
+                <ul>
+                <li>
+                When you enter a word that lengthens the solution,
+                one point is added to your score -- even if it lengthens it by two extra steps.
+                </li>
+                <li>
+                If you make a <a href="#geniusMove">Genius Move</a>, there is no impact on your score.
+                </li>
+                <li>
+                When you show a word, a point is added.
+                </li>
+                <li>
+                When your score reaches 5 the game ends.
+                </li>
+                </ul>
+            </li>
+            <li>
+            <b>New version:</b> The score is now simply the <b>number of <u>steps</u></b> more than
+            WordChains's solution, as indicated by the line.
+                <ul>
+                <li>
+                Showing a word does not lengthen your solution and therefore does not add points.
+                </li>
+                <li>
+                If you make a move that adds two steps, that adds two points to the score.
+                </li>
+                <li>
+                Similarly, if you make a <a href="#geniusMove">Genius Move</a>,
+                that subtracts a point from the score, but the score will not be negative.
+                </li>
+                <li>
+                When your score is 5 (have 5 extra steps) the game ends.
+                </li>
+                </ul>
+            </li>
+            </ul>
+        </li>
+        <li>
+        There are now two ways to move the letter picker:
+            <ul>
+            <li>
+            The old way of sliding left and right across the letter tiles still works.
+            </li>
+            <li>
+            You can also tap the triangle buttons to move the letters.
+            </li>
+            </ul>
+        </li>
+        <li>
+        There is a horizontal line indicating your score as you move through the game.
+        </li>
+        <li>
+        The coloring of some of the letter cells has changed.
+        </li>
+        <li>
+        You can only click "<a href="#showWord">Show Word</a>" once per game.
+        </li>
+        <li>
+        The <a href="#shareGraphic">share graphic</a> has some "<a href="#treats">treats</a>" and includes the line.
+        </li>
+        </ul>
+
         <h2>How can I make WordChain available on my phone or tablet home screen? </h2>
         <p>
         That's an easy one.
@@ -33,7 +106,7 @@
         </ul>
         </p>
 
-        <h2>How does WordChain's scoring work?</h2>
+        <h2 id="scoring">How does WordChain's scoring work?</h2>
         <p>
         The score is how many <b>more</b> words ther were in your solution than in
         WordChain's calculated <b>best solution</b>.
@@ -45,7 +118,7 @@
         as you play: the number of words after the line is your current score.
         </p>
 
-        <h2>How do I interpret the share graphic?</h2>
+        <h2 id="shareGraphic">How do I interpret the share graphic?</h2>
         <p>
         The first line shows the daily game number and your score.
         If there were no extra words (a score of 0), that is depicted with a star emoji.
@@ -54,7 +127,7 @@
         </p>
             <ul>
             <li>
-            The purple squares depict the given start and target words.
+            The purple squares depict the given start word.
             </li>
             <li>
             The green squares (blue in Colorblind Mode) indicate that the word played at that step was
@@ -66,7 +139,7 @@
             </li>
             <li>
             The gray squares indicate a word shown with the 'Show Word' button
-            or words at the end of a game that WordChain filled in when the game got too long.
+            and words at the end of a game that WordChain filled in when the game got too long.
             </li>
             <li>
             The gold squares indicate a GENIUS MOVE!
@@ -74,9 +147,10 @@
             </ul>
         <p>
         Note that <b>only the daily game</b> can be shared.
+        See also the explanation of <a href="#treats">treats</a>.
         </p>
 
-        <h2>What's this about a Genius Move?</h2>
+        <h2 id="geniusMove">What's this about a Genius Move?</h2>
         <p>
         WordChain draws its start and target words from a "common dictionary" of everyday words,
         and it uses that dictionary to determine the shortest path to the target word, indicated with
@@ -98,7 +172,7 @@
         the WordChain score cannot be negative.
         </p>
 
-        <h2>Sometimes I see other symbols in my share graphic; what do they mean?</h2>
+        <h2 id="treats">Sometimes I see other symbols in my share graphic; what do they mean?</h2>
         <p>
         These are special treats!
         <ul>
@@ -109,7 +183,7 @@
         </ul>
         </p>
 
-        <h2>If I show a word, does that increase my score?</h2>
+        <h2 id="showWord">If I show a word, does that increase my score?</h2>
         <p>
         No. A shown word is displayed differently on screen and in the share graphic,
         but it doesn't change your score.

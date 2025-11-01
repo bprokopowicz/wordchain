@@ -711,7 +711,7 @@ class DailyGameState extends GameState{
             } else if (moveRating === Const.WRONG_MOVE) {
                 // Word increased the count; pick a different color
                 COV(9, CL);
-                emoji = colorblindMode ? Const.BROWN_SQUARE : Const.BROWN_SQUARE;
+                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.ORANGE_SQUARE;
             } else if (moveRating === Const.GENIUS_MOVE) {
                 // Word decreased the count; pick a very special color color
                 COV(10, CL);
@@ -719,7 +719,7 @@ class DailyGameState extends GameState{
             } else if (moveRating === Const.DODO_MOVE) {
                 // Word increased the count; pick a different color
                 COV(11, CL);
-                emoji = colorblindMode ? Const.BROWN_SQUARE : Const.BROWN_SQUARE;
+                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.ORANGE_SQUARE;
             } else if (moveRating === Const.SHOWN_MOVE) {
                 COV(12, CL);
                 emoji = colorblindMode ? Const.GRAY_SQUARE : Const.GRAY_SQUARE;

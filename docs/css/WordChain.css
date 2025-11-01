@@ -20,7 +20,7 @@
 ** See AppDisplay.setColors().
 */
 :root {
-    /* IMPORTANT: Although the colors for "extra step moves" (brown),
+    /* IMPORTANT: Although the colors for "extra step moves" (orange),
     ** genius moves (gold), and shown moves (gray) are all the same
     ** for light/dark and colorblind/non-colorblined, sadly, we CANNOT
     ** define variables for them and use them in the assignments below.
@@ -36,14 +36,14 @@
 
     /* ===== Cells ===== */
     --colorblind-good-bg-light:         #5f99e4;    /* blue */
-    --colorblind-bad-bg-light:          #b9977a;    /* brown; was orange (#ff9200) */
+    --colorblind-bad-bg-light:          #ff9920;    /* orange */
     --colorblind-genius-bg-light:       #f0ce15;    /* gold */
-    --colorblind-dodo-bg-light:         #b9977a;    /* brown; was orange */
+    --colorblind-dodo-bg-light:         #ff9920;    /* orange */
     --colorblind-shown-bg-light:        #9c9ea0;    /* gray */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
-    --non-colorblind-bad-bg-light:      #b9977a;    /* brown; was red */
+    --non-colorblind-bad-bg-light:      #ff9920;    /* orange; was red */
     --non-colorblind-genius-bg-light:   #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-light:     #b9977a;    /* brown; was red */
+    --non-colorblind-dodo-bg-light:     #ff9920;    /* orange; was red */
     --non-colorblind-shown-bg-light:    #9c9ea0;    /* gray */
 
     /*
@@ -52,14 +52,14 @@
 
     /* ===== Cells ===== */
     --colorblind-good-bg-dark:          #2d7be1;    /* blue */
-    --colorblind-bad-bg-dark:           #b9977a;    /* brown; was orange (#d58b04) */
+    --colorblind-bad-bg-dark:           #d58b04;    /* orange */
     --colorblind-genius-bg-dark:        #f0ce15;    /* gold */
-    --colorblind-dodo-bg-dark :         #b9977a;    /* brown; was orange */
+    --colorblind-dodo-bg-dark :         #d58b04;    /* orange */
     --colorblind-shown-bg-dark:         #9c9ea0;    /* gray */
     --non-colorblind-good-bg-dark:      #28c128;    /* green */
-    --non-colorblind-bad-bg-dark:       #b9977a;    /* brown; was red */
+    --non-colorblind-bad-bg-dark:       #d58b04;    /* orange; was red */
     --non-colorblind-genius-bg-dark:    #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-dark :     #b9977a;    /* brown; was red */
+    --non-colorblind-dodo-bg-dark :     #d58b04;    /* orange; was red */
     --non-colorblind-shown-bg-dark:     #9c9ea0;    /* gray */
 }
 
@@ -456,8 +456,8 @@ button:enabled {
 }
 
 .tr-wc-solution-line {
-    border-bottom: 4px solid;
-    margin-bottom: 4px;
+    border-bottom: 2px dotted;;
+    margin-bottom: 2px;
 }
 
 .td-game-active {

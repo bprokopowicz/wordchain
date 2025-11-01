@@ -154,12 +154,12 @@ export const DISPLAY_SOLUTION_WORDS_PER_LINE = 4
 // Share graphic
 //export const RED_SQUARE     = "\u{1F7E5}";     // Unused; was wrong moves
 export const GREEN_SQUARE   = "\u{1F7E9}";     // Correct moves
-export const PURPLE_SQUARE  = "\u{1F7EA}";     // Unchosen moves (start and target);
-//export const ORANGE_SQUARE  = "\u{1F7E7}";     // Unused; was wrong moves -- colorblind
+export const PURPLE_SQUARE  = "\u{1F7EA}";     // Start word
+export const ORANGE_SQUARE  = "\u{1F7E7}";     // Moves that add steps
 export const GOLD_SQUARE    = "\u{1F7E8}";     // Genius moves
 export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves -- colorblind
-export const BROWN_SQUARE   = "\u{1F7EB}";     // Shown moves; was dodo moves
-export const GRAY_SQUARE    = "\u{2B1C}";      // Moves that add steps (called white square online, but looks gray); was shown moves
+//export const BROWN_SQUARE   = "\u{1F7EB}";     // Unused; was dodo moves
+export const GRAY_SQUARE    = "\u{2B1C}";      // Shown words (called white square online, but looks gray)
 //export const BLACK_SQUARE   = "\u{2B1B}";      // Unused
 
 // Share treats
