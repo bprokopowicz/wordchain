@@ -1584,15 +1584,16 @@ class Test extends BaseLogger {
         dgs1.setStat("streak", 10); // pretend we have 10 in a row.
         dgs1.finishGame();          // this will make 11
 
-        // Move ahead two days ahead.  This tests if we recognize that the streak is over
-        // because we didn't play yesterday.
+        // Move ahead two days ahead.  This tests if we recognize that the streak is starting over
+        // because we didn't play yesterday.  The streak starts at 1, not zero, because it counts games started.
         Persistence.saveTestEpochDaysAgo(Test.TEST_EPOCH_DAYS_AGO + 2);
 
-        // this should recover the older game, see that it is old, and create a new game. The streak should be over.
+        // this should recover the older game, see that it is old, and create a new game. The streak should be reset to 1.
+        //
         let dgs2 = DailyGameState.factory(this.fullDict);
         this.verifyEqual(dgs1.dailyGameNumber, Test.TEST_EPOCH_DAYS_AGO, "dgs1.dailyGameNumber") &&
             this.verifyEqual(dgs2.dailyGameNumber, Test.TEST_EPOCH_DAYS_AGO+2, "dgs2.dailyGameNumber") &&
-            this.verifyEqual(dgs2.statsBlob["streak"], 0, "recovered streak") &&
+            this.verifyEqual(dgs2.statsBlob["streak"], 1, "recovered streak") &&
             this.hadNoErrors();
     }
 

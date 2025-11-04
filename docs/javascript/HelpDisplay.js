@@ -137,7 +137,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         <p>
         That choice made the solution longer than WordChain's solution.
         If your played word increases the number of steps from the start to the target word,
-        the background of its letters will be brown.
+        the background of its letters will be orange.
         You may have wondered what that line is in the display grid:
         it indicates while you are playing what your current score is.
         After our one extra word, we see there is one word below the line -- our current score is 1.
@@ -152,6 +152,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         <img src="${Const.IMAGE_URL}/Help12.v1.jpg" width="350px"/>
         <p>
         The gray letters indicate you got some help.
+        The 'Show Word' button is now disabled, because you are allowed to show only one word per game.
         Now we finish off the game as we did before.
         </p>
 

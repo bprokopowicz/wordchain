@@ -424,7 +424,7 @@ class DailyGameState extends GameState{
                         // we didn't play yesterday's game; streak is over
                         COV(7, CL);
                         Const.GL_DEBUG && logger.logDebug("Did not play yesterday's game: streak is over", "daily");
-                        recoveredDailyGameState.setStat("streak", 0);
+                        recoveredDailyGameState.setStat("streak", 1);
                     }
                     // now, update game state to today's game, playing from the start.
                     // If setToTodaysGame() sets the game to the broken one, we will
