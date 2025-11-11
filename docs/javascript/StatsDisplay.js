@@ -15,7 +15,7 @@ import * as Const from './Const.js';
 **    Integer: number of games that ended because of too many wrong moves.
 ** streak
 **    Integer: number of consecutive daily games won.
-** 0 .. <Const.TOO_MANY_PENALTIES>
+** 0 .. <Const.TOO_MANY_EXTRA_STEPS>
 **    Integer: Number of games that had 0, 1, ... wrong moves.
 */
 
@@ -102,7 +102,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     shareCallback(event) {
         const CL = "StatsDisplay.shareCallback";
         COV(0, CL);
-        return this.appDisplay.getShare(); // used in testing only
+        return this.appDisplay.getShare(); // return value used in testing only
     }
 
     /* ----- Utilities ----- */
@@ -119,41 +119,18 @@ class StatsDisplay extends AuxiliaryDisplay {
         const CL = "StatsDisplay.startCountdownClock";
         COV(0, CL);
 
-        // a timer call-back counter.  This is used to determine which callback instance is happening, so that
-        // we can do different things on different callbacks.  For example, on even call-back counts, scroll
-        // left, and on odd ones, scroll right
-
+        // A timer call-back counter. This is used to determine which callback instance is happening, so that
+        // we can do different things on different callbacks.
         this.countdownCallCounter = 0;
 
         function msToDuration(ms) {
             return new Date(ms).toISOString().substr(11, 8);
         }
 
-        function selfScroll(statsDisplay) {
-            var picker = statsDisplay.appDisplay.currentGameDisplay.letterPicker;
-            var scrollingDiv = picker.pickerInnerDiv;
-            var scrollPix = 1;
-            if (statsDisplay.countdownCallCounter % 2 == 1) {
-                scrollPix = -scrollPix;
-            } 
-            /*
-             * var wheelEvent = document.createEvent('MouseEvents');
-             * wheelEvent.initEvent('wheel', true, true); // canBubbleArg, cancelableArg both true
-             * wheelEvent.deltaX = scrollPix;
-             * scrollingDiv.dispatchEvent(wheelEvent);
-             */
-            scrollingDiv.scrollBy(scrollPix, 0);
-        }
-
         // Set a 1000 ms timer to change the clock and display every second.
         this.clockIntervalTimer = setInterval(() => {
             let msUntilNextGame = this.appDisplay.getMsUntilNextGame();
             this.countdownClock.textContent = msToDuration(msUntilNextGame);
-            /*
-             * console.log("timer running");
-             * this.countdownCallCounter += 1;
-             * selfScroll(this);
-             */
         }, 1000);
         Const.GL_DEBUG && this.logDebug("StatsDisplay.startCountdownClock() timer id: ", this.clockIntervalTimer, "stats");
     }
@@ -203,33 +180,36 @@ class StatsDisplay extends AuxiliaryDisplay {
 
         // Local function to add a stat.
         function addStat(value, label, parentDiv) {
+            COV(1, CL);
             oneStat = ElementUtilities.addElementTo("div", parentDiv, {class: "one-stat"});
             ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-value"}, value);
             ElementUtilities.addElementTo("div", oneStat, {class: "one-stat-label"}, label);
         }
 
+        // We used to show games won and lost as separate values. We kept those
+        // in the stats, but to avoid negativity, we now show games completed,
+        // which is the sum of the two stats.
+        const gamesCompleted = gameState.getStat('gamesWon') + gameState.getStat('gamesLost');
         addStat(gameState.getStat('gamesStarted'), "Started", this.statsContainer);
-        addStat(gameState.getStat('gamesWon'), "Won", this.statsContainer);
-        addStat(gameState.getStat('gamesLost'), "Lost", this.statsContainer);
+        addStat(gamesCompleted, "Completed", this.statsContainer);
         addStat(gameState.getStat('streak'), "Streak", this.statsContainer);
 
-        // Save the streak in case the user shares.
-        this.dailyStreak = gameState.getStat('streak');
-
         // Next we'll display a bar graph showing how many games there were at each "wrong moves value",
-        // i.e. 0 .. <Const.TOO_MANY_PENALTIES> *and* "games that ended because of too many
+        // i.e. 0 .. <Const.TOO_MANY_EXTRA_STEPS> *and* "games that ended because of too many
         // wrong moves". First, determine the maximum value among all the "wrong moves values"
         // to use to in calculating the length of the bars.
         let maxWrongWordsValue = 0;
-        let penaltyHistogram = gameState.penaltyHistogram;
-        for (let numPenalties = 0; numPenalties <= Const.TOO_MANY_PENALTIES; numPenalties++) {
-            if (penaltyHistogram[numPenalties] > maxWrongWordsValue) {
-                maxWrongWordsValue = penaltyHistogram[numPenalties];
+        let extraStepsHistogram = gameState.penaltyHistogram;
+        for (let numExtraSteps = 0; numExtraSteps <= Const.TOO_MANY_EXTRA_STEPS; numExtraSteps++) {
+            if (extraStepsHistogram[numExtraSteps] > maxWrongWordsValue) {
+                COV(2, CL);
+                maxWrongWordsValue = extraStepsHistogram[numExtraSteps];
             }
         }
 
         // Local function to add a bar.
         function addBar(barValue, barLabel, parentDiv) {
+            COV(3, CL);
 
             // Calculate the width of the bar as a percentage of the maximum value determined above.
             // Set width to a minimum of 10% so there's a bar to contain the value.
@@ -248,10 +228,11 @@ class StatsDisplay extends AuxiliaryDisplay {
         }
 
         // Add a bar for each of the possible values; the emojis for these are in Const.NUMBERS.
-        for (let numPenalties = 0; numPenalties <= Const.TOO_MANY_PENALTIES; numPenalties++) {
-            const barValue = penaltyHistogram[numPenalties];
-            addBar(barValue, Const.NUMBERS[numPenalties], this.statsDistribution);
+        for (let numExtraSteps = 0; numExtraSteps <= Const.TOO_MANY_EXTRA_STEPS; numExtraSteps++) {
+            const barValue = extraStepsHistogram[numExtraSteps];
+            addBar(barValue, Const.NUMBERS[numExtraSteps], this.statsDistribution);
         }
+        COV(4, CL);
     }
 }
 

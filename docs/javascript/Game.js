@@ -16,237 +16,283 @@ class Game extends BaseLogger {
         this.gameState = gameState;
         Const.GL_DEBUG && this.logDebug("Game.constructor(): start:", gameState.start, "target:", gameState.target, "game");
         this.scrabbleDictionary = new WordChainDict(scrabbleWordList);
+        this.addSpaceInProgress = false;
+        this.addPosition = -1;
+        this.holePosition = -1;
+        this.instructions = [];
+        this.getDisplayInstructions(); //  sets up next expected move and position
     }
-
-    // This function returns a list to display all the steps of the puzzle
-    // for ONE MOVE. This function is called every time the user makes a move.
-    //
-    // Some important things to note ...
-    //
-    // Suppose the user is supposed to change a letter because the next
-    // word has the same length. The instructions will be something like the
-    // following, where * indicates the active word (yellow background).
-    //
-    //     played, change*,  change-next,  future,  future
-    //     (change word has ALL the letters in the active word -- no hole ('?');
-    //     that's in the change-next word -- we'll call this kind of change a ChangeNoAdd)
-    //
-    // Let's say after the user selects a letter to play the change move, the
-    // user is supposed to add a letter; the instructions become:
-    //
-    //     played, played,   add*,         future,  future
-    //
-    // In other words change/change-next has become played/add. Remember that an
-    // add move is a two-interaction process, i.e. two calls to this function;
-    // the second one comes after the user clicks a "+" and the instructions become:
-    //
-    //     played, played,   played,       change*,  future
-    //     (change word has "hole" ('?') in the active word -- we'll call this kind
-    //     of change a ChangeAdd.
-    //
-    // In other words, add/future has become played/change ... and there
-    // is no need for a change-next, because in this case (after an add move)
-    // the change word already has the '?'.
 
     getDisplayInstructions() {
         const CL = "Game.getDisplayInstructions";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("played so far: " + this.gameState.getPlayedWordsAsString(), "instruction");
-        Const.GL_DEBUG && this.logDebug("remaining unplayed: " + this.gameState.getUnplayedWordsAsString(), "instruction");
+        this.holePosition = -1;  // will be set if we have a WORD_AFTER_CHANGE or WORD_AFTER_ADD instruction.
+        this.nextRequiredMove = null; // will be set to ADD, DELETE, or CHANGE
+        this.instructions = [];
+        const nPlayedWords = this.getPlayedWords().length,
+              nUnplayedWords = this.getUnplayedWords().length;
 
-        let instructions = [];
-
-        // First add all the played words except the last one (the active one).
-        // This includes the start word if other words have been played.
-        // But if only the start word is played, it appears as the active word, next.
-        const nPlayedWords = this.gameState.ratedMoves.length;
         for (let i = 0; i < nPlayedWords-1; i++) {
-            instructions.push(this.instructionForPlayedWord(i));
+            this.addInstructionForPlayedWord(i);
         }
 
-        // Now add the active word if we're still working, or the last penalty if we lost.
-        // But, if the last played word is the target, then we don't add any instruction 
-        // for it here, and add it below with instructionForTargetWord();
-        if (this.lastPlayedWord() != this.gameState.target) {
-            COV(1, CL);
-            instructions.push(this.instructionForLastPlayedWord());
-        }
+        // The last played word and the first unplayed word are handled specially
+        // because they determine what kind of move the user is going to be making.
+        this.addInstructionForLastPlayedWord();
 
-        // Now we have to handle the next word after the active one
-        // specially if the active one is a change move.  
-        let lastDisplayInstruction = instructions[instructions.length - 1],
-            // Is the user's action a change?
-            actionIsChange = lastDisplayInstruction.displayType === Const.CHANGE,
-            // What was the last played word?
-            lastWord = lastDisplayInstruction.word,
-            // By default, the index into unplayed words of the first future step to generate is 0.
-            firstFutureStep = 0;
-
-        // Is this a change move and the next step is NOT the target
-        // (i.e. we have another move to make)?
-        if (actionIsChange && this.gameState.unplayedWords.length > 1) {
+        if (nUnplayedWords > 0) {
             COV(2, CL);
+            this.addInstructionForFirstUnplayedWord();
 
-            // If the active word has no "hole", then the last move was a ChangeNoAdd.
-            let isChangeNoAdd = ! GameState.wordHasHole(lastWord);
-
-            if (isChangeNoAdd) {
-                COV(3, CL);
-                // Add a change-next instruction. Note that we still have this word with
-                // no hole at the beginning of our remainingSteps list, so we'll need to
-                // skip it.
-                instructions.push(this.instructionForChangeNextWord(lastDisplayInstruction.changePosition));
+            for (let i = 1; i < nUnplayedWords; i++) {
+                this.addInstructionForUnplayedWord(i);
             }
-            // Else we have a ChangeAdd -- in this case we have put the word in playedList
-            // (it's the one we processed previously, whose instruction we now have in
-            // lastDisplayInstrucction) *and* it's still the first one in the remainingSteps
-            // list, which we have to skip because we've already handled it.
-
-            // We've handled the first word on remainingSteps already, so start at 1.
-            firstFutureStep = 1;
         }
 
-        // Now add instruction for the remaining (future) words, if any, except the target
-        for (let i = firstFutureStep; i < this.gameState.unplayedWords.length-1; i++) {
-            instructions.push(this.instructionForFutureWord(i));
-        }
-
-        // Finally, add an instruction for the target.
-        instructions.push(this.instructionForTargetWord());
-
-        Const.GL_DEBUG && this.logDebug("display instructions: ", instructions, "game");
-        COV(4, CL);
-        return instructions;
+        COV(3, CL);
+        return this.instructions;
     }
 
-    instructionForPlayedWord(stepIndex) {
-        const CL = "Game.instructionForPlayedWord";
+    needsParLine() {
+        const CL = "Game.needsParLine";
         COV(0, CL);
-        const ratedMove = this.gameState.getRatedMove(stepIndex);
+        return (this.instructions.length + 1 === this.gameState.getWordChainSolutionLength());
+    }
+
+    // This is called for each word in the played list, except the last one.
+    addInstructionForPlayedWord(wordPosition) {
+        const CL = "Game.addInstructionsForPlayedWord";
+        COV(0, CL);
+
+        const ratedMove = this.gameState.getRatedMove(wordPosition);
+        const displayType = Const.PLAYED;
         const changePosition = -1;
-        const displayInstruction = new DisplayInstruction(ratedMove.word, Const.PLAYED, changePosition, ratedMove.rating);
-        Const.GL_DEBUG && this.logDebug("  instructionForPlayedWord() step", stepIndex, "word", ratedMove.word, ":", displayInstruction, "instruction");
-        return displayInstruction;
+        const thisPlayedWordIsStart = (wordPosition === 0);
+        const thisPlayedWordIsTarget = (ratedMove.word === this.gameState.target);
+        const moveRating = thisPlayedWordIsStart ? Const.NO_RATING : ratedMove.rating;
+
+        Const.GL_DEBUG && this.logDebug("addInstructionForPlayedWord(", wordPosition, ")",
+                "  ratedMove:", ratedMove,
+                ", displayType:", displayType,
+                ", changePosition:", changePosition,
+                ", moveRating:", moveRating,
+                ", thisPlayedWordIsStart:", thisPlayedWordIsStart,
+                ", thisPlayedWordIsTarget:", thisPlayedWordIsTarget,
+                "instruction");
+
+        let displayInstruction = new DisplayInstruction(ratedMove.word, displayType, changePosition, moveRating,
+            thisPlayedWordIsStart, thisPlayedWordIsTarget, this.needsParLine());
+
+        Const.GL_DEBUG && this.logDebug("addInstructionForPlayedWord(", wordPosition, "): display instruction for", ratedMove.word, "is",
+                displayInstruction, "instruction");
+
+        this.instructions.push(displayInstruction);
     }
 
-    instructionForChangeNextWord(changePosition) {
-        const CL = "Game.instructionsForChangeNextWord";
+    // The last played word will be the start word in the first move of the game.
+    // The start word is considered to be played, but it doesn't have a rating.
+    addInstructionForLastPlayedWord() {
+        const CL = "Game.addInstructionsForLastPlayedWord";
         COV(0, CL);
-        // we show next word after a change with the letters visible
-        // exept the changing letter.
-        const changeNextWord = this.gameState.getUnplayedWord(0),
-              nextFutureWord = this.gameState.getUnplayedWord(1),
-              moveRating = Const.OK,
-              index = changePosition - 1,
-              changeWordWithHole = changeNextWord.substring(0, index) + '?' + changeNextWord.substring(index + 1);
 
-        let displayInstruction = this.instructionForPlayingFromWordToWord(changeNextWord, nextFutureWord, moveRating);
+        const lastRatedMove = this.gameState.lastRatedMove();
+        const lastPlayedWord = lastRatedMove.word;
+        const nPlayedWords = this.getPlayedWords().length;
+        const lastPlayedWordIsStart = (nPlayedWords === 1);
+        const lastPlayedWordIsTarget = (this.gameState.getUnplayedWords().length === 0);
+        const moveRating = (this.instructions.length == 0) ? Const.NO_RATING : lastRatedMove.rating;
 
-        // This is more than a little kludgey ... GameDisplay needs to display
-        // the Change Next instruction word with the hole, but it needs the
-        // complete word for persistence. So we're going to add a field,
-        // wordWithHole so we can achieve this.
-        displayInstruction.wordWithHole = changeWordWithHole;
-        displayInstruction.displayType = Const.CHANGE_NEXT;
-        Const.GL_DEBUG && this.logDebug("  instructionForChangeNextWord() changePosition", changePosition, ":", displayInstruction, "instruction");
-        return displayInstruction;
-    }
+        Const.GL_DEBUG && this.logDebug("addInstructionForLastPlayedWord():",
+                ", lastRatedMove:", lastRatedMove,
+                ", lastPlayedWord:", lastPlayedWord,
+                ", lastPlayedWordIsTarget:", lastPlayedWordIsTarget,
+                ", lastPlayedWordIsStart:", lastPlayedWordIsStart,
+                ", moveRating:", moveRating,
+                "instruction");
 
-    instructionForFutureWord(stepIndex) {
-        const CL = "Game.instructionsForFutureWord";
-        COV(0, CL);
-        // we show hints in the future words that require a single letter-change to the next word
-        const futureWord = this.gameState.getUnplayedWord(stepIndex);
-        const nextFutureWord = this.gameState.getUnplayedWord(stepIndex+1);
-        const moveRating = Const.OK;
-        let displayInstruction = this.instructionForPlayingFromWordToWord(futureWord, nextFutureWord, moveRating);
-        displayInstruction.displayType = Const.FUTURE;
-        Const.GL_DEBUG && this.logDebug("  instructionForFutureWord() stepIndex", stepIndex, ":", displayInstruction, "instruction");
-        return displayInstruction;
-    }
+        var changePosition = -1; 
+        var displayType;
 
-    instructionForLastPlayedWord() {
-        const CL = "Game.instructionsForLastPlayedWord";
-        COV(0, CL);
-        // we are displaying the last played word, which is the active word.  We give instructions for
-        // how to go from that word to the first word in the remaining steps.
-        // UNLESS, the last played word is the last mistake.
-
-        let lastRatedMove = this.gameState.lastRatedMove(),
-            lastWord = lastRatedMove.word,
-            moveRating = lastRatedMove.rating,
-            displayInstruction = null;
-        if (GameState.wordHasHole(lastWord)) {
+        if (lastPlayedWordIsTarget) {
             COV(1, CL);
-            // after user clicks plus somewhere, the list of played words includes the last word played with a hole
-            // in it where the user clicked '+'.  This word with a hole is what we will return to the display to show.
-            // the last word in the played list is the word with a hole. Note that we also still have the word
-            // in the list of remaining words.
-            let indexOfHole = GameState.locationOfHole(lastWord);
-            displayInstruction = new DisplayInstruction(lastWord, Const.CHANGE, indexOfHole+1, moveRating);
+            displayType = Const.TARGET;
         } else {
             COV(2, CL);
-            let nextWord = this.gameState.getUnplayedWord(0);
-            displayInstruction = this.instructionForPlayingFromWordToWord(lastWord, nextWord, moveRating);
-        }
 
-        Const.GL_DEBUG && this.logDebug("  instructionForLastPlayedWord() lastRatedMove", lastRatedMove.word, ":", displayInstruction, "instruction");
-        COV(3, CL);
-        return displayInstruction;
-    }
+            // Check to see if we are in the process of adding a space to the last played word;
+            // if so then this is a PLAYED word and the following word will be a WORD_AFTER_ADD.
+            if (this.addSpaceInProgress) {
+                COV(3, CL);
+                displayType = Const.PLAYED; 
+            } else {
+                COV(4, CL);
 
-    // this method is for displaying the target, either as Const.TARGET if not played yet,
-    // or Const.PLAYED if the game is either solved or lost.
-    // moveRating is Const.OK unless the game is lost; then it is Const.WRONG_MOVE
+                // We're not in the process of adding a space, so we use the length of the last rated
+                // (played) move and the length of this word to determine what kind of move this is.
+                const unplayedWord = this.gameState.getUnplayedWord(0);
+                const fromLen = lastRatedMove.word.length;
+                const toLen = unplayedWord.length;
 
-    instructionForTargetWord() {
-        const CL = "Game.instructionsForTargetWord";
-        COV(0, CL);
-        let targetWord = this.gameState.target;
-        let changePosition=-1; // not used - there is no change FROM target to something
-        let displayType = Const.TARGET; // unless the game is over; then it is PLAYED
-        let moveRating = Const.OK; // unless the game is over and we lost; then it is WRONG_MOVE
-        if (this.isOver()) {
-            COV(1, CL);
-            displayType = Const.PLAYED;
-            if (!this.isWinner()) {
-                COV(2, CL);
-                moveRating = Const.WRONG_MOVE;
+                if (toLen > fromLen) {
+                    COV(5, CL);
+                    displayType = Const.PLAYED_ADD;
+                    this.nextRequiredMove = Const.ADD;
+                } else if (toLen === fromLen) {
+                    COV(6, CL);
+                    displayType = Const.PLAYED_CHANGE;
+                    this.nextRequiredMove = Const.CHANGE;
+                    changePosition = WordChainDict.findChangedLetterLocation(lastRatedMove.word, unplayedWord);
+                } else {
+                    COV(7, CL);
+                    displayType = Const.PLAYED_DELETE;
+                    this.nextRequiredMove = Const.DELETE;
+                }
             }
         }
-        COV(3, CL);
-        let displayInstruction = new DisplayInstruction(targetWord, displayType, changePosition, moveRating);
-        Const.GL_DEBUG && this.logDebug("  instructionForTargetWord() targetWord", targetWord, ":", displayInstruction, "instruction");
-        return displayInstruction;
+
+        COV(8, CL);
+        let displayInstruction = new DisplayInstruction(lastPlayedWord, displayType, changePosition, moveRating,
+            lastPlayedWordIsStart, lastPlayedWordIsTarget, this.needsParLine());
+
+        Const.GL_DEBUG && this.logDebug("addInstructionLastPlayedWord(): display instruction for",
+                lastPlayedWord, "is", displayInstruction, "instruction");
+
+        this.instructions.push(displayInstruction);
     }
 
-    // how to display the previous word, which needs to be changed, to give the next word.
-    instructionForPlayingFromWordToWord(prevWord, nextWord, lastWordMoveRating) {
-        const CL = "Game.instructionsForPlayingFromWordToWord";
+    addInstructionForFirstUnplayedWord() {
+        const CL = "Game.addInstructionsForFirstUnplayedWord";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("      instructionForPlayingFromWordToWord()",  prevWord, nextWord, "instruction");
-        let oneStepTransformation = Solver.getTransformationStep(prevWord, nextWord);
-        if (oneStepTransformation === null) {
-            throw new Error (`can't get from ${prevWord} to ${nextWord} in one step`);
-        }
-        let [operation, position, letter] = oneStepTransformation;
-        if ((operation == Const.ADD) || (operation == Const.DELETE)) {
+
+        const lastRatedMove = this.gameState.lastRatedMove();
+        const lastPlayedWord = lastRatedMove.word;
+        const firstUnplayedWord = this.gameState.getUnplayedWord(0);
+        const firstUnplayedWordIsStart = false;  // start word is by definition always played
+        const firstUnplayedWordIsTarget = (this.gameState.getUnplayedWords().length === 1);
+        const nextUnplayedWordIfAny = firstUnplayedWordIsTarget ? null : this.gameState.getUnplayedWord(1);
+        const nextWordsAreSameLen = (nextUnplayedWordIfAny != null) && (firstUnplayedWord.length === nextUnplayedWordIfAny.length);
+        const previousDisplayInstruction = this.instructions[this.instructions.length-1];
+        const previousDisplayType = previousDisplayInstruction.displayType;
+
+        // This will be changed if we add a hole to it.
+        var displayedFirstUnplayedWord = firstUnplayedWord;
+
+        Const.GL_DEBUG && this.logDebug("addInstructionForFirstUnplayedWord():",
+                ", lastRatedMove:", lastRatedMove,
+                ", lastPlayedWord:", lastPlayedWord,
+                ", firstUnplayedWord:", firstUnplayedWord,
+                ", firstUnplayedWordIsTarget:", firstUnplayedWordIsTarget,
+                ", nextUnplayedWordIfAny:", nextUnplayedWordIfAny,
+                ", nextWordsAreSameLen:", nextWordsAreSameLen,
+                ", previousDisplayInstruction:", previousDisplayInstruction,
+                ", previousDisplayType:", previousDisplayType,
+                "instruction");
+
+        // these variables are defaults for the display instruction - they are overridden in the special cases below.
+        var displayType = firstUnplayedWordIsTarget? Const.TARGET : Const.FUTURE;
+        var moveRating = Const.NO_RATING;
+
+        // Indicate which letter will need to change in this unplayed word
+        // if the word after it is the same length.
+        const changePosition = nextWordsAreSameLen ? 
+            WordChainDict.findChangedLetterLocation(firstUnplayedWord, nextUnplayedWordIfAny) :
+            -1;
+
+        if (previousDisplayType === Const.PLAYED_ADD) {
             COV(1, CL);
-            // DisplayInstruction for ADD/DELETE sets position to zero, which the GameDisplay interprets as
-            // no cell should be highlighted
-            position = 0;
+            // nothing more to do.  This word is shown as a future word following the add-instruction
+        } else if (previousDisplayType === Const.PLAYED_DELETE) {
+            COV(2, CL);
+            // nothing more to do.  This word is shown as a future word following the delete-instruction
+        } else if (previousDisplayType=== Const.PLAYED_CHANGE) {
+            COV(3, CL);
+
+            // Note that we add a WORD_AFTER_CHANGE even if the word is the target.
+            displayType = Const.WORD_AFTER_CHANGE;
+
+            // Add the hole in this word-after-change. The change position is in the prior display instruction.
+            // Note: changePosition is 0..word.length - 1, which is what replaceCharacterAtPositionWithHole() expects.
+            const holePosition = previousDisplayInstruction.changePosition; 
+            displayedFirstUnplayedWord = WordChainDict.replaceCharacterAtPositionWithHole(firstUnplayedWord, holePosition);
+            this.holePosition = holePosition; // TODO clean up
+        } else if (previousDisplayType === Const.PLAYED) {
+            COV(4, CL);
+            if (firstUnplayedWord.length > lastPlayedWord.length) {
+                COV(5, CL);
+
+                if (! this.addSpaceInProgress) {
+                    console.error("this.addSpaceInProgress is false when adding display type WORD_AFTER_ADD");
+                }
+
+                // Note that we use WORD_AFTER_ADD even if the word is the target.
+                displayType = Const.WORD_AFTER_ADD;
+
+                // Add the hole where the user added space to this first unplayed word here.
+                // Note: addPosition is 0..word.length, which is what insertHoleBeforePosition() expects.
+                displayedFirstUnplayedWord = WordChainDict.insertHoleBeforePosition(lastPlayedWord, this.addPosition);
+                this.holePosition = this.addPosition; // TODO clean up
+                this.nextRequiredMove = Const.CHANGE;
+            } 
+        } else {
+            console.error("unknown previous display type", previousDisplayType);
+            return;
         }
-        let displayInstruction = new DisplayInstruction(prevWord, operation, position, lastWordMoveRating);
-        Const.GL_DEBUG && this.logDebug("      instructionForPlayingFromWordToWord(", prevWord, nextWord, ") returns:",
-                displayInstruction, "instruction");
-        COV(2, CL);
-        return displayInstruction;
+        COV(6, CL);
+        let displayInstruction = new DisplayInstruction(displayedFirstUnplayedWord, displayType, changePosition, moveRating,
+                firstUnplayedWordIsStart, firstUnplayedWordIsTarget, this.needsParLine());
+        Const.GL_DEBUG && this.logDebug("addInstructionForFirstUnplayedWord(): display instruction for",
+                firstUnplayedWord, "is", displayInstruction, "instruction");
+        this.instructions.push(displayInstruction);
+    };
+
+    // This is called for each word in the unplayed word list, except the first one (if any).
+    addInstructionForUnplayedWord(wordPosition) {
+        const CL = "Game.addInstructionsForUnplayedWord";
+        COV(0, CL);
+
+        const thisUnplayedWord = this.gameState.getUnplayedWord(wordPosition);
+        const thisUnplayedWordIsStart = false;  // start word is by definition always played
+        const thisUnplayedWordIsTarget = (wordPosition === this.gameState.getUnplayedWords().length - 1);
+        const nextUnplayedWordIfAny = thisUnplayedWordIsTarget ? null : this.gameState.getUnplayedWord(wordPosition + 1);
+        const nextWordsAreSameLen = (nextUnplayedWordIfAny != null) && (thisUnplayedWord.length === nextUnplayedWordIfAny.length);
+
+        Const.GL_DEBUG && this.logDebug("addInstructionForUnplayedWord(", wordPosition, 
+                "), thisUnplayedWord:", thisUnplayedWord,
+                ", thisUnplayedWordIsTarget:", thisUnplayedWordIsTarget,
+                ", nextUnplayedWordIfAny:", nextUnplayedWordIfAny,
+                ", nextWordsAreSameLen:", nextWordsAreSameLen,
+                "instruction");
+
+        // these variables are defaults for the display instruction - they are overridden in the special cases below.
+        var displayType = Const.FUTURE;
+        var moveRating = Const.NO_RATING;
+        var changePosition = -1;
+
+        if (thisUnplayedWordIsTarget) {
+            COV(1, CL);
+            displayType = Const.TARGET;
+        } else {
+            COV(2, CL);
+            if (nextWordsAreSameLen) {
+                COV(3, CL);
+                changePosition = WordChainDict.findChangedLetterLocation(thisUnplayedWord, nextUnplayedWordIfAny);
+            }
+        }
+
+        COV(4, CL);
+        let displayInstruction = new DisplayInstruction(thisUnplayedWord, displayType, changePosition, moveRating,
+            thisUnplayedWordIsStart, thisUnplayedWordIsTarget, this.needsParLine());
+
+        Const.GL_DEBUG && this.logDebug("addInstructionForUnplayedWord(", wordPosition, "): display instruction for",
+                thisUnplayedWord, "is", displayInstruction, "instruction");
+
+        this.instructions.push(displayInstruction);
     }
 
-   addWordIfExists(word) {
+    addWordIfExists(word) {
         const CL = "Game.addWordIfExists";
         COV(0, CL);
-        this.gameState.removeWordWithHoleIfNecessary();
+        Const.GL_DEBUG && this.logDebug("Game.addWordIfExists trying to add", word, "game");
         let result = Const.NOT_A_WORD;
         if (this.gameState.dictionary.isWord(word) || this.scrabbleDictionary.isWord(word)) {
             COV(1, CL);
@@ -256,88 +302,130 @@ class Game extends BaseLogger {
         return result;
     }
 
-
-    // the GUI needs to know if a played word was acceptable (OK, GENIUS_MOVE, SCRABBLE_WORD, DODO_MOVE, WRONG_MOVE, SHOWN_MOVE)
-    // vs invalid (NOT_A_WORD or technical problems like BAD_POSITION)
-    static moveIsValid(moveRating) {
-        const CL = "Game.moveIsValid";
-        COV(0, CL);
-        return (moveRating == Const.OK) || (moveRating == Const.GENIUS_MOVE) || (moveRating == Const.SCRABBLE_WORD) ||
-               (moveRating == Const.WRONG_MOVE) || (moveRating == Const.DODO_MOVE) || (moveRating == Const.SHOWN_MOVE);
-    }
-
-    // addPosition is from 0 to last word played's length
-    // This adds a word-with-a-hole-in-it to the played steps so far.
-    // Then, when displaying the last word given (the action word)
-    // it should have n+1 letters, one of which is the HOLE character.
-    // And it should be compared to the first remaining step.
-    // - Returns true if no error
-    // - Returns null on error (e.g. unexpected position)
+    /* addPosition is from 0 to last word played's length
+     * 
+     * We record the position but don't adjust the state of the game.  We will update the game state if/when the user
+     * plays a valid letter. 
+     * - Returns true if no error
+     * - Returns null on error (e.g. unexpected position)
+     */
 
     playAdd(addPosition) {
         const CL = "Game.addPosition";
+        if (this.nextRequiredMove != Const.ADD) {
+            console.error("playing ADD but expected:", this.nextRequiredMove);
+        }
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playAdd(): addPosition:", addPosition, "this.gameState",
                 this.gameState.toStr(), "game");
+
         let oldWord = this.lastPlayedWord();
         if ((addPosition < 0) || (addPosition > oldWord.length)) {
+            console.error("Game.addPosition(): returning BAD_LETTER_POSITION");
             return Const.BAD_LETTER_POSITION;
         }
-        return this.gameState.addSpace(addPosition);
+        this.addPosition = addPosition;
+        this.addSpaceInProgress = true;
+        this.getDisplayInstructions(); // updates state of game with next expected change location
+        return Const.GOOD_MOVE; 
     }
 
-    // deletePosition is 1 to word.length
-    // returns true if resulting word is in dictionary; false otherwise
-    // returns null on other error (e.g. unexpected position)
+    /* playDelete  deletePosition is 0..word.length-1
+     * returns true if resulting word is in dictionary; false otherwise
+     * returns null on other error (e.g. unexpected position)
+     */
     playDelete(deletePosition) {
         const CL = "Game.playDelete";
+        if (this.nextRequiredMove != Const.DELETE) {
+            console.error("playing DELETE but expected:", this.nextRequiredMove);
+        }
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playDelete() position", deletePosition, "this.gameState:",
                 this.gameState.toStr(), "game");
+
         let oldWord = this.lastPlayedWord();
-        // adjust to zero-based
-        deletePosition -= 1;
         if ((deletePosition < 0) || (deletePosition >= oldWord.length)) {
+            // Note: this is actually an error, but we have a test that verifies it,
+            // so logging with logDebug() instead of console.error() here. 
+            COV(1, CL);
             Const.GL_DEBUG && this.logDebug("bad adjusted delete position", deletePosition, "game")
-            return Const.BAD_POSITION;
+            return Const.BAD_LETTER_POSITION;
         }
-        let newWord = oldWord.substring(0,deletePosition) + oldWord.substring(deletePosition+1);
+
+        let newWord = WordChainDict.deleteLetter(oldWord, deletePosition);
         Const.GL_DEBUG && this.logDebug("Game.playDelete(): ", oldWord, "becomes", newWord, "game");
-        return this.addWordIfExists(newWord);
+        COV(2, CL);
+        const result = this.addWordIfExists(newWord);
+        this.getDisplayInstructions(); // updates state of game!
+        return result;
     }
 
-    // letterPosition given is 1 to word.length
-    // Returns true if resulting word is in dictionary; false otherwise
-    playLetter(letterPosition, letter) {
+    /* playLetter
+     * this.holePosition indicates where the user sees the '?' in the current display. This requires
+     * calling Game.getDisplayInstructions before playing a letter, which is how the display works.
+     * If we are in the process of inserting a letter, this.addSpaceInProgress will be true.
+     * We need that only so that the resulting word here grows by one before changing the letter.
+     *
+     * Returns true if resulting word is in dictionary; false otherwise
+     */
+
+    playLetter(letter) {
         const CL = "Game.playLetter";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("Game.playLetter(): letterPosition:", letterPosition, ", letter:", letter,
+        if (this.nextRequiredMove != Const.CHANGE) {
+            console.error("playing CHANGE but expected:", this.nextRequiredMove);
+        }
+
+        Const.GL_DEBUG && this.logDebug("Game.playLetter(): this.holePosition:", this.holePosition, ", letter:", letter,
+                "addSpaceInProgress?", this.addSpaceInProgress, "at position:", this.addPosition,
                 "this.gameState", this.gameState, "game");
         Const.GL_DEBUG && this.logDebug("steps played: ", this.gameState.getPlayedWordsAsString(), "game");
-        letterPosition -= 1;
-        let oldWord = this.lastPlayedWord();
-        let newWord = oldWord.substring(0,letterPosition) + letter + oldWord.substring(letterPosition+1);
-        Const.GL_DEBUG && this.logDebug("Game.playLetter(): ", oldWord, "becomes", newWord, "game");
-        return this.addWordIfExists(newWord)
+
+        const oldWord = this.lastPlayedWord();
+        var oldWordModified = oldWord;
+        if (this.addSpaceInProgress) {
+            // create the next word with a hole in oldWord at the location of the space added (0 to oldWord.length);
+            COV(1, CL);
+            this.addSpaceInProgress = false;
+            oldWordModified = WordChainDict.insertHoleBeforePosition(oldWord, this.holePosition);
+            Const.GL_DEBUG && this.logDebug("playLetter() added space to old word ", oldWord, "giving",  oldWordModified, "game");
+        }
+
+        // construct the new word, replacing the letter at this.holePosition with 'letter'.  It was a letter for CHANGE, and '?' for ADD.
+        const newWord = WordChainDict.replaceCharacterAtPosition(oldWordModified, letter, this.holePosition);
+
+        var result;
+        if (oldWord == newWord) {
+            COV(2, CL);
+            result = Const.PICK_NEW_LETTER;
+        } else {
+            COV(3, CL);
+            Const.GL_DEBUG && this.logDebug("Game.playLetter(): ", oldWord, "becomes", newWord, "game");
+            result = this.addWordIfExists(newWord)
+        }
+        this.getDisplayInstructions();
+        return result;
+
+        COV(4, CL);
     }
 
     /////////
     // pass-throughs to GameState
     /////////
 
-    // Returns the number of actually played wrong moves, including dodo moves, and shown moves.
-    numPenalties() {
-        const CL = "Game.numPenalties";
+    // Returns the number of extra steps, 0..N
+    getNormalizedScore() {
+        const CL = "Game.getNormalizedScore";
         COV(0, CL);
-        return this.gameState.numPenalties();
+
+        if (!this.isOver()) {
+            console.error("GameState.getNormalizedScore() called before game is over");
+            return 1000;
+        }
+
+        return this.gameState.getNormalizedScore();
     }
  
-    numShownMoves() {
-        const CL = "Game.numShownMoves";
-        COV(0, CL);
-        return this.gameState.numShownMoves();
-    }
-
     getOriginalSolutionWords() {
         const CL = "Game.getOriginalSolutionWords";
         COV(0, CL);
@@ -358,6 +446,12 @@ class Game extends BaseLogger {
         return this.gameState.unplayedWords;
     }
 
+    getPlayedWords() {
+        const CL = "Game.getPlayedWords";
+        COV(0, CL);
+        return this.gameState.ratedMoves;
+    }
+
     listAsStringWithBreaks(wordList) {
         const CL = "Game.listAsStringWithBreaks";
         COV(0, CL);
@@ -375,31 +469,27 @@ class Game extends BaseLogger {
         return res + wordList[wordList.length-1];
     }
 
+    showNextMove() {
+        const CL = "Game.showNextMove";
+        COV(0, CL);
+        // plays the next word in the solution for the player.  The move is rated as SHOWN_MOVE
+        return this.gameState.showNextMove();
+    }
 
-    // Finishes the game. When getNextDisplayInstruction() is called after this,
-    // the game can be displayed just the same as if a user finished with all
-    // correct moves.
+    // Finishes the game. Used in testing.
 
     finishGame() {
         const CL = "Game.finishGame";
         COV(0, CL);
-        // play the remaining steps for the user.  
+        // play the remaining steps for the user.
         this.gameState.finishGame();
-    }
-
-    showNextMove() {
-        const CL = "Game.showNextMove";
-        COV(0, CL);
-        // plays the next word in the solution for the player.  The move is rated as
-        // SHOWN_MOVE
-        return this.gameState.showNextMove();
     }
 
     isOver() {
         const CL = "Game.isOver";
         COV(0, CL);
         let res = this.gameState.isOver();
-        Const.GL_DEBUG && this.logDebug("Game.isOver() returns:", res, "gameState: ", this.gameState.toStr(), "game");
+        Const.GL_DEBUG && this.logDebug("Game.isOver() returns:", res, /* "gameState: ", this.gameState.toStr(),*/ "game");
         return res;
     }
 
@@ -429,6 +519,8 @@ class DailyGame extends Game {
         COV(0, CL);
         let gameState = DailyGameState.factory(dict);
         super(gameState);
+        this.getDisplayInstructions(); // now required for proper game state 
+        Const.GL_DEBUG && this.logDebug("DailyGame.constuctor() just called Game.constructor()", "game");
     }
 
     isOld() {
@@ -458,12 +550,14 @@ class PracticeGame extends Game {
         COV(0, CL);
         let gameState = PracticeGameState.factory(dict);
         super(gameState);
+        Const.GL_DEBUG && this.logDebug("PracticeGame.constuctor() just called Game.constructor()", "game");
     }
 
     nextGame() {
         const CL = "PracticeGame.nextGame";
         COV(0, CL);
         let result = null;
+        Const.GL_DEBUG && this.logDebug("PracticeGame.nextGame() gameState was", this.gameState,  "game");
         if (! this.gamesRemaining()) {
             COV(1, CL);
             Const.GL_DEBUG && this.logDebug("PracticeGame.nextGame() no games remaining",  "game");
@@ -472,10 +566,11 @@ class PracticeGame extends Game {
             let nGamesRemaining = this.gamesRemaining();
             // get a fresh game and update its gamesRemaining
             Persistence.clearPracticeGameState2(); 
-            let practiceGame = new PracticeGame(); // will be from scratch after clearing game state.
-            practiceGame.gameState.gamesRemaining = nGamesRemaining;
-            practiceGame.gameState.persist();
-            result = practiceGame;
+            let newPracticeGame = new PracticeGame(); // will be from scratch after clearing game state.
+            newPracticeGame.gameState.gamesRemaining = nGamesRemaining;
+            newPracticeGame.gameState.persist();
+            Const.GL_DEBUG && this.logDebug("PracticeGame.nextGame() new gameState is", newPracticeGame.gameState,  "game");
+            result = newPracticeGame;
         }
 
         COV(3, CL);
@@ -485,6 +580,7 @@ class PracticeGame extends Game {
     //// 
     // Pass-throughs to GameState, called from the Display classes.
 
+    // returns the number of practice games remaining
     gamesRemaining() {
         const CL = "PracticeGame.gamesRemaining";
         COV(0, CL);

@@ -5,6 +5,10 @@ import * as Const from './Const.js';
 
 class Picker extends BaseLogger {
 
+    /* ----- Class Constants ----- */
+
+    static SCROLL_DISTANCE = 250;
+
     /* ----- Construction ----- */
 
     // Arguments:
@@ -42,9 +46,15 @@ class Picker extends BaseLogger {
         // The picker-outer-div class will have a fixed width that spans the game display.
         // The picker-inner-div class will be scrollable so that a user with a touch screen
         // device can easily scroll by dragging; a non-touch-screen user will need to
-        // use a slider to move the letters.
+        // use a slider to move the letters. The triangles cue the user that they must
+        // slide/swipe to reveal other letters.
         this.pickerOuterDiv = ElementUtilities.addElementTo("div", pickerDiv, {class: "picker-outer-div", id: pickerId});
+        this.leftTriangle   = ElementUtilities.addElementTo("div", this.pickerOuterDiv, {class: "triangle-left"});
         this.pickerInnerDiv = ElementUtilities.addElementTo("div", this.pickerOuterDiv, {class: "picker-inner-div"});
+        this.rightTriangle  = ElementUtilities.addElementTo("div", this.pickerOuterDiv, {class: "triangle-right"});
+
+        ElementUtilities.setCallback(this.leftTriangle, this, this.scrollLeftCallback);
+        ElementUtilities.setCallback(this.rightTriangle, this, this.scrollRightCallback);
 
         var table = ElementUtilities.addElementTo("table", this.pickerInnerDiv, {class: "picker-table"}),
             row = ElementUtilities.addElementTo("tr", table, {class: "picker-tr"}),
@@ -78,27 +88,34 @@ class Picker extends BaseLogger {
     }
 
     disable() {
-        // Hide pickerInnerDiv -- the outer div will not be hidden, so space
-        // for the picker will be present, but it will be blank. In this way,
+        // Hide pickerInnerDiv and the triangles -- the outer div will not be hidden,
+        // so space for the picker will be present, but it will be blank. In this way,
         // when we enable the picker, we simply "unhide" and the game display
         // elements don't move, which would be jarring to a user.`
         const CL = "Picker.disable";
         COV(0, CL);
+        ElementUtilities.hide(this.rightTriangle);
         ElementUtilities.hide(this.pickerInnerDiv);
+        ElementUtilities.hide(this.leftTriangle);
     }
 
     enable() {
+        // Show pickerInnerDiv and the triangles.
         const CL = "Picker.ensable";
         COV(0, CL);
+        ElementUtilities.show(this.rightTriangle);
         ElementUtilities.show(this.pickerInnerDiv);
+        ElementUtilities.show(this.leftTriangle);
     }
 
-    // ActiveLetterCell saves the letter position in the picker so that when
-    // a letter is selected we can give it back to the game.
-    saveLetterPosition(position) {
-        const CL = "Picker.saveLetterPosition";
-        COV(0, CL);
-        this.letterPosition = position;
+    scrollLeftCallback(__event) {
+        console.log("SCROLL_DISTANCE:", Picker.SCROLL_DISTANCE);
+        this.pickerInnerDiv.scrollLeft -= Picker.SCROLL_DISTANCE;
+    }
+
+    scrollRightCallback(__event) {
+        console.log("SCROLL_DISTANCE:", Picker.SCROLL_DISTANCE);
+        this.pickerInnerDiv.scrollLeft += Picker.SCROLL_DISTANCE;
     }
 
     // This method is called when the user clickes a letter button in the picker.
@@ -117,7 +134,7 @@ class Picker extends BaseLogger {
             // Tell the game that a letter has been picked.
             COV(2, CL);
             const buttonText = event.srcElement.innerText;
-            result = this.gameDisplay.letterPicked(buttonText, this.letterPosition);
+            result = this.gameDisplay.letterPicked(buttonText);
         }
 
         COV(3, CL);

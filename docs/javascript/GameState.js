@@ -21,8 +21,8 @@ class GameState extends BaseLogger {
     // GameState should not be constructed except by derived classes:
     // DailyGameState and PracticeGameState
     //
-    // The external API for creating a new GameState is the factory(dictionary) method in the 
-    // derived classes.  It will: 
+    // The external API for creating a new GameState is the factory(dictionary) method in the
+    // derived classes.  It will:
     // 1) recover a game in progress or completed if any (and it is today's game for daily games)
     // 2) construct a new game if the recovered daily game is old
     // 3) construct a new game if there is no recovered game (daily or practice)
@@ -57,7 +57,7 @@ class GameState extends BaseLogger {
             this.start = start;
             this.target = target;
             this.initialSolution = solution.getSolutionWords(); // list of bare words, including start and target
-            this.ratedMoves = [new RatedMove(start, Const.OK)]; // the start word is recorded as a RatedMove
+            this.ratedMoves = [new RatedMove(start, Const.GOOD_MOVE)]; // the start word is recorded as a RatedMove
             this.unplayedWords = solution.getSolutionWords().slice(); // copy the whole solution list ...
             this.unplayedWords.shift(1); // ... and remove the start word
             this.persist();
@@ -66,9 +66,18 @@ class GameState extends BaseLogger {
             COV(2, CL);
             return null;
         }
+
+        COV(3, CL);
     }
 
-    // ----- utilities for accessing the played and unplayed words -----
+    // ----- utilities for accessing the played, unplayed, and target words -----
+
+    // NOTE: Intentionally not adding coverage to these little one-liners;
+    // it increases the runtime 23-fold!
+
+    getTargetWord() {
+        return this.target;
+    }
 
     getRatedMove(i) {
         return this.ratedMoves[i];
@@ -86,19 +95,8 @@ class GameState extends BaseLogger {
         return this.lastRatedMove().word;
     }
 
-    // This is used when the last played word has a hole, like F?AT, and we play 'L'.  
-    // We need to remove F?AT from the played words and we will add FLAT if it is a word.
-    // But if we play 'M', FMAT is not a word, so we don't add it to played words. 
-
-    removeWordWithHoleIfNecessary() {
-        const CL = "GameState.removeWordWithHoleIfNecessary";
-        COV(0, CL);
-        if (GameState.wordHasHole(this.lastPlayedWord())) {
-            COV(1, CL);
-            // we are playing a word after a HOLE word.  Remove the HOLE word. 
-            Const.GL_DEBUG && this.logDebug("removing played word with hole", "gameState");
-            this.ratedMoves.pop();
-        }
+    getWordChainSolutionLength() {
+        return this.initialSolution.length;
     }
 
     getPlayedWordList() {
@@ -127,20 +125,10 @@ class GameState extends BaseLogger {
 
     // ----- functions called to effect game play -----
 
-    // NOTE: these functions do not validate that word added is actually OK to add, as that 
+    // NOTE: these functions do not validate that word added is actually OK to add, as that
     // should be done before adding a word, in the Game class.
 
-    addSpace(spaceNumber) {
-        // Adds a played word as a copy of the last played word, with a '?' inserted in the 
-        // the new space.
-        let lastWord = this.lastPlayedWord();
-        let [pre, post] = [lastWord.substring(0, spaceNumber), lastWord.substring(spaceNumber)];
-        let wordWithSpace = pre + Const.HOLE + post;
-        this.ratedMoves.push(new RatedMove(wordWithSpace, Const.OK));
-        return Const.OK;
-    }
-
-    // Plays 'word'.  
+    // Plays 'word'.
     // Returns the move rating.
     // DOES NOT VERIFY IF word is a valid word, or if word can be reached from previous word.
     // If the game is now finished, call the end-of-game management function in the derived class
@@ -149,8 +137,7 @@ class GameState extends BaseLogger {
         const CL = "GameState.addWord";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("playing word:", word, "last played word", this.lastPlayedWord(), "gameState");
-        // this.removeWordWithHoleIfNecessary();
-        let moveRating = Const.OK; // We will override this below, based on the new solution after playing 'word'
+        let moveRating = Const.GOOD_MOVE; // We will override this below, based on the new solution after playing 'word'
         if (word == this.unplayedWords[0]) {
             COV(1, CL);
             Const.GL_DEBUG && this.logDebug("GameState.addWord()", word,
@@ -161,45 +148,51 @@ class GameState extends BaseLogger {
             // The player played a different word than WordChain at this step.
             // We need to re-solve from 'word' to 'target'.
             COV(2, CL);
+            const isScrabbleWord = ! this.dictionary.isWord(word);
             let stepsRemaining = this.unplayedWords.length;
             let solution = Solver.solve(this.dictionary, word, this.target);
+
             Const.GL_DEBUG && this.logDebug(word, "was not expected. recomputed solution:", solution, "gameState");
+
             let newStepsRemaining = solution.numWords();
             if (newStepsRemaining == stepsRemaining) {
                 COV(3, CL);
                 // different word, same length as WordChain used
                 // let them know if it was a scrabble word, although not genius.
-                if ( !this.dictionary.isWord(word) ) {
-                    moveRating = Const.SCRABBLE_WORD;
+                if (isScrabbleWord) {
+                    COV(4, CL);
+                    moveRating = Const.SCRABBLE_MOVE;
                     // add 'word' to the standard dictionary, because it might be needed again by Solver
                     this.dictionary.addWord(word);
                 };
             } else if (newStepsRemaining == stepsRemaining+1) {
-                COV(4, CL);
+                COV(5, CL);
                 // different word, one step longer than WordChain used
                 moveRating = Const.WRONG_MOVE;
             } else if (newStepsRemaining == stepsRemaining+2) {
-                COV(5, CL);
+                COV(6, CL);
                 // different word, two steps longer than WordChain used
                 moveRating = Const.DODO_MOVE;
             } else if (newStepsRemaining < stepsRemaining) {
-                COV(6, CL);
-                // different word, shorter than WordChain used
+                COV(7, CL);
+                // Different word, shorter than WordChain used.
+                // Note: not adding to dictionary because the Solver should never
+                // need to play this word again ... it's pretty subtle.
                 moveRating = Const.GENIUS_MOVE;
             }
             this.unplayedWords = solution.getSolutionWords().slice(); // get a copy (slice)
             this.unplayedWords.shift();                               // and remove the start word
-            COV(7, CL);
+            COV(8, CL);
         }
         this.ratedMoves.push(new RatedMove(word, moveRating));
         if (this.isOver()) {
-            COV(8, CL);
-            Const.GL_DEBUG && this.logDebug ("GameState.addWord() game is over", "gameState");
+            COV(9, CL);
+            Const.GL_DEBUG && this.logDebug ("GameState.addWord() game is now over", "gameState");
             this.showUnplayedMoves();
             this.updateStateAfterGame(); // dispatches to sub-class for Daily vs Practice
         }
         this.persist();
-        COV(9, CL);
+        COV(10, CL);
         return moveRating;
     }
 
@@ -214,28 +207,60 @@ class GameState extends BaseLogger {
         return (GameState.locationOfHole(word) >= 0);
     }
 
-    isPenalty(rating) {
-        return (rating == Const.WRONG_MOVE) || (rating == Const.DODO_MOVE) || (rating == Const.SHOWN_MOVE);
+    /*
+     * Score indicates the best-case number of words actually used vs WordChain's solution.
+     * When a game is in progress, it counts words played plus the best-case remaining words.
+     * When a game is over, the remaining words are zero.
+     * Score will be negative if user had one or more genius
+     * moves (unless they made mistakes too).
+     * Score can grow indefinetly if we allow unlimited moves.
+     */
+
+    getScore() {
+        const CL = "GameState.getScore";
+        COV(0, CL);
+        return this.unplayedWords.length + this.ratedMoves.length - this.initialSolution.length;
     }
 
-    // Count the number of mistakes and shown moves.  Limit the result to no more than TOO_MANY_PENALTIES
-    numPenalties() {
-        let numPenalties = this.ratedMoves.filter((ratedMove) => this.isPenalty(ratedMove.rating)).length;
-        if (numPenalties > Const.TOO_MANY_PENALTIES) {
-            numPenalties = Const.TOO_MANY_PENALTIES;
+    /*
+     * For display & stats, we limit the score from 0 to TOO_MANY_EXTRA_STEPS
+     */
+    getNormalizedScore() {
+        const CL = "GameState.getNormalizedScore";
+        COV(0, CL);
+        const score = this.getScore();
+        if (score < 0) {
+            COV(1, CL);
+            return 0;
+        } else if (score >= Const.TOO_MANY_EXTRA_STEPS) {
+            COV(2, CL);
+            return Const.TOO_MANY_EXTRA_STEPS;
+        } else {
+            COV(3, CL);
+            return score;
         }
-        return numPenalties;
+        COV(4, CL);
     }
 
     numShownMoves() {
+        const CL = "GameState.numShownMoves";
+        COV(0, CL);
         return this.ratedMoves.filter((ratedMove) => ratedMove.rating == Const.SHOWN_MOVE).length;
     }
 
+    canShowMove() {
+        const CL = "GameState.canShowMove";
+        COV(0, CL);
+        return this.numShownMoves() < Const.MAX_SHOWN_WORDS;
+    }
+
+    // used only in testing via Game.finishGame()
     finishGame() {
         const CL = "GameState.finishGame";
         COV(0, CL);
         // play the next unplayed words until they are all played
         while (this.unplayedWords.length > 0) {
+            COV(1, CL);
             this.addWord(this.unplayedWords[0]);
         }
     }
@@ -243,34 +268,57 @@ class GameState extends BaseLogger {
     showUnplayedMoves() {
         const CL = "GameState.showUnplayedMoves";
         COV(0, CL);
-        // show the remaining moves
+        // force-show the remaining moves
+        const forceShow = true;
         while (this.unplayedWords.length > 0) {
-            this.showNextMove();
+            COV(1, CL);
+            this.showNextMove(forceShow);
         }
     }
-    
-    showNextMove() {
+
+    showNextMove(forceShow = false) {
         const CL = "GameState.showNextMove";
         COV(0, CL);
-        const alreadyOver = this.isOver();
-        this.removeWordWithHoleIfNecessary();
-        let nextWord = this.unplayedWords[0];
-
-        this.unplayedWords.shift();
-        this.ratedMoves.push(new RatedMove(nextWord, Const.SHOWN_MOVE));
-        // we update the state after a game is finished by showing a move.  
-        if (!alreadyOver && this.isOver()) {
+        if (!this.canShowMove() && !forceShow) {
             COV(1, CL);
+            Const.GL_DEBUG && this.logDebug("too many words shown", this.numShownMoves(), "gameState");
+            return Const.UNEXPECTED_ERROR;
+        }
+
+        COV(2, CL);
+        const alreadyOver = this.isOver();
+        let nextWord = this.unplayedWords[0];
+        this.unplayedWords.shift();
+
+        if (forceShow) {
+            // We're showing the words after too many extra steps.
+            COV(3, CL);
+            this.ratedMoves.push(new RatedMove(nextWord, Const.SHOWN_MOVE));
+        } else {
+            // This is a user-requested Show Move. If it's the last move, rate the move as good
+            // so there's no perceived penalty.
+            if (this.unplayedWords.length === 0) {
+                COV(4, CL);
+                this.ratedMoves.push(new RatedMove(nextWord, Const.GOOD_MOVE));
+            } else {
+                COV(5, CL);
+                this.ratedMoves.push(new RatedMove(nextWord, Const.SHOWN_MOVE));
+            }
+        }
+        // we update the state after a game is finished by showing a move.
+        if (!alreadyOver && this.isOver()) {
+            COV(6, CL);
             this.showUnplayedMoves();  // game just ended.  We mark all the unplayed moves as 'shown' to display them
             this.updateStateAfterGame();
         }
+        COV(7, CL);
         this.persist();
         return Const.SHOWN_MOVE;
     }
 
     // ----- functions relating to end of game -----
 
-    // The game is done if the last played word is the target, or there are too many penalties.
+    // The game is done if the last played word is the target, or there are too many extra steps.
     isOver() {
         const CL = "GameState.isOver";
         COV(0, CL);
@@ -283,7 +331,7 @@ class GameState extends BaseLogger {
     isLoser() {
         const CL = "GameState.isLoser";
         COV(0, CL);
-        return this.numPenalties() >= Const.TOO_MANY_PENALTIES;
+        return this.getScore() >= Const.TOO_MANY_EXTRA_STEPS;
     }
 
     isWinner() {
@@ -294,7 +342,7 @@ class GameState extends BaseLogger {
 }
 
 class DailyGameState extends GameState{
-    // adds gameNumber, statsBlob, penaltyHistogram, isConstructedAsNew 
+    // adds gameNumber, statsBlob, penaltyHistogram, isConstructedAsNew
 
     constructor(dictionary) {
         const CL = "DailyGameState.constructor";
@@ -312,26 +360,6 @@ class DailyGameState extends GameState{
         Persistence.saveDailyGameState2(this);
     }
 
-    updateFromDeprecatedStatsBlob() {
-        const CL = "DailyGameState.updateFromDeprecatedStatsBlob";
-        COV(0, CL);
-        let depStatsBlob = Persistence.getDeprecatedStatsBlob();
-        if (depStatsBlob != null) {
-            COV(1, CL);
-            this.statsBlob = {
-              gamesStarted: depStatsBlob.gamesStarted,
-              gamesWon: depStatsBlob.gamesWon,
-              gamesLost: depStatsBlob.gamesLost,
-              streak: depStatsBlob.streak,
-            };
-            for (let i=0; i <= Const.TOO_MANY_PENALTIES; i++) {
-                this.penaltyHistogram[i] = depStatsBlob[i];
-            }
-        }
-        COV(2, CL);
-    }
-
-
     // Factory method to create a new DailyGameState object, either from recovery
     // or from scratch if there is nothing to recover or it is old.
 
@@ -339,9 +367,11 @@ class DailyGameState extends GameState{
         const logger = new BaseLogger();
         if (Const.GL_DEBUG) {
             logger.logDebug("DailyGameState.factory() called.", "gameState");
+            /*
             if (logger.tagIsOn("gameState")) {
                 console.trace();
             }
+            */
         }
         const CL = "DailyGameState.factory";
         COV(0, CL);
@@ -349,11 +379,11 @@ class DailyGameState extends GameState{
         let recoveredObj = Persistence.getDailyGameState2();
         Const.GL_DEBUG && logger.logDebug("DailyGameState.factory() recovers object:", recoveredObj, "gameState");
         if (recoveredObj == null) {
-            // nothing persisted. 
+            // nothing persisted.
             COV(1, CL);
+            Const.GL_DEBUG && logger.logDebug("no recovered daily game, so streak starts at 1.", "daily");
             let gameState = DailyGameState.__fromScratch(dictionary);
             gameState.isConstructedAsNew = true;
-            gameState.updateFromDeprecatedStatsBlob();
             gameState.persist();
             result = gameState;
         } else {
@@ -372,13 +402,13 @@ class DailyGameState extends GameState{
                 recoveredDailyGameState.persist();
                 result = recoveredDailyGameState;
             } else {
+                COV(4, CL);
 
                 // Check to see if the recovered daily game is today's game.  If so, use it as is.
                 // Otherwise, set state to today's daily game.
-                // If we recovered yesterday's game, and didn't win, the streak is over.
+                // If we recovered yesterday's game the streak is still good.
                 // If the game we recovered is more than 2 days old, the streak is over.
 
-                COV(4, CL);
                 let todaysGameNumber = recoveredDailyGameState.calculateGameNumber(); // computes TODAY's game number
                 if (recoveredDailyGameState.getDailyGameNumber() != todaysGameNumber) {
                     // a new day, a new game.
@@ -386,36 +416,33 @@ class DailyGameState extends GameState{
                     recoveredDailyGameState.isConstructedAsNew = true;
 
                     // need a new game, but not from scratch, to keep the recovered GameState for stats
-                    if (recoveredDailyGameState.getDailyGameNumber() <= todaysGameNumber - 2) {
-                        // we didn't play yesterday's game; streak is over
+                    if (recoveredDailyGameState.getDailyGameNumber() === todaysGameNumber - 1) {
                         COV(6, CL);
-                        Const.GL_DEBUG && logger.logDebug("Did not play yesterday's game: streak is over", "daily");
-                        recoveredDailyGameState.setStat("streak", 0);
+                        Const.GL_DEBUG && logger.logDebug("recovered yesterday's game, so streak continues.", "daily");
+                        recoveredDailyGameState.incrementStat("streak");
                     } else {
-                        // must be yesterday's game.  Did we win?
-                        // The case we're handling here is that it's an unfinished game.
-                        // If it was a lost game, we would have already set the streak
-                        // to 0 when it was lost.
+                        // we didn't play yesterday's game; streak is over
                         COV(7, CL);
-                        if (!recoveredDailyGameState.isWinner()) {
-                            recoveredDailyGameState.setStat("streak", 0);
-                        }
+                        Const.GL_DEBUG && logger.logDebug("Did not play yesterday's game: streak is over", "daily");
+                        recoveredDailyGameState.setStat("streak", 1);
                     }
                     // now, update game state to today's game, playing from the start.
+                    // If setToTodaysGame() sets the game to the broken one, we will
+                    // have updated the streak above, which is what we want -- the whole
+                    // idea of the streak is how many days in a row the user started a game.
                     recoveredDailyGameState.setToTodaysGame();
                 }
 
-                recoveredDailyGameState.updateFromDeprecatedStatsBlob();
                 recoveredDailyGameState.persist();
                 result = recoveredDailyGameState;
             }
         }
-        COV(8, CL);
         if (result && result.isNewDailyGame()) {
-            COV(9, CL);
+            COV(8, CL);
             Const.GL_DEBUG && logger.logDebug("record daily game started", "daily");
             Metrics.recordDailyGameStarted(result.getDailyGameNumber());
         }
+        COV(9, CL);
         return result;
     }
 
@@ -441,7 +468,7 @@ class DailyGameState extends GameState{
         } else {
             COV(2, CL);
             // Valid daily game numbers run from 0 to GameWords.length-1.  If the calculated
-            // value is outside that range, a place-holder game is used. 
+            // value is outside that range, a place-holder game is used.
             if ((dailyGameNumber < 0) || (dailyGameNumber >= Const.DAILY_GAMES.length)) {
                 COV(3, CL);
                 dailyGameNumber = Const.BROKEN_DAILY_GAME_NUMBER;
@@ -456,9 +483,9 @@ class DailyGameState extends GameState{
         this.incrementStat("gamesStarted");
         return this.initializePuzzle(start, target);
     }
-    
+
     // Don't call __fromScratch() from outside the class.
-    // If test vars are set, use them here.  
+    // If test vars are set, use them here.
     static __fromScratch(dictionary) {
         const logger = new BaseLogger();
         const CL = "DailyGameState.__fromScratch";
@@ -476,15 +503,15 @@ class DailyGameState extends GameState{
             gamesStarted: 0,
             gamesWon: 0,
             gamesLost: 0,
-            streak: 0,
+            streak: 1, // streak can not be zero, because just starting the game via opening the app is a streak of atleast one.
         };
 
         // Now create a histogram for each number of wrong moves, and initialize
-        // their values to 0. The stat properties for these is 0..TOO_MANY_PENALTIES.
+        // their values to 0. The stat properties for these is 0..TOO_MANY_EXTRA_STEPS.
 
         dailyGameState.penaltyHistogram = [];
-        for (let nPenalties = 0; nPenalties <= Const.TOO_MANY_PENALTIES; nPenalties++) {
-            dailyGameState.penaltyHistogram[nPenalties] = 0;
+        for (let nExtraSteps = 0; nExtraSteps <= Const.TOO_MANY_EXTRA_STEPS; nExtraSteps++) {
+            dailyGameState.penaltyHistogram[nExtraSteps] = 0;
         }
 
         // Will return null if something goes bad; e.g. puzzle cannot be solved.
@@ -506,7 +533,7 @@ class DailyGameState extends GameState{
         let dailyGameState = new DailyGameState(dictionary);
         Object.assign(dailyGameState, recoveredDailyGameStateObj);
 
-        // Use-case for TEST_DAILY_GAME_START, TEST_DAILY_GAME_TARGET vars: 
+        // Use-case for TEST_DAILY_GAME_START, TEST_DAILY_GAME_TARGET vars:
         // if these are set, they MAY be overriding what we recovered.  If they do,
         // we re-initialize the puzzle using the test words.  If the test words are
         // the same as recovered, we go with the game as recovered.
@@ -522,7 +549,7 @@ class DailyGameState extends GameState{
                 COV(3, CL);
                 dailyGameState.dailyGameNumber = Const.TEST_DAILY_GAME_NUMBER;
                 dailyGameState.initializePuzzle(testStart, testTarget);
-                Const.GL_DEBUG && logger.logDebug("DailyGameState.fromObj() overriding from test vars to ", 
+                Const.GL_DEBUG && logger.logDebug("DailyGameState.fromObj() overriding from test vars to ",
                         dailyGameState, "gameState")
             }
         }
@@ -539,6 +566,7 @@ class DailyGameState extends GameState{
         const CL = "DailyGameState.setBaseTimestamp";
         COV(0, CL);
         if (this.baseTimestamp != null) {
+            COV(1, CL);
             // already set
             return;
         }
@@ -556,7 +584,7 @@ class DailyGameState extends GameState{
 
         // Are we changing when the Epoch starts (for debugging purposes)?
         if (Persistence.hasTestEpochDaysAgo()) {
-            COV(1, CL);
+            COV(2, CL);
             // Yes, so recalculate the base date, which we use to get the base timestamp below.
             const newEpochMs = Date.now(),
                   daysAgo = Persistence.getTestEpochDaysAgo(),
@@ -569,7 +597,7 @@ class DailyGameState extends GameState{
         this.baseTimestamp = this.baseDate.getTime();
         Const.GL_DEBUG && this.logDebug("epoch timestamp is set to:",
                 new Date(this.baseTimestamp), "daily");
-        COV(2, CL);
+        COV(3, CL);
     }
 
     // Increment the given stat, update the stats cookie, and update the stats display content.
@@ -601,26 +629,53 @@ class DailyGameState extends GameState{
         let shareString = `WordChain #${this.getDailyGameNumber() + 1} `,
             gameWon;
 
-        // Determine what emoji to use to show the user's "score".
-        if (this.numPenalties() >= Const.TOO_MANY_PENALTIES) {
+        var score = this.getScore();
+        if (score >= Const.TOO_MANY_EXTRA_STEPS) {
             COV(1, CL);
-            // Too many wrong moves.
-            shareString += Const.CONFOUNDED;
             gameWon = false;
         } else {
             COV(2, CL);
-            // Show the emoji in NUMBERS corresponding to how many wrong moves.
-            // A bit of a misnomer, but the value for 0 is a star.
-            shareString += Const.NUMBERS[this.numPenalties()];
             gameWon = true;
         }
 
-        COV(3, CL);
+        // Show the emoji in NUMBERS corresponding to the score.
+        // A bit of a misnomer, but the value for 0 is a star.
+        shareString += Const.NUMBERS[this.getNormalizedScore()];
+
+        // Now add some treats ...
+
+        // Better than WordChain score.
+        if (score === -1) {
+            COV(3, CL);
+            shareString += Const.BIRDIE;
+        } else if (score <= -2) {
+            // add one eagle for every point under -1
+            COV(4, CL);
+            const numEagles = -1 - score;  // score: -3 -> eagles:2, score: -4 -> eagles:3, etc
+            for (let i = 1; i<= numEagles; i++) {
+                shareString += Const.EAGLE;
+            }
+        }
+
+        // Same solution as WordChain. Sadly, you can't compare arrays directly
+        // in JavaScript, so we'll compare as strings.
+        if (this.initialSolution.toString() === this.getPlayedWordList().toString()) {
+            COV(5, CL);
+            shareString += Const.COOKIE;
+        }
+
+        // Used one or more advanced words.
+        if (this.userPlayedAdvancedWord()) {
+            COV(6, CL);
+            shareString += Const.ICE_CREAM;
+        }
+
+        COV(7, CL);
 
         // Add a line for the streak.
         shareString += `\nStreak: ${this.getStat('streak')}`;
 
-        // Add a line the start/target.
+        // Add a line for start/target.
         shareString += `\n${this.start} --> ${this.target}\n`;
 
         // Now, construct the graphic showing the lengths of the user's
@@ -634,69 +689,74 @@ class DailyGameState extends GameState{
         let [startRatingUnused, startLength] = moveSummary[0];
         let [targetRatingUnused, targetLength] = moveSummary.slice(-1)[0];
 
-        // start with the start word shown in purple
+        // Start with the start word shown in purple
         let emoji = Const.PURPLE_SQUARE;
         shareString += emoji.repeat(startLength) + "\n";
 
-        // Show all the words played.
-        let colorblindMode = Persistence.getColorblindMode();
+        // Show graphic of all the words played.
+        let colorblindMode = Persistence.getColorblindMode(),
+            wordChainSolutionLength = this.initialSolution.length,
+            // Start rowNum at 2 because we've already shown the start word.
+            rowNum = 2;
+
         Persistence.saveDailyGameState2(this);
+
         for (let [moveRating, wordLength] of wordsBetweenStartAndTarget) {
 
-            // We don't include unplayed words in the share string. This happens when
-            // there are too many wrong moves. The moveSummary includes the correct
-            // unplayed words leading from the last wrong word to the target, but we
-            // don't want to show them.
-            // TODO - this use-case is obsolete.  When there are too many wrong moves,
-            // the future words get summarized as SHOWN_MOVE, not FUTURE.
-
-            if ((moveRating == Const.FUTURE) || (moveRating == Const.CHANGE_NEXT)) {
-                break;
-            }
-
             // Determine which color square to display for this word.
-            if (moveRating === Const.OK || moveRating === Const.SCRABBLE_WORD) {
+            if (moveRating === Const.GOOD_MOVE || moveRating === Const.SCRABBLE_MOVE) {
                 // Word didn't increase the count; pick color indicating "good".
-                COV(4, CL);
+                COV(8, CL);
                 emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
             } else if (moveRating === Const.WRONG_MOVE) {
-                // Word increased the count; pick color indicating "bad".
-                COV(5, CL);
-                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+                // Word increased the count; pick a different color
+                COV(9, CL);
+                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.ORANGE_SQUARE;
             } else if (moveRating === Const.GENIUS_MOVE) {
-                COV(6, CL);
+                // Word decreased the count; pick a very special color color
+                COV(10, CL);
                 emoji = colorblindMode ? Const.GOLD_SQUARE : Const.GOLD_SQUARE;
             } else if (moveRating === Const.DODO_MOVE) {
-                // These used to be brown squares, but they were off-putting.
-                COV(7, CL);
-                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+                // Word increased the count; pick a different color
+                COV(11, CL);
+                emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.ORANGE_SQUARE;
             } else if (moveRating === Const.SHOWN_MOVE) {
-                COV(8, CL);
+                COV(12, CL);
                 emoji = colorblindMode ? Const.GRAY_SQUARE : Const.GRAY_SQUARE;
+            } else {
+                console.error("Unexpected moveRating:", moveRating, ", wordLength:", wordLength);
+                emoji = Const.BLACK_SQUARE;
             }
 
             // Now repeat that emoji for the length of the word and add a newline,
             // creating a row that looks like the row of tiles in the game.
-            COV(9, CL);
+            COV(13, CL);
             shareString += emoji.repeat(wordLength) + "\n";
+
+            if (rowNum === wordChainSolutionLength) {
+                COV(14, CL);
+                shareString += "-".repeat(20) + "\n";
+            }
+
+            rowNum += 1;
         }
 
         // Now, add the target
         if (gameWon) {
-            COV(10, CL);
+            COV(15, CL);
             emoji = colorblindMode ? Const.BLUE_SQUARE : Const.GREEN_SQUARE;
         } else {
-            COV(11, CL);
-            emoji = colorblindMode ? Const.ORANGE_SQUARE : Const.RED_SQUARE;
+            COV(16, CL);
+            emoji = colorblindMode ? Const.GRAY_SQUARE : Const.GRAY_SQUARE;
         }
 
-        COV(12, CL);
+        COV(17, CL);
         shareString += emoji.repeat(targetLength) + "\n";
 
         // Add the URL to the game and send the trimmed result.
         // Note that in shareCallback() we are ONLY copying to the
         // clipboard; if we ever go back to doing a "direct share"
-        // we will want to append Const.SHARE_URL_FOR_FB, a "faux" URL.
+        // we will want to append a "faux" URL.
         shareString += Const.SHARE_URL;
         return shareString.trim();
     }
@@ -716,8 +776,11 @@ class DailyGameState extends GameState{
             this.statsBlob[whichStat] = statValue;
             Const.GL_DEBUG && this.logDebug("DailyGameState.setStat() setting and saving", whichStat, "to", statValue, "daily");
             this.persist();
+        } else {
+            COV(2, CL);
+            Const.GL_DEBUG && this.logDebug("not saving stats because of broken daily game.", "daily");
         }
-        COV(2, CL);
+        COV(3, CL);
     }
 
     dailyGameIsBroken() {
@@ -729,11 +792,13 @@ class DailyGameState extends GameState{
     gameIsOld() {
         const CL = "DailyGameState.gameIsOld";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("DailyGameState.gameIsOld() dailyGameNumber:", this.getDailyGameNumber() , "daily");
-        return
+        const result =
             (this.getDailyGameNumber() != Const.TEST_DAILY_GAME_NUMBER) &&
-            (!this.dailyGameIsBroken()) && 
+            (!this.dailyGameIsBroken()) &&
             (this.calculateGameNumber() > this.getDailyGameNumber());
+        Const.GL_DEBUG && this.logDebug("DailyGameState.gameIsOld() for dailyGameNumber", this.getDailyGameNumber(),
+                "returns", result, "daily");
+        return result;
     }
 
     calculateGameNumber() {
@@ -750,8 +815,7 @@ class DailyGameState extends GameState{
     }
 
     getMsUntilNextGame() {
-        const CL = "DailyGameState.getMsUntilNextGame";
-        COV(0, CL);
+        // Not putting coverage here intentionally; we can't test this in our suite.
         const nextGameNum = this.calculateGameNumber() + 1,
               nextGameTimestamp = this.baseTimestamp + (nextGameNum * this.dateIncrementMs),
               msUntilNextGame = nextGameTimestamp - (new Date()).getTime();
@@ -765,28 +829,29 @@ class DailyGameState extends GameState{
     // Unplayed words get a move rating of Const.FUTURE
     // Use case: this is only used for creating a share string, which means the daily
     // game is over.  There can be no unnplayed words.
-    // TODO - don't return unplayed words in a share string?
-
+    // Returns an array of two-element arrays containing:
+    // - move rating
+    // - word length
     getMoveSummary() {
         const CL = "DailyGameState.getMoveSummary";
         COV(0, CL);
-        var summary = []; 
+        var summary = [];
 
         for (let ratedMove of this.ratedMoves) {
             summary.push([ratedMove.rating, ratedMove.word.length]);
-        }   
+        }
 
         if (this.getUnplayedWords().length != 0) {
             console.error("there should not be any unplayed moves when we call DailyGameState.getMoveSummary()");
-            console.log ("unplayed words: ", this.getUnplayedWords());
             console.trace();
         }
-            
+
         for (let unplayedWord of this.getUnplayedWords()) {
             summary.push([Const.FUTURE, unplayedWord.length]);
-        }   
+        }
+        COV(1, CL);
         return summary;
-    }   
+    }
 
     // Call this once and only once  whenever a daily game is finished (in addWord() or showNextMove()).
     // The caller needs to save the game state after calling this.
@@ -797,22 +862,37 @@ class DailyGameState extends GameState{
         if (this.isWinner()) {
             COV(1, CL);
             this.incrementStat("gamesWon");
-            this.incrementStat("streak");
+            //this.incrementStat("streak");
         } else if (this.isLoser()) {
             COV(2, CL);
             this.incrementStat("gamesLost");
-            this.setStat("streak", 0);
+            //this.setStat("streak", 0);
         }
 
-        let penaltyCount = this.numPenalties();
-        if (penaltyCount >= Const.TOO_MANY_PENALTIES) {
+        let extraStepsCount = this.getNormalizedScore(); // [0 .. TOO_MANY_EXTRA], not [-n,...0, 1, 2, ...)
+        if (extraStepsCount >= Const.TOO_MANY_EXTRA_STEPS) {
             COV(3, CL);
             // Failed games show the remaining words, which count as wrong steps,
             // but we don't want to count that in the stat.
-            penaltyCount = Const.TOO_MANY_PENALTIES;
+            extraStepsCount = Const.TOO_MANY_EXTRA_STEPS;
         }
-        this.penaltyHistogram[penaltyCount] += 1;
+        this.penaltyHistogram[extraStepsCount] += 1;
         COV(4, CL);
+    }
+
+    userPlayedAdvancedWord() {
+        const CL = "DailyGameState.userPlayedAdvancedWord";
+        COV(0, CL);
+
+        for (let ratedMove of this.ratedMoves) {
+            if (ratedMove.rating === Const.SCRABBLE_MOVE || ratedMove.rating === Const.GENIUS_MOVE) {
+                COV(1, CL);
+                return true;
+            }
+        }
+
+        COV(2, CL);
+        return false;
     }
 }
 
@@ -850,16 +930,17 @@ class PracticeGameState extends GameState{
             gameState = PracticeGameState.__fromObj(dictionary, recoveredObj);
             // the recovered object might be obsolete if the practice test vars were set to something else.
             if (Persistence.hasTestPracticeGameWords()) {
+                COV(3, CL);
                 let [testStart, testTarget] = Persistence.getTestPracticeGameWords();
                 if ((gameState.start != testStart) || (gameState.target != testTarget)) {
-                    // The recovered practice game doesn't use the test start,target words, 
+                    // The recovered practice game doesn't use the test start,target words,
                     // so we just create a brand new game, which does use the test vars given.
-                    COV(3, CL);
+                    COV(4, CL);
                     gameState = PracticeGameState.__fromScratch(dictionary);
                 }
             }
         }
-        COV(4, CL);
+        COV(5, CL);
         gameState.persist();
         return gameState;
     }
@@ -883,7 +964,7 @@ class PracticeGameState extends GameState{
         const CL = "PracticeGameState.__fromScratch";
         COV(0, CL);
         let practiceGameState = new PracticeGameState(dictionary);
-        Const.GL_DEBUG && logger.logDebug("PracticeGameState.fromScratch() hasTestPracticeGameWords?", 
+        Const.GL_DEBUG && logger.logDebug("PracticeGameState.fromScratch() hasTestPracticeGameWords?",
                 Persistence.hasTestPracticeGameWords(), "gameState");
         var start, target;
         if (Persistence.hasTestPracticeGameWords()) {
@@ -901,7 +982,7 @@ class PracticeGameState extends GameState{
             practiceGameState.gamesRemaining = Const.PRACTICE_GAMES_PER_DAY;
         }
         let result = null;
-        if (practiceGameState.initializePuzzle(start, target) != null) { 
+        if (practiceGameState.initializePuzzle(start, target) != null) {
             COV(5, CL);
             Const.GL_DEBUG && logger.logDebug("PracticeGameState.__fromScratch", practiceGameState, "gameState");
             result = practiceGameState;
@@ -934,6 +1015,7 @@ class PracticeGameState extends GameState{
                 Const.PRACTICE_MIN_CHOICES_PER_STEP);
 
         if (puzzles.length > 0) {
+            COV(1, CL);
             rand = Math.floor(Math.random() * puzzles.length);
             Const.GL_DEBUG && logger.logDebug("found",  puzzles.length, "puzzles starting with", startWord, "Choosing #", rand, "gameState");
             let puzzle = puzzles[rand];
@@ -944,6 +1026,7 @@ class PracticeGameState extends GameState{
             return ["dog", "bite"];
         }
 
+        COV(2, CL);
     }
 
     // Call this once and only once  whenever a practice game is finished (in addWord() or showNextMove())
@@ -952,10 +1035,11 @@ class PracticeGameState extends GameState{
         const CL = "PracticeGameState.updateStateAfterGame";
         COV(0, CL);
         this.gamesRemaining -= 1;
+        this.persist();
+        Const.GL_DEBUG && this.logDebug("      PracticeGameState.updateStateAfterGame() gamesRemaining is now:", this.gamesRemaining, "gameState");
     }
 
-    // called when the daily game is rolled over, originally from AppDisplay.
-    // TODO = should be called from static clock manager outside of the display.
+    // Called when the daily game is rolled over, originally from AppDisplay.
     resetPracticeGameCounter() {
         const CL = "PracticeGameState.resetPracticeGameCounter";
         COV(0, CL);

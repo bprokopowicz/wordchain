@@ -4,20 +4,25 @@ import { Game, DailyGame, PracticeGame } from './Game.js';
 import { Persistence } from './Persistence.js';
 import { Picker } from './Picker.js';
 import * as Const from './Const.js';
-import { COV, clearCoverage, getCounters, setCoverageOn, setCoverageOff } from './Coverage.js';
+import { COV, clearCoverage, getCounters, setCoverage} from './Coverage.js';
 
 
 import {
     AdditionCell,
     DeletionCell,
-    ActiveLetterCell,
-    ChangeNextLetterCell,
-    FutureLetterCell,
-    PlayedLetterCell,
-    TargetLetterCell,
+    EmptyLetterCell,
+    LetterCellNoBackground,
+    LetterCellWithBackground,
 } from './Cell.js';
 
 
+/*
+ * Notes on letter and tile positions:
+ * letterPosition          [0, wordLength-1] - index into the current word being displayed; saved in GameDisplay
+ * changePosition          [0, wordLength-1] - the index of a letter to be changed in a word
+ * additionPosition        [0, wordLength]   - the index of a space to be added, in front of the letter at additionPosition.
+ *                                             When additionPosition == wordLength, the space is to be added after the last letter
+ */
 class GameDisplay extends BaseLogger {
 
     /* ----- Construction ----- */
@@ -46,17 +51,15 @@ class GameDisplay extends BaseLogger {
         // elements for the game.
         this.postGameDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break post-game-div"});
 
-        // Add Show Next Move button to postGameDiv.
-        this.showNextMoveButton = ElementUtilities.addElementTo(
+        // Add Show Word button to postGameDiv.  It will be enabled if necessary via updateDisplay()->showGameAfterMove()
+        this.showWordButton = ElementUtilities.addElementTo(
             "button", this.postGameDiv,
             {class: "app-button non-header-button"},
-            "Show Next Move");
-        ElementUtilities.setButtonCallback(this.showNextMoveButton, this, this.showNextMoveCallback);
+            "Show Word");
+        ElementUtilities.setButtonCallback(this.showWordButton, this, this.showWordCallback);
 
         // Create an element to contain game results (score, WordChain solution).
         this.resultsDiv = ElementUtilities.addElementTo("div", gameDiv, {class: "break results-div"});
-
-        this.lastActiveMoveWasAdd = false;
 
         // Derived class constructor must call updateDisplay().
     }
@@ -67,7 +70,6 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.createPicker";
         COV(0, CL);
         this.letterPicker = new Picker(this, this.pickerDiv, this.pickerId);
-        this.currentLetter = " ";
     }
 
     disablePicker() {
@@ -84,27 +86,23 @@ class GameDisplay extends BaseLogger {
 
     // This is kind of a callback, but doesn't really follow our callback
     // protocol because of how the picker is implemented as a separate object.
-    letterPicked(letter, letterPosition) {
+    letterPicked(letter) {
         const CL = "GameDisplay.letterPicked";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, ", letterPosition:", letterPosition, "picker");
+        Const.GL_DEBUG && this.logDebug("letterPicked(): letter:", letter, "picker");
 
         let result = null;
 
         if (this.gameIsOver()) {
             console.error("GameDisplay.letterPicked(): game is already over");
             result = Const.UNEXPECTED_ERROR;
-        } else if (letter === this.currentLetter) {
-            COV(1, CL);
-            this.appDisplay.showToast(Const.PICK_NEW_LETTER);
-            result = Const.PICK_NEW_LETTER;
         } else {
-            COV(2, CL);
-            result = this.game.playLetter(letterPosition, letter);
+            COV(1, CL);
+            result = this.game.playLetter(letter);
             this.processGamePlayResult(result);
         }
 
-        COV(3, CL);
+        COV(2, CL);
         return result;
     }
 
@@ -135,98 +133,13 @@ class GameDisplay extends BaseLogger {
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
-    displayAdd(displayInstruction, isStartWord) {
-        const CL = "GameDisplay.displayAdd";
-        COV(0, CL);
-        const me = this;
-
-        // Disable the picker; it's not used for ADD moves.
-        this.pickerEnabled = false;
-
-        function getCell(letter, letterPosition) {
-            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord, me.lastActiveMoveWasAdd);
-        }
-
-        const hideAdditionCells = false;
-        this.displayCommon(displayInstruction, getCell, hideAdditionCells);
-    }
-
-    displayChange(displayInstruction, isStartWord) {
-        const CL = "GameDisplay.displayChange";
-        COV(0, CL);
-        const me = this;
-
-        // We need the picker for CHANGE moves.
-        this.pickerEnabled = true;
-
-        function getCell(letter, letterPosition) {
-            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord, me.lastActiveMoveWasAdd);
-        }
-
-        // changePosition goes 1..wordLength, so need to subtract 1.
-        this.currentLetter = displayInstruction.word[displayInstruction.changePosition - 1];
-
-        const hideAdditionCells = true;
-        this.displayCommon(displayInstruction, getCell, hideAdditionCells);
-    }
-
-    displayChangeNext(displayInstruction) {
-        const CL = "GameDisplay.displayChangeNext";
-        COV(0, CL);
-        function getCell(letter, letterPosition) {
-            return new ChangeNextLetterCell(letter, letterPosition, displayInstruction.changePosition);
-        }
-
-        // The Game class gives us a DisplayInstruction with an extra field
-        // for a 'Change Next" instruction, which is the "word with a hole" where
-        // the letter to be filled in is replaced with a '?' -- we need to give
-        // displayCommon() an instruction with *that* word. However, don't want
-        // to change the DisplayInstruction passed to us, because it is used
-        // elsewhere, where it is expected to be the word sans hole. So copy it
-        // and change its word to wordWithHole.
-        let newDisplayInstruction = displayInstruction.copy();
-        newDisplayInstruction.word = displayInstruction.wordWithHole;
-
-        this.displayCommon(newDisplayInstruction, getCell);
-    }
-
-    displayDelete(displayInstruction, tableElement, isStartWord) {
-        const CL = "GameDisplay.displayDelete";
-        COV(0, CL);
-        const me = this;
-
-        // Disable the picker; it's not used for DELETE moves.
-        this.pickerEnabled = false;
-
-        function getActiveLetterCell(letter, letterPosition) {
-            return new ActiveLetterCell(letter, letterPosition, me.letterPicker,
-                displayInstruction.moveRating, displayInstruction.changePosition, isStartWord, me.lastActiveMoveWasAdd);
-        }
-
-        // First, display the letter cells.
-        const hideAdditionCells = true;
-        this.displayCommon(displayInstruction, getActiveLetterCell, hideAdditionCells);
-
-        // Now we add an extra <tr> element for the deletion cell row. It is this row
-        // that is highlighted as active rather than the letter cells.
-        this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
-        this.rowElement.displayAsActiveRow = true;
-
-        // We need to use a copy of 'this' as 'me' in the body of this local function.
-        function getDeletionCell(letter, letterPosition) {
-            return new DeletionCell(letterPosition, me, me.deletionClickCallback);
-        }
-
-        this.displayCommon(displayInstruction, getDeletionCell, hideAdditionCells);
-    }
-
     displayFuture(displayInstruction) {
         const CL = "GameDisplay.displayFuture";
         COV(0, CL);
+
+        const changePosition = displayInstruction.changePosition;
         function getCell(letter, letterPosition) {
-            return new FutureLetterCell(letter, letterPosition, displayInstruction.changePosition);
+            return new EmptyLetterCell(letterPosition, changePosition);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -235,22 +148,111 @@ class GameDisplay extends BaseLogger {
     displayPlayed(displayInstruction, isStartWord) {
         const CL = "GameDisplay.displayPlayed";
         COV(0, CL);
+
+        const isTargetWord = false;
+
         function getCell(letter, letterPosition) {
-            return new PlayedLetterCell(letter, displayInstruction.moveRating, isStartWord);
+            return new LetterCellWithBackground(letter, letterPosition, displayInstruction.changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
+        }
+
+        this.displayCommon(displayInstruction, getCell)
+    }
+
+    displayPlayedAdd(displayInstruction) {
+        const CL = "GameDisplay.displayPlayedAdd";
+        COV(0, CL);
+
+        const isTargetWord = false;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellWithBackground(letter, letterPosition, displayInstruction.changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
         }
 
         this.displayCommon(displayInstruction, getCell);
     }
 
-    // we only display the Target as Target if the game is not over.  If it is over, it will be
-    // displayed as Played, not Target.
+    displayPlayedChange(displayInstruction) {
+        const CL = "GameDisplay.displayPlayedChange";
+        COV(0, CL);
+        const isTargetWord = false;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellWithBackground(letter, letterPosition, displayInstruction.changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
+        }
+
+        this.displayCommon(displayInstruction, getCell);
+    }
+
+    displayPlayedDelete(displayInstruction, tableElement) {
+        const CL = "GameDisplay.displayPlayedDelete";
+        COV(0, CL);
+
+        const changePosition = displayInstruction.changePosition,
+              isTargetWord = false;
+
+        function getLetterCell(letter, letterPosition) {
+            return new LetterCellWithBackground(letter, letterPosition, changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
+        }
+
+        // First, display the letter cells.
+        this.displayCommon(displayInstruction, getLetterCell);
+
+        // Now we add an extra <tr> element for the deletion cell row. It is this row
+        // that is highlighted as active rather than [IN ADDITION TO???] the letter cells.
+        this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
+        this.rowElement.displayAsActiveRow = true;
+
+        // We need to use a copy of 'this' as 'me' in the body of this local function.
+        var me = this;
+        function getDeletionCell(letter, letterPosition) {
+            return new DeletionCell(letterPosition, me, me.deletionClickCallback);
+        }
+
+        this.displayCommon(displayInstruction, getDeletionCell);
+    }
 
     displayTarget(displayInstruction) {
         const CL = "GameDisplay.displayTarget";
         COV(0, CL);
 
-        function getCell(letter, __letterPosition) {
-            return new TargetLetterCell(letter);
+        const changePosition = displayInstruction.changePosition,
+              isTargetWord = true;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellWithBackground(letter, letterPosition, changePosition,
+                displayInstruction.moveRating, displayInstruction.isStartWord, isTargetWord);
+        }
+
+        this.displayCommon(displayInstruction, getCell);
+    }
+
+    displayWordAfterAdd(displayInstruction) {
+        const CL = "GameDisplay.displayWordAfterAdd";
+        COV(0, CL);
+
+        const changePosition = displayInstruction.changePosition,
+              isTargetWord = displayInstruction.isTargetWord;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellNoBackground(letter, letterPosition, changePosition, isTargetWord);
+        }
+
+        this.displayCommon(displayInstruction, getCell);
+    }
+
+    displayWordAfterChange(displayInstruction) {
+        const CL = "GameDisplay.displayWordAfterChange";
+        COV(0, CL);
+
+        const changePosition = displayInstruction.changePosition,
+              isTargetWord = displayInstruction.isTargetWord;
+
+        function getCell(letter, letterPosition) {
+            return new LetterCellNoBackground(letter, letterPosition, changePosition, isTargetWord);
         }
 
         this.displayCommon(displayInstruction, getCell);
@@ -269,130 +271,164 @@ class GameDisplay extends BaseLogger {
 
         COV(1, CL);
 
-        let displayInstructions = this.game.getDisplayInstructions();
-
         // all words are played words until we hit the first future or target word:
 
-        let isStartWord = true;
+        let displayInstructions = this.game.getDisplayInstructions(),
+            pickerEnabled = false,
+            rowNum = 0;
 
-        // console.log("======================");
         for (let displayInstruction of displayInstructions) {
+
             Const.GL_DEBUG && this.logDebug("displayInstruction:", displayInstruction, "instruction");
 
+            this.hideAdditionCells = true;
             this.rowElement.displayAsActiveRow = false;
             Const.GL_DEBUG && this.logDebug("word:", displayInstruction.word, "displayType:", displayInstruction.displayType,
-                    "moveRating:", displayInstruction.moveRating, "lastActiveMoveWasAdd:", this.lastActiveMoveWasAdd, "instruction");
+                    "moveRating:", displayInstruction.moveRating, "instruction");
 
-            // These instructions all indicate the active word.
-            // Note that the active word has also been played.
-            if (displayInstruction.displayType === Const.ADD) {
+            // These instructions all indicate the active word that has also been played.
+            if (displayInstruction.displayType === Const.PLAYED_ADD) {
                 COV(2, CL);
+                this.hideAdditionCells = false;
                 this.rowElement.displayAsActiveRow = true;
-                this.displayAdd(displayInstruction, isStartWord);
-                this.lastActiveMoveWasAdd = true;
+                this.displayPlayedAdd(displayInstruction);
 
-            } else if (displayInstruction.displayType === Const.CHANGE) {
+            } else if (displayInstruction.displayType === Const.PLAYED_CHANGE) {
                 COV(3, CL);
+                pickerEnabled = true;
                 this.rowElement.displayAsActiveRow = true;
-                this.displayChange(displayInstruction, isStartWord);
-                this.lastActiveMoveWasAdd = false;
+                this.displayPlayedChange(displayInstruction);
 
-            } else if (displayInstruction.displayType === Const.DELETE) {
+            } else if (displayInstruction.displayType === Const.PLAYED_DELETE) {
                 COV(4, CL);
                 this.rowElement.displayAsActiveRow = true;
-                this.displayDelete(displayInstruction, tableElement, isStartWord);
-                this.lastActiveMoveWasAdd = false;
+                this.displayPlayedDelete(displayInstruction, tableElement);
 
-            // These instructions indicate a word other than the active one.
-            } else if (displayInstruction.displayType === Const.CHANGE_NEXT) {
+            // These instructions are always after a specific type of move.
+            } else if (displayInstruction.displayType === Const.WORD_AFTER_ADD) {
                 COV(5, CL);
-                this.displayChangeNext(displayInstruction);
+                pickerEnabled = true;
+                this.rowElement.displayAsActiveRow = true;
+                this.displayWordAfterAdd(displayInstruction);
+
+            } else if (displayInstruction.displayType === Const.WORD_AFTER_CHANGE) {
+                COV(6, CL);
+                this.displayWordAfterChange(displayInstruction);
+
+            // These are the "less interesting" instructions.
 
             } else if (displayInstruction.displayType === Const.FUTURE) {
-                COV(6, CL);
+                COV(7, CL);
                 this.displayFuture(displayInstruction);
 
             } else if (displayInstruction.displayType === Const.PLAYED) {
-                COV(7, CL);
-                this.displayPlayed(displayInstruction, isStartWord);
+                COV(8, CL);
+                this.displayPlayed(displayInstruction);
 
             } else if (displayInstruction.displayType === Const.TARGET) {
-                COV(8, CL);
+                COV(9, CL);
                 this.displayTarget(displayInstruction);
 
             } else {
                 console.error("Unexpected displayType: ", displayInstruction.displayType);
             }
 
-            isStartWord = false;
+            rowNum += 1;
 
-            this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
+            // Did the instruction tell us to show the par line?
+            if (displayInstruction.showParLine) {
+                COV(10, CL);
+                ElementUtilities.addClass(this.rowElement, 'tr-wc-solution-line');
+            }
+
+            // Create the next row element if there is more to display
+            if (rowNum != displayInstructions.length) {
+                COV(11, CL);
+                this.rowElement = ElementUtilities.addElementTo("tr", tableElement, {class: "tr-game"});
+            }
         }
 
-        if (this.pickerEnabled) {
-            COV(9, CL);
+        if (pickerEnabled) {
+            COV(12, CL);
             this.enablePicker();
         } else {
-            COV(10, CL);
+            COV(13, CL);
             this.disablePicker();
+        }
+
+        if (!this.game.gameState.canShowMove()) {
+            COV(14, CL);
+            Const.GL_DEBUG && this.logDebug("disabling show word button in GameDisplay.showGameAfterMove()", "callback");
+            ElementUtilities.disableButton(this.showWordButton);
         }
 
         if (this.gameIsOver()) {
-            COV(11, CL);
-
-            // Delete old results and create new divs to go in the results div.
-            ElementUtilities.deleteChildren(this.resultsDiv);
-            var scoreDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break score-div"}),
-                originalSolutionDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break original-solution-div"}),
-                iconDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break icon-div"});
-
-            const scoreText = Const.SCORE_TEXT[this.game.numPenalties()];
-            Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): this.game.numPenalties():",
-                    this.game.numPenalties(), "game");
-            ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${scoreText}`);
-
-            this.disablePicker();
-            ElementUtilities.disableButton(this.showNextMoveButton);
-
-            // If the derived GameDisplay class defined a function to do additional things when
-            // the game is over, call the function.
-
-            if (this.additionalGameOverActions) {
-                COV(12, CL);
-                this.additionalGameOverActions();
-            }
-
-            // Display WordChain's original solution if different from the user's solution.
-            // Otherwise display a message indicating that they are the same.
-
-            var originalSolutionWords = this.game.getOriginalSolutionWords(),
-                userSolutionWords = this.game.getUserSolutionWords();
-
-            if (originalSolutionWords == userSolutionWords) {
-                COV(13, CL);
-                // We don't want to show this message if the user clicked
-                // 'Show Next Move' to reveal a word (or all words!).  
-                if (this.game.numShownMoves() == 0) {
-                    COV(14, CL);
-                    ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                        "You found WordChain's solution!");
-                } // else no message regarding WordChain's solution.
-            } else {
-                COV(15, CL);
-                ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
-                    `WordChain's solution:<br>${originalSolutionWords}`);
-            }
-
-            Const.GL_DEBUG && this.logDebug("GameDisplay.showGameAfterMove(): original solution words: ", originalSolutionWords,
-                    " user solution words: ", userSolutionWords,  "game");
-
-            ElementUtilities.addElementTo("img", iconDiv, {src: "/docs/images/favicon.png", class: "word-chain-icon"});
-            ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
-        } else {
-            COV(16, CL);
-            ElementUtilities.enableButton(this.showNextMoveButton);
+            COV(15, CL);
+            this.showGameOverGoodies();
         }
-        COV(17, CL);
+
+        COV(16, CL);
+    }
+
+    showGameOverGoodies() {
+        const CL = "GameDisplay.showGameOverGoodies";
+        COV(0, CL);
+
+        // Picker and Show Word should be disabled after the game.
+        this.disablePicker();
+        Const.GL_DEBUG && this.logDebug("disabling show word button in GameDisplay.showGameOverGoodies()", "callback");
+        ElementUtilities.disableButton(this.showWordButton);
+
+        // Delete old results and create new divs to go in the results div.
+        ElementUtilities.deleteChildren(this.resultsDiv);
+        var scoreDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break score-div"}),
+            originalSolutionDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break original-solution-div"}),
+            iconDiv = ElementUtilities.addElementTo("div", this.resultsDiv, {class: "break icon-div"});
+
+        // Get the normalized score (0..N) and add it to the display.
+        var score = this.game.getNormalizedScore();
+        Const.GL_DEBUG && this.logDebug("GameDisplay.showGameOverGoodies(): raw score():", score, "game");
+        ElementUtilities.addElementTo("label", scoreDiv, {class: "score-label"}, `Score: ${Const.SCORE_TEXT[score]}`);
+
+        // If the derived GameDisplay class defined a function to do additional things when
+        // the game is over, call the function.
+        if (this.additionalGameOverActions) {
+            COV(1, CL);
+            this.additionalGameOverActions();
+        }
+
+        // Display WordChain's original solution if different from the user's solution.
+        // Otherwise display a message indicating that they are the same.
+        var originalSolutionWords = this.game.getOriginalSolutionWords(),
+            userSolutionWords = this.game.getUserSolutionWords();
+
+        if (originalSolutionWords == userSolutionWords) {
+            COV(2, CL);
+            ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
+                "You found WordChain's solution!");
+            /*
+            // OLD CODE: I don't think this is relevant anymore; even if they Show Move
+            // on the last word, we should give them the message.
+            //
+            // We don't want to show this message if the user clicked
+            // 'Show Word' to reveal a word (or all words!).
+            if (this.game.numShownMoves() == 0) {
+            } // else no message regarding WordChain's solution.
+            */
+        } else {
+            COV(3, CL);
+            ElementUtilities.addElementTo("label", originalSolutionDiv, {class: "original-solution-label"},
+                `WordChain's solution:<br>${originalSolutionWords}`);
+        }
+
+        Const.GL_DEBUG && this.logDebug("GameDisplay.showGameOverGoodies(): original solution words: ", originalSolutionWords,
+                " user solution words: ", userSolutionWords,  "game");
+
+        // Finally, toot our horn.
+        ElementUtilities.addElementTo("img", iconDiv, {src: `${Const.IMAGE_URL}/favicon.png`, class: "word-chain-icon"});
+        ElementUtilities.addElementTo("label", iconDiv, {class: "icon-label"}, "Thank you for playing WordChain!");
+
+        COV(4, CL);
     }
 
     /* ----- Callbacks ----- */
@@ -414,9 +450,9 @@ class GameDisplay extends BaseLogger {
             result = Const.NEEDS_CONFIRMATION;
         } else {
             COV(2, CL);
-            let additionPosition = parseInt(event.srcElement.getAttribute('additionPosition'));
+            let additionPosition = parseInt(event.srcElement.getAttribute('addition-position'));
+            Const.GL_DEBUG && this.logDebug("GameDisplay.additionClickCallback(): additionPosition: ", additionPosition, "callback");
             result = this.game.playAdd(additionPosition);
-
             this.processGamePlayResult(result);
         }
 
@@ -440,7 +476,7 @@ class GameDisplay extends BaseLogger {
             result = Const.NEEDS_CONFIRMATION;
         } else {
             COV(2, CL);
-            let deletionPosition = parseInt(event.srcElement.getAttribute('deletionPosition'));
+            let deletionPosition = parseInt(event.srcElement.getAttribute('deletion-position'));
 
             result = this.game.playDelete(deletionPosition);
             this.processGamePlayResult(result);
@@ -450,28 +486,31 @@ class GameDisplay extends BaseLogger {
         return result;
     }
 
-    showNextMoveCallback(event) {
-
-        const CL = "GameDisplay.showNextMoveCallback";
+    showWordCallback(event, forced) {
+        const CL = "GameDisplay.showWordCallback";
         COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("GameDisplay.showNextMoveCallback(): event: ", event, "callback");
+        Const.GL_DEBUG && this.logDebug("GameDisplay.showWordCallback(): event: ", event, "callback");
 
         let result = null;
 
-        if (this.gameIsOver()) {
-            console.error("GameDisplay.showNextMoveCallback(): last move already shown");
+        if (this.showWordButton.disabled) {
+            if (! forced) {
+                console.error("GameDisplay.showWordCallback(): button is disabled!");
+            }
+            result = Const.UNEXPECTED_ERROR;
+        } else if (this.gameIsOver()) {
+            if (! forced) {
+                console.error("GameDisplay.showWordCallback(): last move already shown");
+            }
             result = Const.UNEXPECTED_ERROR;
         } else {
             COV(1, CL);
             result = this.game.showNextMove();
+            this.showGameAfterMove(); // this will disable the showNextMove button if there are no more allowed.
 
-            this.showGameAfterMove();
-
-            // Disable if no more moves remaining.
             if (this.gameIsOver()) {
                 COV(2, CL);
                 this.showGameOverToast();
-                ElementUtilities.disableButton(this.showNextMoveButton);
             }
         }
 
@@ -483,16 +522,16 @@ class GameDisplay extends BaseLogger {
 
     // cellCreator is a factory method to produce the right kind of cell,
     // including when the cell is for the start word.
-    displayCommon(displayInstruction, cellCreator, hideAdditionCells=true) {
+    displayCommon(displayInstruction, cellCreator) {
         const CL = "GameDisplay.displayCommon";
         COV(0, CL);
-        var additionPosition = 0,
+        var additionPosition = 0, // the index of a 'plus' cell, which agrees with the letter to the right of the plus cell
             additionCell = null,
             letterCell = null,
             tdElement = null,
-            wordLength = displayInstruction.wordLength,
             word = displayInstruction.word,
-            letters = word.length !== 0 ? word.split('') : ' '.repeat(wordLength),
+            wordLength = word.length,
+            letters = word.split(''),
             moveRating = displayInstruction.moveRating;
 
         // We add AdditionCells for every word we display so that we use up their
@@ -500,7 +539,7 @@ class GameDisplay extends BaseLogger {
         // The AdditionCells are hidden except when displaying an active row that
         // requires adding a letter.
         tdElement = this.addTd();
-        additionCell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+        additionCell = new AdditionCell(additionPosition, this.hideAdditionCells, this, this.additionClickCallback);
 
         // Add special class to first addition cell to give it extra space on the left.
         additionCell.addClass("action-cell-addition-first");
@@ -511,11 +550,12 @@ class GameDisplay extends BaseLogger {
         for (let letterIndex = 0; letterIndex < wordLength; letterIndex++) {
             // Add the letter cell for this current letter.
             tdElement = this.addTd();
-            letterCell = cellCreator(letters[letterIndex], letterIndex + 1);
+
+            letterCell = cellCreator(letters[letterIndex], letterIndex); 
             ElementUtilities.addElementTo(letterCell.getElement(), tdElement);
 
-            // Add the next addition cell.
-            additionCell = new AdditionCell(additionPosition, hideAdditionCells, this, this.additionClickCallback);
+            // Add the next addition cell after the letter cell.  AdditionCell positions go from 0 to wordLength
+            additionCell = new AdditionCell(additionPosition, this.hideAdditionCells, this, this.additionClickCallback);
 
             tdElement = this.addTd();
             ElementUtilities.addElementTo(additionCell.getElement(), tdElement);
@@ -528,7 +568,7 @@ class GameDisplay extends BaseLogger {
     }
 
     // This function is used for confirmation mode to find the element whose class needs to
-    // be changed to indicate whether confirmation is needed. In the case of picker letters,
+    // be changed to indicate that confirmation is needed. In the case of picker letters,
     // it will be the button itself, but for action cells it will be an ancestor, and we use
     // the builtin element.closest() function to find the selected element whose class
     // contains the class of interest.
@@ -536,30 +576,33 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.findSelectedWithClass";
         COV(0, CL);
         // Assume the element is the selected button.
-        var element = this.selectedButton;
+        var button = this.selectedButton;
 
-        // Does the element's class contain the class passed in?
-        if (element.getAttribute('class').indexOf(classOfInterest) < 0)
+        // Does the button's class contain the class passed in?
+        var  returnElement = null;
+        if (button.getAttribute('class').indexOf(classOfInterest) >= 0)
         {
+            // We've found a letter picker button.
             COV(1, CL);
-            // TODO - this is never reached in the test suite.  Is it still live?
-
-            // No -- use closest() to find the right one. The argument to closest()
+            returnElement = button;
+        } else {
+            // We've found an action cell plus/minus button.
+            // Use closest() to find the right one. The argument to closest()
             // is a selector; here we're saying "find a <div> element whose 'class'
             // attribute contains the class passed in. (The *= means contains;
             // we would use ^= for starts-with and $= for ends-with.)
-            element = this.selectedButton.closest(`div[class*="${classOfInterest}"]`)
+            COV(2, CL);
+            returnElement = button.closest(`div[class*="${classOfInterest}"]`)
         }
 
-        COV(2, CL);
-        return element;
+        COV(3, CL);
+        return returnElement;
     }
 
-    // some pass-through functions to access game and gameState
+    // Some pass-through functions to access game and gameState.
 
     getMsUntilNextGame() {
-        const CL = "GameDisplay.getMsUntilNextGame";
-        COV(0, CL);
+        // Not putting coverage here intentionally; we can't test this in our suite.
         return this.game.gameState.getMsUntilNextGame();
     }
 
@@ -567,6 +610,12 @@ class GameDisplay extends BaseLogger {
         const CL = "GameDisplay.getGameState";
         COV(0, CL);
         return this.game.gameState;
+    }
+
+    getTargetWord() {
+        const CL = "GameDisplay.getTargetWord";
+        COV(0, CL);
+        return this.game.gameState.getTargetWord();
     }
 
     // Determines whether the button that the user clicked (a letter or a plus/minus
@@ -622,28 +671,34 @@ class GameDisplay extends BaseLogger {
         return result;
     }
 
-    shouldShowToastForResult(gameResult) {
-        return (gameResult == Const.WRONG_MOVE) ||
-               (gameResult == Const.DODO_MOVE) || 
-               (gameResult == Const.SCRABBLE_WORD) || 
-               (gameResult == Const.NOT_A_WORD) || 
-               (gameResult == Const.GENIUS_MOVE);
-    }
-
     processGamePlayResult(gameResult) {
         const CL = "GameDisplay.processGamePlayResult";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("GameDisplay.processGamePlayResult() gameResult: ", gameResult, "callback");
         if (this.shouldShowToastForResult(gameResult)) {
+            COV(1, CL);
             this.appDisplay.showToast(gameResult);
         }
 
         this.showGameAfterMove();
 
         if (this.game.isOver()) {
-            COV(1, CL);
+            COV(2, CL);
             this.showGameOverToast();
         }
+
+        COV(3, CL);
+    }
+
+    shouldShowToastForResult(gameResult) {
+        const CL = "GameDisplay.shouldShowToastForResult";
+        COV(0, CL);
+        return (gameResult == Const.WRONG_MOVE) ||
+               (gameResult == Const.DODO_MOVE) ||
+               (gameResult == Const.SCRABBLE_MOVE) ||
+               (gameResult == Const.NOT_A_WORD) ||
+               (gameResult == Const.PICK_NEW_LETTER) ||
+               (gameResult == Const.GENIUS_MOVE);
     }
 
     showGameOverToast() {
@@ -656,6 +711,7 @@ class GameDisplay extends BaseLogger {
             COV(2, CL);
             this.appDisplay.showToast(Const.GAME_LOST);
         }
+        COV(3, CL);
     }
 
     // Changes the class on the appropriate element relative to the selected button
@@ -678,7 +734,7 @@ class GameDisplay extends BaseLogger {
         ElementUtilities.addClass(unconfirmedElement, Const.UNSELECTED_STYLE)
     }
 
-    // pass-through utility
+    // Pass-through utility
     gameIsOver() {
         const CL = "GameDisplay.gameIsOver";
         COV(0, CL);
@@ -686,8 +742,8 @@ class GameDisplay extends BaseLogger {
     }
 
 
-    // callGetAppCounters()/callClearAppCoverage are a hack for Test.js to access the
-    // coverage data in the execution context of the GameDisplay.
+    // callGetAppCounters()/callClearAppCoverage etc are a hack for Test.js to access the
+    // coverage data and debugging switch in the execution context of the GameDisplay.
 
     callGetAppCounters() {
         return getCounters();
@@ -697,12 +753,12 @@ class GameDisplay extends BaseLogger {
         clearCoverage();
     }
 
-    callSetCoverageOn() {
-        setCoverageOn();
+    callSetCoverage(b) {
+        setCoverage(b);
     }
 
-    callSetCoverageOff() {
-        setCoverageOff();
+    callSetDebugging(b) {
+        Const.SET_GL_DEBUG(b)
     }
 }
 
@@ -760,7 +816,9 @@ class DailyGameDisplay extends GameDisplay {
     shareCallback(__event) {
         const CL = "DailyGameDisplay.shareCallback";
         COV(0, CL);
-        return this.appDisplay.getShare(); // The return value is used in testing only.  getShare() has side-effect to copy the share to clipboard.
+        // The return value is used in testing only.
+        // Note: getShare() has side-effect to copy the share to clipboard.
+        return this.appDisplay.getShare();
     }
 
     /* ----- Utilities ----- */
@@ -851,10 +909,14 @@ class PracticeGameDisplay extends GameDisplay {
             // we will still use the last game played as the current game, as if New Game were never clicked:
             console.error("PracticeGameDisplay.newGameCallback(): New Game should not be clickable when no games are remaining!");
         } else {
+            COV(1, CL);
             this.game = newGameOrNull;
         }
         this.updateDisplay();
-        ElementUtilities.disableButton(this.newGameButton);
+        ElementUtilities.disableButton(this.newGameButton); 
+        Const.GL_DEBUG && this.logDebug("enabling show word button in GameDisplay.newGameCallback()", "game");
+        ElementUtilities.enableButton(this.showWordButton);
+        COV(2, CL);
     }
 
     /* ----- Utilities ----- */

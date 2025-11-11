@@ -47,6 +47,7 @@ class Solver {
         let loopCount = 0;
         let startTime = Date.now();
         while (workingSolutions.length > 0) {
+            COV(2, CL);
             // Get the next partial solution from the heap; we'll add working solutions based on this
             let solution = workingSolutions.shift();
 
@@ -56,11 +57,12 @@ class Solver {
 
             for (let word of nextWords) {
                 workingDict.removeWord(word);
-                let moveRating = Const.OK;
+                let moveRating = Const.GOOD_MOVE;
                 let isPlayed = false;
                 let newWorkingSolution = solution.copy().addWord(word, isPlayed, moveRating);
                 Const.GL_DEBUG && Solver.logger.logDebug("   checking ", newWorkingSolution, "solver-details");
                 if (newWorkingSolution.isSolved()) {
+                    COV(3, CL);
                     return newWorkingSolution;
                 }
                 Const.GL_DEBUG && Solver.logger.logDebug("   adding ", newWorkingSolution, "solver-details");
@@ -87,12 +89,12 @@ class Solver {
             }
 
         }
-        COV(2, CL);
+        COV(4, CL);
         startingSolution.addError("No solution");
         return startingSolution;
     }
 
-    static findPuzzles(dict, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty, minChoicesPerStep) {
+    static findPuzzles(dict, startWord, targetWordLen, wordLen1, wordLen2, minWords, maxWords,  minDifficulty, minChoicesPerStep, minChoicesFromTarget) {
         const CL = "Solver.findPuzzles";
         COV(0, CL);
         startWord = startWord.toUpperCase();
@@ -101,7 +103,7 @@ class Solver {
         let localDictionary = dict.copy();
         let desiredPuzzles = [];
         if (!localDictionary.isWord(startWord)) {
-            Const.GL_DEBUG && Solver.logger.logDebug(startWord + " is not a word.", "solver");
+            console.error("Solver.findPuzzles():", startWord, "is not a word.", "solver");
             return desiredPuzzles;
         }
         // search forever until all suitable puzzles are found
@@ -113,7 +115,7 @@ class Solver {
             Const.GL_DEBUG && Solver.logger.logDebug("looking at puzzle ", puzzle, "solver-details");
             puzzle.target=puzzle.getLastWord();
             // must use dict, not local copy, since we are deleting words as we search the tree of solutions
-            if (Solver.isDesired(dict, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoicesPerStep)) {
+            if (Solver.isDesired(dict, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoicesPerStep, minChoicesFromTarget)) {
                 COV(1, CL);
                 Const.GL_DEBUG && Solver.logger.logDebug("found suitable puzzle ", puzzle, "solver");
                 desiredPuzzles.push(puzzle);
@@ -125,7 +127,7 @@ class Solver {
                 for (let nextWord of nextWords) {
                     localDictionary.removeWord(nextWord);
                     let newPuzzle = puzzle.copy();
-                    let moveRating = Const.OK;
+                    let moveRating = Const.GOOD_MOVE;
                     let isPlayed = false;
                     newPuzzle.addWord(nextWord, isPlayed, moveRating);
                     listOfPossiblePuzzles.push(newPuzzle);
@@ -136,41 +138,53 @@ class Solver {
         return desiredPuzzles;
     }
 
-    static isDesired(dictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoices) {
+    static isDesired(dictionary, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoices, minChoicesFromTarget) {
+        const CL = "Solver.isDesired";
+        COV(0, CL);
         if (puzzle.numWords() < minWords) {
+            COV(1, CL);
             return false;
         }
         if (puzzle.numWords() > maxWords) {
+            // this should be impossible, because the search stops at maxWords, so we don't include it in coverage.
+            console.error("unexpected error - puzzle found has too many words");
             return false;
         }
         if ((targetWordLen > 0) && (puzzle.getTarget().length != targetWordLen)) {
+            COV(2, CL);
             return false;
         }
         if (!puzzle.hasWordOfLength(wordLen1)) {
+            COV(3, CL);
             return false;
         }
         if (!puzzle.hasWordOfLength(wordLen2)) {
+            COV(4, CL);
             return false;
         }
         puzzle.calculateDifficulty(dictionary);
         if (puzzle.difficulty < minDifficulty) {
+            COV(5, CL);
             return false;
         }
         if (puzzle.nChoicesEasiestStep < minChoices) {
+            COV(6, CL);
             return false;
         }
-        if (puzzle.nChoicesFromTarget < minChoices) {
+        if (puzzle.nChoicesFromTarget < minChoicesFromTarget) {
+            COV(7, CL);
             return false;
         }
+        COV(8, CL);
         return true;
     }
 
-    // a utility function to determine how to get from word A to word B in one-step,
+    // a utility function to determine how to get from word A to word B in one step,
     // if it's possible.
     // Returns:
     //   [action, position, letter]:
     //       action = CHANGE,ADD, or DELETE
-    //       position = 1-based letter index to change, delete, or insert (after).  Uses 0 for insert before the first letter
+    //       position = 0-based letter index to change, delete, or insert (after).  Uses 0 for insert before the first letter
     //       letter = the letter to change to or insert.  Not used on DELETE actions
     //   null:
     //       if you can't get from a to b in one operation
@@ -180,13 +194,14 @@ class Solver {
         COV(0, CL);
         if (wordA.length === wordB.length) {
             COV(1, CL);
+            let mismatchIndex = -1; // indicates no mismatch found
             for (let i = 0; i < wordA.length; i++) {
                 if (wordA[i] != wordB[i]) {
                     COV(2, CL);
                     if (wordA.substr(i+1) === wordB.substr(i+1)) {
                         // rest of strings past i match.
                         COV(3, CL);
-                        return [Const.CHANGE, i+1, wordB[i]]; // one-indexed result
+                        return [Const.CHANGE, i, wordB[i]]; 
                     } else {
                         COV(4, CL);
                         return null; // there are two or more mismatches
@@ -205,7 +220,7 @@ class Solver {
                     // do the strings match if we remove letter at 'i' from a?
                     if (wordA.substr(i+1) === wordB.substr(i)) {
                         COV(8, CL);
-                        return [Const.DELETE, i+1, null];
+                        return [Const.DELETE, i, null];
                     } else {
                         COV(9, CL);
                         return null; // there are two or more mismatches
@@ -215,7 +230,7 @@ class Solver {
             // If we reach here, there are no difference between wordA and wordB in the first wordB.length letters.
             // So the result is to delete the last letter in wordA
             COV(10, CL);
-            return [Const.DELETE, wordA.length, null]; 
+            return [Const.DELETE, wordA.length-1, null]; 
         } else if (wordA.length+1 === wordB.length) {
             COV(11, CL);
             // wordA is shorter
@@ -266,22 +281,10 @@ class Solution extends BaseLogger {
     }
 
     addWord(newWord) {
+        const CL = "Solution.addWord";
+        COV(0, CL);
         this.solutionWords.push(newWord);
         return this;
-    }
-
-    findChangedLetterLocation(word1, word2) {
-        const CL = "Solution.findChangedLetterLocation";
-        COV(0, CL);
-        for (let i=0; i < word1.length; i++) {
-            if (word1[i] != word2[i]) {
-                COV(1, CL);
-                return i;
-            }
-        }
-        console.error("can't find difference between ", word1, " and ", word2);
-        COV(2, CL);
-        return -1;
     }
 
     // side effect: sets this.difficulty, this.nChoicesEasiestStep, and this.nChoicesOnStep (array)
@@ -353,18 +356,6 @@ class Solution extends BaseLogger {
         return this.getNthWord(this.solutionWords.length - 1);
     }
 
-    // use case: removing a step containing a word with a hole before replacing it with
-    // the word without the hole.
-    removeLastStep() {
-        this.solutionWords.pop();
-    }
-
-    // use case: when resolving from played word to target, that solution includes the played word as
-    // its first word.
-    removeFirstStep() {
-        this.solutionWords.shift();
-    }
-
     getPenultimateWord() {
         if (this.solutionWords.length < 2) {
             throw new Error(`Solution.getPenultimateWord(): solutionWords length (${this.solutionWords.length}) cannot be < 2`)
@@ -419,33 +410,6 @@ class Solution extends BaseLogger {
         return false;
     }
 
-    shortestWordLen() {
-        const CL = "Solution.shortedWordLen";
-        COV(0, CL);
-        let shortestLen = 1000;
-        for (let word of this.getSolutionWords()) {
-            if (word.length < shortestLen) {
-                COV(1, CL);
-                shortestLen = word.length;
-            }
-        }
-        COV(2, CL);
-        return shortestLen;
-    }
-
-    longestWordLen() {
-        const CL = "Solution.longestWordLen";
-        COV(0, CL);
-        let longestLen = 0;
-        for (let word of this.getSolutionWords()) {
-            if (word.length > longestLen) {
-                COV(1, CL);
-                longestLen = word.length;
-            }
-        }
-        return longestLen;
-    }
-
     hadNoErrors() {
         const CL = "Solution.hadNoErrors";
         COV(0, CL);
@@ -464,8 +428,9 @@ class Solution extends BaseLogger {
         } else if (toHtml) {
             // display the words and the choice stats
             return this.solutionWords.join(", ")
-                + " difficulty: " +  this.difficulty
-                + " choices at each step: " + this.nChoicesOnStep.join(",");
+                + " -- difficulty: " +  this.difficulty
+                + "; choices at each step: " + this.nChoicesOnStep.join(",")
+                + "; choices at last step reversed: " +  this.nChoicesFromTarget;
         } else {
             // just the words
             const separator = " ";

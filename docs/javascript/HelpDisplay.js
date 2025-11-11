@@ -26,12 +26,12 @@ class HelpDisplay extends AuxiliaryDisplay {
         <h2>
         Change words one step at a time (add/delete/change a letter)
         to get from the starting word to the target word in as few steps as possible.
-        If you have ${Const.TOO_MANY_PENALTIES} penalty moves you lose the game.
+        If you have ${Const.TOO_MANY_EXTRA_STEPS} more steps than the
+        solution WordChain found the game will end and the remaining moves words will be shown.
         </h2>
 
         <h3>
-        Every day there will be a new daily WordChain game --
-        share your daily game results from the Stats screen.
+        Every day there will be a new daily WordChain game.
         You can play up to ${Const.PRACTICE_GAMES_PER_DAY} practice games per day.
         </h3>
 
@@ -47,16 +47,16 @@ class HelpDisplay extends AuxiliaryDisplay {
         that means that on the next move you'll be changing the 'E'.
         </p>
 
-        <img src="/docs/images/Help01.v1.jpg" width="350px"/>
-        </p>
+        <img src="${Const.IMAGE_URL}/Help01.v1.jpg" width="350px"/>
+        <p>
         Slide the letter tiles at the top until the letter you want appears;
         in this case, we will change it to an "H". Then tap the letter.
-        WordChain will spell the word out in the next row.
+        WordChain will spell out the word in the next row.
         </p>
 
-        <img src="/docs/images/Help02.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help02.v1.jpg" width="350px"/>
         <p>
-        The green indicates you made the right guess.
+        The green indicates you made the best move -- you didn't add any extra steps.
         Now it's time to change the 'E' in the thick circle;
         we'll tap on 'D' to chain from HARE to HARD.
         You might notice that there is no thick circle
@@ -64,7 +64,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         That's because we won't be changing a letter on the next move!
         </p>
 
-        <img src="/docs/images/Help03.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help03.v1.jpg" width="350px"/>
         <p>
         Now we need to delete a letter.
         Tap on the '-' under the 'R' to chain from HARD to HAD.
@@ -72,7 +72,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         that's because you won't use it for this move.
         </p>
 
-        <img src="/docs/images/Help04.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help04.v1.jpg" width="350px"/>
         <p>
         Our next step is to add a letter.
         We'll chain from HAD to HEAD.
@@ -80,7 +80,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         Again, the letter picker is hidden.
         </p>
 
-        <img src="/docs/images/Help05.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help05.v1.jpg" width="350px"/>
         <p>
         The letter picker is visible again (but not shown here)
         because now we need to choose the letter to replace the "?".
@@ -88,21 +88,24 @@ class HelpDisplay extends AuxiliaryDisplay {
         until the 'E' appears, then tap it and this is the next move.
         </p>
 
-        <img src="/docs/images/Help06.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help06.v1.jpg" width="350px"/>
         <p>
         Here, we need to add another letter.
         We'll tap the first '+'.
         </p>
 
-        <img src="/docs/images/Help07.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help07.v1.jpg" width="350px"/>
         <p>
         Again we see a letter with a '?'; we tap on the 'A' tile to
         chain from HEAD to AHEAD.
         </p>
 
-        <img src="/docs/images/Help08.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help08.v1.jpg" width="350px"/>
         <p>
-        And with that, the game is over.
+        And with that, the game is over and the "Share" button is enabled.
+        If you click the "Share" button, your game play information will be
+        copied to the clipboard so you can share it by pasting it in
+        a text message, on Facebook, etc. We encourage that!
         </p>
         <p>
         Let's take another look at the start of the game.
@@ -111,7 +114,7 @@ class HelpDisplay extends AuxiliaryDisplay {
         we will be changing the 'E'.
         </p>
 
-        <img src="/docs/images/Help09.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help09.v1.jpg" width="350px"/>
         <p>
         WordChain always shows empty letter cells for the
         shortest solution path from the current point in the game.
@@ -130,34 +133,40 @@ class HelpDisplay extends AuxiliaryDisplay {
         What if we had changed the 'E' to 'M' to make HARM?
         </p>
 
-        <img src="/docs/images/Help10.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help10.v1.jpg" width="350px"/>
         <p>
-        Oops -- that wasn't the right choice: it made the solution
-        longer than WordChain's solution.
+        That choice made the solution longer than WordChain's solution.
         If your played word increases the number of steps from the start to the target word,
-        the background of its letters will be red, indicating a penalty.
+        the background of its letters will be orange.
+        You may have wondered what that line is in the display grid:
+        it indicates while you are playing what your current score is.
+        After our one extra word, we see there is one word below the line -- our current score is 1.
         </p>
 
-        <img src="/docs/images/Help11.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help11.v1.jpg" width="350px"/>
         <p>
         We removed the 'R' to make HAM, but now we're stuck!
-        Tap "Show Next Move" to get unstuck.
+        Tap "Show Word" to get unstuck.
         </p>
 
-        <img src="/docs/images/Help12.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help12.v1.jpg" width="350px"/>
         <p>
-        The gray letters indicate you got some help; this is also a penalty.
-        If you have ${Const.TOO_MANY_PENALTIES} penalty moves you lose the game.
+        The gray letters indicate you got some help.
+        The 'Show Word' button is now disabled, because you are allowed to show only one word per game.
+        Now we finish off the game as we did before.
         </p>
 
-        <img src="/docs/images/Help13.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help13.v1.jpg" width="350px"/>
         <p>
-        If you reach the target word you win the game.
-        Your score is the number of penalty moves you made,
-        from 0 to ${Const.TOO_MANY_PENALTIES}.
-        In this case, HARM and HAD resulted in a score of 2.
+        If you reach the target word the game is over.
+        Your score is the number extra steps you had,
+        i.e. how much longer your solution was than WordChain's;
+        it will range from 0 to ${Const.TOO_MANY_EXTRA_STEPS}.
+        In this case, HARM was an extra word and our score is 1;
+        note that there is one word after the line.
         The first time this game was played,
         there were no mistakes and so the score was 0.
+        If you're familiar with golf, you might think of a score of 0 as "par".
         </p>
 
         <p>
@@ -171,13 +180,13 @@ class HelpDisplay extends AuxiliaryDisplay {
         these buttons become gray on your first tap
         and you must tap again to confirm your selection.
         </p>
-        <img src="/docs/images/Help14.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help14.v1.jpg" width="350px"/>
         <p>
         </p>
-        <img src="/docs/images/Help15.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help15.v1.jpg" width="350px"/>
         <p>
         </p>
-        <img src="/docs/images/Help16.v1.jpg" width="350px"/>
+        <img src="${Const.IMAGE_URL}/Help16.v1.jpg" width="350px"/>
 
         <p>
         <b>There is lots more information in the <a href="${Const.FAQ_URL}" target="_blank">FAQ</a></b>.

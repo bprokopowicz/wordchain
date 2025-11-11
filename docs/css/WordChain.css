@@ -20,6 +20,15 @@
 ** See AppDisplay.setColors().
 */
 :root {
+    /* IMPORTANT: Although the colors for "extra step moves" (orange),
+    ** genius moves (gold), and shown moves (gray) are all the same
+    ** for light/dark and colorblind/non-colorblined, sadly, we CANNOT
+    ** define variables for them and use them in the assignments below.
+    **
+    ** This is because we set variables in AppDisplay using these properties,
+    ** and apparently there is no way to get at these properties if their
+    ** values are defined with var(--property).
+    */
 
     /*
     ** Light Mode Colors
@@ -27,14 +36,14 @@
 
     /* ===== Cells ===== */
     --colorblind-good-bg-light:         #5f99e4;    /* blue */
-    --colorblind-bad-bg-light:          #ff9200;    /* orange */
+    --colorblind-bad-bg-light:          #ff9920;    /* orange */
     --colorblind-genius-bg-light:       #f0ce15;    /* gold */
-    --colorblind-dodo-bg-light:         #ff9200;    /* orange; was brownish */
+    --colorblind-dodo-bg-light:         #ff9920;    /* orange */
     --colorblind-shown-bg-light:        #9c9ea0;    /* gray */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
-    --non-colorblind-bad-bg-light:      #f87474;    /* red */
+    --non-colorblind-bad-bg-light:      #ff9920;    /* orange; was red */
     --non-colorblind-genius-bg-light:   #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-light:     #f87474;    /* red; was brownish */
+    --non-colorblind-dodo-bg-light:     #ff9920;    /* orange; was red */
     --non-colorblind-shown-bg-light:    #9c9ea0;    /* gray */
 
     /*
@@ -45,12 +54,12 @@
     --colorblind-good-bg-dark:          #2d7be1;    /* blue */
     --colorblind-bad-bg-dark:           #d58b04;    /* orange */
     --colorblind-genius-bg-dark:        #f0ce15;    /* gold */
-    --colorblind-dodo-bg-dark :         #d58b04;    /* orange; was brownish */
+    --colorblind-dodo-bg-dark :         #d58b04;    /* orange */
     --colorblind-shown-bg-dark:         #9c9ea0;    /* gray */
     --non-colorblind-good-bg-dark:      #28c128;    /* green */
-    --non-colorblind-bad-bg-dark:       #d33433;    /* red */
+    --non-colorblind-bad-bg-dark:       #d58b04;    /* orange; was red */
     --non-colorblind-genius-bg-dark:    #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-dark :     #d33433;    /* red; was brownish */
+    --non-colorblind-dodo-bg-dark :     #d58b04;    /* orange; was red */
     --non-colorblind-shown-bg-dark:     #9c9ea0;    /* gray */
 }
 
@@ -137,6 +146,8 @@
     --action-cell-size: 15px;
     --cell-margin: 3px;
     --picker-font-size: 2rem;
+    --picker-triangle-size: 25px;
+    --picker-triangle-margin: 15px;
 }
 
 /*
@@ -259,14 +270,21 @@ hr {
 */
 
 #header-div {
+    display: flex;
+    flex-wrap: wrap;
+    background: var(--header-bg);
+    justify-content: space-evenly;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#header-div-top, #header-div-bottom {
+    display: flex;
     flex-wrap: wrap;
     flex-shrink: 0;
-    align-items: center;
-    height: 50px;
-    display: flex;
+    justify-content: center;
+    flex-basis: 100%;
     background: var(--header-bg);
-    padding-top: 10px;
-    padding-bottom: 10px;
 }
 
 #game-button-div {
@@ -296,6 +314,12 @@ hr {
     align-items: center;
 }
 
+.tagline {
+    font-size: .8rem;
+    font-style: italic;
+    color: var(--primary-fg);
+}
+
 /*
 ** ----------------------
 ** General Button Styling
@@ -305,9 +329,9 @@ hr {
 .app-button {
     font-size: .70rem;
     padding: .3rem;
-    margin: .2rem;
+    margin: .1rem;
     border-width: 0;
-    border-radius: .5rem;
+    border-radius: 1.2rem;
     color: var(--primary-fg);
     color: var(--primary-fg);
 }
@@ -431,6 +455,11 @@ button:enabled {
     display: block;
 }
 
+.tr-wc-solution-line {
+    border-bottom: 2px dotted;;
+    margin-bottom: 2px;
+}
+
 .td-game-active {
     background: var(--user-input-bg);
 }
@@ -449,7 +478,7 @@ button:enabled {
 
 /*
 ** This style is used with letter-outer-cell and action-outer-cell
-** to ensure that the deletion line up properly under their corresponding
+** to ensure that the deletion buttons line up properly under their corresponding
 ** letters. Having the same width, border-width, and margins is the key!
 */
 .outer-cell {
@@ -687,13 +716,18 @@ button.action-button {
     /*
     ** Width should result in a bit of space around the picker.
     */
-    width: 325px;
+    width: 350px;
     /*
     ** It is essential to have a height here, or else the picker space
     ** will go away when picker-inner-div is hidden! Leave just enough
     ** for the scroll bar to look OK.
     */
     height: 55px;
+
+    display:flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
 }
 
 .picker-inner-div {
@@ -703,6 +737,8 @@ button.action-button {
 }
 
 .picker-table {
+    /* This eliminates space around the one and only table row. */
+    border-collapse: collapse;
 }
 
 .picker-tr {
@@ -729,6 +765,31 @@ button.action-button {
     ** to 'none' interferes with the ability to scroll the picker.
     */
     touch-action: pan-x;
+}
+
+/*
+** These triangles are used to give users a visual cue that they need
+** to slide/swipe right/left to move the letters.
+**
+** Helpful article explains clip-path polygon() for triangles:
+** https://verpex.com/blog/website-tips/css-shapes-the-triangle
+*/
+.triangle-left {
+  width: var(--picker-triangle-size);
+  height: var(--picker-triangle-size);
+  margin-right: var(--picker-triangle-margin);
+  aspect-ratio: 1;
+  background: black;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+.triangle-right {
+  width: var(--picker-triangle-size);
+  height: var(--picker-triangle-size);
+  margin-left: var(--picker-triangle-margin);
+  aspect-ratio: 1;
+  background: black;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
 /*
@@ -1089,6 +1150,11 @@ input.setting-radio {
         ** obstruct the picker.
         */
         height: 110px;
+
+        display:flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
     }
 }
 

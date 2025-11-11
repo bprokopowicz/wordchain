@@ -8,52 +8,18 @@ Known Bugs
 Near Term Changes
 =================
 
-Do in suggested order?
+- WIP: rewriting game tests to use the expected next move type as enforced by the game.  Then, remove position param from Game.playLetter.
+- Test coverage
+- Resolve TODOs
+- Run manual tests
 
-- Review this TODO file - some of it is done or not relevant
-- Add a one-time pop-up/notice: swipe the letter tiles left and right, then tap a letter to select it.
-- Make picker slider always visible (we failed on this, righ?)
-- Analytics
-- Add remaining penalties indication (maybe in the header?)
-- Less negative user experience
-
-Less Negative User Experience / Game Play
-=========================================
-
-- Change in terminology from "penalty" to "extra steps"
-  - No limit on extra steps
-- One Show Next Move per game (currently multiple allowed, until game lost)
-  - Does NOT count as an extra step
-  - Displays BROWN in game and share (currently gray)
-- User move that adds steps displays GRAY in game and share (currently red/orange)
-  - Continue to display "Ugh! You added two steps!" toast for DODO moves
-  - Continue to display one row of "extra step color" (GRAY) in game and share for DODO
-- GENIUS move reduces step(s) 
-  - No changes to what we display
-  - But score will be affected
-- Score is # of extra steps
-  - Won't always line up with the number of gray/brown rows
-    - With the "penalties" terminology I think the score always lines up with the number of red rows
-    - Maybe it's OK; at a minimum we need something in the FAQ about it
-  - Display a running "extra step count" (in the header?)
-    - May mitigate that misalignment
-  - Display a line under the Nth row to indicate "par" -- number of steps in WC solution
-    - N is the number of rows in the initial display (after the target word)
-    - Add styling to the <tr> for that row (bottom-border: 4px solid)
-    - This also may mitigate score != # gray/brown misalignment
-- Stats
-  - Won/Lost now shown as one stat: "Completed" (got to target, no matter how many extra steps)
-  - "WRONG MOVE COUNTS" becomes "EXTRA STEP COUNTS"
-  - Continue to use "confounded" emoji for scores over N (currently N == 4; maybe we increase it?)
-  - Streak reflects contiguous *started* daily games (whether or not the game was completed)
-  - Need to think about migration of stats in cookie ... probably just treat current
-    "penalty" values as "extra steps" values
+Dictionary
+==========
+remove unreachable words (easy)
+remove unreachable cliques of less than N words (hard)
 
 Analytics
 =========
-There is a class called Metrics.java that records event+data by fetching a URL with event+data in the 
-query string.  Data includes a word-chain player ID (WCID) which is persistent per player-platform.  The
-file fetched is wcm.html.  This file has Google analytics in it.  
 Our Google tag ID is G-ESCKD20EKK.  This is a Google Analytics 4 (GA4) tag.  
 It seems like GA4 supports counting events by type but not by individual user.  So we can track things like:
 - game #abc started at timestamp
@@ -95,6 +61,16 @@ Not Affecting Game Play
         (can happen when switching to Practice game or starting new Practice game)
      [Violation] 'setInterval' handler took XXXms
         (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
+- Create a clock manager clas; would affects
+  - GameState.resetPracticeGameCounter()
+  - AppDisplay.resetPracticeGameCounter()
+  - AppDisplay.createScreens() where AppDisplay.resetPracticeGameCounter() is called
+- Daily game maintenance
+  - Move game definitions into a separate data file, which is retrieved by daily game factory on demand
+  - Replace BROKEN GAME with a randomly selected earlier game, where all players get the same random game
+    - Remove all special treatment of BROKEN GAME, i.e. those games count
+    - How will we know when this is happening? Analytics?
+- Obfuscate cookies
 
 Testing Issues
 ==============

@@ -22,7 +22,7 @@ class WordChainDict extends BaseLogger {
 
     constructor(wordList=[]) {
         super();
-        const CL = "WordChainDict.constructor"; 
+        const CL = "WordChainDict.constructor";
         COV(0, CL);
 
         if (wordList.length == 0) {
@@ -118,7 +118,7 @@ class WordChainDict extends BaseLogger {
 
         // Test isWord() when we remove each each letter in word.
         for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
-            let potentialWord = word.substr(0, wordIndex) + word.substr(wordIndex+1);
+            let potentialWord = WordChainDict.deleteLetter(word, wordIndex);
             Const.GL_DEBUG && this.logDebug(">>>>> potential: ", potentialWord, "dictionary-details");
             if (this.isWord(potentialWord)) {
                 COV(1, CL);
@@ -147,28 +147,18 @@ class WordChainDict extends BaseLogger {
                 COV(1, CL);
                 // Construct the potential word, replacing the current letter in word 
                 // with the newLetter from A-Z.
-                let potentialWord = '';
-                if (wordIndex === 0) {
-                    COV(2, CL);
-                    potentialWord = newLetter + word.substr(1)
-                } else if (wordIndex < word.length - 1) {
-                    COV(3, CL);
-                    potentialWord = word.substr(0, wordIndex) + newLetter + word.substr(wordIndex+1);
-                } else {
-                    COV(4, CL);
-                    potentialWord = word.substr(0, word.length - 1) + newLetter;
-                }
+                let potentialWord = WordChainDict.replaceCharacterAtPosition(word, newLetter, wordIndex);
 
                 Const.GL_DEBUG && this.logDebug(">>>>> potential: ", potentialWord, "dictionary-details");
                 if (this.isWord(potentialWord)) {
-                    COV(5, CL);
+                    COV(2, CL);
                     Const.GL_DEBUG && this.logDebug(">>>>> adding replacement: ", potentialWord, "dictionary-details");
                     replacements.add(potentialWord);
                 }
             }
         }
 
-        COV(6, CL);
+        COV(3, CL);
         Const.GL_DEBUG && this.logDebug("changes from", word, ": ", Array.from(replacements).sort(), "dictionary-details");
         return replacements;
     }
@@ -189,9 +179,15 @@ class WordChainDict extends BaseLogger {
         return replacements;
     }
 
-    findChangedLetterLocation(word1, word2) {
+    // returns zero-based location of (first, if any) changed letter.  
+    // -1 if no letters are different.
+    static findChangedLetterLocation(word1, word2) {
         const CL = "WordChainDict.findChangedLetterLocation";
         COV(0, CL);
+        if (word1.length != word2.length) {
+            console.error("findChangedLetterLocation() must be given same-length words.");
+            return -1;
+        }
         for (let i=0; i < word1.length; i++) {
             if (word1[i] != word2[i]) {
                 COV(1, CL);
@@ -201,6 +197,37 @@ class WordChainDict extends BaseLogger {
         console.error("can't find difference between ", word1, " and ", word2);
         return -1;
     }    
+
+    // spacePosition is 0 to word.length
+    // return word is one character longer, with the hole added
+    // at spacePosition in the new word.
+    static insertHoleBeforePosition(word, spacePosition) {
+        const CL = "WordChainDict.insertHoleBeforePosition";
+        COV(0, CL);
+        const [pre, post] = [word.substr(0, spacePosition), word.substr(spacePosition)];
+        return pre + Const.HOLE + post;
+    }
+
+    // replace the character in 'word' at 'position' with 'letter'
+    static replaceCharacterAtPosition(word, letter, position) {
+        const CL = "WordChainDict.replaceCharacterAtPosition";
+        COV(0, CL);
+        const [pre, post] = [word.substr(0, position), word.substr(position+1)];
+        return pre + letter + post;
+    }
+
+    // put the HOLE character at 'pos' in 'word'.  holePosition is indexed
+    static replaceCharacterAtPositionWithHole(word, holePosition) {
+        const CL = "WordChainDict.replaceCharacterAtPositionWithHole";
+        COV(0, CL);
+        return WordChainDict.replaceCharacterAtPosition(word, Const.HOLE, holePosition);
+    }
+
+    // delete the ith letter
+    static deleteLetter(word, deletePosition) {
+        const [pre, post] = [word.substr(0, deletePosition), word.substr(deletePosition+1)];
+        return pre + post;
+    }
 
     // findOptionsAtWordStep is only used to measure a solution's difficulty.  Given the known step
     // 'thisWord' -> 'nextWord', what are all the words possible that have the
@@ -216,7 +243,7 @@ class WordChainDict extends BaseLogger {
             COV(1, CL);
             // we tell the user which letter location to change, so only the changes of that
             // location should count towards difficulty
-            let loc = this.findChangedLetterLocation(thisWord, nextWord);
+            let loc = WordChainDict.findChangedLetterLocation(thisWord, nextWord);
             if (loc >= 0) {
                 replacementWords = this.findReplacementWordsAtLoc(thisWord, loc);
             } else {

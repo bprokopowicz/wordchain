@@ -83,6 +83,7 @@ class AppDisplay extends BaseLogger {
         const CL = "AppDisplay.startTimingCheckInterval";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("startTimingCheckInterval() called", "display");
+
         // Stop any timer already running.
         this.stopTimingCheckInterval();
 
@@ -112,10 +113,8 @@ class AppDisplay extends BaseLogger {
     // Create the one and only object of this class if it hasn't yet been created.
     // Return the new or existing object.
     static singleton() {
-        const CL = "AppDisplay.singleton";
-        COV(0, CL);
+        // Not putting coverage here intentionally; our suite runs after this is called.
         if (AppDisplay.singletonObject === null) {
-            COV(1, CL);
             AppDisplay.singletonObject = new AppDisplay();
         }
         return AppDisplay.singletonObject;
@@ -177,7 +176,6 @@ class AppDisplay extends BaseLogger {
 
         this.dailyGameDisplay = new DailyGameDisplay(this, this.dailyGameDiv, this.dailyPickerDiv);
         this.practiceGameDisplay = new PracticeGameDisplay(this, this.practiceGameDiv, this.practicePickerDiv);
-        /* TODO  - not managing the practice counter here...  */
         if (this.dailyGameDisplay.isNewDailyGame()) {
             COV(1, CL);
             Const.GL_DEBUG && this.logDebug("AppDisplay.createScreens() calling resetPracticeGameCounter()", "display");
@@ -185,13 +183,14 @@ class AppDisplay extends BaseLogger {
         }
 
         COV(2, CL);
-        this.currentGameDisplay = this.dailyGameDisplay;
+        this.setCurrentGameDisplay(this.dailyGameDisplay);
     }
 
     /* ----- Header ----- */
 
     createAuxiliaryScreens() {
         const CL = "AppDisplay.createAuxiliaryScreens";
+        COV(0, CL);
         // This is the set of divs that need to be hidden when an auxiliary screen is
         // shown, and shown when an auxiliary screen is closed.
         this.primaryDivs = [
@@ -202,7 +201,6 @@ class AppDisplay extends BaseLogger {
 
         // Now create objects for each of the auxiliary screens.
         // We don't need to save these in the object, but we will anyway!
-        COV(0, CL);
         this.helpDisplay = new HelpDisplay(
             this.auxiliaryButtonDiv, {text: "HOW TO PLAY"}, this.auxiliaryDiv, this.primaryDivs);
 
@@ -244,15 +242,24 @@ class AppDisplay extends BaseLogger {
         this.headerDiv = ElementUtilities.addElementTo("div", this.upperDiv, {id: "header-div"});
         this.headerDiv.style.display = "flex";
 
+        // Top row of header has the title and all the buttons.
+        this.headerDivTop = ElementUtilities.addElementTo("div", this.headerDiv, {id: "header-div-top"});
+
         // game-button-div holds buttons related to game play.
-        this.gameButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "game-button-div"});
+        this.gameButtonDiv = ElementUtilities.addElementTo("div", this.headerDivTop, {id: "game-button-div"});
         this.createGameButtons();
 
-        const titleDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "title-div"});
+        const titleDiv = ElementUtilities.addElementTo("div", this.headerDivTop, {id: "title-div"});
         ElementUtilities.addElementTo("label", titleDiv, {class: "title"}, "WordChain");
 
         // auxiliary-button-div holds the buttons for getting to the auxiliary screens.
-        this.auxiliaryButtonDiv = ElementUtilities.addElementTo("div", this.headerDiv, {id: "auxiliary-button-div"});
+        this.auxiliaryButtonDiv = ElementUtilities.addElementTo("div", this.headerDivTop, {id: "auxiliary-button-div"});
+
+        ElementUtilities.addElementTo("div", this.headerDiv, {class: "break", id: "header-break"});
+
+        // Bottom row of header just has the tagline.
+        this.headerDivBottom = ElementUtilities.addElementTo("div", this.headerDiv, {id: "header-div-bottom"});
+        this.tagline = ElementUtilities.addElementTo("label", this.headerDivBottom, {class: "tagline"}, Const.GAME_TAGLINE);
     }
 
     /* ----- Game ----- */
@@ -302,7 +309,7 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.switchToPracticeGameButton);
         ElementUtilities.hide(this.switchToDailyGameButton);
 
-        this.currentGameDisplay = this.dailyGameDisplay;
+        this.setCurrentGameDisplay(this.dailyGameDisplay);
     }
 
     // We used to create the practice game here, but moved it to the constructor,
@@ -322,7 +329,7 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.switchToDailyGameButton);
         ElementUtilities.hide(this.switchToPracticeGameButton);
 
-        this.currentGameDisplay = this.practiceGameDisplay;
+        this.setCurrentGameDisplay(this.practiceGameDisplay);
     }
 
     /* ----- Utilities ----- */
@@ -341,7 +348,9 @@ class AppDisplay extends BaseLogger {
             this.statsDisplay.refresh();
             this.statsDisplay.updateShareButton();
             this.resetPracticeGameCounter();
+            return true; // for testing only
         }
+        return false;    // for testing only
         COV(2, CL);
     }
 
@@ -362,16 +371,12 @@ class AppDisplay extends BaseLogger {
             // a clickable URL (sans our icon!) -- no share graphic!
             // This approach requires users to paste their share to the app of
             // their choice -- and both the graphic and a clickable URL will appear.
-            let copiedToClipboard = false;
             if (typeof navigator.clipboard === "object") {
                 COV(2, CL);
                 navigator.clipboard.writeText(`${shareString}`);
-                copiedToClipboard = true;
                 this.showToast(Const.SHARE_TO_PASTE);
             } else {
-                // TODO This is never reached from the testscurrently.  IF we add it,
-                // we need to update the COV points from here out in this function.
-                // COV(3, CL);
+                // NOTE: This is never reached from the tests currently. 
                 this.showToast(Const.SHARE_INSECURE);
             }
 
@@ -410,7 +415,6 @@ class AppDisplay extends BaseLogger {
     }
 
     resetPracticeGameCounter() {
-        //TODO - don't manage this here
         const CL = "AppDisplay.resetPracticeGameCounter";
         COV(0, CL);
         this.practiceGameDisplay.resetPracticeGameCounter();
@@ -442,8 +446,7 @@ class AppDisplay extends BaseLogger {
     }
 
     getMsUntilNextGame() {
-        const CL = "AppDisplay.getMsUntilNextGame";
-        COV(0, CL);
+        // Not putting coverage here intentionally; we can't test this in our suite.
         return this.dailyGameDisplay.getMsUntilNextGame();
     }
 
@@ -519,7 +522,6 @@ class AppDisplay extends BaseLogger {
         // Pass true to indicate that toast display should be skipped.
         COV(9, CL);
         const skipToast = true;
-        this.currentGameDisplay && this.currentGameDisplay.showGameAfterMove(skipToast);
     }
 
     // Set the given CSS property to the specified value.
@@ -527,6 +529,17 @@ class AppDisplay extends BaseLogger {
         const CL = "AppDisplay.setCssProperty";
         COV(0, CL);
         document.documentElement.style.setProperty(`--${property}`, value);
+    }
+
+    // Set the current game display and update the header tagline.
+    setCurrentGameDisplay(gameDisplay) {
+        const CL = "AppDisplay.setCurrentGameDisplay";
+        COV(0, CL);
+        this.currentGameDisplay = gameDisplay;
+
+        // Now update the header tagline to include the target word.
+        const targetWord = gameDisplay.getTargetWord();
+        ElementUtilities.setElementText(this.tagline, `${Const.GAME_TAGLINE} '${targetWord}'`)
     }
 
     // Show a "no daily game" toast if we haven't already.
@@ -557,12 +570,17 @@ class AppDisplay extends BaseLogger {
     }
 
     getAndClearLastToast() {
+        const CL = "AppDisplay.addAndClearLastToast";
+        COV(0, CL);
+
         const result = this.lastToast;
         this.clearLastToast();
         return result;
     }
 
     clearLastToast() {
+        const CL = "AppDisplay.clearLastToast";
+        COV(0, CL);
         this.lastToast = null;
     }
 

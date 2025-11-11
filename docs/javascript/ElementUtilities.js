@@ -1,3 +1,4 @@
+import { COV } from './Coverage.js';
 // This class is all static methods that relate to finding,
 // checking, setting aspects of HTML elements.
 class ElementUtilities {
@@ -10,64 +11,86 @@ class ElementUtilities {
     }
 
     static addClass(element, classNameOrList) {
+        const CL = "ElementUtilities.addClass";
+        COV(0, CL);
 
         let elementClass = element.getAttribute('class'),
             className,
             classesToAdd;
 
         if (typeof classNameOrList === 'string') {
+            COV(1, CL);
             classesToAdd = [classNameOrList];
         } else {
+            COV(2, CL);
             classesToAdd = classNameOrList;
         }
 
         for (className of classesToAdd)
         {
             if (elementClass === null) {
+                COV(3, CL);
                 elementClass = className;
             } else {
+                COV(4, CL);
                 elementClass += ` ${className}`;
             }
         }
 
+        COV(5, CL);
         element.setAttribute('class', elementClass);
     }
 
     // This utility only takes a single class name, not a list like other methods here.
     static hasClass(element, className) {
+        const CL = "ElementUtilities.hasClass";
+        COV(0, CL);
         const classes = element.getAttribute('class');
         if (classes == null) {
+            COV(1, CL);
             return false;
         }
+        COV(2, CL);
         return (classes.indexOf(className) >= 0);
     }
 
     static addElement(elementType, attributes=null, innerHTML=null) {
+        const CL = "ElementUtilities.addElement";
+        COV(0, CL);
         return ElementUtilities.addElementTo(elementType, document.body, attributes, innerHTML);
     }
 
     static addElementTo(elementType, parent, attributes=null, innerHTML=null) {
+        const CL = "ElementUtilities.addElementTo";
+        COV(0, CL);
         let element;
 
         // If it's an object, assume the element we're adding has already been created and just append it.
         if (typeof elementType === "string") {
+            COV(1, CL);
             element = ElementUtilities.createElement(elementType, attributes, innerHTML)
         } else {
+            COV(2, CL);
             element = elementType;
         }
 
+        COV(3, CL);
         parent.appendChild(element);
 
         return element;
     }
 
     static createElement(elementType, attributes=null, innerHTML=null) {
+        const CL = "ElementUtilities.createElement";
+        COV(0, CL);
         const svgElements = ["svg", "path"];
 
         let element;
         if (svgElements.includes(elementType)) {
+            COV(1, CL);
             element = document.createElementNS("http://www.w3.org/2000/svg", elementType);
         } else {
+            COV(2, CL);
             element = document.createElement(elementType);
         }
 
@@ -76,14 +99,19 @@ class ElementUtilities {
         }
 
         if (innerHTML !== null) {
+            COV(3, CL);
             element.innerHTML = innerHTML;
         }
 
+        COV(4, CL);
         return element;
     }
 
     static deleteChildren(element) {
+        const CL = "ElementUtilities.deleteChildren";
+        COV(0, CL);
         if (element) {
+            COV(1, CL);
             while (element.firstChild) {
                 element.removeChild(element.firstChild);
             }
@@ -91,10 +119,14 @@ class ElementUtilities {
     }
 
     static disableButton(button) {
+        const CL = "ElementUtilities.disableButton";
+        COV(0, CL);
         button.disabled = true;
     }
 
     static enableButton(button) {
+        const CL = "ElementUtilities.enableButton";
+        COV(0, CL);
         button.disabled = false;
     }
 
@@ -114,8 +146,11 @@ class ElementUtilities {
     }
 
     static editClass(fromPattern, toString, elements) {
+        const CL = "ElementUtilities.editClass";
+        COV(0, CL);
 
         if (! (elements instanceof Array)) {
+            COV(1, CL);
             elements = [elements];
         }
 
@@ -124,6 +159,7 @@ class ElementUtilities {
             elementClass = elementClass.replace(fromPattern, toString);
             element.setAttribute('class', elementClass);
         }
+        COV(2, CL);
     }
 
     // Not currently used.
@@ -136,6 +172,8 @@ class ElementUtilities {
     }
 
     static removeClass(element, classNameOrList) {
+        const CL = "ElementUtilities.removeClass";
+        COV(0, CL);
 
         let elementClasses = element.getAttribute('class').split(' '),
             newElementClass = null,
@@ -143,8 +181,10 @@ class ElementUtilities {
             classesToRemove;
 
         if (typeof classNameOrList === 'string') {
+            COV(1, CL);
             classesToRemove = [classNameOrList];
         } else {
+            COV(2, CL);
             classesToRemove = classNameOrList;
         }
 
@@ -155,13 +195,16 @@ class ElementUtilities {
             if (classesToRemove.indexOf(className) < 0)
             {
                 if (newElementClass === null) {
+                    COV(3, CL);
                     newElementClass = className;
                 } else {
+                    COV(4, CL);
                     newElementClass += ` ${className}`;
                 }
             }
         }
 
+        COV(5, CL);
         element.setAttribute('class', newElementClass);
     }
 
@@ -185,18 +228,23 @@ class ElementUtilities {
         // The "real callback" passed to us is a naked function (no this).  So
         // we supply the object to call the function on by binding it.
 
+        const CL = "ElementUtilities.setButtonCallback";
+        COV(0, CL);
         var boundCallbackFunc = callbackFunc.bind(callbackObj);
 
         function localCallback(theEvent) {
+            COV(1, CL);
             const isSafari = navigator.vendor.toLowerCase().includes("apple");
             var clickEvent;
             if (isSafari) {
+                COV(2, CL);
                 if (navigator.appVersion.toLowerCase().includes("mac os")) {
                     // Safari on MacOS sends MouseEvent, not PointerEvent -- and doesn't define TouchEvent!
                     // so "theEvent instanceof TouchEvent" results in a syntax error "can't find variable
                     // TouchEvent". Sigh!
                     clickEvent = MouseEvent;
                 } else {
+                    COV(3, CL); 
                     // However, Safari on iOS sends TouchEvent when a button is tapped.
                     clickEvent = TouchEvent;
                 }
@@ -207,6 +255,7 @@ class ElementUtilities {
             if ((isSafari && theEvent instanceof clickEvent) ||
                 ((theEvent instanceof PointerEvent) &&
                  (theEvent.pointerType.length !== 0))) {
+                COV(4, CL); 
                 boundCallbackFunc(theEvent);
             }
         }
@@ -219,6 +268,13 @@ class ElementUtilities {
         buttonElement.addEventListener("click", localCallback, {passive: true});
         buttonElement.addEventListener("keyup", localCallback, {passive: true});
         buttonElement.addEventListener("keydown", localCallback, {passive: true});
+        COV(5, CL); 
+    }
+
+    static setCallback(element, callbackObj, callbackFunc) {
+        const CL = "ElementUtilities.setCallback";
+        COV(0, CL);
+        ElementUtilities.setButtonCallback(element, callbackObj, callbackFunc);
     }
 
     // Used only in Test.js.
@@ -228,10 +284,14 @@ class ElementUtilities {
     }
 
     static setElementText(element, elementText) {
+        const CL = "ElementUtilities.setElementText";
+        COV(0, CL);
         element.innerHTML = elementText;
     }
 
     static show(element, display="flex") {
+        const CL = "ElementUtilities.show";
+        COV(0, CL);
         element.setAttribute("style", `display: ${display};`);
     }
 
