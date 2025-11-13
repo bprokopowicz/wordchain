@@ -426,6 +426,12 @@ class Game extends BaseLogger {
         return this.gameState.getNormalizedScore();
     }
  
+    getTargetWord() {
+        const CL = "Game.getTargetWord";
+        COV(0, CL);
+        return this.gameState.getTargetWord();
+    }
+
     getOriginalSolutionWords() {
         const CL = "Game.getOriginalSolutionWords";
         COV(0, CL);

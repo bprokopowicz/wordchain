@@ -540,7 +540,7 @@ class AppDisplay extends BaseLogger {
 
         // Now update the header tagline to include the target word.
         const targetWord = gameDisplay.getTargetWord();
-        ElementUtilities.setElementText(this.taglineTarget, `${targetWord}`)
+        this.updateTaglineTarget(targetWord);
     }
 
     // Show a "no daily game" toast if we haven't already.
@@ -599,6 +599,12 @@ class AppDisplay extends BaseLogger {
             this.practiceGameDisplay.practiceGamesAvailable();
         }
         COV(2, CL);
+    }
+
+    updateTaglineTarget(targetWord) {
+        const CL = "AppDisplay.updateTaglineTarget";
+        COV(0, CL);
+        ElementUtilities.setElementText(this.taglineTarget, targetWord);
     }
 }
 

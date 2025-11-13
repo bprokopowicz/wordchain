@@ -3647,7 +3647,9 @@ class Test extends BaseLogger {
             }
 
             // test finishing the current game by playing it out, or making errors.
-            if (gamesStarted % 2 == 0) {
+            // games 1 and 2 are failed instances of TEST->PILOT.
+            // game(s) 3 ... are finished OK instance of a random game
+            if (gamesStarted <= 2) {
                 // TEST LEST LET LOT PLOT PILOT
                 this.logDebug("ending game by making errors", "test");
                 this.playLetter("N"); // TEST -> NEST
@@ -3658,6 +3660,11 @@ class Test extends BaseLogger {
             } else {
                 this.logDebug("ending game by finishing it", "test");
                 this.finishTheCurrentGame();
+            }
+
+            if (gamesStarted == 2) {
+                // playing a random game from now on, until we run out of practice games allowed.
+                Persistence.clearTestPracticeGameWords();
             }
 
             this.logDebug("game should be finished", game.gameState, "test");
@@ -3675,6 +3682,11 @@ class Test extends BaseLogger {
                   child2IsDisabled = children[1].disabled,
                   child2Text = children[1].textContent;
 
+            const appDisplay = this.getNewAppWindow().theAppDisplay,
+                  taglineTargetText = appDisplay.taglineTarget.innerText,
+                  expTaglineTargetText = game.getTargetWord();
+
+            this.verifyEqual( taglineTargetText, expTaglineTargetText, `tagline target text ${gamesStarted}` );
 
             if (game.gamesRemaining() > 0) {
                 // Not last game
@@ -3687,6 +3699,7 @@ class Test extends BaseLogger {
                         this.verifyEqual(this.gameDisplay.anyGamesRemaining(), true, `anyGamesRemaining() ${gamesStarted}`)
                    ) {
                     // pretend to click the new game button, and check that showWord button is enabled, newGame button is disabled.
+                    // if this is after the first 2 (identical, test) practice games, delete the practice game's test cookie 
                     this.gameDisplay.newGameCallback(mockEvent);
                     game = this.gameDisplay.game; // we have a new game in the display now
                     const postGameDiv = this.gameDisplay.postGameDiv,
@@ -3695,11 +3708,12 @@ class Test extends BaseLogger {
                           child1Text = children[0].textContent,
                           child2IsDisabled = children[1].disabled,
                           child2Text = children[1].textContent;
-                    this.verifyEqual( child1Text, "Show Word", `b) child1text ${gamesStarted}`) &&
-                        this.verifyEqual( child1IsDisabled, false, `b) Show Word button disabled ${gamesStarted}`) &&
-                        this.verifyEqual( child2Text, "New Game", `b) child2text ${gamesStarted}`) &&
-                        this.verifyEqual( child2IsDisabled, true, `b) New Game button disabled ${gamesStarted}`) &&
-                        this.verifyEqual(this.gameDisplay.anyGamesRemaining(), true, `anyGamesRemaining() ${gamesStarted}`)
+
+                    soFarSoGood = this.verifyEqual( child1Text, "Show Word", `b) child1text ${gamesStarted}` ) &&
+                        this.verifyEqual( child1IsDisabled, false, `b) Show Word button disabled ${gamesStarted}` ) &&
+                        this.verifyEqual( child2Text, "New Game", `b) child2text ${gamesStarted}` ) &&
+                        this.verifyEqual( child2IsDisabled, true, `b) New Game button disabled ${gamesStarted}` ) &&
+                        this.verifyEqual( this.gameDisplay.anyGamesRemaining(), true, `anyGamesRemaining() ${gamesStarted}` );
 
                 } else {
                     soFarSoGood = false;

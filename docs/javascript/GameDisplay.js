@@ -911,6 +911,7 @@ class PracticeGameDisplay extends GameDisplay {
         } else {
             COV(1, CL);
             this.game = newGameOrNull;
+            this.appDisplay.updateTaglineTarget(this.game.getTargetWord());
         }
         this.updateDisplay();
         ElementUtilities.disableButton(this.newGameButton); 
