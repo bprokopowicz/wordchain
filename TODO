@@ -1,47 +1,36 @@
-Known Bugs
-==========
-
-- If Daily game is in progress and we redefine the start/target words for that game
-  number in a prod update, it screws up any game in progress or finished that started
-  with the previous definition.
-
-Near Term Changes
-=================
-
-- WIP: rewriting game tests to use the expected next move type as enforced by the game.  Then, remove position param from Game.playLetter.
-- Test coverage
-- Resolve TODOs
-- Run manual tests
-
-Dictionary
-==========
-remove unreachable words (easy)
-remove unreachable cliques of less than N words (hard)
+Near Term Work
+==============
 
 Analytics
-=========
-Our Google tag ID is G-ESCKD20EKK.  This is a Google Analytics 4 (GA4) tag.  
-It seems like GA4 supports counting events by type but not by individual user.  So we can track things like:
-- game #abc started at timestamp
-- game #abc finished in N moves, streak at K, at timestamp
-Things we can't do or maybe complicated:
-- user WCIDxyz has played 43 games
+---------
+- Our Google tag ID is G-ESCKD20EKK.  This is a Google Analytics 4 (GA4) tag.  
+- It seems like GA4 supports counting events by type but not by individual user.
+  So we can track things like:
+  - game #abc started at timestamp
+  - game #abc finished in N moves, streak at K, at timestamp
+- Things we can't do or may be complicated:
+  - user WCIDxyz has played 43 games
+- Which of these can we answer?
+  - What percentage of games started are completed?
+  - What is the distribution of scores?
+  - Do users who play the daily game also play practice games?
+  - What percentage of daily games are shared?
+  - What percentage of completed games are lost?
+  - How many daily and practice games per week do people play?
+  - Why does a user stop playing a game?
+
+Dictionary
+----------
+- Remove unreachable words (easy)
+- Remove unreachable cliques of less than N words? (hard)
 
 Maybe Someday
 =============
 
 Affecting Game Play
 -------------------
-- Another hint approach:
-  - When you are changing a letter, letters in the picker that don't form valid
-    words (according to either dictionary) would become unselectable.
-  - When you are adding a letter, "+" buttons where there are no valid words
-    (according to the "common words" dictionary) would become unselectable.
-  - When you are deleting a letter, "-" buttons where the result is an invalid
-    word would become unselectable.
-- Mode where future rows do not have change cells outlined thicker. (harder)
 - Allow "overriding" WordChain's suggested next move type (including which letter to change).
-  - 'My Way' button
+  - 'My Way' button (where Share is -- toggle with Share on Daily game)
   - Will need to bring back keyboard
   - Still must conform to single change per move (add/del/change one letter)
 - Option to exclude advanced dictionary from being used.
@@ -50,27 +39,41 @@ Affecting Game Play
       in a longer path using only words from common dictionary, when an equal
       path using other words in advanced dictionary is possible.
     - But maybe the 'My Way' button would obviate the need for this?
+- Option to make it harder:
+  - Future rows do not have change cells outlined thicker
+- Option to make it easier:
+  - When you are changing a letter, letters in the picker that don't form valid
+    words (according to either dictionary) would become unselectable.
+  - When you are adding a letter, "+" buttons where there are no valid words
+    (according to the "common words" dictionary) would become unselectable.
+  - When you are deleting a letter, "-" buttons where the result is an invalid
+    word would become unselectable.
 
 Not Affecting Game Play
 -----------------------
-- Create a back-end that delivers the daily and practice games
-- Cookies: make secure? Obfuscate? Save in back-end DB?
-- Remove words from dictionary if they have no neighbors.
-- Address slow handler violations:
-     [Violation] 'click' handler took XXXms
-        (can happen when switching to Practice game or starting new Practice game)
-     [Violation] 'setInterval' handler took XXXms
-        (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
-- Create a clock manager clas; would affects
-  - GameState.resetPracticeGameCounter()
-  - AppDisplay.resetPracticeGameCounter()
-  - AppDisplay.createScreens() where AppDisplay.resetPracticeGameCounter() is called
 - Daily game maintenance
   - Move game definitions into a separate data file, which is retrieved by daily game factory on demand
   - Replace BROKEN GAME with a randomly selected earlier game, where all players get the same random game
     - Remove all special treatment of BROKEN GAME, i.e. those games count
     - How will we know when this is happening? Analytics?
-- Obfuscate cookies
+- Create a clock manager class; would affect
+  - GameState.resetPracticeGameCounter()
+  - AppDisplay.resetPracticeGameCounter()
+  - AppDisplay.createScreens() where AppDisplay.resetPracticeGameCounter() is called
+- Cookies: make secure? Obfuscate? Save in back-end DB?
+- Create a back-end that delivers the daily and practice games
+- Address slow handler violations:
+     [Violation] 'click' handler took XXXms
+        (can happen when switching to Practice game or starting new Practice game)
+     [Violation] 'setInterval' handler took XXXms
+        (can happen when the AppDisplay interval timer determines it's time for a new Daily game)
+
+Known Bugs
+==========
+
+- If Daily game is in progress and we redefine the start/target words for that game
+  number in a prod update, it screws up any game in progress or finished that started
+  with the previous definition.
 
 Testing Issues
 ==============
@@ -82,8 +85,8 @@ In IOS (phone, ipad) using Safari, wordchain.html will load and play OK, BUT:
   Inspector on the Mac when tethered to the iPad. We haven't tethered a phone yet (Nov 8, 2024)
 - only occurs when device is tethered
 
-TODO - verify that hard reload doesn't work on iphone/safari (untethered).
-TODO - can we force hard-reload on iphone/ipad in Chrome? Does that require tethering?
+===> Verify that hard reload doesn't work on iphone/safari (untethered).
+===> Can we force hard-reload on iphone/ipad in Chrome? Does that require tethering?
     NOTE: If we clear the Safari's cache on iPad via Settings --> Safari --> Clear History and Website Data
           and then go back to Safari, the app seems to reload everything just fine (tethered or not).
 

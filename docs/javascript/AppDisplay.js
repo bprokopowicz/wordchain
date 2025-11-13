@@ -260,6 +260,7 @@ class AppDisplay extends BaseLogger {
         // Bottom row of header just has the tagline.
         this.headerDivBottom = ElementUtilities.addElementTo("div", this.headerDiv, {id: "header-div-bottom"});
         this.tagline = ElementUtilities.addElementTo("label", this.headerDivBottom, {class: "tagline"}, Const.GAME_TAGLINE);
+        this.taglineTarget = ElementUtilities.addElementTo("label", this.headerDivBottom, {class: "tagline-target"});
     }
 
     /* ----- Game ----- */
@@ -539,7 +540,7 @@ class AppDisplay extends BaseLogger {
 
         // Now update the header tagline to include the target word.
         const targetWord = gameDisplay.getTargetWord();
-        ElementUtilities.setElementText(this.tagline, `${Const.GAME_TAGLINE} '${targetWord}'`)
+        ElementUtilities.setElementText(this.taglineTarget, `${targetWord}`)
     }
 
     // Show a "no daily game" toast if we haven't already.

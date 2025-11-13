@@ -73,6 +73,7 @@
 
     /* ===== Game Play ===== */
     --confirmation-bg:          LightGray;
+    --header-target-fg:         #8d08af;            /* dark purple */
 }
 
 /*
@@ -287,6 +288,10 @@ hr {
     background: var(--header-bg);
 }
 
+#header-div-bottom {
+    align-items: center;
+}
+
 #game-button-div {
     width: 33%;
     display: flex;
@@ -318,6 +323,14 @@ hr {
     font-size: .8rem;
     font-style: italic;
     color: var(--primary-fg);
+}
+
+.tagline-target {
+    font-size: 1.3rem;
+    font-style: italic;
+    font-weight: bold;
+    margin-left: 5px;
+    color: var(--header-target-fg);
 }
 
 /*

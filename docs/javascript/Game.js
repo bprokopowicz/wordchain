@@ -214,7 +214,7 @@ class Game extends BaseLogger {
             // Note: changePosition is 0..word.length - 1, which is what replaceCharacterAtPositionWithHole() expects.
             const holePosition = previousDisplayInstruction.changePosition; 
             displayedFirstUnplayedWord = WordChainDict.replaceCharacterAtPositionWithHole(firstUnplayedWord, holePosition);
-            this.holePosition = holePosition; // TODO clean up
+            this.holePosition = holePosition;
         } else if (previousDisplayType === Const.PLAYED) {
             COV(4, CL);
             if (firstUnplayedWord.length > lastPlayedWord.length) {
@@ -230,7 +230,7 @@ class Game extends BaseLogger {
                 // Add the hole where the user added space to this first unplayed word here.
                 // Note: addPosition is 0..word.length, which is what insertHoleBeforePosition() expects.
                 displayedFirstUnplayedWord = WordChainDict.insertHoleBeforePosition(lastPlayedWord, this.addPosition);
-                this.holePosition = this.addPosition; // TODO clean up
+                this.holePosition = this.addPosition;
                 this.nextRequiredMove = Const.CHANGE;
             } 
         } else {
