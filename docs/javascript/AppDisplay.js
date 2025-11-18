@@ -562,12 +562,21 @@ class AppDisplay extends BaseLogger {
         const CL = "AppDisplay.showToast";
         COV(0, CL);
         Const.GL_DEBUG && this.logDebug("AppDisplay.showToast(): ", message, "display");
+
+        message = this.getToast(message);
+
         this.lastToast = message;
         this.toastDiv.innerHTML = message
         ElementUtilities.editClass(/hide/, "show", this.toastDiv);
         setTimeout(() => {
             ElementUtilities.editClass(/show/, "hide", this.toastDiv);
         }, duration);
+    }
+
+    clearLastToast() {
+        const CL = "AppDisplay.clearLastToast";
+        COV(0, CL);
+        this.lastToast = null;
     }
 
     getAndClearLastToast() {
@@ -579,10 +588,15 @@ class AppDisplay extends BaseLogger {
         return result;
     }
 
-    clearLastToast() {
-        const CL = "AppDisplay.clearLastToast";
+    getToast(gameResult) {
+        const CL = "AppDisplay.getToast";
         COV(0, CL);
-        this.lastToast = null;
+        // Is this a message that we decided to change based on feedback
+        // to make it more friendly (but may still save in persistent data
+        // the old way)? If so, return the message, else return the
+        // gameResult as is.
+        let message = Const.GAME_RESULT_TO_TOAST.get(gameResult);
+        return message ? message : gameResult;
     }
 
     // This is called on construction, when the periodic timer fires, and

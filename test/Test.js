@@ -2695,10 +2695,10 @@ class Test extends BaseLogger {
         const toastClass = appDisplay.toastDiv.getAttribute("class");
         const toastMsg = appDisplay.toastDiv.innerHTML;
         const expToastClass = "pop-up show";
-        const expToastMsg = Const.GAME_WON;
+        const expToastMsg = appDisplay.getToast(Const.GAME_WON);
         this.verifyEqual(toastClass, expToastClass, "toast class") &&
             this.verifyEqual(toastMsg, expToastMsg, "toast message") &&
-            this.verifyEqual(toastAfterGame, Const.GAME_WON, "toast after game") &&
+            this.verifyEqual(toastAfterGame, expToastMsg, "toast after game") &&
             this.hadNoErrors();
     }
 
@@ -2849,13 +2849,14 @@ class Test extends BaseLogger {
         // let's look at the share ...
         let statsDisplay = this.openAndGetTheStatsDisplay(),
             dailyShareButton = this.gameDisplay.shareButton,
-            statsShareButton = statsDisplay.shareButton;
+            statsShareButton = statsDisplay.shareButton,
+            expectedToast = appDisplay.getToast(Const.NO_DAILY);
 
         this.verify(game.dailyGameIsBroken(), "Expected broken daily game") &&
             this.verify(game.isWinner(), "Expected game to be winner") &&
             this.verifyEqual(dailyShareButton.hasAttribute('disabled'), true, "daily game screen share button has 'disabled' attribute.") &&
             this.verifyEqual(statsShareButton.hasAttribute('disabled'), true, "stats screen share button has 'disabled' attribute.") &&
-            this.verifyEqual(lastToast, Const.NO_DAILY, "last toast") &&
+            this.verifyEqual(lastToast, expectedToast, "last toast") &&
             this.hadNoErrors();
     }
 
@@ -3269,14 +3270,14 @@ class Test extends BaseLogger {
         const statsMockEvent = new MockEvent(statsSrcElement);
         const actShareString = statsDisplay.shareCallback(statsMockEvent);
         const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 1️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟧🟧🟧🟧\n🟩🟩🟩🟩\n--------------------\n🟩🟩🟩🟩\n${Const.SHARE_URL}`
-
+        const expectedToast = appDisplay.getToast(Const.WRONG_MOVE);
 
         this.closeTheStatsDisplay();
 
         this.verifyEqual(actShareString, expShareString, "share string") &&
             this.verifyEqual(dailyShareButton.hasAttribute('disabled'), false, "daily game screen share button 'disabled' attribute.") &&
             this.verifyEqual(statsShareButton.hasAttribute('disabled'), false, "stats screen share button 'disabled' attribute.") &&
-            this.verifyEqual(toastAfterWrongMove, Const.WRONG_MOVE, "toast") &&
+            this.verifyEqual(toastAfterWrongMove, expectedToast, "toast") &&
             this.hadNoErrors();
     }
 
@@ -3310,6 +3311,7 @@ class Test extends BaseLogger {
 
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const gameLostToast = appDisplay.getAndClearLastToast();
+        const expectedToast = appDisplay.getToast(Const.SHARE_TO_PASTE);
 
         // game is done.  Let's see what the saved stats and words played are:
         // open the stats window.  This should compute the shareString, start the countdown clock
@@ -3331,7 +3333,7 @@ class Test extends BaseLogger {
             this.verifyEqual(dailyShareButton.hasAttribute('disabled'), false, "daily game screen share button 'disabled' attribute.") &&
             this.verifyEqual(statsShareButton.hasAttribute('disabled'), false, "stats screen share button 'disabled' attribute.") &&
             this.verifyEqual(gameLostToast, Const.GAME_LOST, "game lost toast") &&
-            this.verifyEqual(shareToast, Const.SHARE_TO_PASTE, "share toast") &&
+            this.verifyEqual(shareToast, expectedToast, "share toast") &&
             this.hadNoErrors();
     }
 
@@ -3550,6 +3552,7 @@ class Test extends BaseLogger {
         const resultDelete2 = this.deleteLetter(2);        // LEST -> LET now change 1
         const resultI1Wrong = this.playLetter("I");        // LET -> LIT  wrong move! now change 1
         const wrongMoveToast = appDisplay.getAndClearLastToast();
+        const expectedToast = appDisplay.getToast(Const.WRONG_MOVE);
         const resultO1 = this.playLetter("O");             // LIT -> LOT now add
         const resultInsertP0 = this.insertLetter(0, "P" ); // LOT -> PLOT now add
         const resultInsertI1 = this.insertLetter(1, "I");  // PLOT -> PILOT
@@ -3568,7 +3571,7 @@ class Test extends BaseLogger {
             this.verifyEqual(resultO1, Const.GOOD_MOVE, "playLetter(O) returns") &&
             this.verifyEqual(resultInsertP0, Const.GOOD_MOVE, "insert P@0 returns") &&
             this.verifyEqual(resultInsertI1, Const.GOOD_MOVE, "insert I@1 returns") &&
-            this.verifyEqual(wrongMoveToast, Const.WRONG_MOVE, "toast") &&
+            this.verifyEqual(wrongMoveToast, expectedToast, "toast") &&
             this.hadNoErrors();
     }
 
@@ -3597,9 +3600,10 @@ class Test extends BaseLogger {
         appDisplay.clearLastToast();
         var result = this.playLetter("X"); // SHORT -> SHOXT
         const lastToast = appDisplay.getAndClearLastToast();
+        const expectedToast = appDisplay.getToast(Const.NOT_A_WORD);
 
         this.verifyEqual(result, Const.NOT_A_WORD, "result") &&
-            this.verifyEqual(lastToast, Const.NOT_A_WORD, "toast") &&
+            this.verifyEqual(lastToast, expectedToast, "toast") &&
             this.hadNoErrors();
     }
 
@@ -3614,8 +3618,9 @@ class Test extends BaseLogger {
         appDisplay.clearLastToast();
         var result = this.playLetter("R"); // SHORT -> SHORT
         const lastToast = appDisplay.getAndClearLastToast();
+        const expectedToast = appDisplay.getToast(Const.PICK_NEW_LETTER);
         this.verifyEqual(result, Const.PICK_NEW_LETTER, "result") &&
-            this.verifyEqual(lastToast, Const.PICK_NEW_LETTER, "toast") &&
+            this.verifyEqual(lastToast, expectedToast, "toast") &&
             this.hadNoErrors();
     }
 
@@ -3761,6 +3766,7 @@ class Test extends BaseLogger {
         let resultR3Genius = this.forcePlayWord("HOOR"); // HOOT -> HOOR genius move
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const toastAfterGeniusMove = appDisplay.getAndClearLastToast();
+        const expectedToast = appDisplay.getToast(Const.GENIUS_MOVE);
         let resultP0 = this.playLetter("P");             // HOOR -> POOR
 
         // let's look at the share ...
@@ -3778,7 +3784,7 @@ class Test extends BaseLogger {
             this.verifyEqual(resultR3Genius, Const.GENIUS_MOVE, "forcePlayWord(HOOR)") &&
             this.verifyEqual(resultP0, Const.GOOD_MOVE, "playLetter(P)") &&
             this.verifyEqual(actShareString, expShareString, "share string") &&
-            this.verifyEqual(toastAfterGeniusMove, Const.GENIUS_MOVE, "genius move") &&
+            this.verifyEqual(toastAfterGeniusMove, expectedToast, "genius move toast") &&
             this.hadNoErrors();
     }
 

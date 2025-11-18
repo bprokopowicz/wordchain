@@ -76,7 +76,14 @@ export const NO_STATS            = "Stats unavailable";
 export const PICK_NEW_LETTER     = "Pick a different letter";
 export const SHARE_INSECURE      = "Cannot share in insecure environment";
 export const SHARE_TO_PASTE      = "Copied; paste into text, FB, etc.";
-export const UNEXPECTED_ERROR    = "Yikes! Something went wrong";
+export const UNEXPECTED_ERROR    = "Yikes! Something went wrong in our code";
+
+// Used to change a message (because of user feedback) without
+// affecting the persistent objects.
+export const GAME_RESULT_TO_TOAST = new Map([
+    [DODO_MOVE, "You added two steps"],
+    [WRONG_MOVE, "You added a step"],
+]);
 
 // --- Currently used only in commented out code
 //export const SHARE_COPIED        = "Copied to clipboard";
