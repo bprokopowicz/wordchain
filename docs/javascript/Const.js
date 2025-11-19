@@ -167,7 +167,7 @@ export const GOLD_SQUARE    = "\u{1F7E8}";     // Genius moves
 export const BLUE_SQUARE    = "\u{1F7E6}";     // Correct moves -- colorblind
 //export const BROWN_SQUARE   = "\u{1F7EB}";     // Unused; was dodo moves
 export const GRAY_SQUARE    = "\u{2B1C}";      // Shown words (called white square online, but looks gray)
-//export const BLACK_SQUARE   = "\u{2B1B}";      // Unused
+export const BLACK_SQUARE   = "\u{2B1B}";      // used in GameState
 
 // Share treats
 export const BIRDIE         = "\u{1F426}";     // User's solution was one fewer step than WordChain's solution
@@ -463,5 +463,51 @@ export const DAILY_GAMES = [
       ['Blip', 'earth'],
       ['think', 'darker'],
 
-      ['real', 'otter'],
+      ['real', 'otter'], // 240
+      ['hasty', 'proofs'],
+      ['full', 'flower'],
+      ['toss', 'pearls'],
+      ['big', 'legged'],
+      ['stall', 'lads'],
+      ['pen', 'ranger'],
+      ['sink', 'starve'],
+      ['stop', 'ceased'],
+      ['flag', 'banner'],
+      ['bee', 'hornet'],
+
+      ['cross', 'batons'], // 250
+      ['sword', 'mixers'],
+      ['life', 'jungle'],
+      ['tame', 'swamp'],
+      ['tick', 'bagged'],
+      ['case', 'inner'],
+      ['scent', 'petals'],
+      ['power', 'greedy'],
+      ['timer', 'ideals'],
+      ['wick', 'pawned'],
+
+      ['cross', 'batons'], // 260
+      ['spray', 'after'],
+      ['mutt', 'seeing'],
+      ['sale', 'ailing'],
+      ['step', 'cashew'],
+      ['cost', 'market'],
+      ['eat', 'praise'],
+      ['hall', 'bleach'],
+      ['limn', 'cornea'],
+      ['alter', 'boat'],
+      ['swim', 'coach'],
+
+      ['cross', 'batons'], // 270
+      ['mast', 'vaunts'],
+      ['cap', 'alter'],
+      ['quilt', 'stitch'],
+      ['side', 'creeps'],
+      ['large', 'strain'],
+      ['ankle', 'wear'],
+      ['pack', 'loader'],
+      ['steak', 'orange'],
+      ['load', 'docket'],
+
+      ['week', 'older'], // 280
 ];
