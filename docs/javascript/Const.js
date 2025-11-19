@@ -463,4 +463,5 @@ export const DAILY_GAMES = [
       ['Blip', 'earth'],
       ['think', 'darker'],
 
+      ['real', 'otter'],
 ];
