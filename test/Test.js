@@ -1363,7 +1363,7 @@ class Test extends BaseLogger {
         prep(); this.testPracticeGameStateOneWordPlayed();
         prep(); this.testPracticeGamesPerDayVar();
         prep(); this.testNewDailyGameState();
-        prep(); this.testBrokenDailyGameState();
+        prep(); this.testFailSafeDailyGameState();
         prep(); this.testRecoverUnplayedDailyGameState();
         prep(); this.testDailyGameStateOneWordPlayed();
         prep(); this.testDailyGameStateRecoverOneWordPlayed();
@@ -1379,7 +1379,7 @@ class Test extends BaseLogger {
         prep(); this.testDailyGameStateStartedMetric();
         prep(); this.testDailyGameStateFinishedMetric();
         // initialize every Daily game defined -- takes a long time!
-        //prep(); this.testGameStateSolveAllDailyGames();
+        // prep(); this.testGameStateSolveAllDailyGames();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
@@ -1406,12 +1406,13 @@ class Test extends BaseLogger {
         this.testName = "GameStateSolveAllDailyGames";
         for (let wordPair of Const.DAILY_GAMES) {
             let [start, target] = wordPair;
+            this.logDebug("trying daily game start:", start, "target:", target, "test");
             Persistence.saveTestPracticeGameWords(start, target);
             let gameState = PracticeGameState.factory(this.fullDict);
             this.logDebug("gamestate:", gameState, "test");
-            if (this.verifyEqual(gameState, null, `daily puzzle ${start}->${target} failed to initialize`) ) {
-                return; // short-circuit the test if any puzzle fails.
+            if (!this.verify(gameState != null, `daily puzzle ${start}->${target} failed to initialize`) ) {
                 this.logDebug(this.testName, " short-circuit because <", start, target, "> failed.", "test");
+                return; // short-circuit the test if any puzzle fails.
             }
         }
         this.hadNoErrors();
@@ -1489,11 +1490,11 @@ class Test extends BaseLogger {
     }
 
 
-    testBrokenDailyGameState() {
-        this.testName = "BrokenDailyGameState";
+    testFailSafeDailyGameState() {
+        this.testName = "FailSafeDailyGameState";
         Persistence.saveTestEpochDaysAgo(1000000); // so long ago, there is no daily game for today
         let dgs = DailyGameState.factory(this.fullDict);
-        this.verifyEqual(dgs.dailyGameNumber, Const.BROKEN_DAILY_GAME_NUMBER, "game number") &&
+        this.verifyEqual(dgs.dailyGameNumber, dgs.calculateFailSafeGameNumber(), "game number") &&
             this.hadNoErrors();
     }
 
@@ -2588,7 +2589,7 @@ class Test extends BaseLogger {
             this.cookieRestartTest,
             this.changeMindOnSelectedLettersTest,
             this.displayModesTest,
-            this.displayBrokenDailyGameToastTest,
+            //this.displayBrokenDailyGameToastTest,
             this.sameLetterPickedToastTest,
             this.notAWordToastTest,
             this.toastTestDailyWin,
@@ -2832,33 +2833,33 @@ class Test extends BaseLogger {
         soFarSoGood && this.hadNoErrors();
     }
 
-    displayBrokenDailyGameToastTest() {
-        this.testName = "DisplayBrokenDailyGameToast";
-        Persistence.saveTestEpochDaysAgo(1000000); // so long ago, there is no daily game for today
+//    displayBrokenDailyGameToastTest() {
+//        this.testName = "DisplayBrokenDailyGameToast";
+//        Persistence.saveTestEpochDaysAgo(1000000); // so long ago, there is no daily game for today
 
         // re-open the app window
-        this.resetTheTestAppWindow();
+//        this.resetTheTestAppWindow();
 
-        const appDisplay = this.getNewAppWindow().theAppDisplay;
-        const lastToast = appDisplay.getAndClearLastToast();
+//        const appDisplay = this.getNewAppWindow().theAppDisplay;
+//        const lastToast = appDisplay.getAndClearLastToast();
         // we should be running the broken daily game.
-        const game = this.gameDisplay.game;
+//        const game = this.gameDisplay.game;
         // We can finish the broken game; this will exercise code to NOT display the share button because game is broken
-        this.finishTheCurrentGame();
+//        this.finishTheCurrentGame();
 
         // let's look at the share ...
-        let statsDisplay = this.openAndGetTheStatsDisplay(),
-            dailyShareButton = this.gameDisplay.shareButton,
-            statsShareButton = statsDisplay.shareButton,
-            expectedToast = appDisplay.getToast(Const.NO_DAILY);
+//        let statsDisplay = this.openAndGetTheStatsDisplay(),
+//            dailyShareButton = this.gameDisplay.shareButton,
+//            statsShareButton = statsDisplay.shareButton,
+//            expectedToast = appDisplay.getToast(Const.NO_DAILY);
 
-        this.verify(game.dailyGameIsBroken(), "Expected broken daily game") &&
-            this.verify(game.isWinner(), "Expected game to be winner") &&
-            this.verifyEqual(dailyShareButton.hasAttribute('disabled'), true, "daily game screen share button has 'disabled' attribute.") &&
-            this.verifyEqual(statsShareButton.hasAttribute('disabled'), true, "stats screen share button has 'disabled' attribute.") &&
-            this.verifyEqual(lastToast, expectedToast, "last toast") &&
-            this.hadNoErrors();
-    }
+//        this.verify(game.dailyGameIsBroken(), "Expected broken daily game") &&
+//            this.verify(game.isWinner(), "Expected game to be winner") &&
+//            this.verifyEqual(dailyShareButton.hasAttribute('disabled'), true, "daily game screen share button has 'disabled' attribute.") &&
+//            this.verifyEqual(statsShareButton.hasAttribute('disabled'), true, "stats screen share button has 'disabled' attribute.") &&
+//            this.verifyEqual(lastToast, expectedToast, "last toast") &&
+//            this.hadNoErrors();
+//    }
 
     // a test that makes 0, 1, or 2 errors depending on which iteration
     // See multiGameStatsTest for how we make the multiple games appear to be a winning streak by
@@ -3156,7 +3157,7 @@ class Test extends BaseLogger {
 
     dailyGameUpdateDataTest() {
         // calls the timer call-back in AppDisplay to update the daily game.
-        this.testName = "dailyGameUpdateData";
+        this.testName = "DailyGameUpdateData";
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         const result1 = appDisplay.checkForNewDailyGame();
         // Now, change the existing game number to something else, so that the game IS old
@@ -3181,7 +3182,7 @@ class Test extends BaseLogger {
         // Show Word button is disabled
         // DailyStats has 1 played, 1 lost
 
-        this.testName = "dailyGameShowWordStats";
+        this.testName = "DailyGameShowWordStats";
         const mockEvent = null; // not used by callback
 
         // The newly opened URL should be showing the test daily game by default:
@@ -3576,7 +3577,7 @@ class Test extends BaseLogger {
     }
 
     randomPracticeGameTest() {
-        this.testName = "randomPracticeGameTest";
+        this.testName = "RandomPracticeGameTest";
         const appDisplay = this.getNewAppWindow().theAppDisplay;
         this.logDebug("theAppDisplay:", appDisplay, "test");
         this.logDebug("Switching to practice game", "test");
@@ -3589,7 +3590,7 @@ class Test extends BaseLogger {
     }
 
     notAWordToastTest() {
-        this.testName = "notAWordToast";
+        this.testName = "NotAWordToast";
         // The newly opened URL should be showing the test daily game by default:
         const game = this.gameDisplay.game;
 
