@@ -367,11 +367,6 @@ class DailyGameState extends GameState{
         const logger = new BaseLogger();
         if (Const.GL_DEBUG) {
             logger.logDebug("DailyGameState.factory() called.", "gameState");
-            /*
-            if (logger.tagIsOn("gameState")) {
-                console.trace();
-            }
-            */
         }
         const CL = "DailyGameState.factory";
         COV(0, CL);
@@ -468,17 +463,16 @@ class DailyGameState extends GameState{
         } else {
             COV(2, CL);
             // Valid daily game numbers run from 0 to GameWords.length-1.  If the calculated
-            // value is outside that range, a place-holder game is used.
-            if ((dailyGameNumber < 0) || (dailyGameNumber >= Const.DAILY_GAMES.length)) {
+            // value is outside that range, we replay an earlier game based on the 1-365 day of the year.
+            if (dailyGameNumber >= Const.DAILY_GAMES.length) {
                 COV(3, CL);
-                dailyGameNumber = Const.BROKEN_DAILY_GAME_NUMBER;
-                [start, target] = [Const.BACKUP_DAILY_GAME_START, Const.BACKUP_DAILY_GAME_TARGET];
-            } else {
-                COV(4, CL);
-                [start, target] = Const.DAILY_GAMES[dailyGameNumber];
+                Const.GL_DEBUG && this.logDebug("dailyGameNumber:", dailyGameNumber, "is bigger than", Const.DAILY_GAMES.length, ". Using fail-safe game number", "gameState");
+                dailyGameNumber = this.calculateFailSafeGameNumber();
             }
+            [start, target] = Const.DAILY_GAMES[dailyGameNumber];
         }
         COV(5, CL);
+        Const.GL_DEBUG && this.logDebug("setting this.dailyGameNumber to:", dailyGameNumber, "dailyGameState:", this, "gameState");
         this.dailyGameNumber = dailyGameNumber;
         this.incrementStat("gamesStarted");
         return this.initializePuzzle(start, target);
@@ -799,6 +793,14 @@ class DailyGameState extends GameState{
         Const.GL_DEBUG && this.logDebug("DailyGameState.gameIsOld() for dailyGameNumber", this.getDailyGameNumber(),
                 "returns", result, "daily");
         return result;
+    }
+
+    calculateFailSafeGameNumber() {
+        const CL = "DailyGameState.calculateFailSafeGameNumber";
+        COV(0, CL);
+        const date = new Date();
+        const daysIntoYear = (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1000;
+        return daysIntoYear % Const.DAILY_GAMES.length;
     }
 
     calculateGameNumber() {
