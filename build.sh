@@ -71,6 +71,7 @@ makeAndPushBundles() {
 }
 
 makeBundles() {
+    # update local node_modules based on package.json
     outputMessage "Running npm install ..."
     npm install
 
