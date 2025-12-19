@@ -3,26 +3,17 @@ Near Term Work
 
 Analytics
 ---------
-- Our Google tag ID is G-ESCKD20EKK.  This is a Google Analytics 4 (GA4) tag.  
-- It seems like GA4 supports counting events by type but not by individual user.
-  So we can track things like:
-  - game #abc started at timestamp
-  - game #abc finished in N moves, streak at K, at timestamp
-- Things we can't do or may be complicated:
-  - user WCIDxyz has played 43 games
-- Which of these can we answer?
-  - What percentage of games started are completed?
-  - What is the distribution of scores?
-  - Do users who play the daily game also play practice games?
-  - What percentage of daily games are shared?
-  - What percentage of completed games are lost?
-  - How many daily and practice games per week do people play?
-  - Why does a user stop playing a game?
+See https://docs.google.com/document/d/1z4a-Oqyhl-naocVCGyRdQ_ermU2THR_4sYronXrN6ks/edit?usp=sharing
 
 Dictionary
 ----------
 - Remove unreachable words (easy)
 - Remove unreachable cliques of less than N words? (hard)
+
+App Containers
+--------------
+- Investigate for iOS and Android
+- Means to get WordChain in the App Stores
 
 Maybe Someday
 =============
