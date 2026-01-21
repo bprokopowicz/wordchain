@@ -316,6 +316,8 @@ class AppDisplay extends BaseLogger {
     // We used to create the practice game here, but moved it to the constructor,
     // so that there is no pause when switching to the practice game for the first time.
     // If the user has already played the maximum number of games, we disallow any more.
+    // When switching to the practice game, if the game in progress is done, make a new one.
+    // That can be a bit slow
     switchToPracticeGameCallback(__event) {
         const CL = "AppDisplay.switchToPracticeGameCallback";
         COV(0, CL);
@@ -330,6 +332,17 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.switchToDailyGameButton);
         ElementUtilities.hide(this.switchToPracticeGameButton);
 
+        // if the current practice game is over, switch to the next one.  There should always
+        // be a next one if the switchToPracticeGame button is enabled.
+        if (this.practiceGameDisplay.gameIsOver()) {
+            // TODO make this a method of practiceGameDisplay
+            const newGameOrNull = this.practiceGameDisplay.game.nextGame();
+            if (newGameOrNull != null) {
+                this.practiceGameDisplay.game = newGameOrNull
+                this.practiceGameDisplay.updateDisplay();
+                this.updateTaglineTarget(newGameOrNull.getTargetWord());
+            }
+        }
         this.setCurrentGameDisplay(this.practiceGameDisplay);
     }
 

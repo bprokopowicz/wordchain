@@ -360,14 +360,18 @@ class GameDisplay extends BaseLogger {
             COV(14, CL);
             Const.GL_DEBUG && this.logDebug("disabling show word button in GameDisplay.showGameAfterMove()", "callback");
             ElementUtilities.disableButton(this.showWordButton);
+        } else {
+            COV(15, CL);
+            Const.GL_DEBUG && this.logDebug("enabling show word button in GameDisplay.showGameAfterMove()", "callback");
+            ElementUtilities.enableButton(this.showWordButton);
         }
 
         if (this.gameIsOver()) {
-            COV(15, CL);
+            COV(16, CL);
             this.showGameOverGoodies();
         }
 
-        COV(16, CL);
+        COV(17, CL);
     }
 
     showGameOverGoodies() {
@@ -884,6 +888,13 @@ class PracticeGameDisplay extends GameDisplay {
         ElementUtilities.setButtonCallback(this.newGameButton, this, this.newGameCallback);
 
         this.game = new PracticeGame(); // either recovered (in progress or done) or new (no saved state)
+        if (this.gameIsOver() ) {
+            // Open the new display with a new game if the saved game is finished.
+            const newGameOrNull = this.game.nextGame();
+            if (newGameOrNull != null) {
+                this.game = newGameOrNull
+            }
+        }
         if (!this.gameIsOver()) {
             COV(1, CL);
             // disable the new game button because a practice game is in progress/new

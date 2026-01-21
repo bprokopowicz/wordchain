@@ -2582,6 +2582,10 @@ class Test extends BaseLogger {
             this.practiceGameTestNoConfirm,
             this.practiceGameTest,
             this.practiceGameLimitTest,
+            this.practiceGameRestartInProgressTest,
+            this.practiceGameRestartAfterFinishedNewGameTest,
+            this.practiceGameRestartNoNewGamesTest,
+            this.practiceGameNewGameAfterFlippingDisplayTest,
             this.randomPracticeGameTest,
             this.birdieShareTest,
             this.eagleShareTest,
@@ -3624,6 +3628,101 @@ class Test extends BaseLogger {
             this.verifyEqual(lastToast, expectedToast, "toast") &&
             this.hadNoErrors();
     }
+
+    practiceGameNewGameAfterFlippingDisplayTest() {
+    // If the user finished the practice game, and switches to Daily game and back, they should have a new
+    // practice game automatically.
+        this.testName="PracticeGameNewGameAfterFlippingDisplay";
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        // the active gameDisplay in this test needs to be refreshed after switching to the practice game
+        this.setGameDisplay();
+        this.finishTheCurrentGame();
+        this.getNewAppWindow().theAppDisplay.switchToDailyGameCallback();
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        this.setGameDisplay();
+        let game = this.gameDisplay.game;
+        this.verify( ! game.isOver(), "new practice game is over") &&
+            this.hadNoErrors()
+    }
+
+
+    // if the app restarts with practice game in progress, it should continue.
+    practiceGameRestartInProgressTest() {
+        this.testName = "PracticeGameRestartInProgress";
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        // the active gameDisplay in this test needs to be refreshed after switching to the practice game
+        this.setGameDisplay();
+        this.playLetter("N"); // TEST -> NEST
+        // now, restart the app on the same day, to see if get the game in progress
+        this.resetTheTestAppWindow();
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        this.setGameDisplay();
+        let game = this.gameDisplay.game;
+        let playedWords = game.getUserSolutionWords();
+        let expectedPlayedWords = 'TEST⇒NEST';
+
+        this.verifyEqual(playedWords, expectedPlayedWords, "played words") &&
+            this.hadNoErrors()
+    }
+
+    // if the app restarts with practice game finished, it should start a new one.
+    practiceGameRestartAfterFinishedNewGameTest() {
+        this.testName = "PracticeGameRestartAfterFinishedNewGame";
+        this.logDebug("Switching to practice game", "test");
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        this.logDebug("Done switching to practice game", "test");
+        // the active gameDisplay in this test needs to be refreshed after switching to the practice game
+        this.setGameDisplay();
+
+        this.playLetter("N"); // TEST -> NEST
+        this.logDebug("ending game by finishing it", "test");
+        this.finishTheCurrentGame();
+
+        // now, restart the app on the same day, to see if get a new game
+        this.resetTheTestAppWindow();
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        this.setGameDisplay();
+        let game = this.gameDisplay.game;
+        let playedWords = game.getUserSolutionWords();
+        let expectedPlayedWords = 'TEST';
+
+        this.verifyEqual(playedWords, expectedPlayedWords, "played words") &&
+            this.hadNoErrors()
+    }
+
+    practiceGameRestartNoNewGamesTest() {
+        this.testName = "PracticeGameRestartNoNewGames";
+        this.logDebug("Switching to practice game", "test");
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        this.logDebug("Done switching to practice game", "test");
+        // the active gameDisplay in this test needs to be refreshed after switching to the practice game
+        this.setGameDisplay();
+        this.logDebug("ending game by finishing it", "test");
+        this.finishTheCurrentGame();
+
+        // now, restart the app  and play it (#2)
+        this.resetTheTestAppWindow();
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        this.setGameDisplay();
+        this.finishTheCurrentGame();
+
+        // now, restart the app  and play it (#3)
+        this.resetTheTestAppWindow();
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        this.setGameDisplay();
+        this.finishTheCurrentGame();
+
+        // now, restart the app.  The game should be finished, no new games available
+        this.resetTheTestAppWindow();
+        this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
+        this.setGameDisplay();
+
+        let game = this.gameDisplay.game;
+
+        this.verify(game.isOver(), "3rd practice game should be over") &&
+            this.hadNoErrors()
+    }
+
 
     practiceGameLimitTest() {
         this.testName = "PracticeGameLimit";
