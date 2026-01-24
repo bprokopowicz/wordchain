@@ -3662,9 +3662,9 @@ class Test extends BaseLogger {
             this.hadNoErrors();
     }
 
-    practiceGameNewGameAfterFlippingDisplayTest() {
     // If the user finished the practice game, and switches to Daily game and back, they should have a new
-    // practice game automatically.
+    // practice game automatically. AKA "test the Susie feature"
+    practiceGameNewGameAfterFlippingDisplayTest() {
         this.testName="PracticeGameNewGameAfterFlippingDisplay";
         this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
         // the active gameDisplay in this test needs to be refreshed after switching to the practice game
@@ -3674,7 +3674,11 @@ class Test extends BaseLogger {
         this.getNewAppWindow().theAppDisplay.switchToPracticeGameCallback();
         this.setGameDisplay();
         let game = this.gameDisplay.game;
-        this.verify( ! game.isOver(), "new practice game is over") &&
+
+        const newGameButton = this.gameDisplay.gameDiv.getElementsByClassName("non-header-button")[1];
+
+        this.verify(! game.isOver(), "new practice game is over") &&
+            this.verify(newGameButton.disabled, "New Game button is not disabled") &&
             this.hadNoErrors()
     }
 

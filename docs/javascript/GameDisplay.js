@@ -907,7 +907,7 @@ class PracticeGameDisplay extends GameDisplay {
     /* ----- Callbacks ----- */
 
     // newGameCallback() should only be exposed to the user if we already know that there are practice games remaining.
-    newGameCallback(event) {
+    newGameCallback(eventUnused) {
         const CL = "PracticeGameDisplay.newGameCallback";
         COV(0, CL);
         // Note that newGameCallback() will only be called when a game is over, and there are more games remaining
@@ -917,7 +917,7 @@ class PracticeGameDisplay extends GameDisplay {
         ElementUtilities.deleteChildren(this.originalSolutionDiv);
         const newGameOrNull = this.game.nextGame();
         if (newGameOrNull == null) {
-            // we will still use the last game played as the current game, as if New Game were never clicked:
+            // We will still use the last game played as the current game, as if New Game were never clicked.
             console.error("PracticeGameDisplay.newGameCallback(): New Game should not be clickable when no games are remaining!");
         } else {
             COV(1, CL);

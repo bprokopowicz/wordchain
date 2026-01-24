@@ -332,16 +332,9 @@ class AppDisplay extends BaseLogger {
         ElementUtilities.show(this.switchToDailyGameButton);
         ElementUtilities.hide(this.switchToPracticeGameButton);
 
-        // if the current practice game is over, switch to the next one.  There should always
-        // be a next one if the switchToPracticeGame button is enabled.
-        if (this.practiceGameDisplay.gameIsOver()) {
-            // TODO make this a method of practiceGameDisplay
-            const newGameOrNull = this.practiceGameDisplay.game.nextGame();
-            if (newGameOrNull != null) {
-                this.practiceGameDisplay.game = newGameOrNull
-                this.practiceGameDisplay.updateDisplay();
-                this.updateTaglineTarget(newGameOrNull.getTargetWord());
-            }
+        // If the current practice game is over, switch to the next one, if any games remain.
+        if (this.practiceGameDisplay.gameIsOver() && this.practiceGameDisplay.anyGamesRemaining()) {
+            this.practiceGameDisplay.newGameCallback();
         }
         this.setCurrentGameDisplay(this.practiceGameDisplay);
     }
