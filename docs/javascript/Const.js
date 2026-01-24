@@ -101,9 +101,6 @@ export const GAME_RESULT_TO_TOAST = new Map([
 // If we force the daily game using stored test variables, this will be the game number.
 export const TEST_DAILY_GAME_NUMBER = -1;
 
-// If the daily game number calculation fails or returns a game number that we don't have in
-// our daily game list, use this as the daily game number
-export const BROKEN_DAILY_GAME_NUMBER = -2;
 export const UNINIT_DAILY_GAME_NUMBER = -1000;
 
 // Inserted into a word as part of an Add or Change move,

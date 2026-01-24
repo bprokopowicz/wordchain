@@ -14,18 +14,18 @@ AppDisplay.checkForNewDailyGame
 AppDisplay.getShare
 AppDisplay.resetPracticeGameCounter
 AppDisplay.isDailyGameOver
-AppDisplay.isDailyGameBroken
 AppDisplay.getCssProperty
 AppDisplay.getDailyGameState
 AppDisplay.refreshStats
 AppDisplay.setColors
 AppDisplay.setCssProperty
 AppDisplay.setCurrentGameDisplay
-AppDisplay.showNoDaily
 AppDisplay.showToast
-AppDisplay.addAndClearLastToast
 AppDisplay.clearLastToast
+AppDisplay.addAndClearLastToast
+AppDisplay.getToast
 AppDisplay.updatePracticeGameStatus
+AppDisplay.updateTaglineTarget
 AuxiliaryDisplay.constructor
 AuxiliaryDisplay.createButton
 AuxiliaryDisplay.closeAuxiliaryCallback
@@ -57,6 +57,7 @@ ElementUtilities.enableButton
 ElementUtilities.editClass
 ElementUtilities.removeClass
 ElementUtilities.setButtonCallback
+ElementUtilities.setCallback
 ElementUtilities.setElementText
 ElementUtilities.show
 Game.constructor
@@ -71,6 +72,7 @@ Game.addPosition
 Game.playDelete
 Game.playLetter
 Game.getNormalizedScore
+Game.getTargetWord
 Game.getOriginalSolutionWords
 Game.getUserSolutionWords
 Game.getUnplayedWords
@@ -85,7 +87,6 @@ Game.lastPlayedWord
 DailyGame.constructor
 DailyGame.isOld
 DailyGame.isNewDailyGame
-DailyGame.dailyGameIsBroken
 PracticeGame.constructor
 PracticeGame.nextGame
 PracticeGame.gamesRemaining
@@ -126,8 +127,6 @@ DailyGameDisplay.updateDailyGameData
 DailyGameDisplay.shareCallback
 DailyGameDisplay.additionalGameOverActions
 DailyGameDisplay.isNewDailyGame
-DailyGameDisplay.dailyGameNumber
-DailyGameDisplay.dailyGameIsBroken
 DailyGameDisplay.updateShareButton
 PracticeGameDisplay.constructor
 PracticeGameDisplay.newGameCallback
@@ -161,8 +160,8 @@ DailyGameState.getDailyGameNumber
 DailyGameState.getShareString
 DailyGameState.getStat
 DailyGameState.setStat
-DailyGameState.dailyGameIsBroken
 DailyGameState.gameIsOld
+DailyGameState.calculateFailSafeGameNumber
 DailyGameState.calculateGameNumber
 DailyGameState.getMoveSummary
 DailyGameState.updateStateAfterGame

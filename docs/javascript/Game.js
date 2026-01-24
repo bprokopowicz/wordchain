@@ -41,7 +41,7 @@ class Game extends BaseLogger {
         this.addInstructionForLastPlayedWord();
 
         if (nUnplayedWords > 0) {
-            COV(2, CL);
+            COV(1, CL);
             this.addInstructionForFirstUnplayedWord();
 
             for (let i = 1; i < nUnplayedWords; i++) {
@@ -49,7 +49,7 @@ class Game extends BaseLogger {
             }
         }
 
-        COV(3, CL);
+        COV(2, CL);
         return this.instructions;
     }
 
@@ -540,12 +540,6 @@ class DailyGame extends Game {
         const CL = "DailyGame.isNewDailyGame";
         COV(0, CL);
         return this.gameState.isNewDailyGame();
-    }
-
-    dailyGameIsBroken() {
-        const CL = "DailyGame.dailyGameIsBroken";
-        COV(0, CL);
-        return this.gameState.dailyGameIsBroken();
     }
 }
 

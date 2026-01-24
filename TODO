@@ -3,7 +3,6 @@ Near Term Work
 
 Cleanup
 -------
-Remove BROKEN_DAILY_GAME_NUMBER and all related uses.
 Rename Test.js getNewAppWindow()
 
 Analytics
@@ -49,9 +48,6 @@ Not Affecting Game Play
 -----------------------
 - Daily game maintenance
   - Move game definitions into a separate data file, which is retrieved by daily game factory on demand
-  - Replace BROKEN GAME with a randomly selected earlier game, where all players get the same random game
-    - Remove all special treatment of BROKEN GAME, i.e. those games count
-    - How will we know when this is happening? Analytics?
 - Create a clock manager class; would affect
   - GameState.resetPracticeGameCounter()
   - AppDisplay.resetPracticeGameCounter()

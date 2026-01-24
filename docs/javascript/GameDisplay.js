@@ -840,22 +840,10 @@ class DailyGameDisplay extends GameDisplay {
         return this.game.isNewDailyGame();
     }
 
-    dailyGameNumber() {
-        const CL = "DailyGameDisplay.dailyGameNumber";
-        COV(0, CL);
-        return this.game.gameState.dailyGameNumber;
-    }
-
-    dailyGameIsBroken() {
-        const CL = "DailyGameDisplay.dailyGameIsBroken";
-        COV(0, CL);
-        return this.game.dailyGameIsBroken();
-    }
-
     // Enable or disable the share button based on whether the user has played the game.
     updateShareButton() {
         const CL = "DailyGameDisplay.updateShareButton";
-        if (this.gameIsOver() && !this.dailyGameIsBroken()) {
+        if (this.gameIsOver()) {
             COV(1, CL);
             ElementUtilities.enableButton(this.shareButton);
         } else {

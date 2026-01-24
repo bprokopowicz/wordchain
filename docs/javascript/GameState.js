@@ -471,7 +471,7 @@ class DailyGameState extends GameState{
             }
             [start, target] = Const.DAILY_GAMES[dailyGameNumber];
         }
-        COV(5, CL);
+        COV(4, CL);
         Const.GL_DEBUG && this.logDebug("setting this.dailyGameNumber to:", dailyGameNumber, "dailyGameState:", this, "gameState");
         this.dailyGameNumber = dailyGameNumber;
         this.incrementStat("gamesStarted");
@@ -562,6 +562,8 @@ class DailyGameState extends GameState{
         this.baseDate = Const.WORD_CHAIN_EPOCH_DATE;
 
         // Are we changing the number of minutes per day to make time move more quickly?
+        // NOTE: Only used in manual testing to watch toasts pop up and the like, so
+        // no coverage testing of this leg.
         if (Persistence.hasTestMinutesPerDay()) {
             // Yes, so override the standard one day increment.
             const debugMinPerDay = Persistence.getTestMinutesPerDay();
@@ -573,7 +575,7 @@ class DailyGameState extends GameState{
 
         // Are we changing when the Epoch starts (for debugging purposes)?
         if (Persistence.hasTestEpochDaysAgo()) {
-            COV(2, CL);
+            COV(1, CL);
             // Yes, so recalculate the base date, which we use to get the base timestamp below.
             const newEpochMs = Date.now(),
                   daysAgo = Persistence.getTestEpochDaysAgo(),
@@ -586,7 +588,7 @@ class DailyGameState extends GameState{
         this.baseTimestamp = this.baseDate.getTime();
         Const.GL_DEBUG && this.logDebug("epoch timestamp is set to:",
                 new Date(this.baseTimestamp), "daily");
-        COV(3, CL);
+        COV(2, CL);
     }
 
     // Increment the given stat, update the stats cookie, and update the stats display content.
@@ -759,23 +761,9 @@ class DailyGameState extends GameState{
     setStat(whichStat, statValue) {
         const CL = "DailyGameState.setStat";
         COV(0, CL);
-        // Only set stats if this is a valid daily game.
-        if (!this.dailyGameIsBroken()) {
-            COV(1, CL);
-            this.statsBlob[whichStat] = statValue;
-            Const.GL_DEBUG && this.logDebug("DailyGameState.setStat() setting and saving", whichStat, "to", statValue, "daily");
-            this.persist();
-        } else {
-            COV(2, CL);
-            Const.GL_DEBUG && this.logDebug("not saving stats because of broken daily game.", "daily");
-        }
-        COV(3, CL);
-    }
-
-    dailyGameIsBroken() {
-        const CL = "DailyGameState.dailyGameIsBroken";
-        COV(0, CL);
-        return this.getDailyGameNumber() === Const.BROKEN_DAILY_GAME_NUMBER;
+        this.statsBlob[whichStat] = statValue;
+        Const.GL_DEBUG && this.logDebug("DailyGameState.setStat() setting and saving", whichStat, "to", statValue, "daily");
+        this.persist();
     }
 
     gameIsOld() {
@@ -783,7 +771,6 @@ class DailyGameState extends GameState{
         COV(0, CL);
         const result =
             (this.getDailyGameNumber() != Const.TEST_DAILY_GAME_NUMBER) &&
-            (!this.dailyGameIsBroken()) &&
             (this.calculateGameNumber() > this.getDailyGameNumber());
         Const.GL_DEBUG && this.logDebug("DailyGameState.gameIsOld() for dailyGameNumber", this.getDailyGameNumber(),
                 "returns", result, "daily");

@@ -72,9 +72,6 @@ class AppDisplay extends BaseLogger {
         // for testing, we keep track of the last toast displayed, if any
         this.lastToast = null;
 
-        this.showedNoDaily = false;
-        this.showNoDaily();
-
         this.updatePracticeGameStatus();
         Persistence.clearDeprecatedCookies();
     }
@@ -351,7 +348,6 @@ class AppDisplay extends BaseLogger {
         if (isNewGame) {
             COV(1, CL);
             this.showToast(Const.NEW_DAILY_GAME);
-            // this.showNoDaily();
             this.updateTaglineTarget(this.currentGameDisplay.getTargetWord());
             this.statsDisplay.refresh();
             this.statsDisplay.updateShareButton();
@@ -432,12 +428,6 @@ class AppDisplay extends BaseLogger {
         const CL = "AppDisplay.isDailyGameOver";
         COV(0, CL);
         return this.dailyGameDisplay.gameIsOver();
-    }
-
-    isDailyGameBroken() {
-        const CL = "AppDisplay.isDailyGameBroken";
-        COV(0, CL);
-        return this.dailyGameDisplay.dailyGameIsBroken();
     }
 
     // Return the given CSS property value.
@@ -548,20 +538,6 @@ class AppDisplay extends BaseLogger {
         // Now update the header tagline to include the target word.
         const targetWord = gameDisplay.getTargetWord();
         this.updateTaglineTarget(targetWord);
-    }
-
-    // Show a "no daily game" toast if we haven't already.
-    showNoDaily() {
-        const CL = "AppDisplay.showNoDaily";
-        COV(0, CL);
-        Const.GL_DEBUG && this.logDebug("AppDisplay.showNoDaily() this.showedNoDaily:", this.showedNoDaily, "dailyGameNumber():",
-                this.dailyGameDisplay.dailyGameNumber(), "display");
-        if (!this.showedNoDaily && this.dailyGameDisplay.dailyGameNumber() === Const.BROKEN_DAILY_GAME_NUMBER) {
-            COV(1, CL);
-            this.showedNoDaily = true;
-            this.showToast(Const.NO_DAILY);
-        }
-        COV(2, CL);
     }
 
     // Show a "toast" pop-up (typically an error message).

@@ -2594,7 +2594,6 @@ class Test extends BaseLogger {
             this.cookieRestartTest,
             this.changeMindOnSelectedLettersTest,
             this.displayModesTest,
-            //this.displayBrokenDailyGameToastTest,
             this.sameLetterPickedToastTest,
             this.notAWordToastTest,
             this.toastTestDailyWin,
@@ -2869,34 +2868,6 @@ class Test extends BaseLogger {
 
         soFarSoGood && this.hadNoErrors();
     }
-
-//    displayBrokenDailyGameToastTest() {
-//        this.testName = "DisplayBrokenDailyGameToast";
-//        Persistence.saveTestEpochDaysAgo(1000000); // so long ago, there is no daily game for today
-
-        // re-open the app window
-//        this.resetTheTestAppWindow();
-
-//        const appDisplay = this.getNewAppWindow().theAppDisplay;
-//        const lastToast = appDisplay.getAndClearLastToast();
-        // we should be running the broken daily game.
-//        const game = this.gameDisplay.game;
-        // We can finish the broken game; this will exercise code to NOT display the share button because game is broken
-//        this.finishTheCurrentGame();
-
-        // let's look at the share ...
-//        let statsDisplay = this.openAndGetTheStatsDisplay(),
-//            dailyShareButton = this.gameDisplay.shareButton,
-//            statsShareButton = statsDisplay.shareButton,
-//            expectedToast = appDisplay.getToast(Const.NO_DAILY);
-
-//        this.verify(game.dailyGameIsBroken(), "Expected broken daily game") &&
-//            this.verify(game.isWinner(), "Expected game to be winner") &&
-//            this.verifyEqual(dailyShareButton.hasAttribute('disabled'), true, "daily game screen share button has 'disabled' attribute.") &&
-//            this.verifyEqual(statsShareButton.hasAttribute('disabled'), true, "stats screen share button has 'disabled' attribute.") &&
-//            this.verifyEqual(lastToast, expectedToast, "last toast") &&
-//            this.hadNoErrors();
-//    }
 
     // a test that makes 0, 1, or 2 errors depending on which iteration
     // See multiGameStatsTest for how we make the multiple games appear to be a winning streak by

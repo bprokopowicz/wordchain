@@ -147,7 +147,7 @@ class StatsDisplay extends AuxiliaryDisplay {
     updateShareButton() {
         const CL = "StatsDisplay.updateShareButton";
         COV(0, CL);
-        if (! this.appDisplay.isDailyGameOver() || this.appDisplay.isDailyGameBroken()) {
+        if (! this.appDisplay.isDailyGameOver()) {
             COV(1, CL);
             ElementUtilities.disableButton(this.shareButton);
         } else {
