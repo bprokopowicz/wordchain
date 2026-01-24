@@ -358,7 +358,8 @@ class AppDisplay extends BaseLogger {
         if (isNewGame) {
             COV(1, CL);
             this.showToast(Const.NEW_DAILY_GAME);
-            this.showNoDaily();
+            // this.showNoDaily();
+            this.updateTaglineTarget(this.currentGameDisplay.getTargetWord());
             this.statsDisplay.refresh();
             this.statsDisplay.updateShareButton();
             this.resetPracticeGameCounter();

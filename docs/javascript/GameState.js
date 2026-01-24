@@ -559,11 +559,6 @@ class DailyGameState extends GameState{
     setBaseTimestamp() {
         const CL = "DailyGameState.setBaseTimestamp";
         COV(0, CL);
-        if (this.baseTimestamp != null) {
-            COV(1, CL);
-            // already set
-            return;
-        }
         this.baseDate = Const.WORD_CHAIN_EPOCH_DATE;
 
         // Are we changing the number of minutes per day to make time move more quickly?
@@ -806,7 +801,7 @@ class DailyGameState extends GameState{
     calculateGameNumber() {
         const CL = "DailyGameState.calculateGameNumber";
         COV(0, CL);
-        this.setBaseTimestamp();  // only updates on the first call
+        this.setBaseTimestamp();
         const nowTimestamp = (new Date()).getTime();
         const msElapsed = nowTimestamp - this.baseTimestamp;
         const gameNumber = Math.floor(msElapsed / this.dateIncrementMs);

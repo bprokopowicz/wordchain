@@ -2566,6 +2566,7 @@ class Test extends BaseLogger {
             this.multiIncompleteGameStatsTest,
             this.dailyGameNormalFinishStatsTest,
             this.dailyGameUnfinishedRestartNextDayTest,
+            this.dailyGameUnfinishedTimeForNewGameTest,
             this.dailyGameTooManyMistakesShareTest,
             this.dailyGameEndsOnDeleteShareTest,
             this.dailyGameRestartTest,
@@ -2675,6 +2676,7 @@ class Test extends BaseLogger {
         this.deleteLetter(0);    // SHOOT -> HOOT
 
         // re-open the app window, as if it were one day later
+        // Note: the game number is the same as how many days ago the epoch is.
         const expGameNumber = Test.TEST_EPOCH_DAYS_AGO + 1;
         Persistence.saveTestEpochDaysAgo(expGameNumber);
         this.resetTheTestAppWindow();
@@ -2685,6 +2687,37 @@ class Test extends BaseLogger {
         let [expStart, expTarget] = Const.DAILY_GAMES[3].map(word => word.toUpperCase());
         this.verifyEqual(start, expStart, "After restart, start word") &&
             this.verifyEqual(target, expTarget, "After restart, target word") &&
+            this.verifyEqual(gameNumber, expGameNumber, "After restart, daily game number") &&
+            this.verifyEqual(dailyShareButton.hasAttribute('disabled'),  true, "Daily game share button has 'disabled' attribute") &&
+            this.hadNoErrors();
+    }
+
+    // start playing daily game for day 2, then change the day to day 3 and call AppDisplay.checkForNewDailyGame()
+    // to ensure the target in the header is updated, etc.
+    dailyGameUnfinishedTimeForNewGameTest() {
+        this.testName = "DailyGameUnfinishedTimeForNewGame";
+
+        // Change the "current date" to the following day.
+        // Note: the game number is the same as how many days ago the epoch is.
+        const expGameNumber = Test.TEST_EPOCH_DAYS_AGO + 1;
+        Persistence.saveTestEpochDaysAgo(expGameNumber);
+
+        const appDisplay = this.getNewAppWindow().theAppDisplay;
+        const headerDiv = appDisplay.headerDiv;
+        const headerTargetElement = headerDiv.getElementsByClassName("tagline-target")[0];
+
+        appDisplay.checkForNewDailyGame();
+
+        let gameState = this.gameDisplay.getGameState(),
+            dailyShareButton = this.gameDisplay.shareButton,
+
+            headerTarget = headerTargetElement.innerHTML;
+
+        let [start, target, gameNumber] = [gameState.start, gameState.target, gameState.dailyGameNumber];
+        let [expStart, expTarget] = Const.DAILY_GAMES[3].map(word => word.toUpperCase());
+        this.verifyEqual(start, expStart, "After restart, start word") &&
+            this.verifyEqual(target, expTarget, "After restart, target word") &&
+            this.verifyEqual(headerTarget, expTarget, "After restart, header target word") &&
             this.verifyEqual(gameNumber, expGameNumber, "After restart, daily game number") &&
             this.verifyEqual(dailyShareButton.hasAttribute('disabled'),  true, "Daily game share button has 'disabled' attribute") &&
             this.hadNoErrors();

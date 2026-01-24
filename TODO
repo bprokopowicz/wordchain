@@ -1,6 +1,11 @@
 Near Term Work
 ==============
 
+Cleanup
+-------
+Remove BROKEN_DAILY_GAME_NUMBER and all related uses.
+Rename Test.js getNewAppWindow()
+
 Analytics
 ---------
 See https://docs.google.com/document/d/1z4a-Oqyhl-naocVCGyRdQ_ermU2THR_4sYronXrN6ks/edit?usp=sharing
