@@ -3279,7 +3279,8 @@ class Test extends BaseLogger {
         const statsMockEvent = new MockEvent(statsSrcElement);
         const actShareString = statsDisplay.shareCallback(statsMockEvent);
         const expShareString = `WordChain #${Test.TEST_EPOCH_DAYS_AGO + 1} 1️⃣\nStreak: 1\nSHORT --> POOR\n🟪🟪🟪🟪🟪\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟩🟩🟩🟩\n🟧🟧🟧🟧\n🟩🟩🟩🟩\n--------------------\n🟩🟩🟩🟩\n${Const.SHARE_URL}`
-        const expectedToast = appDisplay.getToast(Const.WRONG_MOVE);
+        //const expectedToast = appDisplay.getToast(Const.WRONG_MOVE);
+        const expectedToast = null
 
         this.closeTheStatsDisplay();
 
@@ -3561,7 +3562,8 @@ class Test extends BaseLogger {
         const resultDelete2 = this.deleteLetter(2);        // LEST -> LET now change 1
         const resultI1Wrong = this.playLetter("I");        // LET -> LIT  wrong move! now change 1
         const wrongMoveToast = appDisplay.getAndClearLastToast();
-        const expectedToast = appDisplay.getToast(Const.WRONG_MOVE);
+        //const expectedToast = appDisplay.getToast(Const.WRONG_MOVE);
+        const expectedToast = null
         const resultO1 = this.playLetter("O");             // LIT -> LOT now add
         const resultInsertP0 = this.insertLetter(0, "P" ); // LOT -> PLOT now add
         const resultInsertI1 = this.insertLetter(1, "I");  // PLOT -> PILOT

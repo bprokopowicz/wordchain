@@ -697,12 +697,13 @@ class GameDisplay extends BaseLogger {
     shouldShowToastForResult(gameResult) {
         const CL = "GameDisplay.shouldShowToastForResult";
         COV(0, CL);
-        return (gameResult == Const.WRONG_MOVE) ||
-               (gameResult == Const.DODO_MOVE) ||
+        const ret =  // (gameResult == Const.WRONG_MOVE) ||
+               // (gameResult == Const.DODO_MOVE) || 
                (gameResult == Const.SCRABBLE_MOVE) ||
                (gameResult == Const.NOT_A_WORD) ||
                (gameResult == Const.PICK_NEW_LETTER) ||
                (gameResult == Const.GENIUS_MOVE);
+        return ret;
     }
 
     showGameOverToast() {

@@ -36,14 +36,18 @@
 
     /* ===== Cells ===== */
     --colorblind-good-bg-light:         #5f99e4;    /* blue */
-    --colorblind-bad-bg-light:          #ff9920;    /* orange */
+    /* --colorblind-bad-bg-light:          #ff9920;    /* orange */
+    --colorblind-bad-bg-light:          #5f99e4;    /* blue */
     --colorblind-genius-bg-light:       #f0ce15;    /* gold */
-    --colorblind-dodo-bg-light:         #ff9920;    /* orange */
+    /* --colorblind-dodo-bg-light:         #ff9920;    /* orange */
+    --colorblind-dodo-bg-light:         #5f99e4;    /* blue */
     --colorblind-shown-bg-light:        #9c9ea0;    /* gray */
     --non-colorblind-good-bg-light:     #85daac;    /* green */
-    --non-colorblind-bad-bg-light:      #ff9920;    /* orange; was red */
+    /* --non-colorblind-bad-bg-light:      #ff9920;    /* orange; was red */
+    --non-colorblind-bad-bg-light:      #85daac;    /* green */
     --non-colorblind-genius-bg-light:   #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-light:     #ff9920;    /* orange; was red */
+    /* --non-colorblind-dodo-bg-light:     #ff9920;    /* orange; was red */
+    --non-colorblind-dodo-bg-light:     #85daac;    /* green */
     --non-colorblind-shown-bg-light:    #9c9ea0;    /* gray */
 
     /*
@@ -52,14 +56,18 @@
 
     /* ===== Cells ===== */
     --colorblind-good-bg-dark:          #2d7be1;    /* blue */
-    --colorblind-bad-bg-dark:           #d58b04;    /* orange */
+    /*--colorblind-bad-bg-dark:           #d58b04;    /* orange */
+    --colorblind-bad-bg-dark:           #2d7be1;    /* blue */
     --colorblind-genius-bg-dark:        #f0ce15;    /* gold */
-    --colorblind-dodo-bg-dark :         #d58b04;    /* orange */
+    /*--colorblind-dodo-bg-dark :         #d58b04;    /* orange */
+    --colorblind-dodo-bg-dark :         #2d7be1;    /* blue */
     --colorblind-shown-bg-dark:         #9c9ea0;    /* gray */
     --non-colorblind-good-bg-dark:      #28c128;    /* green */
-    --non-colorblind-bad-bg-dark:       #d58b04;    /* orange; was red */
+    /*--non-colorblind-bad-bg-dark:       #d58b04;    /* orange; was red */
+    --non-colorblind-bad-bg-dark:       #28c128;    /* green */
     --non-colorblind-genius-bg-dark:    #f0ce15;    /* gold */
-    --non-colorblind-dodo-bg-dark :     #d58b04;    /* orange; was red */
+    /*--non-colorblind-dodo-bg-dark :     #d58b04;    /* orange; was red */
+    --non-colorblind-dodo-bg-dark :     #28c128;    /* green */
     --non-colorblind-shown-bg-dark:     #9c9ea0;    /* gray */
 }
 
