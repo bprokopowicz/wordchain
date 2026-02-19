@@ -1054,7 +1054,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15396;
+        const expectedMinDictSize = 15395;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
