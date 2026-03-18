@@ -2,7 +2,7 @@
   "dependencies": {
     "css-loader": "^7.1.2",
     "style-loader": "^4.0.0",
-    "webpack": "^5.97.1",
-    "webpack-obfuscator": "^3.5.1"
+    "webpack": "^5.105.4",
+    "webpack-obfuscator": "^3.6.0"
   }
 }
