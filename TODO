@@ -1,11 +1,6 @@
 Near Term Work
 ==============
 
-a bug in puzzle finder?
-starting with 'sing' finds many puzzles.
-Starting with finger does not.  But finger -> singer -> singe -> sing
-try starting with 'finger'  
-
 Cleanup
 -------
 Rename Test.js getNewAppWindow()
