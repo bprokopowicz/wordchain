@@ -99,11 +99,11 @@ class Solver {
         COV(0, CL);
         startWord = startWord.toUpperCase();
         Const.GL_DEBUG && Solver.logger.logDebug("looking for puzzles starting with ", startWord,
-        "ending with a", targetWordLen, "-length word", "solver");
+        "ending with a", targetWordLen, "-length word", "finder");
         let localDictionary = dict.copy();
         let desiredPuzzles = [];
         if (!localDictionary.isWord(startWord)) {
-            console.error("Solver.findPuzzles():", startWord, "is not a word.", "solver");
+            console.error("Solver.findPuzzles():", startWord, "is not a word.", "finder");
             return desiredPuzzles;
         }
         // search forever until all suitable puzzles are found
@@ -112,17 +112,17 @@ class Solver {
         listOfPossiblePuzzles.push(firstPuzzle);
         while (listOfPossiblePuzzles.length > 0) {
             let puzzle = listOfPossiblePuzzles.shift();
-            Const.GL_DEBUG && Solver.logger.logDebug("looking at puzzle ", puzzle, "solver-details");
-            puzzle.target=puzzle.getLastWord();
+            Const.GL_DEBUG && Solver.logger.logDebug("looking at puzzle ", puzzle, "finder");
+            puzzle.target=puzzle.getLastWord();  // does not include target.  Initially, this is just startword->startword
             // must use dict, not local copy, since we are deleting words as we search the tree of solutions
             if (Solver.isDesired(dict, puzzle, targetWordLen, wordLen1, wordLen2, minWords, maxWords, minDifficulty, minChoicesPerStep, minChoicesFromTarget)) {
                 COV(1, CL);
-                Const.GL_DEBUG && Solver.logger.logDebug("found suitable puzzle ", puzzle, "solver");
+                Const.GL_DEBUG && Solver.logger.logDebug("found suitable puzzle ", puzzle, "finder");
                 desiredPuzzles.push(puzzle);
             }
-            // keep looking if not too long already
             if (puzzle.numWords() < maxWords) {
                 COV(2, CL);
+                puzzle.target = "dummy-end"  // for debugging clarity, set the target back to an unreachable word
                 let nextWords = localDictionary.findNextWords(puzzle.getLastWord());
                 for (let nextWord of nextWords) {
                     localDictionary.removeWord(nextWord);
