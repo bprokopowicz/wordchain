@@ -57,9 +57,7 @@ class Solver {
 
             for (let word of nextWords) {
                 workingDict.removeWord(word);
-                let moveRating = Const.GOOD_MOVE;
-                let isPlayed = false;
-                let newWorkingSolution = solution.copy().addWord(word, isPlayed, moveRating);
+                let newWorkingSolution = solution.copy().addWord(word);
                 Const.GL_DEBUG && Solver.logger.logDebug("   checking ", newWorkingSolution, "solver-details");
                 if (newWorkingSolution.isSolved()) {
                     COV(3, CL);
@@ -122,14 +120,13 @@ class Solver {
             }
             if (puzzle.numWords() < maxWords) {
                 COV(2, CL);
+                puzzle = puzzle.copy();      // don't adjust the puzzle as already added to desiredPuzzles
                 puzzle.target = "dummy-end"  // for debugging clarity, set the target back to an unreachable word
                 let nextWords = localDictionary.findNextWords(puzzle.getLastWord());
                 for (let nextWord of nextWords) {
                     localDictionary.removeWord(nextWord);
                     let newPuzzle = puzzle.copy();
-                    let moveRating = Const.GOOD_MOVE;
-                    let isPlayed = false;
-                    newPuzzle.addWord(nextWord, isPlayed, moveRating);
+                    newPuzzle.addWord(nextWord);
                     listOfPossiblePuzzles.push(newPuzzle);
                 }
            }
@@ -154,28 +151,33 @@ class Solver {
             COV(2, CL);
             return false;
         }
-        if (!puzzle.hasWordOfLength(wordLen1)) {
+        // filter out illegal words, which might be found in testing or findPuzzles
+        if (puzzle.getTarget().length > Const.MAX_WORD_LENGTH) {
             COV(3, CL);
             return false;
         }
-        if (!puzzle.hasWordOfLength(wordLen2)) {
+        if (!puzzle.hasWordOfLength(wordLen1)) {
             COV(4, CL);
+            return false;
+        }
+        if (!puzzle.hasWordOfLength(wordLen2)) {
+            COV(5, CL);
             return false;
         }
         puzzle.calculateDifficulty(dictionary);
         if (puzzle.difficulty < minDifficulty) {
-            COV(5, CL);
-            return false;
-        }
-        if (puzzle.nChoicesEasiestStep < minChoices) {
             COV(6, CL);
             return false;
         }
-        if (puzzle.nChoicesFromTarget < minChoicesFromTarget) {
+        if (puzzle.nChoicesEasiestStep < minChoices) {
             COV(7, CL);
             return false;
         }
-        COV(8, CL);
+        if (puzzle.nChoicesFromTarget < minChoicesFromTarget) {
+            COV(8, CL);
+            return false;
+        }
+        COV(9, CL);
         return true;
     }
 
