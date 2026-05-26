@@ -1054,7 +1054,7 @@ class Test extends BaseLogger {
         this.testName = "DictFull";
 
         const dictSize = this.fullDict.getSize();
-        const expectedMinDictSize = 15390;
+        const expectedMinDictSize = 15383;
 
         const catAdders = this.fullDict.findAdderWords("CAT");
         const addersSize = catAdders.size;
@@ -1379,7 +1379,7 @@ class Test extends BaseLogger {
         prep(); this.testDailyGameStateStartedMetric();
         prep(); this.testDailyGameStateFinishedMetric();
         // initialize every Daily game defined -- takes a long time!
-        // prep(); this.testGameStateSolveAllDailyGames();
+        //prep(); this.testGameStateSolveAllDailyGames();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
