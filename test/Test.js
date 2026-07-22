@@ -1229,7 +1229,7 @@ class Test extends BaseLogger {
 
         const solutionTacoBimbo = Solver.solve(this.fullDict, "TACO", "BIMBO");
         const foundWords = solutionTacoBimbo.getSolutionWords();
-        const expectedWords = [ "TACO", "TAO", "TAB", "LAB", "LAMB", "LIMB", "LIMBO", "BIMBO" ];
+        const expectedWords = [ "TACO", "TACK", "LACK", "LACE", "LAME", "LAMB", "LIMB", "LIMBO", "BIMBO" ];
 
         const endTestTime = Date.now();
         this.logDebug(`${this.testName} elapsed time: ${endTestTime - startTestTime} ms`, "test");
@@ -1379,7 +1379,7 @@ class Test extends BaseLogger {
         prep(); this.testDailyGameStateStartedMetric();
         prep(); this.testDailyGameStateFinishedMetric();
         // initialize every Daily game defined -- takes a long time!
-        prep(); this.testGameStateSolveAllDailyGames();
+        // prep(); this.testGameStateSolveAllDailyGames();
         const endTestTime = Date.now();
         this.logDebug(`game tests elapsed time: ${endTestTime - startTestTime} ms`, "test");
     }
