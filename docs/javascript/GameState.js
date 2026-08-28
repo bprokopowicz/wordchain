@@ -462,13 +462,6 @@ class DailyGameState extends GameState{
                     dailyGameNumber, "start", start, "target", target, "gameState");
         } else {
             COV(2, CL);
-            // Valid daily game numbers run from 0 to GameWords.length-1.  If the calculated
-            // value is outside that range, we replay an earlier game based on the 1-365 day of the year.
-            if (dailyGameNumber >= Const.DAILY_GAMES.length) {
-                COV(3, CL);
-                Const.GL_DEBUG && this.logDebug("dailyGameNumber:", dailyGameNumber, "is bigger than", Const.DAILY_GAMES.length, ". Using fail-safe game number", "gameState");
-                dailyGameNumber = this.calculateFailSafeGameNumber();
-            }
             [start, target] = Const.DAILY_GAMES[dailyGameNumber];
         }
         COV(4, CL);
@@ -791,10 +784,18 @@ class DailyGameState extends GameState{
         this.setBaseTimestamp();
         const nowTimestamp = (new Date()).getTime();
         const msElapsed = nowTimestamp - this.baseTimestamp;
-        const gameNumber = Math.floor(msElapsed / this.dateIncrementMs);
+        var gameNumber = Math.floor(msElapsed / this.dateIncrementMs);
         Const.GL_DEBUG && this.logDebug("calculateGameNumber(): base: ",
                 this.baseTimestamp, "now:", nowTimestamp, ", elapsed since base:",
                 msElapsed, ",gameNumber:", gameNumber, "daily");
+
+        // Valid daily game numbers run from 0 to GameWords.length-1.  If the calculated
+        // value is outside that range, we replay an earlier game based on the 1-365 day of the year.
+        if (gameNumber >= Const.DAILY_GAMES.length) {
+            COV(3, CL);
+            Const.GL_DEBUG && this.logDebug("dailyGameNumber:", gameNumber, "is bigger than", Const.DAILY_GAMES.length, ". Using fail-safe game number", "gameState");
+            gameNumber = this.calculateFailSafeGameNumber();
+        }
         return gameNumber;
     }
 
