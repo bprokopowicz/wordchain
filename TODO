@@ -1,6 +1,8 @@
 Near Term Work
 ==============
 
+add a button on test page for Test All Daily Games instead of editing Test.js
+
 Cleanup
 -------
 Rename Test.js getNewAppWindow()
