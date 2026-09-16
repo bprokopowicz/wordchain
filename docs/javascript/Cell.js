@@ -43,7 +43,7 @@ class ActionCell extends Cell {
             COV(1, CL);
             // Class outer-cell ensures that the deletion button takes as much
             // space as a letter so it is properly centered underneath the letter.
-            this.outerCellContainer = ElementUtilities.createElement("div", {class: 'circle outer-cell action-outer-cell'});
+            this.outerCellContainer = ElementUtilities.createElement("div", document, {class: 'circle outer-cell action-outer-cell'});
             this.cellContainer = ElementUtilities.addElementTo("div", this.outerCellContainer);
             addButtonTo = this.cellContainer;
 
@@ -51,7 +51,7 @@ class ActionCell extends Cell {
             COV(2, CL);
             // No outer/inner cell for the addition buttons -- we want them
             // to be narrower so as not to use so much real estate.
-            this.outerCellContainer = ElementUtilities.createElement("div");
+            this.outerCellContainer = ElementUtilities.createElement("div", document);
             addButtonTo = this.outerCellContainer;
         }
 
@@ -113,7 +113,7 @@ class LetterCell extends Cell {
         // the latter indicating a current or future change move. The transparent
         // and thick borders are the same width, enabling all the cells to line
         // up properly in the grid, regardless of whether they indicate a change.
-        this.outerCellContainer = ElementUtilities.createElement("div", {class: "circle outer-cell letter-outer-cell"});
+        this.outerCellContainer = ElementUtilities.createElement("div", document, {class: "circle outer-cell letter-outer-cell"});
 
         this.cellContainer = ElementUtilities.addElementTo("div", this.outerCellContainer, {class: "circle letter-cell"});
         this.cellContents = ElementUtilities.addElementTo("div", this.cellContainer, {}, this.letter);

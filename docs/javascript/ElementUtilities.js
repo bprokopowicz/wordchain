@@ -54,13 +54,15 @@ class ElementUtilities {
         return (classes.indexOf(className) >= 0);
     }
 
+/*
     static addElement(elementType, attributes=null, innerHTML=null) {
         const CL = "ElementUtilities.addElement";
         COV(0, CL);
-        return ElementUtilities.addElementTo(elementType, document.body, attributes, innerHTML);
+        return ElementUtilities.addElementTo(elementType, doc.body, attributes, innerHTML);
     }
+*/
 
-    static addElementTo(elementType, parent, attributes=null, innerHTML=null) {
+    static addElementTo(elementType, parent, attributes=null, innerHTML=null, doc=document) {
         const CL = "ElementUtilities.addElementTo";
         COV(0, CL);
         let element;
@@ -68,7 +70,7 @@ class ElementUtilities {
         // If it's an object, assume the element we're adding has already been created and just append it.
         if (typeof elementType === "string") {
             COV(1, CL);
-            element = ElementUtilities.createElement(elementType, attributes, innerHTML)
+            element = ElementUtilities.createElement(elementType, doc, attributes, innerHTML)
         } else {
             COV(2, CL);
             element = elementType;
@@ -80,7 +82,7 @@ class ElementUtilities {
         return element;
     }
 
-    static createElement(elementType, attributes=null, innerHTML=null) {
+    static createElement(elementType, doc, attributes=null, innerHTML=null) {
         const CL = "ElementUtilities.createElement";
         COV(0, CL);
         const svgElements = ["svg", "path"];
@@ -88,10 +90,10 @@ class ElementUtilities {
         let element;
         if (svgElements.includes(elementType)) {
             COV(1, CL);
-            element = document.createElementNS("http://www.w3.org/2000/svg", elementType);
+            element = doc.createElementNS("http://www.w3.org/2000/svg", elementType);
         } else {
             COV(2, CL);
-            element = document.createElement(elementType);
+            element = doc.createElement(elementType);
         }
 
         for (let attribute in attributes) {
@@ -131,8 +133,8 @@ class ElementUtilities {
     }
 
     // Used only in Test.js
-    static getElement(elementId, mustExist=true) {
-        const element = document.getElementById(elementId);
+    static getElement(elementId, doc, mustExist=true) {
+        const element = doc.getElementById(elementId);
         if (mustExist && !element) {
             throw new Error(`ElementUtilities.getElement(): no element with id ${elementId}`);
         }
@@ -140,8 +142,8 @@ class ElementUtilities {
     }
 
     // Used only in Test.js.
-    static getElementValue(elementId) {
-        const element = ElementUtilities.getElement(elementId);
+    static getElementValue(elementId, doc) {
+        const element = ElementUtilities.getElement(elementId, doc);
         return element.value;
     }
 
@@ -277,9 +279,9 @@ class ElementUtilities {
         ElementUtilities.setButtonCallback(element, callbackObj, callbackFunc);
     }
 
-    // Used only in Test.js.
+    // Used only in Test.js. for laying out the test page itself.  Global 'document' is valid.
     static setElementHTML(elementId, elementHTML) {
-        const element = ElementUtilities.getElement(elementId);
+        const element = ElementUtilities.getElement(elementId, document);
         element.innerHTML = elementHTML;
     }
 

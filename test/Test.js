@@ -8,6 +8,7 @@ import { Cookie } from '../docs/javascript/Cookie.js';
 import { Metrics } from '../docs/javascript/Metrics.js';
 import { Persistence } from '../docs/javascript/Persistence.js';
 import { DailyGameDisplay, PracticeGameDisplay } from '../docs/javascript/GameDisplay.js'
+import { Keyboard } from '../docs/javascript/Keyboard.js'
 import * as Const from '../docs/javascript/Const.js';
 import { showCoverage, clearCoverage, getCounters, setCoverage, isCoverageOn } from '../docs/javascript/Coverage.js';
 
@@ -113,8 +114,17 @@ class Test extends BaseLogger {
         return Test.singletonObject;
     }
 
+/*
+    ElementUtilities
+        addElementTo (parent-container, document) calls EU.createElement(document) and parent.appendChild() used widely in app code, Test.js
+        createElement(.., doc) calls document.createElement()  Used in Cell.js, ElementUtilities.addElementTo()
+        getElement(id, document) - Test.js only
+        setElementHTML(id, document, html) - Test.js only
+        setElementText(element, txt) - does not use globals
+*/
+
     display() {
-        this.outerDiv = ElementUtilities.addElement("div", {style: "margin: 2rem;"});
+        this.outerDiv = ElementUtilities.addElementTo("div", document.body, {style: "margin: 2rem;"});
         this.displayTestSuite();
         this.displayCookies();
         this.displayDictTester();
@@ -170,6 +180,7 @@ class Test extends BaseLogger {
             runSolver        = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runSolver",       class: "testButton" }, "Run Solver Tests"),
             runGameState     = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGameState",    class: "testButton" }, "Run Game State Tests"),
             runGame          = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runGame",         class: "testButton" }, "Run Game Tests"),
+            runKeyboard      = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runKeyboard",     class: "testButton" }, "Run Keyboard Tests"),
             runApp           = ElementUtilities.addElementTo("button", this.outerDiv, {id: "runApp",          class: "testButton" }, "Run App Tests"),
             _unused          = ElementUtilities.addElementTo("br", this.outerDiv),
             debuggingOn      = ElementUtilities.addElementTo("button", this.outerDiv, {id: "debuggingOn",    class: "testButton" }, "Debugging On"),
@@ -184,7 +195,7 @@ class Test extends BaseLogger {
             ElementUtilities.addElementTo("p", this.outerDiv);
 
 
-        for (let button of [runAll, runDict, runSolver, runGameState, runGame, runApp, runSelectedTest,
+        for (let button of [runAll, runDict, runSolver, runGameState, runGame, runKeyboard, runApp, runSelectedTest,
                 showCoverage, clearCoverage, coverageOn, coverageOff, debuggingOn, debuggingOff]) {
             ElementUtilities.setButtonCallback(button, this, this.runTestsCallback);
         }
@@ -252,6 +263,9 @@ class Test extends BaseLogger {
             if (buttonId == "runAll" || buttonId == "runGame") {
                 this.runGameTests();
             }
+            if (buttonId == "runAll" || buttonId == "runKeyboard") {
+                this.runKeyboardTests();
+            }
             if (buttonId == "runAll" || buttonId == "runApp") {
                 // runAppTests() will run all the functions in this.appTestList.
                 this.appTestList = this.getAppTests();
@@ -264,7 +278,7 @@ class Test extends BaseLogger {
             // The App tests (runAll, runApp, runSelectedTest) will show the results themselves when those tests finish.
             // Otherwise, we show them now.  This will apply to any synchronous tests (dict, solver, game, gameState)
 
-            if ( buttonId == "runDict" || buttonId == "runSolver" || buttonId == "runGame" || buttonId == "runGameState") {
+            if ( buttonId == "runDict" || buttonId == "runSolver" || buttonId == "runGame" || buttonId == "runGameState" || buttonId == "runKeyboard") {
                 this.showResults();
             }
         }
@@ -453,6 +467,47 @@ class Test extends BaseLogger {
         return differences;
     }
 
+    /*
+    ** Keyboard Testing Framework
+    */
+
+
+    getKeyboardWindow() {
+        return this.keyboardWindow
+    }
+
+    openTheTestKeyboardWindow() {
+        if (!this.getKeyboardWindow()) {
+            const url = ""
+            const windowFeatures = "width=300,height=400";
+            const windowName = "KeyboardTest";
+            this.keyboardWindow = window.open(url, windowName, windowFeatures);
+            const rootDiv = ElementUtilities.addElementTo("div", this.keyboardWindow.document.body);
+            // Set up the keyboard in the new window.
+            this.keyboard = new Keyboard(rootDiv);
+        }
+    }
+        
+    closeTheTestKeyboardWindow() {
+        if (this.keyboardWindow) {
+            this.keyboardWindow.close();
+            this.keyboardWindow = null;
+        }
+    }
+
+    runKeyboardTests() {
+        const startTestTime = Date.now();
+        this.testKeyboardConstructor();
+    }
+
+    testKeyboardConstructor() {
+        this.openTheTestKeyboardWindow();
+        this.verify(this.keyboard != null, "keyboard is null") &&
+            this.hadNoErrors();
+        //this.closeTheTestKeyboardWindow();
+    }
+        
+        
     /*
     ** App Testing Framework
     */
