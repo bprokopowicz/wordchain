@@ -1,6 +1,17 @@
 Near Term Work
 ==============
 
+Add instructions for manual deployment.
+    delete everything in public_html at hostinger using file manager
+    build.sh -d to build locally for release.  Check out the new prod branch
+    using file manager, upload into public_html/
+        docs
+        dist
+        test
+        all top-level files 
+
+look to see what files and directories can be accessed by HTTP at hostinger.  E.g. the source code.
+
 add a button on test page for Test All Daily Games instead of editing Test.js
 
 Cleanup
