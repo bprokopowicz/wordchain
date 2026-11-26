@@ -10,6 +10,13 @@ Add instructions for manual deployment.
         test
         all top-level files 
 
+REDOCUMENT HOSTINGER - the instructions are out of date.
+
+1) disconnect from repository.  Advanced -> git -> Disconnect repository
+2) then it will give you a page where you can reconnect.  
+    first choose wordchain as the repo to connect (not couch or other repos)
+    then select the branch to deploy.  There is a pull-down now; no need to type or copy-paste the prod branch.
+
 look to see what files and directories can be accessed by HTTP at hostinger.  E.g. the source code.
 
 add a button on test page for Test All Daily Games instead of editing Test.js
